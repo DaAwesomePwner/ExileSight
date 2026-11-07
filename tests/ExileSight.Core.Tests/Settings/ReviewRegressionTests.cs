@@ -91,7 +91,7 @@ public sealed class ReviewRegressionTests : IDisposable
     public void FutureCatalogListsReadableProfilesAndRefusesWrites()
     {
         Seed(Path.Combine(Paths.GetSettingsDirectory("poe1"), "profiles.json"),
-            """{"schemaVersion":99,"activeProfileId":"default","profiles":[{"id":"default","name":"Existing"}]}""");
+            """{"schemaVersion":99,"game":1,"activeProfileId":"default","profiles":[{"id":"default","name":"Existing"}]}""");
         using var store = new ProfileStore(Paths, Game.PoE1);
         Assert.True(store.IsReadOnlyNewerSchema);
         Assert.Equal("Existing", Assert.Single(store.Profiles).Name);

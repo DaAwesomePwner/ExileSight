@@ -7,9 +7,11 @@ internal sealed class RootedFiles
     private readonly string originalRoot;
     private readonly string root;
     private readonly Action<string, string, string?> replace;
+    private readonly Action<Stream, byte[]> write;
 
-    public RootedFiles(string root, Action<string, string, string?>? replace = null)
+    public RootedFiles(string root, Action<string, string, string?>? replace = null, Action<Stream, byte[]>? write = null)
     {
+        this.write = write ?? ((stream, bytes) => stream.Write(bytes));
         originalRoot = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root));
         this.root = ResolveRoot(originalRoot);
         this.replace = replace ?? ((source, destination, backup) => File.Replace(source, destination, backup));
@@ -44,13 +46,16 @@ internal sealed class RootedFiles
         Directory.CreateDirectory(Check(Path.GetDirectoryName(path)!));
         var temporary = Check(path + "." + Guid.NewGuid().ToString("N") + ".tmp");
         var backup = Check(path + ".bak");
+        var complete = false;
         try
         {
             using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
-                stream.Write(bytes);
+                write(stream, bytes);
                 stream.Flush(true);
             }
+            complete = File.ReadAllBytes(Check(temporary)).AsSpan().SequenceEqual(bytes);
+            if (!complete) throw new IOException("Temporary settings write was incomplete.");
             Check(path);
             if (File.Exists(path)) replace(temporary, path, rotateBackup ? backup : null);
             else File.Move(temporary, path);
@@ -63,8 +68,10 @@ internal sealed class RootedFiles
             {
                 try
                 {
-                    if (File.Exists(Check(backup))) File.Copy(backup, path);
-                    else if (File.Exists(Check(temporary))) File.Move(temporary, path);
+                    if (rotateBackup && File.Exists(Check(backup))) File.Copy(backup, path);
+                    else if (complete && File.Exists(Check(temporary)) &&
+                        File.ReadAllBytes(temporary).AsSpan().SequenceEqual(bytes))
+                        File.Move(temporary, path);
                 }
                 catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
             }

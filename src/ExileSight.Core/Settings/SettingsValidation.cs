@@ -4,8 +4,10 @@ namespace ExileSight.Core.Settings;
 
 internal static class SettingsValidation
 {
-    public static void Validate(VersionedDocument document)
+    public static void Validate(VersionedDocument document, Games.Game? expectedGame = null)
     {
+        if (expectedGame is not null && document.Game != expectedGame)
+            throw new JsonException("Missing, null, or mismatched game for the requested settings.");
         if (document.Game is { } game && !Enum.IsDefined(game)) throw new JsonException("Invalid game value.");
         if (document is SettingsDocument s)
         {
@@ -38,6 +40,23 @@ internal static class SettingsValidation
             binding.Enabled = false;
             var warning = $"Binding '{binding.Id}' disabled: unknown action kind {binding.Action}.";
             if (!warnings.Contains(warning)) warnings.Add(warning);
+        }
+    }
+
+    /// <summary>Unknown bindings cannot be edited safely by this version. Preserve their stored
+    /// enabled flag and action kind by ID even when a runtime snapshot is written back wholesale.
+    /// Remove the old ID to replace such a binding; unrelated binding edits remain available.</summary>
+    public static void PreserveUnknownBindings(VersionedDocument stored, VersionedDocument candidate)
+    {
+        if (stored is not SettingsDocument original || candidate is not SettingsDocument updated ||
+            updated.Hotkeys is null) return;
+        var unknown = original.Hotkeys.Where(x => x.Action is { } action && !Enum.IsDefined(action))
+            .ToDictionary(x => x.Id, StringComparer.OrdinalIgnoreCase);
+        foreach (var binding in updated.Hotkeys)
+        {
+            if (binding is null || binding.Id is null || !unknown.TryGetValue(binding.Id, out var previous)) continue;
+            binding.Enabled = previous.Enabled;
+            binding.Action = previous.Action;
         }
     }
 

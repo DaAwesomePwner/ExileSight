@@ -3,6 +3,13 @@ using System.Text.Json.Nodes;
 
 namespace ExileSight.Core.Settings;
 
+/// <summary>An expected data problem in an older document. The store preserves that file and
+/// tries its backup. JsonException has the same recovery behavior. Other exceptions indicate bugs:
+/// they propagate before any file mutation, leaving the original main and backup untouched.</summary>
+public sealed class MigrationValidationException(string message) : Exception(message);
+
+/// <summary>Signal invalid source data with JsonException or MigrationValidationException only.
+/// Programming errors must propagate; migrations operate on detached JSON, never on files.</summary>
 public interface IMigration
 {
     int FromVersion { get; }

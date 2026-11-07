@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ExileSight.Core.Games;
 using System.Diagnostics;
 using System.Text.Json.Serialization.Metadata;
 using ExileSight.Platform.Abstractions.Storage;
@@ -15,6 +16,7 @@ public sealed class JsonSettingsStore<T> : ISettingsStore<T> where T : Versioned
     private readonly string path;
     private readonly JsonTypeInfo<T> typeInfo;
     private readonly MigrationPipeline migrations;
+    private readonly Game? expectedGame;
     private readonly TimeSpan debounce;
     private readonly Timer timer;
     private readonly List<string> warnings = [];
@@ -26,17 +28,20 @@ public sealed class JsonSettingsStore<T> : ISettingsStore<T> where T : Versioned
     private static readonly TimeSpan MaximumWait = TimeSpan.FromSeconds(2);
 
     public JsonSettingsStore(IAppPaths paths, string path, JsonTypeInfo<T> typeInfo, Func<T> defaults,
-        MigrationPipeline? migrations = null, TimeSpan? debounce = null, Action<string, string, string?>? replaceOperation = null)
+        MigrationPipeline? migrations = null, TimeSpan? debounce = null, Action<string, string, string?>? replaceOperation = null,
+        Game? expectedGame = null, Action<Stream, byte[]>? temporaryWriteOperation = null)
     {
-        files = new(paths.RootDirectory, replaceOperation);
+        files = new(paths.RootDirectory, replaceOperation, temporaryWriteOperation);
+        this.expectedGame = expectedGame;
         this.path = files.Check(path);
         this.typeInfo = typeInfo;
         this.migrations = migrations ?? new();
         this.debounce = debounce ?? TimeSpan.FromMilliseconds(250);
         if (this.debounce < TimeSpan.Zero || this.debounce.TotalMilliseconds > uint.MaxValue - 1)
             throw new ArgumentOutOfRangeException(nameof(debounce));
-        var loaded = new SettingsReader<T>(files, this.path, typeInfo, this.migrations, warnings).Load(defaults);
+        var loaded = new SettingsReader<T>(files, this.path, typeInfo, this.migrations, warnings, expectedGame).Load(defaults);
         document = loaded.Value;
+        SettingsValidation.DisableUnknownBindings(Clone(document), warnings);
         IsReadOnly = loaded.ReadOnly;
         dirty = loaded.Dirty;
         rotateBackup = loaded.RotateBackup;
@@ -48,7 +53,21 @@ public sealed class JsonSettingsStore<T> : ISettingsStore<T> where T : Versioned
     public bool IsReadOnly { get; private set; }
     public bool IsReadOnlyNewerSchema => IsReadOnly;
     public IReadOnlyList<string> Warnings { get { lock (sync) return warnings.ToArray(); } }
-    public T Snapshot { get { lock (sync) { ThrowIfDisposed(); return Clone(document); } } }
+    /// <summary>Runtime view: unknown actions are disabled only in this detached snapshot.
+    /// Update edits the persisted configuration, retaining unknown action kinds and enabled flags.</summary>
+    public T Snapshot
+    {
+        get
+        {
+            lock (sync)
+            {
+                ThrowIfDisposed();
+                var snapshot = Clone(document);
+                SettingsValidation.DisableUnknownBindings(snapshot, warnings);
+                return snapshot;
+            }
+        }
+    }
     public event EventHandler<SettingsChangedEventArgs>? Changed;
 
     public void Update(string section, Action<T> update)
@@ -62,8 +81,9 @@ public sealed class JsonSettingsStore<T> : ISettingsStore<T> where T : Versioned
             var candidate = Clone(document);
             update(candidate);
             candidate.SchemaVersion = migrations.CurrentVersion;
-            SettingsValidation.Validate(candidate);
-            SettingsValidation.DisableUnknownBindings(candidate, warnings);
+            SettingsValidation.PreserveUnknownBindings(document, candidate);
+            SettingsValidation.Validate(candidate, expectedGame);
+            SettingsValidation.DisableUnknownBindings(Clone(candidate), warnings);
             document = Clone(candidate); // Caller cannot retain a live mutable reference.
             dirty = true;
             ScheduleSave();

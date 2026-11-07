@@ -10,18 +10,20 @@ public sealed class ProfileStore : IProfileStore
 {
     private readonly object sync = new();
     private readonly IAppPaths paths;
+    private readonly Game game;
     private readonly string directory;
     private readonly JsonSettingsStore<ProfileCatalog> catalog;
 
     public ProfileStore(IAppPaths paths, Game game)
     {
         this.paths = paths;
+        this.game = game;
         directory = paths.GetSettingsDirectory(game switch
         {
             Game.PoE1 => "poe1", Game.PoE2 => "poe2",
             _ => throw new ArgumentOutOfRangeException(nameof(game))
         });
-        catalog = new(paths, Path.Combine(directory, "profiles.json"), SettingsJsonContext.Default.ProfileCatalog, () => new() { Game = game });
+        catalog = new(paths, Path.Combine(directory, "profiles.json"), SettingsJsonContext.Default.ProfileCatalog, () => new() { Game = game }, expectedGame: game);
     }
 
     public IReadOnlyList<ProfileInfo> Profiles => catalog.Snapshot.Profiles.ToArray();
@@ -41,7 +43,7 @@ public sealed class ProfileStore : IProfileStore
     }
 
     private JsonSettingsStore<SettingsDocument> OpenDocument(string id) =>
-        new(paths, Path.Combine(directory, id + ".json"), SettingsJsonContext.Default.SettingsDocument, () => new());
+        new(paths, Path.Combine(directory, id + ".json"), SettingsJsonContext.Default.SettingsDocument, () => new() { Game = game }, expectedGame: game);
 
     public string Create(string name)
     {

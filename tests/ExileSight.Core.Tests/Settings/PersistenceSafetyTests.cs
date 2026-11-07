@@ -47,13 +47,16 @@ public sealed class PersistenceSafetyTests : IDisposable
     }
 
     [Fact]
-    public void FailedMigrationDoesNotQuarantineOrRewriteSource()
+    public void FailedMigrationPreservesSourceAndRecoversDefaults()
     {
         const string json = "{\"schemaVersion\":1}";
         Seed(json);
-        Assert.Throws<InvalidOperationException>(() => Open(migrations: new(2, [new BrokenMigration()])));
-        Assert.Equal(json, File.ReadAllText(FilePath));
-        Assert.Single(Directory.GetFiles(Path.GetDirectoryName(FilePath)!));
+        using var store = Open(migrations: new(2, [new BrokenMigration()]));
+        Assert.Equal("en", store.Snapshot.General.Language);
+        Assert.Equal(2, store.Snapshot.SchemaVersion);
+        Assert.Contains(store.Warnings, x => x.Contains("Migration failed."));
+        Assert.Equal(json, File.ReadAllText(Assert.Single(
+            Directory.GetFiles(Path.GetDirectoryName(FilePath)!, "*.corrupt-*"))));
     }
 
     [Fact]
@@ -138,7 +141,7 @@ public sealed class PersistenceSafetyTests : IDisposable
     private sealed class BrokenMigration : IMigration
     {
         public int FromVersion => 1;
-        public void Apply(JsonObject document) => throw new InvalidOperationException("Migration failed.");
+        public void Apply(JsonObject document) => throw new JsonException("Migration failed.");
     }
 
     public void Dispose() { if (Directory.Exists(root)) Directory.Delete(root, true); }

@@ -7,7 +7,7 @@ namespace ExileSight.Core.Settings;
 internal sealed record SettingsLoad<T>(T Value, bool ReadOnly, bool Dirty, bool RotateBackup);
 
 internal sealed class SettingsReader<T>(RootedFiles files, string path, JsonTypeInfo<T> typeInfo,
-    MigrationPipeline migrations, List<string> warnings) where T : VersionedDocument
+    MigrationPipeline migrations, List<string> warnings, Games.Game? expectedGame = null) where T : VersionedDocument
 {
     public SettingsLoad<T> Load(Func<T> defaults)
     {
@@ -41,6 +41,9 @@ internal sealed class SettingsReader<T>(RootedFiles files, string path, JsonType
         using var json = JsonDocument.Parse(bytes);
         RejectDuplicates(json.RootElement);
         var node = JsonNode.Parse(bytes) as JsonObject ?? throw new JsonException("Settings must be a JSON object.");
+        if (expectedGame is not null &&
+            (node["game"] is not JsonValue gameValue || !gameValue.TryGetValue<int>(out var game) || game != (int)expectedGame))
+            throw new JsonException("Missing, null, or mismatched game for the requested settings.");
         var version = MigrationPipeline.Version(node);
         if (version > migrations.CurrentVersion)
         {
@@ -54,15 +57,16 @@ internal sealed class SettingsReader<T>(RootedFiles files, string path, JsonType
         }
         if (version < migrations.CurrentVersion)
         {
-            // Invalid migration output is a programming failure, not corrupt user data.
+            // Only data-validation failures recover. Programming errors propagate with original files untouched.
+            T migrated;
             try
             {
                 migrations.Apply(node);
-                var migrated = Deserialize(node);
-                files.PreserveVersion(source, path, version);
-                return new(migrated, false, true, true);
+                migrated = Deserialize(node);
             }
-            catch (JsonException e) { throw new InvalidOperationException("Migration produced invalid settings.", e); }
+            catch (MigrationValidationException e) { throw new JsonException("Settings migration failed: " + e.Message, e); }
+            files.PreserveVersion(source, path, version);
+            return new(migrated, false, true, true);
         }
         return new(Deserialize(node), false, false, true);
     }
@@ -70,8 +74,7 @@ internal sealed class SettingsReader<T>(RootedFiles files, string path, JsonType
     private T Deserialize(JsonObject node)
     {
         var loaded = JsonSerializer.Deserialize(node, typeInfo) ?? throw new JsonException("Null settings.");
-        SettingsValidation.Validate(loaded);
-        SettingsValidation.DisableUnknownBindings(loaded, warnings);
+        SettingsValidation.Validate(loaded, expectedGame);
         return loaded;
     }
 
@@ -79,7 +82,7 @@ internal sealed class SettingsReader<T>(RootedFiles files, string path, JsonType
     {
         var fresh = defaults();
         fresh.SchemaVersion = migrations.CurrentVersion;
-        SettingsValidation.Validate(fresh);
+        SettingsValidation.Validate(fresh, expectedGame);
         return JsonSerializer.Deserialize(JsonSerializer.SerializeToUtf8Bytes(fresh, typeInfo), typeInfo)!;
     }
 
