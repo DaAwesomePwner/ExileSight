@@ -18,7 +18,8 @@ public sealed class HistoryStore
     private Listing[] rows = [];
     private bool unavailable;
     public string? RecoveryNotice { get; private set; }
-    public HistoryStore(string directory)
+    public HistoryStore(string directory) : this(directory, File.Move) { }
+    internal HistoryStore(string directory, Action<string, string> quarantine)
     {
         path = Path.Combine(directory, "history.json");
         try
@@ -32,7 +33,7 @@ public sealed class HistoryStore
         catch (Exception error) when (error is JsonException or IOException or UnauthorizedAccessException)
         {
             var kept = path + "." + DateTimeOffset.UtcNow.ToString("yyyyMMddTHHmmssfffffffZ") + "." + Guid.NewGuid().ToString("N") + ".corrupt";
-            try { File.Move(path, kept); }
+            try { quarantine(path, kept); }
             catch (Exception moveError) when (moveError is IOException or UnauthorizedAccessException)
             {
                 kept = path;

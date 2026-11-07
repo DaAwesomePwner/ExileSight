@@ -80,24 +80,29 @@ public sealed class ShopModel(HistoryStore history, Func<string> league) : IOmni
         try { result = context!.Execute(token, new GameAction.SetPriceNote(next.ToString())); }
         catch (Exception)
         {
-            lock (sync) { sending = false; status = "Send interrupted — press omni again before repricing."; }
-            Changed?.Invoke();
-            throw;
+            // An exception cannot establish whether native input was already inserted.
+            result = new(ActionOutcome.Failed, "Send interrupted; input may already have been sent.");
         }
-        var message = $"{result.Outcome}: {result.Reason} {result.PasteStatus}";
-        if (result.Outcome == ActionOutcome.Success)
+        var rejectedBeforeInput = result.Outcome is ActionOutcome.MissingToken or ActionOutcome.UsedOrUnknownToken
+            or ActionOutcome.Expired or ActionOutcome.NotForeground or ActionOutcome.Undeclared or ActionOutcome.WrongAction;
+        var paste = string.IsNullOrWhiteSpace(result.PasteStatus) || result.PasteStatus == "Not applicable"
+            ? null : result.PasteStatus;
+        var message = $"{result.Outcome}: {result.Reason}";
+        if (!rejectedBeforeInput)
         {
-            message = RearmMessage;
-            var kind = string.IsNullOrWhiteSpace(result.PasteStatus) || result.PasteStatus == "Not applicable"
-                ? "Sent" : "Sent (" + result.PasteStatus + ")";
+            var success = result.Outcome == ActionOutcome.Success;
+            message = success ? RearmMessage : "Note possibly set — press omni again before repricing. " + message;
+            if (paste is not null) message += " — " + paste;
+            // PasteStatus already includes 'Sent' when supplied by ActionTransaction.
+            var kind = success ? paste ?? "Sent" : "Possibly set" + (paste is null ? "" : " — " + paste);
             try { history.Change(selected, next, DateTimeOffset.UtcNow, kind); }
-            catch (IOException) { message += " — input sent, but history could not be saved."; }
-            catch (UnauthorizedAccessException) { message += " — input sent, but history access was denied."; }
+            catch (IOException) { message += " — history could not be saved."; }
+            catch (UnauthorizedAccessException) { message += " — history access was denied."; }
         }
         lock (sync)
         {
             sending = false;
-            armed = result.Outcome != ActionOutcome.Success;
+            armed = rejectedBeforeInput;
             if (!armed) note = next;
             status = message;
         }

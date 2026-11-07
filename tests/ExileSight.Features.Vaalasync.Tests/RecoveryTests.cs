@@ -49,5 +49,37 @@ public sealed class RecoveryTests : IDisposable
         Assert.Single(new HistoryStore(directory).Snapshot());
         Assert.Equal(original, File.ReadAllBytes(kept));
     }
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void FailedQuarantinePreservesOriginalAndDisablesWriting(bool accessDenied)
+    {
+        Directory.CreateDirectory(directory);
+        var path = Path.Combine(directory, "history.json");
+        const string original = "invalid json to preserve";
+        File.WriteAllText(path, original);
+        var attempts = 0;
+        var store = new HistoryStore(directory, (source, destination) =>
+        {
+            attempts++;
+            Assert.Equal(path, source);
+            Assert.EndsWith(".corrupt", destination);
+            if (accessDenied) throw new UnauthorizedAccessException("Injected quarantine refusal");
+            throw new IOException("Injected quarantine failure");
+        });
+        Assert.Equal(1, attempts);
+        Assert.Empty(store.Snapshot());
+        Assert.Contains("previous file kept as " + path, store.RecoveryNotice);
+        Assert.Empty(Directory.GetFiles(directory, "*.corrupt"));
+        Assert.Throws<IOException>(() => store.RecordPurchase("Ring", "Standard", new("~b/o", 2, "divine"), DateTimeOffset.UtcNow));
+        var model = new ShopModel(store, () => "Standard");
+        var host = new FeatureHost([new VaalasyncFeature(model)], (_, _) => null, (_, _, _) => { });
+        var item = ItemTextParser.Parse("Item Class: Rings\nRarity: Normal\nIron Ring\n--------\nNote: ~b/o 2 divine", Game.PoE1).Item!;
+        Assert.True(host.Route(item, new(Game.PoE1), OmniPressKind.Short));
+        Assert.False(model.CanApply);
+        Assert.Null(model.Note);
+        Assert.Contains("repricing disabled", model.Status);
+        Assert.Equal(original, File.ReadAllText(path));
+    }
     public void Dispose() { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
 }
