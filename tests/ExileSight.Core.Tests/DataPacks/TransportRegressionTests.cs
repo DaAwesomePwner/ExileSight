@@ -7,6 +7,13 @@ namespace ExileSight.Core.Tests.DataPacks;
 public sealed class TransportRegressionTests
 {
     [Fact]
+    public void PublicConstructorCannotAcceptAHandlerFactory()
+    {
+        var constructor = Assert.Single(typeof(GitHubTransport).GetConstructors());
+        Assert.Equal(new[] { typeof(string), typeof(int) }, constructor.GetParameters().Select(p => p.ParameterType));
+    }
+
+    [Fact]
     public async Task UnexpectedHandlerRedirectIsDetected()
     {
         using var transport = new GitHubTransport("1.0", () => new Handler(_ => new(HttpStatusCode.OK)
