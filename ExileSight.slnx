@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="src/ExileSight.Core/ExileSight.Core.csproj" />
+  <Project Path="src/ExileSight.Platform.Abstractions/ExileSight.Platform.Abstractions.csproj" />
+  <Project Path="src/ExileSight.Platform.Windows/ExileSight.Platform.Windows.csproj" />
+  <Project Path="src/ExileSight.App/ExileSight.App.csproj" />
+  <Project Path="tools/ExileSight.DataGen/ExileSight.DataGen.csproj" />
+  <Project Path="tests/ExileSight.Core.Tests/ExileSight.Core.Tests.csproj" />
+  <Project Path="tests/ExileSight.Architecture.Tests/ExileSight.Architecture.Tests.csproj" />
+  <Project Path="tests/ExileSight.Platform.Windows.Tests/ExileSight.Platform.Windows.Tests.csproj" />
+</Solution>
