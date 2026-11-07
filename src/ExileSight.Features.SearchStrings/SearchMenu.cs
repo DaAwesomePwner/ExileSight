@@ -5,6 +5,10 @@ namespace ExileSight.Features.SearchStrings;
 // Behaviour reference: Exile-UI modules/search-strings.ahk. Wheel changes display only.
 public sealed class SearchMenu
 {
+    private readonly TimeProvider clock;
+    private long preparedAt;
+    public SearchMenu() : this(TimeProvider.System) { }
+    public SearchMenu(TimeProvider clock) => this.clock = clock;
     private readonly object sync = new();
     private Dictionary<string, SavedSearch[]> lists = [];
     private string[][] lines = [];
@@ -36,12 +40,26 @@ public sealed class SearchMenu
             indexes[entry] = (indexes[entry] + Math.Sign(direction) + lines[entry].Length) % lines[entry].Length;
     }
     // Called immediately before host click redemption; this does not itself grant input authority.
-    public void Prepare(int entry) { lock (sync) pending = Text(entry); }
+    public void Prepare(int entry)
+    {
+        lock (sync)
+        {
+            pending = null;
+            var text = Text(entry);
+            preparedAt = clock.GetTimestamp();
+            pending = text;
+        }
+    }
     public void Cancel() { lock (sync) pending = null; }
     internal ActionResult Paste(IntentToken? token, Func<IntentToken?, GameAction, ActionResult> execute)
     {
         string? text;
-        lock (sync) { text = pending; pending = null; }
+        lock (sync)
+        {
+            text = clock.GetElapsedTime(preparedAt) < TimeSpan.FromSeconds(1.5) ? pending : null;
+            pending = null;
+        }
+        if (token is null) return new(ActionOutcome.MissingToken);
         return text is null ? new(ActionOutcome.Failed, "Select a search first")
             : execute(token, new GameAction.PasteSearch(text));
     }

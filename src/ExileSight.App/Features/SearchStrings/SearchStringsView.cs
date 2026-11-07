@@ -1,6 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Interop;
+using ExileSight.Core.Features;
+using ExileSight.Platform.Windows.Input;
 using ExileSight.App.Overlay;
 using ExileSight.Core.Input;
 using ExileSight.Features.SearchStrings;
@@ -8,21 +11,21 @@ using Microsoft.Extensions.Logging;
 
 namespace ExileSight.App.Features.SearchStrings;
 
-/// <summary>Hosted NOACTIVATE menu; only FeatureViews.Bind can redeem a physical click.</summary>
+/// <summary>Hosted NOACTIVATE menu; the hook pairs physical clicks before command execution.</summary>
 public sealed class SearchStringsView : ScrollViewer
 {
     private readonly SearchMenu model;
-    private readonly FeatureViews views;
+    private readonly FeatureHost features;
+    private readonly HookHost hooks;
     private readonly OverlayHost host;
     private readonly PassiveOverlayInput passive;
     private readonly ILogger<SearchStringsView> logger;
     private readonly StackPanel panel = new();
     private HostedOverlayWindow? window;
-    private bool submitting;
-    public SearchStringsView(SearchMenu model, FeatureViews views, OverlayHost host,
+    public SearchStringsView(SearchMenu model, FeatureHost features, HookHost hooks, OverlayHost host,
         PassiveOverlayInput passive, ILogger<SearchStringsView> logger)
     {
-        this.model = model; this.views = views; this.host = host; this.passive = passive; this.logger = logger;
+        this.model = model; this.features = features; this.hooks = hooks; this.host = host; this.passive = passive; this.logger = logger;
         Background = Brushes.Black; Content = panel;
         VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
         model.Opened += Open;
@@ -45,7 +48,7 @@ public sealed class SearchStringsView : ScrollViewer
     private void VisibilityChanged(object sender, DependencyPropertyChangedEventArgs args)
     {
         if (window!.IsVisible) passive.Open(this, Observed);
-        else { passive.Close(this); if (!submitting) model.Cancel(); }
+        else { passive.Close(this); model.Cancel(); }
     }
     private void Header(string text) => panel.Children.Add(new TextBlock
     { Text = text, Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(6) });
@@ -84,17 +87,25 @@ public sealed class SearchStringsView : ScrollViewer
                 model.Cycle(entry, e.Delta > 0 ? -1 : 1);
                 ((TextBlock)button.Content).Text = Label(); e.Handled = true;
             });
-            // Prepare before Bind's mouse-up handler; never use Click to mint a token.
-            button.PreviewMouseLeftButtonUp += (_, _) =>
-            { if (button.IsMouseOver && button.IsEnabled) model.Prepare(entry); };
-            panel.Children.Add(button);
-            views.Bind(button, "searchstr:paste");
-            button.Click += (_, _) => Guard(() =>
+            button.PreviewMouseLeftButtonUp += async (_, e) =>
             {
-                submitting = true;
-                try { host.SetVisible(window!, false); }
-                finally { submitting = false; }
-            });
+                if (!button.IsMouseOver || !button.IsEnabled || !panel.IsEnabled) return;
+                panel.IsEnabled = false;
+                try
+                {
+                    // SearchClick wraps Prepare and redemption in OverlayFailureGuard.
+                    await SearchClick.RunAsync(() => model.Prepare(entry), () =>
+                    {
+                        var point = button.PointToScreen(e.GetPosition(button));
+                        return hooks.RedeemOverlayClick(new WindowInteropHelper(window!).Handle,
+                            (int)point.X, (int)point.Y, "searchstr:paste");
+                    }, token => Task.Run(() => features.Commands.Single(c => c.Command == "searchstr:paste").Execute(token)),
+                        model.Cancel, Close, error => logger.LogWarning(
+                            "Search selection failed: {ExceptionType}", error.GetType().Name));
+                }
+                finally { panel.IsEnabled = true; }
+            };
+            panel.Children.Add(button);
         }
         CloseButton();
     }

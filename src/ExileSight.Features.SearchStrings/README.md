@@ -35,12 +35,19 @@ show a notice without altering the saved data.
 
 Each literal line escapes regex metacharacters and is quoted. `Regex: true`
 preserves intentional PoE expressions but still quotes the line. Quotes, control
-characters, blank lines and searches exceeding 250 characters **after** escaping
-and quoting are refused, never truncated. CRLF and LF separate cycling lines.
+characters, Unicode line/paragraph separators, blank lines and searches exceeding 250 characters **after** escaping
+and quoting are refused, never truncated. Regex lines ending in an unescaped
+backslash are also refused. CRLF and LF separate cycling lines.
 Limits: 50 user vendors, 100 entries per vendor, 100 lines per entry, 80-character
 names. Names within a vendor and vendor keys must be unique ignoring case.
 
 Behaviour reference: Exile-UI `modules/search-strings.ahk`. These simple PoE1
 defaults are independently authored. There is no screen detection or vendor
 inference. Hosted windows use NOACTIVATE; paste buttons redeem physical overlay
-clicks through `FeatureViews.Bind`, with a single-use pending selection.
+clicks through the existing hook redemption API in a feature-local click handler.
+Preparation uses the shared overlay failure guard. Pending selections are
+single-use, expire after 1.5 seconds, and clear whenever the menu hides or a
+click finishes (including failed redemption or dispatch). The menu closes after
+submission completes so hiding cannot race normal queued dispatch. Shared host
+command routing is unchanged; an overlay-only command restriction remains host
+work.

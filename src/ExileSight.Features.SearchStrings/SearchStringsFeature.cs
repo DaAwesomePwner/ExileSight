@@ -10,7 +10,9 @@ public sealed class SearchStringsFeature : IFeature
 {
     public FeatureManifest Manifest { get; } = new("searchstr", [Game.PoE1], [ActionKind.PasteSearch], [], [],
         "F9 opens manual vendor selection; one physical selection click highlights one saved search.");
-    public SearchMenu Menu { get; } = new();
+    public SearchStringsFeature() : this(TimeProvider.System) { }
+    public SearchStringsFeature(TimeProvider clock) => Menu = new(clock);
+    public SearchMenu Menu { get; }
     public void Register(IFeatureContext context)
     {
         void Load()

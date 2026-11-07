@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Globalization;
 
 namespace ExileSight.Features.SearchStrings;
 
@@ -46,8 +47,11 @@ public static class SearchSettings
         if (lines.Length > 100) throw new ArgumentException("Too many lines");
         return lines.Select(line =>
         {
-            if (string.IsNullOrWhiteSpace(line) || line.Any(char.IsControl) || line.Contains('"'))
+            if (string.IsNullOrWhiteSpace(line) || line.Any(c => char.IsControl(c) || char.GetUnicodeCategory(c) is
+                UnicodeCategory.LineSeparator or UnicodeCategory.ParagraphSeparator) || line.Contains('"'))
                 throw new ArgumentException("Invalid search line");
+            if (entry.Regex && line.Reverse().TakeWhile(c => c == '\\').Count() % 2 != 0)
+                throw new ArgumentException("Regex line ends in an unescaped backslash");
             var text = "\"" + (entry.Regex ? line : string.Concat(line.Select(c =>
                 @"\.^$|?*+()[]{}".Contains(c) ? "\\" + c : c.ToString()))) + "\"";
             if (text.Length > 250) throw new ArgumentException("Search exceeds 250 characters after escaping");
