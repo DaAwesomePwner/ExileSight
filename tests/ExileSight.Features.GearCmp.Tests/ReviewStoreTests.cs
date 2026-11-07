@@ -30,7 +30,7 @@ public sealed class ReviewStoreTests : IDisposable
     {
         var model = new GearModel(new GearStore(directory));
         model.Equip(null, GearSlot.MainHand, Gear(weapon, 10));
-        Assert.Empty(model.Replaced(GearSlot.OffHand, Gear("Quivers", 20)));
+        Assert.Equal(weapon, Assert.Single(model.Replaced(GearSlot.OffHand, Gear("Quivers", 20))).ItemClass);
         model.Equip(null, GearSlot.OffHand, Gear("Quivers", 20));
         Assert.False(model.Has(GearSlot.MainHand));
         model.Equip(null, GearSlot.MainHand, Gear(weapon, 10));

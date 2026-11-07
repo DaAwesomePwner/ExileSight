@@ -8,6 +8,9 @@ namespace ExileSight.Features.GearCmp.Tests;
 public sealed class ReviewStatTests
 {
     [Theory]
+    [InlineData("fire_and_chaos_damage_resistance_%", "{0}% to Fire and Chaos Resistances", "Fire resistance", "Chaos resistance")]
+    [InlineData("cold_and_chaos_damage_resistance_%", "{0}% to Cold and Chaos Resistances", "Cold resistance", "Chaos resistance")]
+    [InlineData("lightning_and_chaos_damage_resistance_%", "{0}% to Lightning and Chaos Resistances", "Lightning resistance", "Chaos resistance")]
     [InlineData("fire_and_cold_damage_resistance_%", "{0}% to Fire and Cold Resistances", "Fire resistance", "Cold resistance")]
     [InlineData("fire_and_lightning_damage_resistance_%", "{0}% to Fire and Lightning Resistances", "Fire resistance", "Lightning resistance")]
     [InlineData("cold_and_lightning_damage_resistance_%", "{0}% to Cold and Lightning Resistances", "Cold resistance", "Lightning resistance")]
@@ -40,6 +43,17 @@ public sealed class ReviewStatTests
         item.Mods.Add(new("Synthetic unsupported modifier", ModKind.Explicit, AffixType.Unknown, null, null, []));
         var gear = GearStats.Read(item, _ => [new("synthetic", [new(id, 30, 30)])]);
         Assert.DoesNotContain(label, GearStats.Delta(gear, [new("Rings", new() { [label] = 30 })]).Keys);
+    }
+    [Theory]
+    [InlineData("life_leech_from_any_damage_permyriad")]
+    [InlineData("base_life_regeneration_rate_per_minute")]
+    [InlineData("unrecognized_life_leech_modifier")]
+    public void UnrelatedStatIdsDoNotHideLife(string id)
+    {
+        var item = StatsTests.Item("Rings");
+        item.Mods.Add(new("Synthetic leech or regeneration", ModKind.Explicit, AffixType.Unknown, null, null, []));
+        var gear = GearStats.Read(item, _ => [new("synthetic", [new(id, 30, 30)])]);
+        Assert.Equal(-30, GearStats.Delta(gear, [new("Rings", new() { ["Life"] = 30 })])["Life"]);
     }
     [Fact]
     public void ChaosDpsIsSeparateFromElemental()

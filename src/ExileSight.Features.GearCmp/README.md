@@ -5,8 +5,9 @@ and Iteminfo_GearParse at 2354–2613. The UI uses explicit omni menu actions
 instead of inventory pixels (D-006). No game actions or network access.
 
 Long-press over equipment to set or clear its slot. Rings and one-handed
-weapons offer explicit side choices. Bows preserve a quiver and compare only the main hand; quivers compare only
-against a stored quiver. Quivers pair only with bows. Other two-handed weapons replace both hands;
+weapons offer explicit side choices. Bows preserve a quiver; quivers pair only with bows. Comparison and equip share
+one replacement rule: deltas sum every overwritten or evicted item, including
+incompatible items in the other hand. Preserved items are excluded. Other two-handed weapons replace both hands;
 equipping an incompatible offhand replaces a stored two-handed weapon. Comparisons against
 both hands sum their item stats; weapon DPS is not a character damage estimate. Chaos DPS has its own row and is
 excluded from elemental DPS.
@@ -30,7 +31,8 @@ Hybrid IDs were verified against a locally generated pinned pack at RePoE
 `d0bc438357d849bb93ad22f3db0b12938aaf6da1` (not committed). Its all-stat IDs are
 `additional_all_attributes` and `base_resist_all_elements_%`.
 Global stats use the injected Core StatMatch contract via App composition,
-so no feature references another feature. Unmatched modifiers conservatively
+so no feature references another feature. Exact stat-ID mappings keep leech/regeneration separate from flat life totals.
+Unmatched modifiers conservatively
 suppress global comparisons; ambiguous/range-only stats are omitted rather
 than guessed. Re-mark gear after loading missing data packs or updating supported stats;
 stored numeric snapshots cannot reconstruct modifiers omitted by an older version. All test copied

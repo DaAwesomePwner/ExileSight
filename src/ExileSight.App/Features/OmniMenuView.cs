@@ -45,8 +45,9 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
         styler.SetClickThrough(handle, false);
         window.DpiChanged += DpiChanged;
         menu.League = ReadLeague;
+        menu.CursorPosition = () => { var point = HookHost.CursorPosition(); return (point.X, point.Y); };
         menu.ReportFailure = type => logger.LogWarning("Item menu provider failed: {ExceptionType}", type);
-        menu.EntriesOpened += Open;
+        menu.Presented += Open;
         window.IsVisibleChanged += VisibilityChanged;
         if (prices is not null) _ = DiscoverLeagueAsync();
         game.Changed += GameChanged;
@@ -63,9 +64,10 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
         if (window.IsVisible) passive.Open(this, Observed);
         else passive.Close(this);
     }
-    private void Open(IReadOnlyList<OmniLink> links, IReadOnlyList<ItemMenuEntry> entries) => window.Dispatcher.BeginInvoke(() =>
+    private void Open(OmniMenuPresentation presentation) => window.Dispatcher.BeginInvoke(() =>
     {
-        Guard(() => OpenCore(links, entries));
+        if (model?.IsCurrent(presentation.Origin) != true) return;
+        Guard(() => OpenCore(presentation));
     });
     private void Guard(Action action) => OverlayFailureGuard.Run(action,
         () => { passive.Close(this); window.Hide(); },
@@ -80,11 +82,11 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
             if (!disposed && window.IsVisible) Guard(Position);
         });
     }
-    private void OpenCore(IReadOnlyList<OmniLink> links, IReadOnlyList<ItemMenuEntry> entries)
+    private void OpenCore(OmniMenuPresentation presentation)
     {
         if (disposed || !game.Current.Found || game.Current.IsMinimized || !game.Current.IsForeground || !settings.Snapshot.Overlay.Enabled) return;
         panel.Children.Clear();
-        foreach (var link in links)
+        foreach (var link in presentation.Links)
         {
             var button = new Button { Content = link.Label, Margin = new Thickness(2), Padding = new Thickness(6) };
             button.Click += (_, _) =>
@@ -95,7 +97,7 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
             };
             panel.Children.Add(button);
         }
-        foreach (var entry in entries)
+        foreach (var entry in presentation.Entries)
         {
             var button = new Button
             {
@@ -110,8 +112,7 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
             };
             panel.Children.Add(button);
         }
-        var cursor = HookHost.CursorPosition();
-        originX = cursor.X; originY = cursor.Y;
+        originX = presentation.Origin.X; originY = presentation.Origin.Y;
         Position();
         window.Show();
         Position();
@@ -162,7 +163,7 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
 
         game.Changed -= GameChanged;
         settings.Changed -= SettingsChanged;
-        if (model is not null) model.EntriesOpened -= Open;
+        if (model is not null) model.Presented -= Open;
         void Close()
         {
             passive.Close(this);

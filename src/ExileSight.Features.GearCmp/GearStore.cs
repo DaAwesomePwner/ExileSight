@@ -40,7 +40,12 @@ public sealed class GearStore
         try
         {
             if (!File.Exists(path)) return null;
-            if (new FileInfo(path).Length > 1024 * 1024) throw new IOException("Oversized gear file");
+            if (new FileInfo(path).Length > 1024 * 1024)
+            {
+                blocked.Add(file);
+                Notice = "Oversized equipped file kept; saving is disabled until it is removed or reduced. Then reopen the app.";
+                return null;
+            }
             var text = readText(path);
             using var json = JsonDocument.Parse(text);
             if (json.RootElement.ValueKind != JsonValueKind.Object) throw new JsonException("Invalid gear file");

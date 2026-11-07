@@ -13,6 +13,9 @@ public static class GearStats
     // Verified against generated poe1/stats at RePoE d0bc438357d849bb93ad22f3db0b12938aaf6da1.
     private static readonly Dictionary<string, string[]> Known = new()
     {
+        ["fire_and_chaos_damage_resistance_%"] = ["Fire resistance", "Chaos resistance"],
+        ["cold_and_chaos_damage_resistance_%"] = ["Cold resistance", "Chaos resistance"],
+        ["lightning_and_chaos_damage_resistance_%"] = ["Lightning resistance", "Chaos resistance"],
         ["fire_and_cold_damage_resistance_%"] = ["Fire resistance", "Cold resistance"],
         ["fire_and_lightning_damage_resistance_%"] = ["Fire resistance", "Lightning resistance"],
         ["cold_and_lightning_damage_resistance_%"] = ["Cold resistance", "Lightning resistance"],
@@ -79,29 +82,22 @@ public static class GearStats
             uncertain.UnionWith(["Physical DPS", "Elemental DPS", "Chaos DPS"]);
         return new(item.ItemClass, stats, uncertain.ToArray());
     }
-    private static IEnumerable<string> Affected(string id)
+    // Exact IDs only: leech, regeneration and other unrelated mechanics do not change flat totals.
+    private static readonly Dictionary<string, string[]> UnsupportedTracked = new()
     {
-        if (Known.TryGetValue(id, out var names)) return names;
-        var result = new List<string>();
-        foreach (var (word, label) in new[] { ("life", "Life"), ("mana", "Mana"), ("strength", "Strength"),
-            ("dexterity", "Dexterity"), ("intelligence", "Intelligence"), ("energy_shield", "Global energy shield") })
-            if (id.Contains(word, StringComparison.Ordinal)) result.Add(label);
-        if (id.Contains("attribute", StringComparison.Ordinal)) result.AddRange(["Strength", "Dexterity", "Intelligence"]);
-        if (id.Contains("resist", StringComparison.Ordinal))
-        {
-            foreach (var element in new[] { "Fire", "Cold", "Lightning", "Chaos" })
-                if (id.Contains(element.ToLowerInvariant(), StringComparison.Ordinal) ||
-                    element != "Chaos" && id.Contains("element", StringComparison.Ordinal))
-                    result.Add(element + " resistance");
-            if (!result.Any(label => label.EndsWith(" resistance", StringComparison.Ordinal)))
-                result.AddRange(["Fire resistance", "Cold resistance", "Lightning resistance", "Chaos resistance"]);
-        }
-        // Local defence modifiers are already represented in the copied properties.
-        if (!id.StartsWith("local_", StringComparison.Ordinal))
-            foreach (var (word, label) in new[] { ("armour", "Armour"), ("evasion", "Evasion Rating"), ("ward", "Ward") })
-                if (id.Contains(word, StringComparison.Ordinal)) result.Add(label);
-        return result;
-    }
+        ["maximum_life_+%"] = ["Life"], ["maximum_mana_+%"] = ["Mana"],
+        ["maximum_energy_shield_+%"] = ["Global energy shield"],
+        ["strength_+%"] = ["Strength"], ["dexterity_+%"] = ["Dexterity"], ["intelligence_+%"] = ["Intelligence"],
+        ["all_attributes_+%"] = ["Strength", "Dexterity", "Intelligence"],
+        ["base_maximum_fire_damage_resistance_%"] = ["Fire resistance"],
+        ["base_maximum_cold_damage_resistance_%"] = ["Cold resistance"],
+        ["base_maximum_lightning_damage_resistance_%"] = ["Lightning resistance"],
+        ["base_maximum_chaos_damage_resistance_%"] = ["Chaos resistance"],
+        ["all_elemental_resistances_while_moving"] = ["Fire resistance", "Cold resistance", "Lightning resistance"],
+        ["all_resistances_while_moving"] = ["Fire resistance", "Cold resistance", "Lightning resistance", "Chaos resistance"]
+    };
+    private static IEnumerable<string> Affected(string id) => Known.TryGetValue(id, out var names)
+        ? names : UnsupportedTracked.GetValueOrDefault(id) ?? [];
     private static decimal[]? Property(ParsedItem item, string name)
     {
         if (!item.Properties.TryGetValue(name, out var property)) return null;

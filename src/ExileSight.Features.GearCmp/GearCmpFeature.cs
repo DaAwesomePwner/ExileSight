@@ -56,7 +56,7 @@ public sealed class GearCmpFeature(GearModel? suppliedModel) : IFeature, IToolti
         foreach (var slot in slots)
         {
             var replaced = Model.Replaced(slot, candidate);
-            var label = GearSlots.TwoHanded(item.ItemClass) && item.ItemClass != "Bows" ? "both hands" : GearSlots.Label(slot);
+            var label = replaced.Length == 0 ? GearSlots.Label(slot) : string.Join(" + ", replaced.Select(g => g.ItemClass));
             rows.Add(new([new("Compared with " + label)]));
             if (replaced.Length == 0) { rows.Add(new([new("No equipped item", TooltipTone.Unknown)])); continue; }
             foreach (var (stat, delta) in GearStats.Delta(candidate, replaced).OrderBy(p => p.Key))

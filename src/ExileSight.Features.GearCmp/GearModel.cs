@@ -43,16 +43,21 @@ public sealed class GearModel
     public bool Has(GearSlot slot) { lock (sync) return slots.ContainsKey(slot); }
     public EquippedGear[] Replaced(GearSlot slot, EquippedGear candidate)
     {
-        lock (sync)
-        {
-            if (GearSlots.TwoHanded(candidate.ItemClass) && candidate.ItemClass != "Bows") return slots
-                .Where(p => p.Key is GearSlot.MainHand or GearSlot.OffHand).Select(p => p.Value).ToArray();
-            if (candidate.ItemClass == "Quivers")
-                return slots.TryGetValue(GearSlot.OffHand, out var quiver) && quiver.ItemClass == "Quivers" ? [quiver] : [];
-            if (slot == GearSlot.OffHand && slots.TryGetValue(GearSlot.MainHand, out var main) &&
-                GearSlots.TwoHanded(main.ItemClass)) return [main];
-            return slots.TryGetValue(slot, out var gear) ? [gear] : [];
-        }
+        lock (sync) return ReplacementSlots(slot, candidate).Select(key => slots[key]).ToArray();
+    }
+    // Both preview and mutation consume this exact set, including overwritten target slots.
+    private GearSlot[] ReplacementSlots(GearSlot slot, EquippedGear gear)
+    {
+        var removed = new HashSet<GearSlot>();
+        if (slots.ContainsKey(slot)) removed.Add(slot);
+        if (slot == GearSlot.MainHand && slots.TryGetValue(GearSlot.OffHand, out var off) &&
+            (gear.ItemClass == "Bows" ? off.ItemClass != "Quivers" :
+                GearSlots.TwoHanded(gear.ItemClass) || off.ItemClass == "Quivers"))
+            removed.Add(GearSlot.OffHand);
+        if (slot == GearSlot.OffHand && slots.TryGetValue(GearSlot.MainHand, out var main) &&
+            (gear.ItemClass == "Quivers" ? main.ItemClass != "Bows" : GearSlots.TwoHanded(main.ItemClass)))
+            removed.Add(GearSlot.MainHand);
+        return removed.ToArray();
     }
     public void Equip(string? expectedCharacter, GearSlot slot, EquippedGear gear)
     {
@@ -60,17 +65,7 @@ public sealed class GearModel
         {
             CheckCharacter(expectedCharacter);
             var next = new Dictionary<GearSlot, EquippedGear>(slots);
-            if (slot == GearSlot.MainHand && next.TryGetValue(GearSlot.OffHand, out var off))
-            {
-                if (gear.ItemClass == "Bows" ? off.ItemClass != "Quivers" :
-                    GearSlots.TwoHanded(gear.ItemClass) || off.ItemClass == "Quivers")
-                    next.Remove(GearSlot.OffHand);
-            }
-            if (slot == GearSlot.OffHand && next.TryGetValue(GearSlot.MainHand, out var main))
-            {
-                if (gear.ItemClass == "Quivers" ? main.ItemClass != "Bows" : GearSlots.TwoHanded(main.ItemClass))
-                    next.Remove(GearSlot.MainHand);
-            }
+            foreach (var removed in ReplacementSlots(slot, gear)) next.Remove(removed);
             next[slot] = gear;
             store.Save(character, next);
             slots = next;
