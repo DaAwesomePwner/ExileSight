@@ -1,0 +1,5 @@
+{
+ "Invented99":{"name":"Faint","domain":"item","generation_type":"prefix","required_level":2,"groups":["ImaginaryGlow"],"stats":[{"id":"imaginary_glow","min":1,"max":3}],"spawn_weights":[{"tag":"paper","weight":20},{"tag":"default","weight":0}]},
+ "Invented1":{"name":"Bright","domain":"item","generation_type":"prefix","required_level":8,"groups":["ImaginaryGlow"],"stats":[{"id":"imaginary_glow","min":4,"max":7}],"spawn_weights":[{"tag":"paper","weight":10},{"tag":"default","weight":0}]},
+ "InventedExcluded":{"name":"Excluded","domain":"item","generation_type":"prefix","required_level":99,"groups":["ImaginaryGlow"],"stats":[{"id":"imaginary_glow","min":99,"max":100}],"spawn_weights":[{"tag":"paper","weight":0},{"tag":"default","weight":100}]}
+}
