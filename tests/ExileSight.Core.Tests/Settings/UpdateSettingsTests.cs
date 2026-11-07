@@ -1,4 +1,3 @@
-using System.Text.Json;
 using ExileSight.Core.Settings;
 using Xunit;
 
@@ -25,11 +24,41 @@ public sealed class UpdateSettingsTests : IDisposable
     [InlineData(null)]
     [InlineData("")]
     [InlineData("nightly")]
-    [InlineData("Stable")]
-    public void InvalidChannelIsRejected(string? channel)
+
+    public void UnknownChannelFallsBackWithWarning(string? channel)
     {
         using var store = Open();
-        Assert.Throws<JsonException>(() => store.Update("general", s => s.General.UpdateChannel = channel!));
+        store.Update("general", s => s.General.UpdateChannel = channel!);
+        Assert.Equal("stable", store.Snapshot.General.UpdateChannel);
+        Assert.Contains(store.Warnings, w => w.Contains("channel"));
+    }
+
+    [Theory]
+    [InlineData("Stable", "stable")]
+    [InlineData("PRERELEASE", "prerelease")]
+    public void ChannelIsNormalized(string input, string expected)
+    {
+        using var store = Open();
+        store.Update("general", s => s.General.UpdateChannel = input);
+        Assert.Equal(expected, store.Snapshot.General.UpdateChannel);
+        Assert.Empty(store.Warnings);
+    }
+
+    [Fact]
+    public void UnknownPersistedChannelDoesNotQuarantineProfile()
+    {
+        Directory.CreateDirectory(root);
+        var path = Path.Combine(root, "settings.json");
+        File.WriteAllText(path, """{"schemaVersion":1,"general":{"updateChannel":"nightly","language":"fr"}}""");
+        var before = File.ReadAllText(path);
+        using (var store = Open())
+        {
+            Assert.Equal("stable", store.Snapshot.General.UpdateChannel);
+            Assert.Equal("fr", store.Snapshot.General.Language);
+            Assert.Contains(store.Warnings, w => w.Contains("channel"));
+        }
+        Assert.Equal(before, File.ReadAllText(path));
+        Assert.Single(Directory.GetFiles(root));
     }
 
     [Fact]

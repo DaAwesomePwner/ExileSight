@@ -74,7 +74,7 @@ internal sealed class SettingsReader<T>(RootedFiles files, string path, JsonType
     private T Deserialize(JsonObject node)
     {
         var loaded = JsonSerializer.Deserialize(node, typeInfo) ?? throw new JsonException("Null settings.");
-        SettingsValidation.Validate(loaded, expectedGame);
+        SettingsValidation.Validate(loaded, expectedGame, warnings);
         return loaded;
     }
 
@@ -82,7 +82,7 @@ internal sealed class SettingsReader<T>(RootedFiles files, string path, JsonType
     {
         var fresh = defaults();
         fresh.SchemaVersion = migrations.CurrentVersion;
-        SettingsValidation.Validate(fresh, expectedGame);
+        SettingsValidation.Validate(fresh, expectedGame, warnings);
         return JsonSerializer.Deserialize(JsonSerializer.SerializeToUtf8Bytes(fresh, typeInfo), typeInfo)!;
     }
 

@@ -7,6 +7,16 @@ public static class UpdatePolicy
     public static readonly TimeSpan StartupDelay = TimeSpan.FromSeconds(5);
     public static readonly TimeSpan CheckInterval = TimeSpan.FromHours(6);
 
+    public static bool ChannelChanged(string? packageChannel, string currentChannel) =>
+        packageChannel is not null && packageChannel != currentChannel;
+
+    public static bool ShouldApply(bool requested, bool downloaded, bool enabled, string? packageChannel, string currentChannel) =>
+        requested && downloaded && enabled && packageChannel == currentChannel;
+
+    public static bool KeepDownload(bool downloaded, string? packageChannel, string currentChannel,
+        string? packageVersion, string? checkedVersion) =>
+        downloaded && packageChannel == currentChannel && checkedVersion is not null && packageVersion == checkedVersion;
+
     public static bool IncludePrereleases(GeneralSettings settings) => settings.UpdateChannel == "prerelease";
 
     public static string? UnavailableReason(GeneralSettings settings, bool installed) =>
