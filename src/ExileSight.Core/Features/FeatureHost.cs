@@ -60,7 +60,7 @@ public sealed partial class FeatureHost
     {
         var copy = CopiedItem.From(item);
         foreach (var observer in copiedObservers)
-            try { observer(copy); } catch (Exception error) { ReportWorkFailure(error.GetType().Name); }
+            try { observer.Handler(copy); } catch (Exception error) { ReportWorkFailure(observer.Owner + ":" + error.GetType().Name); }
         return new OmniRouter(omni.Select(o => o.Handler)).Route(item, context, press);
     }
     private sealed class RegisteredCommand(string owner, string name, ActionKind? action,
@@ -89,7 +89,7 @@ public sealed partial class FeatureHost
         Func<string, string, JsonElement?> read, Action<string, string, JsonElement> write) : IFeatureContext
     {
         public void ObserveCopiedItems(Action<CopiedItem> observer)
-        { Registering(); ArgumentNullException.ThrowIfNull(observer); host.copiedObservers.Add(observer); }
+        { Registering(); ArgumentNullException.ThrowIfNull(observer); host.copiedObservers.Add((manifest.Id, observer)); }
         public IPackReader Packs { get; } = new FeaturePacks(host, manifest);
         private bool closed;
         internal void Close() => closed = true;

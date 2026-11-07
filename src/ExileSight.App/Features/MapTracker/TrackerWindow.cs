@@ -28,6 +28,16 @@ public sealed class TrackerWindow : Window
         Button(filters, "Record in league", () => { model.SelectLeague(league.Text.Trim()); Refresh(); });
         Button(filters, "Apply / Refresh", Refresh);
         Button(filters, "Export filtered CSV", Export);
+        var identity = new TextBox { Width = 150, MaxLength = 64, ToolTip = "Own character name (memory only)" };
+        filters.Children.Add(new TextBlock { Text = " Own character " }); filters.Children.Add(identity);
+        Button(filters, "Confirm character", () => { model.ConfirmCharacter(identity.Text); identity.Clear(); });
+        var storageStatus = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new(8) };
+        DockPanel.SetDock(storageStatus, Dock.Bottom); root.Children.Add(storageStatus);
+        // Local status only: this timer never sends input or reads/writes history.
+        var statusTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        statusTimer.Tick += (_, _) => storageStatus.Text = model.Status;
+        Closed += (_, _) => statusTimer.Stop();
+        storageStatus.Text = model.Status; statusTimer.Start();
         DockPanel.SetDock(summary, Dock.Bottom); root.Children.Add(summary);
         var edit = new StackPanel { Orientation = Orientation.Horizontal }; DockPanel.SetDock(edit, Dock.Bottom);
         edit.Children.Add(notes); Button(edit, "Save notes", () =>
@@ -62,7 +72,7 @@ public sealed class TrackerWindow : Window
         grid.ItemsSource = rows;
         summary.Text = $"{rows.Length} runs · {TimeSpan.FromSeconds(rows.Sum(r => r.Seconds))} · " +
             $"{rows.Sum(r => r.Deaths)} deaths · {rows.Sum(r => r.Portals)} portals · " +
-            $"{rows.Sum(r => r.Kills ?? 0)} sampled kills ({rows.Count(r => r.Kills is null)} unknown)\n{model.Status}";
+            $"{rows.Sum(r => r.Kills ?? 0)} sampled kills ({rows.Count(r => r.Kills is null)} unknown)";
     }
     private void Export()
     {

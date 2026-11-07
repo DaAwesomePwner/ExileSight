@@ -10,5 +10,5 @@ public sealed record CopiedItem(string ItemClass, string Name, string? BaseType,
 }
 public sealed partial class FeatureHost
 {
-    private readonly List<Action<CopiedItem>> copiedObservers = [];
+    private readonly List<(string Owner, Action<CopiedItem> Handler)> copiedObservers = [];
 }

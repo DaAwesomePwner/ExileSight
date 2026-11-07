@@ -3,8 +3,14 @@ using System.Text;
 using System.Text.Json;
 namespace ExileSight.Features.MapTracker;
 
-/// <summary>Atomic per-league JSON-lines snapshots, one bounded rotation and quarantine per league.</summary>
-public sealed class RunStore(string directory, int limitBytes = 2 * 1024 * 1024)
+public interface IRunStore
+{
+    IReadOnlyList<MapRun> Read(string league);
+    void Save(MapRun run);
+}
+
+/// <summary>Atomic bounded snapshots; reaching the cap refuses writes without discarding history.</summary>
+public sealed class RunStore(string directory, int limitBytes = 2 * 1024 * 1024) : IRunStore
 {
     public string PathFor(string league) => Path.Combine(directory,
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(league))) + ".jsonl");
@@ -21,7 +27,7 @@ public sealed class RunStore(string directory, int limitBytes = 2 * 1024 * 1024)
             {
                 using var document = JsonDocument.Parse(line);
                 if (document.RootElement.ValueKind == JsonValueKind.Object &&
-                    document.RootElement.TryGetProperty("Schema", out var schema) && schema.TryGetInt32(out var version) && version > 1)
+                    document.RootElement.TryGetProperty("Schema", out var schema) && schema.ValueKind == JsonValueKind.Number && schema.TryGetInt32(out var version) && version > 1)
                     throw new NotSupportedException("Newer map tracker schema: read-only.");
             }
             var rows = lines.Select(line => JsonSerializer.Deserialize<MapRun>(line)
@@ -36,17 +42,15 @@ public sealed class RunStore(string directory, int limitBytes = 2 * 1024 * 1024)
     public void Save(MapRun run)
     {
         Directory.CreateDirectory(directory);
-        var rows = Read(run.League).Where(r => r.Id != run.Id).Append(run).ToList();
+        var existing = Read(run.League);
+        var prior = existing.FirstOrDefault(r => r.Id == run.Id);
+        run = run with { Extra = prior?.Extra ?? run.Extra };
+        var rows = existing.Where(r => r.Id != run.Id).Append(run).ToList();
         var path = PathFor(run.League);
         string Encode() => string.Join('\n', rows.Select(r => JsonSerializer.Serialize(r))) + "\n";
         var text = Encode();
         if (Encoding.UTF8.GetByteCount(text) > limitBytes)
-        {
-            if (File.Exists(path)) File.Copy(path, path + ".previous", true);
-            while (rows.Count > 1 && Encoding.UTF8.GetByteCount(text) > limitBytes)
-            { rows.RemoveAt(0); text = Encode(); }
-            if (Encoding.UTF8.GetByteCount(text) > limitBytes) throw new IOException("Run exceeds storage limit.");
-        }
+            throw new IOException("History reached its size cap; recording is read-only. Existing rows are preserved.");
         var temporary = path + ".tmp";
         try
         {

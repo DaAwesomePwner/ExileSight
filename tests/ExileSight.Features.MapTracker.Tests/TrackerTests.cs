@@ -11,13 +11,13 @@ public sealed class TrackerTests
     [Fact]
     public void SyntheticSessionReplaysWithPausePortalKillsAndMechanic()
     {
-        var tracker = new RunTracker(); var completed = new List<MapRun>(); var parser = new LogParser();
+        var tracker = new RunTracker(); tracker.ConfirmCharacter("SyntheticExile"); var completed = new List<MapRun>(); var parser = new LogParser();
         tracker.Copied(new CopiedItem("Maps", "Beach", "Beach Map", 16, ["Synthetic mod"]));
         foreach (var line in File.ReadAllLines(Path.Combine(AppContext.BaseDirectory, "session.txt")))
             if (tracker.Accept(Event(parser.Parse(line)), "Fixture league") is { } run) completed.Add(run);
         var first = Assert.Single(completed);
         Assert.Equal("Beach", first.Map); Assert.Equal(16, first.Tier); Assert.Equal(20, first.Seconds);
-        Assert.Equal(2, first.Portals); Assert.Equal(25, first.Kills); Assert.Contains("Blight", first.Mechanics);
+        Assert.Equal(1, first.Deaths); Assert.Equal(2, first.Portals); Assert.Equal(25, first.Kills); Assert.Contains("Blight", first.Mechanics);
         Assert.Equal(["Synthetic mod"], first.Mods); Assert.Empty(tracker.Current!.Mods);
         var last = tracker.Accept(Event(new LogSourceChanged()), "Fixture league");
         Assert.True(last!.Incomplete); Assert.Equal("Dunes", last.Map);
@@ -25,7 +25,7 @@ public sealed class TrackerTests
     [Fact]
     public void SideAreaDeathsAndGapNeverExtendAcrossMissingTime()
     {
-        var tracker = new RunTracker();
+        var tracker = new RunTracker(); tracker.ConfirmCharacter("Private name");
         tracker.Accept(Event(new AreaGenerated("", At(0), 70, "MapWorldsBeach", 1)), "L");
         tracker.Accept(Event(new AreaGenerated("", At(5), 70, "Incursion", 2)), "L");
         tracker.Accept(Event(new PlayerSlain("secret", At(7), "Private name")), "L");

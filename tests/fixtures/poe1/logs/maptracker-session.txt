@@ -2,7 +2,15 @@
 2026/11/06 12:00:01 2000 abc [INFO Client 42] : You have entered Beach.
 2026/11/06 12:00:02 3000 abc [INFO Client 42] : You have killed 100 monsters.
 2026/11/06 12:00:03 4000 abc [INFO Client 42] Sister Cassia: Synthetic fixture dialogue.
+2026/11/06 12:00:04 5000 abc [DEBUG Client 42] Generating level 83 area "VaalSideArea" with seed 99
+2026/11/06 12:00:05 6000 abc [INFO Client 42] : You have entered Forgotten Oubliette.
+2026/11/06 12:00:06 7000 abc [INFO Client 42] : SyntheticExile has been slain.
+2026/11/06 12:00:08 9000 abc [DEBUG Client 42] Generating level 83 area "MapWorldsBeach" with seed 12
+2026/11/06 12:00:09 10000 abc [INFO Client 42] : You have entered Beach.
 2026/11/06 12:00:10 11000 abc [DEBUG Client 42] Generating level 60 area "HideoutCoastal" with seed 1
+2026/11/06 12:00:11 12000 abc [INFO Client 42] : You have entered Coastal Hideout.
+2026/11/06 12:00:20 21000 abc [DEBUG Client 42] Generating level 1 area "1_1_town" with seed 2
+2026/11/06 12:00:21 22000 abc [INFO Client 42] : You have entered Lioneye's Watch.
 2026/11/06 12:01:00 61000 abc [DEBUG Client 42] Generating level 83 area "MapWorldsBeach" with seed 12
 2026/11/06 12:01:01 62000 abc [INFO Client 42] : You have entered Beach.
 2026/11/06 12:01:02 63000 abc [INFO Client 42] : You have killed 125 monsters.

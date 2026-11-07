@@ -3,13 +3,22 @@ using ExileSight.Core.Features;
 using ExileSight.Core.Logs;
 namespace ExileSight.Features.MapTracker;
 
-public sealed class TrackerModel(RunStore store)
+public sealed class TrackerModel(IRunStore store)
 {
     private readonly object sync = new();
     private readonly RunTracker tracker = new();
+    private readonly RunWriter writer = new(store);
+    private double checkpointSeconds;
     private string league = "";
     public string League { get { lock (sync) return league; } }
-    public string Status { get; private set; } = "Select a league to begin recording.";
+    private string status = "Select a league to begin recording.";
+    public string Status
+    {
+        get { lock (sync) return (writer.Failure ?? status) +
+            (tracker.CharacterConfirmed ? " Own-character death counting enabled." : " Deaths untracked: confirm own character (memory only)."); }
+    }
+    public Task FlushAsync() => writer.FlushAsync();
+    public void ConfirmCharacter(string name) { lock (sync) tracker.ConfirmCharacter(name); }
     public string[] Leagues { get; set; } = [];
     public event Action<string>? LeagueSelected;
     public event Action? OpenRequested;
@@ -22,7 +31,7 @@ public sealed class TrackerModel(RunStore store)
             if (tracker.Accept(new(0, 0, new LogSourceChanged(), false), league) is { } old) Save(old);
             league = value;
             LeagueSelected?.Invoke(value);
-            Status = "Recording. Ctrl+Shift+K requests /kills; take a start and end sample.";
+            status = "Recording. Ctrl+Shift+K requests /kills; take a start and end sample.";
         }
     }
     public void Copied(CopiedItem item) { lock (sync) tracker.Copied(item); }
@@ -31,20 +40,20 @@ public sealed class TrackerModel(RunStore store)
         lock (sync)
         {
             if (league.Length == 0) return;
+            var revision = tracker.Revision;
             if (tracker.Accept(entry, league) is { } completed) Save(completed);
-            if (tracker.Current is { } current)
+            if (tracker.Current is { } current &&
+                (revision != tracker.Revision || current.Seconds - checkpointSeconds >= 60))
+            {
                 Save(current with { Incomplete = true, Ended = entry.Timestamp ?? current.Started });
+                checkpointSeconds = current.Seconds;
+            }
         }
     }
-    private void Save(MapRun run)
-    {
-        try { store.Save(run); }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or NotSupportedException)
-        { Status = "Storage unavailable or newer schema (read-only): " + e.GetType().Name; }
-    }
+    private void Save(MapRun run) => writer.Enqueue(run);
     public MapRun[] Query(string selectedLeague, string map = "", int? tier = null, DateTime? from = null, DateTime? to = null)
     {
-        lock (sync) return store.Read(selectedLeague).Where(r => r.Map.Contains(map, StringComparison.OrdinalIgnoreCase)
+        return writer.Read(selectedLeague).Where(r => r.Map.Contains(map, StringComparison.OrdinalIgnoreCase)
             && (tier is null || r.Tier == tier) && (from is null || r.Started.Date >= from.Value.Date)
             && (to is null || r.Started.Date <= to.Value.Date)).OrderByDescending(r => r.Started).ToArray();
     }
