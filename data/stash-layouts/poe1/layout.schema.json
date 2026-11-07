@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExileSight measured stash layout",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "tabId",
+    "page",
+    "referenceResolution",
+    "cells",
+    "folderOffsets",
+    "provenance"
+  ],
+  "properties": {
+    "tabId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "page": {
+      "type": "string",
+      "minLength": 1
+    },
+    "referenceResolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height"
+      ],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16384
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16384
+        }
+      }
+    },
+    "cells": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "x",
+          "y",
+          "w",
+          "h",
+          "category"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "ninjaId"
+            ]
+          },
+          {
+            "required": [
+              "itemName"
+            ]
+          }
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "w": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "h": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "category": {
+            "enum": [
+              "Currency",
+              "Fragment",
+              "Scarab",
+              "Fossil",
+              "Resonator",
+              "Essence",
+              "Oil",
+              "DeliriumOrb"
+            ]
+          },
+          "ninjaId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "itemName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "folder": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "folderOffsets": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "x",
+          "y"
+        ],
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "author",
+        "method",
+        "date"
+      ],
+      "properties": {
+        "author": {
+          "type": "string",
+          "minLength": 1
+        },
+        "method": {
+          "type": "string",
+          "pattern": "^measured from screenshot at [1-9][0-9]*x[1-9][0-9]*$"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    }
+  }
+}
