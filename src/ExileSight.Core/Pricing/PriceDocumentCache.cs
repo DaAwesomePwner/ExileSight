@@ -11,10 +11,11 @@ namespace ExileSight.Core.Pricing;
 internal sealed record CachedPriceDocument(string? Json, DateTimeOffset? UpdatedAt, bool IsStale, string? Diagnostic);
 
 /// <summary>Persist attempts before HTTP. Readers retain the last published copy while a writer refreshes.</summary>
-internal sealed class PriceDocumentCache(IAppPaths paths, IClock clock, PriceTransport transport)
+internal sealed class PriceDocumentCache(IAppPaths paths, IClock clock, PriceTransport transport, IPriceCacheReader? reader = null)
 {
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> Locks = new();
     private readonly ConcurrentDictionary<string, PriceCache> memory = new();
+    private readonly IPriceCacheReader reader = reader ?? new PriceCacheReader();
     private readonly RootedFiles files = new(paths.RootDirectory);
     public async Task<CachedPriceDocument> GetAsync(Uri uri, Action<string> validate, TimeSpan refreshInterval,
         CancellationToken cancellationToken = default)
@@ -23,6 +24,10 @@ internal sealed class PriceDocumentCache(IAppPaths paths, IClock clock, PriceTra
         var interval = refreshInterval < TimeSpan.FromHours(1) ? TimeSpan.FromHours(1) : refreshInterval;
         var key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(uri.AbsoluteUri.ToUpperInvariant())));
         var path = files.Check(Path.Combine(paths.RootDirectory, "cache", "poe1", "poeninja", key + ".json"));
+        // A published, current copy needs neither filesystem reads nor the refresh lock.
+        if (memory.TryGetValue(path, out var current) && IsWaiting(current, interval) &&
+            current.LastAttempt <= clock.UtcNow && !(current.UpdatedAt > clock.UtcNow))
+            return Result(current, interval, current.Error);
         var gate = Locks.GetOrAdd(path, _ => new(1, 1));
         if (!gate.Wait(0)) return Result(ReadAvailable(path), interval, "Price refresh in progress.");
         PriceCache cache = new();
@@ -31,8 +36,8 @@ internal sealed class PriceDocumentCache(IAppPaths paths, IClock clock, PriceTra
             cache = ReadAvailable(path);
             Directory.CreateDirectory(files.Check(Path.GetDirectoryName(path)!));
             using var lease = new FileStream(files.Check(path + ".lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-            // Refresh disk state when due, so separate app instances observe each other's attempts.
-            if (!IsWaiting(cache, interval)) cache = Read(path);
+            // Repair decisions are based exclusively on a fresh read while holding both locks.
+            cache = Read(path, allowRepair: true);
             var now = clock.UtcNow;
             if (cache.LastAttempt > now || cache.UpdatedAt > now || cache.NeedsRepair)
             {
@@ -91,22 +96,29 @@ internal sealed class PriceDocumentCache(IAppPaths paths, IClock clock, PriceTra
     private PriceCache ReadAvailable(string path)
     {
         if (memory.TryGetValue(path, out var cached)) return cached;
-        var result = Read(path);
-        memory[path] = result;
-        return result;
+        try
+        {
+            var result = Read(path, allowRepair: false);
+            // An unlocked read can finish after the writer publishes. Never replace that copy.
+            return memory.GetOrAdd(path, result);
+        }
+        catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException)
+        {
+            return memory.TryGetValue(path, out var latest) ? latest :
+                new() { Error = "Price cache unavailable." };
+        }
     }
-    private PriceCache Read(string path)
+    private PriceCache Read(string path, bool allowRepair)
     {
         path = files.Check(path);
         if (!File.Exists(path)) return new();
         try
         {
-            if (new FileInfo(path).Length > 64 * 1024 * 1024) throw new IOException("Price cache too large.");
-            return JsonSerializer.Deserialize(File.ReadAllBytes(path), PriceJsonContext.Default.PriceCache) ?? throw new JsonException();
+            return JsonSerializer.Deserialize(reader.Read(path), PriceJsonContext.Default.PriceCache) ?? throw new JsonException();
         }
-        catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException)
+        catch (Exception e) when (allowRepair && e is (JsonException or IOException or UnauthorizedAccessException))
         {
-            var modified = new DateTimeOffset(File.GetLastWriteTimeUtc(path));
+            var modified = reader.LastWriteTime(path);
             return new()
             {
                 LastAttempt = modified > clock.UtcNow ? clock.UtcNow : modified,

@@ -19,6 +19,8 @@ internal static class PriceTypes
         _ => null
     };
 
+    // Category grouping follows Exile-UI modules/stash-ninja.ahk:414-415.
+    // Copied-item name heuristics below are ExileSight's adapter for those overview types.
     public static string? FromName(string name)
     {
         if (name.Contains("Scarab", StringComparison.OrdinalIgnoreCase)) return "Scarab";
