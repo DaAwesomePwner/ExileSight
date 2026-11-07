@@ -1,6 +1,6 @@
 Item Class: Rings
 Rarity: Magic
-Stalwart Gold Ring
+Healthy Gold Ring
 --------
 Item Level: 84
 --------

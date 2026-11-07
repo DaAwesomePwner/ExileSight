@@ -10,15 +10,60 @@
           }
         ]
       }
-    }
-  },
-  "plain": {
-    "Influences": []
-  },
-  "advanced": {
+    },
+    "Warnings": [],
+    "OtherText": [],
     "Influences": [
       "Searing Exarch",
       "Eater of Worlds"
+    ]
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Values": [
+          {
+            "Value": 12,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      {
+        "Values": [
+          {
+            "Value": 12,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Kind": "Implicit, Exarch",
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 12,
+            "Minimum": 10,
+            "Maximum": 12
+          }
+        ]
+      },
+      {
+        "Kind": "Implicit, Eater",
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 12,
+            "Minimum": 10,
+            "Maximum": 12
+          }
+        ]
+      }
     ]
   }
 }

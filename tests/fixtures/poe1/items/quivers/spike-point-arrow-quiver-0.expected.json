@@ -5,7 +5,9 @@
     "Rarity": "Rare",
     "Name": "Doom Shelter",
     "BaseType": "Spike-Point Arrow Quiver",
-    "ItemLevel": 84
+    "ItemLevel": 84,
+    "Warnings": [],
+    "OtherText": []
   },
   "plain": {
     "Mods": [
@@ -13,7 +15,14 @@
         "Text": "+92 to maximum Life",
         "Kind": "Explicit",
         "AffixType": "Unknown",
-        "Tier": null
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 92.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
       }
     ]
   },
@@ -24,7 +33,14 @@
         "Kind": "Explicit",
         "AffixType": "Prefix",
         "Tier": 1,
-        "AffixName": "Healthy"
+        "AffixName": "Healthy",
+        "Values": [
+          {
+            "Value": 92.0,
+            "Minimum": 90.0,
+            "Maximum": 99.0
+          }
+        ]
       }
     ]
   }

@@ -5,7 +5,9 @@
     "Rarity": "Normal",
     "Name": "Eternal Mana Flask",
     "BaseType": "Eternal Mana Flask",
-    "ItemLevel": 84
+    "ItemLevel": 84,
+    "Warnings": [],
+    "OtherText": []
   },
   "plain": {
     "Mods": []

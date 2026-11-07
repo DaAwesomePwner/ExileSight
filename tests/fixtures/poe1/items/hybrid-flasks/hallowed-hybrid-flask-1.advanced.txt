@@ -1,10 +1,15 @@
 Item Class: Hybrid Flasks
 Rarity: Magic
-Stalwart Hallowed Hybrid Flask
+Perpetual Hallowed Hybrid Flask
+--------
+Recovers 2400 Life over 7 Seconds
+Recovers 600 Mana over 5 Seconds
+Consumes 15 of 45 Charges on use
+Currently has 45 Charges
 --------
 Item Level: 84
 --------
-{ Prefix Modifier "Healthy" (Tier: 1) — Life }
+{ Prefix Modifier "Perpetual" (Tier: 1) — Life }
 30(25-30)% increased Charge Recovery
 --------
 Note: ~b/o 2.5 divine

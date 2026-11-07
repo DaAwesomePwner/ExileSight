@@ -3,30 +3,91 @@
     "Game": "PoE1",
     "ItemClass": "Jewels",
     "Rarity": "Magic",
-    "Name": "Stalwart Large Cluster Jewel",
-    "BaseType": null,
+    "Name": "Vivid Large Cluster Jewel",
     "ItemLevel": 84,
-    "Corrupted": true
+    "Corrupted": true,
+    "Warnings": [],
+    "OtherText": []
   },
   "plain": {
     "Mods": [
       {
+        "Text": "Adds 8 Passive Skills (enchant)",
+        "Kind": "Enchant",
+        "Values": [
+          {
+            "Value": 8.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      {
+        "Text": "Added Small Passive Skills grant: 12% increased Attack Damage (enchant)",
+        "Kind": "Enchant",
+        "Values": [
+          {
+            "Value": 12.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      {
         "Text": "7% increased maximum Life",
         "Kind": "Explicit",
         "AffixType": "Unknown",
-        "Tier": null
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 7.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
       }
-    ]
+    ],
+    "BaseType": null
   },
   "advanced": {
     "Mods": [
+      {
+        "Text": "Adds 8 Passive Skills (enchant)",
+        "Kind": "Enchant",
+        "Values": [
+          {
+            "Value": 8.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      {
+        "Text": "Added Small Passive Skills grant: 12% increased Attack Damage (enchant)",
+        "Kind": "Enchant",
+        "Values": [
+          {
+            "Value": 12.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
       {
         "Text": "7(5-7)% increased maximum Life",
         "Kind": "Explicit",
         "AffixType": "Prefix",
         "Tier": 1,
-        "AffixName": "Healthy"
+        "AffixName": "Vivid",
+        "Values": [
+          {
+            "Value": 7.0,
+            "Minimum": 5.0,
+            "Maximum": 7.0
+          }
+        ]
       }
-    ]
+    ],
+    "BaseType": "Large Cluster Jewel"
   }
 }

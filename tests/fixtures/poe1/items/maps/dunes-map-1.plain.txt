@@ -3,11 +3,12 @@ Rarity: Rare
 Doom Shelter
 Dunes Map
 --------
-Item Level: 84
 Map Tier: 16
 Item Quantity: +80% (augmented)
 Item Rarity: +40% (augmented)
 Monster Pack Size: +25% (augmented)
+--------
+Item Level: 84
 --------
 Monsters deal 25% extra Physical Damage as Fire
 --------

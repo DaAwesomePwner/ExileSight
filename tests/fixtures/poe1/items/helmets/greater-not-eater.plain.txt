@@ -1,0 +1,14 @@
+Item Class: Helmets
+Rarity: Rare
+Doom Crown
+Hubris Circlet
+--------
+Energy Shield: 200
+--------
+Item Level: 84
+--------
++12% to Fire Resistance (implicit)
+--------
++20 to maximum Life
+--------
+Searing Exarch Item

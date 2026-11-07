@@ -2,4 +2,10 @@ Item Class: Jewels
 Rarity: Normal
 Large Cluster Jewel
 --------
+Limited to: 1
+Radius: Large
+--------
 Item Level: 84
+--------
+Adds 8 Passive Skills (enchant)
+Added Small Passive Skills grant: 12% increased Attack Damage (enchant)

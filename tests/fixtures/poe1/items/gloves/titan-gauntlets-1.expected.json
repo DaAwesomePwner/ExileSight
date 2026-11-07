@@ -9,7 +9,9 @@
     "Quality": 20,
     "SocketCount": 4,
     "MaximumLinks": 3,
-    "Unidentified": true
+    "Unidentified": true,
+    "Warnings": [],
+    "OtherText": []
   },
   "plain": {
     "Mods": []

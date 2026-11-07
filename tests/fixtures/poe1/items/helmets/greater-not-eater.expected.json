@@ -1,0 +1,56 @@
+{
+  "common": {
+    "Influences": [
+      "Searing Exarch"
+    ],
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Values": [
+          {
+            "Value": 12,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      {
+        "Kind": "Explicit",
+        "Values": [
+          {
+            "Value": 20,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Kind": "Implicit, Exarch",
+        "Values": [
+          {
+            "Value": 12,
+            "Minimum": 10,
+            "Maximum": 12
+          }
+        ]
+      },
+      {
+        "Kind": "Explicit",
+        "Values": [
+          {
+            "Value": 20,
+            "Minimum": 20,
+            "Maximum": 29
+          }
+        ]
+      }
+    ]
+  }
+}

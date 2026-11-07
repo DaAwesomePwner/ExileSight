@@ -6,7 +6,9 @@
     "Name": "Imperial Skean",
     "BaseType": "Imperial Skean",
     "ItemLevel": 84,
-    "Unidentified": true
+    "Unidentified": true,
+    "Warnings": [],
+    "OtherText": []
   },
   "plain": {
     "Mods": []

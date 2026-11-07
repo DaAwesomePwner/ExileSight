@@ -1,0 +1,49 @@
+{
+  "common": {
+    "Mods": [],
+    "MapTier": 16,
+    "MapPackSize": 20,
+    "Properties": {
+      "More Scarabs": {
+        "Values": [
+          {
+            "Value": 50,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      "More Currency": {
+        "Values": [
+          {
+            "Value": 60,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      "More Maps": {
+        "Values": [
+          {
+            "Value": 70,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      "Area Level": {
+        "Values": [
+          {
+            "Value": 83,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    },
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {},
+  "advanced": {}
+}

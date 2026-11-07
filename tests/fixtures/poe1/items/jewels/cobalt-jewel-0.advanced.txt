@@ -3,6 +3,9 @@ Rarity: Rare
 Doom Shelter
 Cobalt Jewel
 --------
+Limited to: 1
+Radius: Large
+--------
 Item Level: 84
 --------
 { Prefix Modifier "Healthy" (Tier: 1) — Life }

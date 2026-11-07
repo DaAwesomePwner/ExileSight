@@ -1,10 +1,15 @@
 Item Class: Two Hand Axes
 Rarity: Magic
-Stalwart Vaal Axe
+Heavy Vaal Axe
+--------
+Two Handed Axe
+Physical Damage: 40-80
+Critical Strike Chance: 5.00%
+Attacks per Second: 1.50
 --------
 Item Level: 84
 --------
-{ Prefix Modifier "Healthy" (Tier: 1) — Life }
+{ Prefix Modifier "Heavy" (Tier: 1) — Life }
 120(110-129)% increased Physical Damage
 --------
 Searing Exarch Item

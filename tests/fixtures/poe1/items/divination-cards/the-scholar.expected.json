@@ -5,6 +5,30 @@
     "StackSize": {
       "Current": 3,
       "Maximum": 3
+    },
+    "Warnings": [],
+    "OtherText": [
+      "40x Scroll of Wisdom"
+    ],
+    "FlavourText": [
+      "The path to knowledge is paved with questions."
+    ],
+    "Mods": [],
+    "Properties": {
+      "Stack Size": {
+        "Values": [
+          {
+            "Value": 3,
+            "Minimum": null,
+            "Maximum": null
+          },
+          {
+            "Value": 3,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
     }
   },
   "plain": {},

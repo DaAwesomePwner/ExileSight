@@ -3,6 +3,11 @@ Rarity: Rare
 Doom Shelter
 Imperial Claw
 --------
+Claw
+Physical Damage: 40-80
+Critical Strike Chance: 5.00%
+Attacks per Second: 1.50
+--------
 Item Level: 84
 --------
 { Prefix Modifier "Healthy" (Tier: 1) — Life }

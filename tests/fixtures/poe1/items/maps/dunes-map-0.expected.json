@@ -9,7 +9,9 @@
     "MapTier": 16,
     "MapQuantity": 80,
     "MapRarity": 40,
-    "MapPackSize": 25
+    "MapPackSize": 25,
+    "Warnings": [],
+    "OtherText": []
   },
   "plain": {
     "Mods": [
@@ -17,18 +19,32 @@
         "Text": "Monsters deal 25% extra Physical Damage as Fire",
         "Kind": "Explicit",
         "AffixType": "Unknown",
-        "Tier": null
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 25.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
       }
     ]
   },
   "advanced": {
     "Mods": [
       {
-        "Text": "Monsters deal 25% extra Physical Damage as Fire",
+        "Text": "Monsters deal 25(20-29)% extra Physical Damage as Fire",
         "Kind": "Explicit",
         "AffixType": "Prefix",
         "Tier": 1,
-        "AffixName": "Healthy"
+        "AffixName": "Healthy",
+        "Values": [
+          {
+            "Value": 25,
+            "Minimum": 20,
+            "Maximum": 29
+          }
+        ]
       }
     ]
   }

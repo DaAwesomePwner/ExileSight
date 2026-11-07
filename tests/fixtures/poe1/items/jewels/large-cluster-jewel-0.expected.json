@@ -5,12 +5,60 @@
     "Rarity": "Normal",
     "Name": "Large Cluster Jewel",
     "BaseType": "Large Cluster Jewel",
-    "ItemLevel": 84
+    "ItemLevel": 84,
+    "Warnings": [],
+    "OtherText": []
   },
   "plain": {
-    "Mods": []
+    "Mods": [
+      {
+        "Text": "Adds 8 Passive Skills (enchant)",
+        "Kind": "Enchant",
+        "Values": [
+          {
+            "Value": 8.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      {
+        "Text": "Added Small Passive Skills grant: 12% increased Attack Damage (enchant)",
+        "Kind": "Enchant",
+        "Values": [
+          {
+            "Value": 12.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ]
   },
   "advanced": {
-    "Mods": []
+    "Mods": [
+      {
+        "Text": "Adds 8 Passive Skills (enchant)",
+        "Kind": "Enchant",
+        "Values": [
+          {
+            "Value": 8.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      {
+        "Text": "Added Small Passive Skills grant: 12% increased Attack Damage (enchant)",
+        "Kind": "Enchant",
+        "Values": [
+          {
+            "Value": 12.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ]
   }
 }

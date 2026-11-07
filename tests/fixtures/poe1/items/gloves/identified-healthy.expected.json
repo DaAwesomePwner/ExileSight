@@ -1,0 +1,35 @@
+{
+  "common": {
+    "Name": "Healthy Titan Gauntlets",
+    "OtherText": [],
+    "Warnings": []
+  },
+  "plain": {
+    "BaseType": null,
+    "Mods": [
+      {
+        "Values": [
+          {
+            "Value": 20,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ]
+  },
+  "advanced": {
+    "BaseType": "Titan Gauntlets",
+    "Mods": [
+      {
+        "Values": [
+          {
+            "Value": 20,
+            "Minimum": 20,
+            "Maximum": 29
+          }
+        ]
+      }
+    ]
+  }
+}

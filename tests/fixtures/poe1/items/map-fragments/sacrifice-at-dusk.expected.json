@@ -5,6 +5,25 @@
     "StackSize": {
       "Current": 2,
       "Maximum": 10
+    },
+    "Warnings": [],
+    "OtherText": [],
+    "Mods": [],
+    "Properties": {
+      "Stack Size": {
+        "Values": [
+          {
+            "Value": 2,
+            "Minimum": null,
+            "Maximum": null
+          },
+          {
+            "Value": 10,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
     }
   },
   "plain": {},

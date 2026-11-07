@@ -2,11 +2,49 @@
   "common": {
     "ItemClass": "Skill Gems",
     "Name": "Fireball",
-    "GemLevel": 20,
-    "Quality": 20,
+    "GemLevel": 1,
     "GemExperience": {
-      "Current": 1000,
-      "Maximum": 2000
+      "Current": 1,
+      "Maximum": 15249
+    },
+    "Warnings": [],
+    "OtherText": [
+      "Unleashes a ball of fire towards a target which explodes, damaging nearby foes."
+    ],
+    "Mods": [],
+    "Properties": {
+      "Cost": {
+        "Values": [
+          {
+            "Value": 6,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      "Cast Time": {
+        "Values": [
+          {
+            "Value": 0.75,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      "Experience": {
+        "Values": [
+          {
+            "Value": 1,
+            "Minimum": null,
+            "Maximum": null
+          },
+          {
+            "Value": 15249,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
     }
   },
   "plain": {},

@@ -1,10 +1,18 @@
 Item Class: Jewels
 Rarity: Magic
-Stalwart Large Cluster Jewel
+Vivid Large Cluster Jewel
+--------
+Limited to: 1
+Radius: Large
 --------
 Item Level: 84
 --------
-{ Prefix Modifier "Healthy" (Tier: 1) — Life }
+{ Enchantment Modifier }
+Adds 8 Passive Skills (enchant)
+{ Enchantment Modifier }
+Added Small Passive Skills grant: 12% increased Attack Damage (enchant)
+--------
+{ Prefix Modifier "Vivid" (Tier: 1) — Life }
 7(5-7)% increased maximum Life
 --------
 Corrupted

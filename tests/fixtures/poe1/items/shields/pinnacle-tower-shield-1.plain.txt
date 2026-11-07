@@ -1,11 +1,14 @@
 Item Class: Shields
 Rarity: Magic
-Stalwart Pinnacle Tower Shield
+Healthy Pinnacle Tower Shield
 --------
-Item Level: 84
+Chance to Block: 24%
 Armour: 400 (augmented)
 Quality: +20% (augmented)
+--------
 Sockets: R-R-G B
+--------
+Item Level: 84
 --------
 +92 to maximum Life
 --------

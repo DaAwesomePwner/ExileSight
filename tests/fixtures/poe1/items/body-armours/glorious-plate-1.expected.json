@@ -3,8 +3,7 @@
     "Game": "PoE1",
     "ItemClass": "Body Armours",
     "Rarity": "Magic",
-    "Name": "Stalwart Glorious Plate",
-    "BaseType": null,
+    "Name": "Healthy Glorious Plate",
     "ItemLevel": 84,
     "Quality": 20,
     "SocketCount": 4,
@@ -14,7 +13,9 @@
       "Amount": 2.5,
       "Currency": "divine",
       "Kind": "~b/o"
-    }
+    },
+    "Warnings": [],
+    "OtherText": []
   },
   "plain": {
     "Mods": [
@@ -22,9 +23,17 @@
         "Text": "+92 to maximum Life",
         "Kind": "Explicit",
         "AffixType": "Unknown",
-        "Tier": null
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 92.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
       }
-    ]
+    ],
+    "BaseType": null
   },
   "advanced": {
     "Mods": [
@@ -33,8 +42,16 @@
         "Kind": "Explicit",
         "AffixType": "Prefix",
         "Tier": 1,
-        "AffixName": "Healthy"
+        "AffixName": "Healthy",
+        "Values": [
+          {
+            "Value": 92.0,
+            "Minimum": 90.0,
+            "Maximum": 99.0
+          }
+        ]
       }
-    ]
+    ],
+    "BaseType": "Glorious Plate"
   }
 }

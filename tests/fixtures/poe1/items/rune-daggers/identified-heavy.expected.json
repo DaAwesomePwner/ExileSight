@@ -1,0 +1,35 @@
+{
+  "common": {
+    "ItemClass": "Rune Daggers",
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "BaseType": null,
+    "Mods": [
+      {
+        "Values": [
+          {
+            "Value": 40,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ]
+  },
+  "advanced": {
+    "BaseType": "Imperial Skean",
+    "Mods": [
+      {
+        "Values": [
+          {
+            "Value": 40,
+            "Minimum": 40,
+            "Maximum": 49
+          }
+        ]
+      }
+    ]
+  }
+}

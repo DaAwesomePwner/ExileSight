@@ -3,10 +3,12 @@ Rarity: Rare
 Doom Shelter
 Titan Greaves
 --------
-Item Level: 84
 Armour: 400 (augmented)
 Quality: +20% (augmented)
+--------
 Sockets: R-R-G B
+--------
+Item Level: 84
 --------
 +92 to maximum Life
 --------

@@ -3,8 +3,30 @@
     "ItemClass": "Stackable Currency",
     "Name": "Chaos Orb",
     "StackSize": {
-      "Current": 1234,
-      "Maximum": 5000
+      "Current": 12,
+      "Maximum": 20
+    },
+    "Warnings": [],
+    "OtherText": [
+      "Reforges a rare item with new random modifiers",
+      "Right click this item then left click a rare item to apply it."
+    ],
+    "Mods": [],
+    "Properties": {
+      "Stack Size": {
+        "Values": [
+          {
+            "Value": 12,
+            "Minimum": null,
+            "Maximum": null
+          },
+          {
+            "Value": 20,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
     }
   },
   "plain": {},

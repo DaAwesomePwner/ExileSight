@@ -1,8 +1,11 @@
 Item Class: Shields
 Rarity: Normal
-Pinnacle Tower Shield
+Superior Pinnacle Tower Shield
 --------
-Item Level: 84
+Chance to Block: 24%
 Armour: 400 (augmented)
 Quality: +20% (augmented)
+--------
 Sockets: R-R-G B
+--------
+Item Level: 84

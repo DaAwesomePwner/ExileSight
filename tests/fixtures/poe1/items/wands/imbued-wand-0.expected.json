@@ -5,7 +5,9 @@
     "Rarity": "Normal",
     "Name": "Imbued Wand",
     "BaseType": "Imbued Wand",
-    "ItemLevel": 84
+    "ItemLevel": 84,
+    "Warnings": [],
+    "OtherText": []
   },
   "plain": {
     "Mods": []

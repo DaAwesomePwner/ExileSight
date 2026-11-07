@@ -1,0 +1,15 @@
+{
+  "common": {
+    "Name": "Fireball",
+    "BaseType": "Fireball",
+    "Mods": [],
+    "GemExperience": {
+      "Current": 1,
+      "Maximum": 15249
+    },
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {},
+  "advanced": {}
+}

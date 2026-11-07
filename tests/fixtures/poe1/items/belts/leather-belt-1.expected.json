@@ -3,12 +3,13 @@
     "Game": "PoE1",
     "ItemClass": "Belts",
     "Rarity": "Magic",
-    "Name": "Stalwart Leather Belt",
-    "BaseType": null,
+    "Name": "Healthy Leather Belt",
     "ItemLevel": 84,
     "Influences": [
       "Crusader"
-    ]
+    ],
+    "Warnings": [],
+    "OtherText": []
   },
   "plain": {
     "Mods": [
@@ -16,9 +17,17 @@
         "Text": "+92 to maximum Life",
         "Kind": "Explicit",
         "AffixType": "Unknown",
-        "Tier": null
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 92.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
       }
-    ]
+    ],
+    "BaseType": null
   },
   "advanced": {
     "Mods": [
@@ -27,8 +36,16 @@
         "Kind": "Explicit",
         "AffixType": "Prefix",
         "Tier": 1,
-        "AffixName": "Healthy"
+        "AffixName": "Healthy",
+        "Values": [
+          {
+            "Value": 92.0,
+            "Minimum": 90.0,
+            "Maximum": 99.0
+          }
+        ]
       }
-    ]
+    ],
+    "BaseType": "Leather Belt"
   }
 }

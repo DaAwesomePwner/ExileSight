@@ -3,12 +3,13 @@
     "Game": "PoE1",
     "ItemClass": "Two Hand Axes",
     "Rarity": "Magic",
-    "Name": "Stalwart Vaal Axe",
-    "BaseType": null,
+    "Name": "Heavy Vaal Axe",
     "ItemLevel": 84,
     "Influences": [
       "Searing Exarch"
-    ]
+    ],
+    "Warnings": [],
+    "OtherText": []
   },
   "plain": {
     "Mods": [
@@ -16,9 +17,17 @@
         "Text": "120% increased Physical Damage",
         "Kind": "Explicit",
         "AffixType": "Unknown",
-        "Tier": null
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 120.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
       }
-    ]
+    ],
+    "BaseType": null
   },
   "advanced": {
     "Mods": [
@@ -27,8 +36,16 @@
         "Kind": "Explicit",
         "AffixType": "Prefix",
         "Tier": 1,
-        "AffixName": "Healthy"
+        "AffixName": "Heavy",
+        "Values": [
+          {
+            "Value": 120.0,
+            "Minimum": 110.0,
+            "Maximum": 129.0
+          }
+        ]
       }
-    ]
+    ],
+    "BaseType": "Vaal Axe"
   }
 }

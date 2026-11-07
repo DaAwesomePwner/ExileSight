@@ -1,0 +1,8 @@
+Item Class: Rings
+Rarity: Normal
+Synthesised Gold Ring
+--------
+Item Level: 84
+--------
+{ Implicit Modifier }
++12(10-12)% to Fire Resistance (implicit)

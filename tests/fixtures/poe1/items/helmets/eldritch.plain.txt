@@ -5,5 +5,11 @@ Hubris Circlet
 --------
 Energy Shield: 200
 --------
+Item Level: 84
+--------
 +12% to Fire Resistance (implicit)
 +12% to Cold Resistance (implicit)
+--------
+Searing Exarch Item
+--------
+Eater of Worlds Item

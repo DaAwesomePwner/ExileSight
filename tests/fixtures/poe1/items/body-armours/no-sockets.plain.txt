@@ -1,0 +1,14 @@
+Item Class: Body Armours
+Rarity: Unique
+Kaom's Heart
+Glorious Plate
+--------
+Armour: 776
+--------
+Requirements:
+Level: 68
+Str: 191
+--------
+Item Level: 84
+--------
+Has no Sockets

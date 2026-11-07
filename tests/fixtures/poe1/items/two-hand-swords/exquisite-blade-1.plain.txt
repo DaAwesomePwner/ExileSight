@@ -1,6 +1,11 @@
 Item Class: Two Hand Swords
 Rarity: Magic
-Stalwart Exquisite Blade
+Heavy Exquisite Blade
+--------
+Two Handed Sword
+Physical Damage: 40-80
+Critical Strike Chance: 5.00%
+Attacks per Second: 1.50
 --------
 Item Level: 84
 --------

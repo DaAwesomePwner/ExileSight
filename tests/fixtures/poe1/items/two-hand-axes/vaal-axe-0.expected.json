@@ -5,7 +5,9 @@
     "Rarity": "Normal",
     "Name": "Vaal Axe",
     "BaseType": "Vaal Axe",
-    "ItemLevel": 84
+    "ItemLevel": 84,
+    "Warnings": [],
+    "OtherText": []
   },
   "plain": {
     "Mods": []

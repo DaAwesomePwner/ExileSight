@@ -1,11 +1,13 @@
 Item Class: Body Armours
 Rarity: Magic
-Stalwart Glorious Plate
+Healthy Glorious Plate
 --------
-Item Level: 84
 Armour: 400 (augmented)
 Quality: +20% (augmented)
+--------
 Sockets: R-R-G B
+--------
+Item Level: 84
 --------
 { Prefix Modifier "Healthy" (Tier: 1) — Life }
 +92(90-99) to maximum Life

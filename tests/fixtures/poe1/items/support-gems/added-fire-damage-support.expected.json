@@ -2,7 +2,41 @@
   "common": {
     "ItemClass": "Support Gems",
     "Name": "Added Fire Damage Support",
-    "GemLevel": 1
+    "GemLevel": 1,
+    "Warnings": [],
+    "OtherText": [
+      "Supports any skill that hits enemies."
+    ],
+    "GemExperience": {
+      "Current": 1,
+      "Maximum": 15249
+    },
+    "Mods": [],
+    "Properties": {
+      "Cost & Reservation Multiplier": {
+        "Values": [
+          {
+            "Value": 120,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      "Experience": {
+        "Values": [
+          {
+            "Value": 1,
+            "Minimum": null,
+            "Maximum": null
+          },
+          {
+            "Value": 15249,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    }
   },
   "plain": {},
   "advanced": {}

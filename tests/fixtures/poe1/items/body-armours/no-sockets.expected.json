@@ -1,0 +1,13 @@
+{
+  "common": {
+    "Name": "Kaom's Heart",
+    "Mods": [
+      {
+        "Text": "Has no Sockets",
+        "Values": []
+      }
+    ],
+    "OtherText": [],
+    "Warnings": []
+  }
+}

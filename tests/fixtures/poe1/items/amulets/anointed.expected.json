@@ -22,8 +22,58 @@
       {
         "Kind": "Explicit, Fractured"
       }
+    ],
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Values": []
+      },
+      {
+        "Values": [
+          {
+            "Value": 16,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      {
+        "Values": [
+          {
+            "Value": 92,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
     ]
   },
-  "plain": {},
-  "advanced": {}
+  "advanced": {
+    "Mods": [
+      {
+        "Values": []
+      },
+      {
+        "Values": [
+          {
+            "Value": 16,
+            "Minimum": 10,
+            "Maximum": 16
+          }
+        ]
+      },
+      {
+        "Values": [
+          {
+            "Value": 92,
+            "Minimum": 90,
+            "Maximum": 99
+          }
+        ]
+      }
+    ]
+  }
 }

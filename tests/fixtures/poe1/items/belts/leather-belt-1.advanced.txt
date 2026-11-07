@@ -1,6 +1,6 @@
 Item Class: Belts
 Rarity: Magic
-Stalwart Leather Belt
+Healthy Leather Belt
 --------
 Item Level: 84
 --------

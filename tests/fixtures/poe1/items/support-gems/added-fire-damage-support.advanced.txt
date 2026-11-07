@@ -2,5 +2,13 @@ Item Class: Support Gems
 Rarity: Gem
 Added Fire Damage Support
 --------
+Fire, Physical, Support
 Level: 1
-Experience: 0/100
+Cost & Reservation Multiplier: 120%
+--------
+Requirements:
+Level: 1
+--------
+Supports any skill that hits enemies.
+--------
+Experience: 1/15,249

@@ -5,7 +5,9 @@
     "Rarity": "Normal",
     "Name": "Gold Ring",
     "BaseType": "Gold Ring",
-    "ItemLevel": 84
+    "ItemLevel": 84,
+    "Warnings": [],
+    "OtherText": []
   },
   "plain": {
     "Mods": []

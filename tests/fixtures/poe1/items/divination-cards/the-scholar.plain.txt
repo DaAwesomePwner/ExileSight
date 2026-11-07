@@ -3,3 +3,7 @@ Rarity: Divination Card
 The Scholar
 --------
 Stack Size: 3/3
+--------
+40x Scroll of Wisdom
+--------
+The path to knowledge is paved with questions.

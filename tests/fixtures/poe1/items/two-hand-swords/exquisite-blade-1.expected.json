@@ -3,8 +3,7 @@
     "Game": "PoE1",
     "ItemClass": "Two Hand Swords",
     "Rarity": "Magic",
-    "Name": "Stalwart Exquisite Blade",
-    "BaseType": null,
+    "Name": "Heavy Exquisite Blade",
     "ItemLevel": 84,
     "Influences": [
       "Redeemer"
@@ -13,7 +12,9 @@
       "Amount": 2.5,
       "Currency": "divine",
       "Kind": "~b/o"
-    }
+    },
+    "Warnings": [],
+    "OtherText": []
   },
   "plain": {
     "Mods": [
@@ -21,9 +22,17 @@
         "Text": "120% increased Physical Damage",
         "Kind": "Explicit",
         "AffixType": "Unknown",
-        "Tier": null
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 120.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
       }
-    ]
+    ],
+    "BaseType": null
   },
   "advanced": {
     "Mods": [
@@ -32,8 +41,16 @@
         "Kind": "Explicit",
         "AffixType": "Prefix",
         "Tier": 1,
-        "AffixName": "Healthy"
+        "AffixName": "Heavy",
+        "Values": [
+          {
+            "Value": 120.0,
+            "Minimum": 110.0,
+            "Maximum": 129.0
+          }
+        ]
       }
-    ]
+    ],
+    "BaseType": "Exquisite Blade"
   }
 }

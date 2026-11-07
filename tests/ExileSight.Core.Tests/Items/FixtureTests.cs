@@ -31,6 +31,7 @@ public sealed class FixtureTests
         if (!File.Exists(expectedPath)) return;
         var expected = JsonNode.Parse(File.ReadAllText(expectedPath))!;
         var actual = JsonSerializer.SerializeToNode(result.Item, Options)!;
+        actual["Warnings"] = JsonSerializer.SerializeToNode(result.Warnings, Options);
         Compare(expected["common"]!, actual, path);
         if (expected[variant] is { } specific) Compare(specific, actual, path);
     }

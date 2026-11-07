@@ -2,4 +2,8 @@ Item Class: Mana Flasks
 Rarity: Normal
 Eternal Mana Flask
 --------
+Recovers 2400 Mana over 7 Seconds
+Consumes 15 of 45 Charges on use
+Currently has 45 Charges
+--------
 Item Level: 84

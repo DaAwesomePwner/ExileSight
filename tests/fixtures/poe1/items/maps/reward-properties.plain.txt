@@ -1,0 +1,13 @@
+Item Class: Maps
+Rarity: Rare
+Doom Road
+Dunes Map
+--------
+Map Tier: 16
+Area Level: 83
+More Scarabs: +50%
+More Currency: +60%
+More Maps: +70%
+Monster Pack Size: +20%
+--------
+Item Level: 84

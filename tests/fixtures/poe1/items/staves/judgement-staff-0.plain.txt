@@ -2,4 +2,9 @@ Item Class: Staves
 Rarity: Normal
 Judgement Staff
 --------
+Staff
+Physical Damage: 40-80
+Critical Strike Chance: 5.00%
+Attacks per Second: 1.50
+--------
 Item Level: 84

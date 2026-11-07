@@ -17,13 +17,14 @@ internal static class ModParser
     internal static ModLine Parse(string text, string? header, int? group)
     {
         var kind = ModKind.Explicit;
+        var headerType = Regex.Replace(header ?? "", "\"[^\"]*\"", "");
         foreach (var (marker, flag) in new (string, ModKind)[] {
-            ("implicit", ModKind.Implicit), ("enchant", ModKind.Enchant), ("crafted", ModKind.Crafted),
+            ("implicit", ModKind.Implicit), ("enchantment", ModKind.Enchant), ("crafted", ModKind.Crafted),
             ("fractured", ModKind.Fractured), ("scourge", ModKind.Scourge), ("veiled", ModKind.Veiled),
-            ("unique", ModKind.Unique), ("eater", ModKind.Eater), ("exarch", ModKind.Exarch) })
+            ("unique", ModKind.Unique), ("eater of worlds", ModKind.Eater), ("searing exarch", ModKind.Exarch) })
         {
-            if ((header?.Contains(marker, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                text.Contains("(" + marker + ")", StringComparison.OrdinalIgnoreCase)) kind |= flag;
+            if (Regex.IsMatch(headerType, @"\b" + marker + @"\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) ||
+                text.Contains("(" + (marker == "enchantment" ? "enchant" : marker) + ")", StringComparison.OrdinalIgnoreCase)) kind |= flag;
         }
         if ((kind & (ModKind.Implicit | ModKind.Enchant | ModKind.Scourge)) != 0) kind &= ~ModKind.Explicit;
         var affix = header?.Contains("Prefix", StringComparison.Ordinal) == true ? AffixType.Prefix :

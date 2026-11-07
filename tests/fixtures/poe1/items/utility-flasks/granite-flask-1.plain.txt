@@ -1,6 +1,10 @@
 Item Class: Utility Flasks
 Rarity: Magic
-Stalwart Granite Flask
+Perpetual Granite Flask
+--------
+Lasts 4.00 Seconds
+Consumes 15 of 45 Charges on use
+Currently has 45 Charges
 --------
 Item Level: 84
 --------

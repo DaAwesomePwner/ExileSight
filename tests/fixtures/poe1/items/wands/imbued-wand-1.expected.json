@@ -3,10 +3,11 @@
     "Game": "PoE1",
     "ItemClass": "Wands",
     "Rarity": "Magic",
-    "Name": "Stalwart Imbued Wand",
-    "BaseType": null,
+    "Name": "Heavy Imbued Wand",
     "ItemLevel": 84,
-    "Synthesised": true
+    "Synthesised": true,
+    "Warnings": [],
+    "OtherText": []
   },
   "plain": {
     "Mods": [
@@ -14,9 +15,17 @@
         "Text": "120% increased Physical Damage",
         "Kind": "Explicit",
         "AffixType": "Unknown",
-        "Tier": null
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 120.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
       }
-    ]
+    ],
+    "BaseType": null
   },
   "advanced": {
     "Mods": [
@@ -25,8 +34,16 @@
         "Kind": "Explicit",
         "AffixType": "Prefix",
         "Tier": 1,
-        "AffixName": "Healthy"
+        "AffixName": "Heavy",
+        "Values": [
+          {
+            "Value": 120.0,
+            "Minimum": 110.0,
+            "Maximum": 129.0
+          }
+        ]
       }
-    ]
+    ],
+    "BaseType": "Imbued Wand"
   }
 }

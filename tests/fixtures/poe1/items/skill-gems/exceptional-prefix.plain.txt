@@ -1,0 +1,10 @@
+Item Class: Skill Gems
+Rarity: Gem
+Exceptional Fireball
+--------
+Projectile, Spell, AoE, Fire
+Level: 1
+Cost: 6 Mana
+Cast Time: 0.75 sec
+--------
+Experience: 1/15,249
