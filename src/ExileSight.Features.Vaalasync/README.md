@@ -2,7 +2,7 @@
 
 Omni reads the priced item and arms one price action. Open the game's note box yourself; ExileSight never opens it. Each physical price-button click redeems one overlay-click token. After a successful send or an ambiguous failure (including exceptions and partial sends), buttons stay disabled until another omni press reads an item. Enter closes the game's note box, so this re-arm requirement prevents another price text from reaching chat while the box is closed. An omni read during an in-flight send does not re-arm. The UI ignores subsequent clicks classified by WPF as part of a system double-click sequence, before token redemption.
 
-The commands `vaalasync:minus1`, `vaalasync:plus1`, `vaalasync:minus10`, `vaalasync:plus10` and `vaalasync:custom` can also be hotkey-bound. One physical key press supplies one token for one SetPriceNote, which FAIR-PLAY allows. Hotkeys obey the same omni re-arm requirement; binding a command does not grant background input authority.
+The commands `vaalasync:minus1`, `vaalasync:plus1`, `vaalasync:minus10`, `vaalasync:plus10` and `vaalasync:custom` are `OverlayOnly` (D-084). They require physical price-button clicks; BindingMapper rejects hotkey bindings, including persisted ones. Each click supplies one token for one SetPriceNote and obeys the same omni re-arm requirement.
 
 All suggestions, including ±1 and custom fractions, round away from zero at midpoint: divine/mirror to two decimals; other currencies to two decimals below 10 and whole units at 10 or above. Nonpositive rounded prices and values above 1,000,000 are refused. Prefixes are preserved.
 
