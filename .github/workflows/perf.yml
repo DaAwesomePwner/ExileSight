@@ -2,6 +2,8 @@ name: Idle performance
 on:
   push:
     branches: [integration/1.0]
+  pull_request:
+    branches: ['integration/**']
   workflow_dispatch:
 permissions:
   contents: read
@@ -37,6 +39,7 @@ jobs:
           $env:PERF_REVISION = '${{ github.sha }}'
           dotnet test tests/ExileSight.Perf.Tests -c Release --logger "trx;LogFileName=current.trx" --results-directory artifacts/perf
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      # BEGIN temporary baseline comparison: remove after recording reviewed Windows numbers.
       - uses: actions/checkout@v4
         if: always()
         with:
@@ -59,6 +62,40 @@ jobs:
           $env:PERF_REVISION = '8ee74d4893ce4b46518bed2f8c98f65e848ce291'
           dotnet test tests/ExileSight.Perf.Tests -c Release --no-build --logger "trx;LogFileName=baseline.trx" --results-directory artifacts/perf
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      # END temporary baseline comparison
+      - name: Summarize performance reports
+        if: always()
+        shell: pwsh
+        run: |
+          $summary = @(
+            '## Idle performance',
+            '',
+            'Budget: average CPU < 1% of one core; peak sampled private memory < 200 decimal MB.',
+            '',
+            '| Run | Result | CPU % | CPU margin (percentage points) | Private MB | Memory margin MB |',
+            '| --- | --- | ---: | ---: | ---: | ---: |'
+          )
+          foreach ($name in @('current', 'baseline')) {
+            $path = "artifacts/perf/$name.json"
+            if (!(Test-Path $path)) {
+              $summary += "| $name | Report unavailable | — | — | — | — |"
+              continue
+            }
+            $report = Get-Content $path -Raw | ConvertFrom-Json
+            $cpu = '—'; $cpuMargin = '—'; $memory = '—'; $memoryMargin = '—'
+            if ($null -ne $report.cpuPercent) {
+              $cpu = '{0:F3}' -f $report.cpuPercent
+              $cpuMargin = '{0:F3}' -f $report.cpuMarginPercentagePoints
+            }
+            if ($report.samples.Count -gt 0) {
+              $memory = '{0:F2}' -f ($report.peakPrivateBytes / 1000000)
+              $memoryMargin = '{0:F2}' -f ($report.memoryMarginBytes / 1000000)
+            }
+            $result = if ($report.failure) { 'FAIL' } elseif ($null -eq $report.cpuPercent) { 'Incomplete' } else { 'PASS' }
+            $summary += "| $name | $result | $cpu | $cpuMargin | $memory | $memoryMargin |"
+          }
+          $summary += '', 'Positive margins are headroom; zero or negative margins fail the strict budget. Baseline is informational. See the uploaded JSON/TRX files for samples and failure details.'
+          $summary | Add-Content $env:GITHUB_STEP_SUMMARY
       - name: Measure distribution sizes
         if: always()
         shell: pwsh

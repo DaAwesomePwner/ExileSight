@@ -3,10 +3,11 @@ using System.Text.Json;
 using ExileSight.Core.Games;
 using ExileSight.Core.Settings;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace ExileSight.Perf.Tests;
 
-public sealed class PublishedAppBudgetTests
+public sealed class PublishedAppBudgetTests(ITestOutputHelper output)
 {
     [PublishedAppFact]
     public async Task PublishedTrayAppMeetsIdleBudget()
@@ -86,7 +87,30 @@ public sealed class PublishedAppBudgetTests
                 memoryMarginBytes = 200_000_000 - peakPrivateBytes,
                 failure, samples
             }, new JsonSerializerOptions { WriteIndented = true }));
-            Directory.Delete(paths.RootDirectory, recursive: true);
+            await DeleteTestDataAsync(paths.RootDirectory);
+        }
+    }
+
+    private async Task DeleteTestDataAsync(string path)
+    {
+        const int attempts = 5;
+        for (var attempt = 1; attempt <= attempts; attempt++)
+        {
+            try
+            {
+                if (Directory.Exists(path)) Directory.Delete(path, recursive: true);
+                return;
+            }
+            catch (IOException error)
+            {
+                if (attempt == attempts)
+                {
+                    // Preserve the budget result even if a transient lock outlives our retries.
+                    output.WriteLine($"Cleanup warning after {attempts} attempts: {error.Message}");
+                    return;
+                }
+                await Task.Delay(TimeSpan.FromMilliseconds(250));
+            }
         }
     }
 

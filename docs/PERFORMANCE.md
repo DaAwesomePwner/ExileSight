@@ -9,7 +9,8 @@ this measurement.
 
 ## Repeatable Windows gate
 
-`.github/workflows/perf.yml` runs on pushes to `integration/1.0` and manual dispatch.
+`.github/workflows/perf.yml` runs on pushes to `integration/1.0`, pull requests
+targeting `integration/**`, and manual dispatch.
 It publishes the self-contained win-x64 single-file app and bundles the same
 verified PoE1 packs as shipping CI. The test launches the real app, including all
 compiled feature modules, hooks, tray, log tail, prices, pack and update services.
@@ -26,14 +27,24 @@ dialogs), or reaches either budget. Tray-only state is a startup smoke check,
 not a proof that every asynchronous service has finished loading. Slow initial
 network operations can overlap the sample; this deliberately does not suppress
 real application costs. The harness terminates only its launched child in
-`finally`, then removes only the test-created application data.
+`finally`, then removes only the test-created application data. Deletion checks
+for an existing directory and retries I/O failures five times, 250 ms apart. A
+final IOException is logged in test output without masking the budget result.
+A persistent lock can still leave data behind; the next run refuses that folder
+rather than deleting pre-existing data. Inspect the warning before removing it.
 
 The artifact `ExileSight-idle-performance` contains `current.json`, `baseline.json`,
 TRX results, and size manifests. Reports include raw samples, elapsed time,
 revision, OS, core count, peak private bytes and remaining budget margins. The
-current measurement is a required failing step. The pinned pre-hardening commit
+GitHub job summary shows CPU %, private MB, budgets and margins for both runs,
+including failed or missing measurements. The current measurement is a required
+failing step. The pinned pre-hardening commit
 `8ee74d4893ce4b46518bed2f8c98f65e848ce291` runs separately on the same runner with
-the same packs and harness; only that comparison step permits failure.
+the same packs and harness; only that comparison step permits failure. After
+reviewing the first Windows comparison, record the numbers, run URL and revision
+in the evidence table below. Then remove the contiguous workflow block marked
+`BEGIN/END temporary baseline comparison`; retain the current budget gate and
+report summary. The summary tolerates an absent baseline report.
 
 On Windows, after publishing and bundling packs as in the workflow:
 
@@ -62,7 +73,12 @@ which cannot execute WPF. Read the two JSON reports before accepting the budget;
 no before/after CPU or RAM figures have been fabricated. Expected numerical
 budget margin is **unknown until that run**. A useful owner acceptance target is
 at least 0.5 percentage points CPU and 40 MB memory headroom (CPU <= 0.5%, memory
-<= 160 MB); this is a target, not a measurement or prediction.
+<= 160 MB); this is a target, not a measurement or prediction. Reserve this
+0.5-point/40-MB headroom for shared-runner variation until repeated Windows runs
+establish an empirical range. Scheduler contention, JIT/GC timing and network
+completion can move a 60-second result; there is no measured flakiness bound yet.
+A result near either limit is fragile. Retain failed reports and compare repeated
+runs; do not relax the strict gate or rerun until a failure disappears.
 
 Localized fixes:
 
@@ -79,8 +95,17 @@ found. The debug panel already stops its 500 ms timer when hidden/minimized.
 Pack refresh sleeps an hour after setup; updates have a startup delay and a
 six-hour cadence; price refresh is throttled to at least an hour. Map tracker
 opens its viewer only on request. Guide checkpoints are every 60 seconds and
-save changed state only. Guide's 1 Hz view tick and Timers' 250 ms tick remain
-owned by P5-T2; timer completion must continue even with a hidden timer panel.
+save changed state only. Two always-on safety timers are unchanged:
+
+- `src/ExileSight.Platform.Windows/Input/HookForeground.cs:21`: a 10 Hz foreground
+  heartbeat renews the UI-owned foreground lease. A stalled UI or changed native
+  foreground must let keys pass through rather than block using stale state.
+- `src/ExileSight.Platform.Windows/Input/HookHost.cs:62`: a 1 Hz keyboard-repeat
+  settings refresh keeps repeat-silence thresholds aligned with Windows settings,
+  off the hook callback, so held keys are classified safely.
+
+Guide's 1 Hz view tick and Timers' 4 Hz tick are deferred to a follow-up; timer
+completion must continue even with a hidden timer panel.
 These audit observations are not proof of budget compliance. If CI fails, retain
 the reports and profile the full published process before adjusting intervals.
 
