@@ -57,7 +57,13 @@ without depending on the ItemInfo assembly; interactive controls require a futur
 
 App startup reads bundled/cache packs on a background worker and publishes the adapter
 only after preparation. Refresh runs after local loading and a five-second delay, then
-hourly. The configurable composition argument defaults to poe1-packs-1.0.0; no releases
+hourly after first-run setup. Attempts and their known results are persisted per
+pack/tag before network access, including failures and interrupted attempts. Unchanged
+pack versions and content hashes reuse the prepared adapter. The configurable composition argument defaults to poe1-packs-1.0.0; no releases
 were published when this wiring was implemented. PackLoader masks download failures,
 so diagnostics report an attempted check and retained local availability, not download
-success. The app tooltip shows availability until the next user copy rebuilds its rows.
+success. The app tooltip shows unavailable/loading status until the next user copy rebuilds
+its rows; ready status is omitted. Each press calculates item info once and supplies
+the result through TooltipContext.Analysis. Provider failures are logged and isolated.
+The app-owned ItemInfo/OverlayTheme.xaml extends the common OverlayTheme with tone
+brush resources. Dispatcher open and DPI callbacks close/release leases on failures.

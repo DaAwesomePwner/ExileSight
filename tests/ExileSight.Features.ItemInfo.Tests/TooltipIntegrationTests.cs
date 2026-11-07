@@ -26,7 +26,10 @@ public sealed class TooltipIntegrationTests
         Assert.NotNull(startup.Data);
         Assert.Contains("unavailable", startup.Status);
         Assert.All(startup.Snapshot().Take(3), row => Assert.Contains("(none)", row.Value));
+        var prepared = startup.Data;
         await startup.RefreshAsync(default);
+        Assert.Same(prepared, startup.Data);
+        Assert.Equal("Packs unavailable", startup.Status);
         Assert.Equal(PackStartup.PackIds, refreshes);
     }
     [Fact]
@@ -47,10 +50,12 @@ public sealed class TooltipIntegrationTests
     [Fact]
     public void RegisteredHandlerRendersMainSectionAndLaterContributors()
     {
-        var feature = new ItemInfoFeature();
+        var reads = 0;
+        var feature = new ItemInfoFeature { ReadData = () => { reads++; return null; } };
         var host = new FeatureHost([feature, new ExtraFeature()], (_, _) => null, (_, _, _) => { });
         var item = ItemTextParser.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "fixtures/hybrid.txt")), Game.PoE1).Item!;
         Assert.True(host.Route(item, new(Game.PoE1), OmniPressKind.Short));
+        Assert.Equal(1, reads);
         Assert.Equal(["iteminfo", "extra"], feature.ViewModel.Sections.Select(s => s.Id));
         var text = string.Join(" ", feature.ViewModel.Sections[0].Rows.SelectMany(r => r.Text).Select(t => t.Text));
         Assert.Contains("ilvl unknown", text);

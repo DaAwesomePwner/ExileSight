@@ -3,12 +3,12 @@ using ExileSight.Core.Items;
 
 namespace ExileSight.Features.ItemInfo;
 
-public sealed class ItemInfoSection(Func<IItemInfoData?> data, Func<ItemInfoSettings> settings,
-    Func<string>? status = null) : ITooltipSectionProvider
+public sealed class ItemInfoSection(Func<string?>? status = null) : ITooltipSectionProvider
 {
     public int Priority => 100;
-    public TooltipSection? Build(ParsedItem item) => ItemInfoHandler.Supports(item)
-        ? Render(new ItemInfoCalculator(data()).Calculate(item, settings()), status?.Invoke()) : null;
+    public TooltipSection? Build(ParsedItem item) => null;
+    public TooltipSection? Build(TooltipContext context) => context.Analysis is ItemInfoResult result
+        ? Render(result, status?.Invoke()) : null;
     public static TooltipSection Render(ItemInfoResult result, string? status = null)
     {
         var rows = new List<TooltipRow>();

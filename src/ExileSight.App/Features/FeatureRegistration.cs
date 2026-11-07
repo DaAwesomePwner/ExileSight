@@ -7,6 +7,7 @@ using ExileSight.Platform.Abstractions.Storage;
 using ExileSight.Platform.Abstractions.Shell;
 using ExileSight.Platform.Windows.Shell;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace ExileSight.App.Features;
 
@@ -17,7 +18,9 @@ public static class FeatureRegistration
         new ExileSight.Features.ItemInfo.ItemInfoFeature
         {
             ReadData = () => services.GetRequiredService<DataPacks.PackStartup>().Data,
-            PackStatus = () => services.GetRequiredService<DataPacks.PackStartup>().Status
+            PackStatus = () => services.GetRequiredService<DataPacks.PackStartup>().TooltipStatus,
+            SectionError = error => services.GetRequiredService<ILogger<FeatureHost>>().LogWarning(
+                "Tooltip section failed: {ExceptionType}", error.GetType().Name)
         }];
     public static IServiceCollection AddFeatureModules(this IServiceCollection services)
     {

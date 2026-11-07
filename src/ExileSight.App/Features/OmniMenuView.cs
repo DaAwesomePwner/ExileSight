@@ -33,6 +33,8 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
     private nint handle;
     private PixelRect bounds;
     private volatile bool disposed;
+    private bool dpiPending;
+    private int originX, originY;
     public void Start(OmniMenu menu)
     {
         model = menu;
@@ -40,6 +42,7 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
         handle = new WindowInteropHelper(window).EnsureHandle();
         styler.Apply(handle);
         styler.SetClickThrough(handle, false);
+        window.DpiChanged += DpiChanged;
         menu.League = ReadLeague;
         menu.Opened += Open;
         window.IsVisibleChanged += VisibilityChanged;
@@ -60,13 +63,21 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
     }
     private void Open(IReadOnlyList<OmniLink> links) => window.Dispatcher.BeginInvoke(() =>
     {
-        try { OpenCore(links); }
-        catch (Exception error)
-        {
-            window.Hide();
-            logger.LogWarning("Omni menu open failed: {ExceptionType}", error.GetType().Name);
-        }
+        Guard(() => OpenCore(links));
     });
+    private void Guard(Action action) => OverlayFailureGuard.Run(action,
+        () => { passive.Close(this); window.Hide(); },
+        error => logger.LogWarning("Omni menu failed: {ExceptionType}", error.GetType().Name));
+    private void DpiChanged(object sender, DpiChangedEventArgs args)
+    {
+        if (dpiPending) return;
+        dpiPending = true;
+        window.Dispatcher.BeginInvoke(() =>
+        {
+            dpiPending = false;
+            if (!disposed && window.IsVisible) Guard(Position);
+        });
+    }
     private void OpenCore(IReadOnlyList<OmniLink> links)
     {
         if (disposed || !game.Current.Found || game.Current.IsMinimized || !game.Current.IsForeground || !settings.Snapshot.Overlay.Enabled) return;
@@ -83,19 +94,25 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
             panel.Children.Add(button);
         }
         var cursor = HookHost.CursorPosition();
+        originX = cursor.X; originY = cursor.Y;
+        Position();
+        window.Show();
+        Position();
+        passive.Open(this, Observed);
+    }
+    private void Position()
+    {
         var client = game.Current.ClientRect;
-        if (client.Width <= 0 || client.Height <= 0) return;
+        if (client.Width <= 0 || client.Height <= 0) throw new InvalidOperationException("Game client has no drawable area");
         var scale = OverlayRules.Scale(client.Height, settings.Snapshot.Overlay.ScaleOverride);
         var width = Math.Min((int)(260 * scale), client.Width);
         var height = Math.Min((int)(180 * scale), client.Height);
-        var x = Math.Clamp(cursor.X + 8, client.X, (client.X + client.Width) - width);
-        var y = Math.Clamp(cursor.Y + 8, client.Y, (client.Y + client.Height) - height);
+        var x = Math.Clamp(originX + 8, client.X, (client.X + client.Width) - width);
+        var y = Math.Clamp(originY + 8, client.Y, (client.Y + client.Height) - height);
         bounds = new(x, y, width, height);
-        window.Show();
         styler.Position(handle, bounds);
         var dpi = VisualTreeHelper.GetDpi(window);
         ((FrameworkElement)window.Content).LayoutTransform = new ScaleTransform(scale / dpi.DpiScaleX, scale / dpi.DpiScaleY);
-        passive.Open(this, Observed);
     }
     private void Observed(PassiveInput input)
     {
@@ -110,14 +127,21 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
     {
         if (!disposed && !settings.Snapshot.Overlay.Enabled) window.Hide();
     });
-    private void GameChanged(object? sender, EventArgs args)
+    private void GameChanged(object? sender, EventArgs args) => window.Dispatcher.BeginInvoke(() =>
     {
-        if (!game.Current.IsForeground) window.Hide();
-    }
+        if (disposed || !window.IsVisible) return;
+        Guard(() =>
+        {
+            var state = game.Current;
+            if (!state.Found || !state.IsForeground || state.IsMinimized) window.Hide();
+            else Position();
+        });
+    });
     public void Dispose()
     {
         if (disposed) return;
         disposed = true;
+        window.DpiChanged -= DpiChanged;
 
         game.Changed -= GameChanged;
         settings.Changed -= SettingsChanged;

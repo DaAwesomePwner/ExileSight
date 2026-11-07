@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Microsoft.Extensions.Logging;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -16,7 +17,7 @@ using ExileSight.Platform.Windows.Input;
 namespace ExileSight.App.Features.ItemInfo;
 
 public sealed class ItemInfoTooltip(PassiveOverlayInput passive, IGameWindow game,
-    IOverlayWindowStyler styler, ISettingsStore<SettingsDocument> settings) : IDisposable
+    IOverlayWindowStyler styler, ISettingsStore<SettingsDocument> settings, ILogger<ItemInfoTooltip> logger) : IDisposable
 {
     private readonly Window window = new()
     {
@@ -30,11 +31,12 @@ public sealed class ItemInfoTooltip(PassiveOverlayInput passive, IGameWindow gam
     private int originX, originY;
     private double scale;
     private bool disposed;
+    private bool dpiPending;
     public void Start(ItemInfoViewModel viewModel)
     {
         model = viewModel;
         window.Resources.MergedDictionaries.Add(new ResourceDictionary
-        { Source = new Uri("/ExileSight.App;component/Overlay/OverlayTheme.xaml", UriKind.Relative) });
+        { Source = new Uri("/ExileSight.App;component/Features/ItemInfo/OverlayTheme.xaml", UriKind.Relative) });
         window.Content = new Border
         {
             Background = (Brush)window.FindResource("OverlayBackground"), Padding = new Thickness(10), Child = panel
@@ -42,6 +44,7 @@ public sealed class ItemInfoTooltip(PassiveOverlayInput passive, IGameWindow gam
         handle = new WindowInteropHelper(window).EnsureHandle();
         styler.Apply(handle);
         styler.SetClickThrough(handle, true);
+        window.DpiChanged += DpiChanged;
         model.PropertyChanged += Changed;
         game.Changed += EnvironmentChanged;
         settings.Changed += SettingsChanged;
@@ -49,8 +52,8 @@ public sealed class ItemInfoTooltip(PassiveOverlayInput passive, IGameWindow gam
     private void Changed(object? sender, PropertyChangedEventArgs args) => window.Dispatcher.BeginInvoke(() =>
     {
         if (disposed) return;
-        if (model?.Current is null) { Hide(); return; }
-        Open();
+        if (model?.Current is null) { Guard(Hide); return; }
+        Guard(Open);
     });
     private void Open()
     {
@@ -71,39 +74,64 @@ public sealed class ItemInfoTooltip(PassiveOverlayInput passive, IGameWindow gam
         }
         var cursor = HookHost.CursorPosition();
         originX = cursor.X; originY = cursor.Y;
+        Position();
+        window.Show();
+        Position(); // WPF may adjust its HWND on first show.
+        passive.Open(this, Observed);
+    }
+    private void Position()
+    {
+        var client = game.Current.ClientRect;
+        if (client.Width <= 0 || client.Height <= 0) throw new InvalidOperationException("Game client has no drawable area");
         scale = OverlayRules.Scale(client.Height, settings.Snapshot.Overlay.ScaleOverride);
         panel.Measure(new Size(410, double.PositiveInfinity));
         var width = Math.Min((int)Math.Ceiling(430 * scale), client.Width);
         var height = Math.Min((int)Math.Ceiling((panel.DesiredSize.Height + 20) * scale), client.Height);
         var x = Math.Clamp(originX + (int)(12 * scale), client.X, client.X + client.Width - width);
         var y = Math.Clamp(originY + (int)(12 * scale), client.Y, client.Y + client.Height - height);
-        window.Show();
         styler.Position(handle, new(x, y, width, height));
         var dpi = VisualTreeHelper.GetDpi(window);
         ((FrameworkElement)window.Content).LayoutTransform = new ScaleTransform(scale / dpi.DpiScaleX, scale / dpi.DpiScaleY);
-        passive.Open(this, Observed);
     }
-    private Brush Color(TooltipTone tone) => tone switch
+    private Brush Color(TooltipTone tone) => (Brush)window.FindResource(tone switch
     {
-        TooltipTone.Unknown => Brushes.Gray, TooltipTone.Low => Brushes.IndianRed,
-        TooltipTone.Medium => Brushes.Gold, TooltipTone.High => Brushes.LightGreen,
-        TooltipTone.Best => (Brush)window.FindResource("OverlayAccent"),
-        TooltipTone.Crafted => Brushes.LightBlue, TooltipTone.Unique => Brushes.Orange,
-        _ => (Brush)window.FindResource("OverlayForeground")
-    };
+        TooltipTone.Normal => "OverlayForeground", TooltipTone.Best => "OverlayAccent",
+        _ => "Tooltip" + tone
+    });
+    private void Guard(Action action) => OverlayFailureGuard.Run(action, Close,
+        error => logger.LogWarning("Item tooltip failed: {ExceptionType}", error.GetType().Name));
+    private void DpiChanged(object sender, DpiChangedEventArgs args)
+    {
+        if (dpiPending) return;
+        dpiPending = true;
+        window.Dispatcher.BeginInvoke(() =>
+        {
+            dpiPending = false;
+            if (!disposed && window.IsVisible) Guard(Position);
+        });
+    }
     private void Observed(PassiveInput input)
     {
         if (window.IsVisible && (input.Message == 0x100 || input.Message == 0x200 &&
             TooltipDismissal.MovedBeyond(input.X, input.Y, originX, originY, scale))) Close();
     }
     private void Hide() { passive.Close(this); window.Hide(); }
-    private void Close() { Hide(); model?.Close(); }
-    // Closing on geometry/DPI changes avoids stale placement and permits a fresh copy at the new location.
-    private void EnvironmentChanged(object? sender, EventArgs args) => window.Dispatcher.BeginInvoke(() => { if (!disposed) Close(); });
+    private void Close() { try { Hide(); } finally { if (model?.Current is not null) model.Close(); } }
+    private void EnvironmentChanged(object? sender, EventArgs args) => window.Dispatcher.BeginInvoke(() =>
+    {
+        if (disposed || !window.IsVisible) return;
+        Guard(() =>
+        {
+            var state = game.Current;
+            if (!state.Found || !state.IsForeground || state.IsMinimized || !settings.Snapshot.Overlay.Enabled) Close();
+            else Position();
+        });
+    });
     private void SettingsChanged(object? sender, SettingsChangedEventArgs args) => EnvironmentChanged(sender, args);
     public void Dispose()
     {
         disposed = true;
+        window.DpiChanged -= DpiChanged;
         if (model is not null) model.PropertyChanged -= Changed;
         game.Changed -= EnvironmentChanged;
         settings.Changed -= SettingsChanged;

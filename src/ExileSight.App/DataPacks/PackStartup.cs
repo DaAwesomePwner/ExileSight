@@ -13,6 +13,8 @@ public sealed class PackStartup(
     private sealed record State(IItemInfoData? Data, string Status, KeyValuePair<string, string>[] Rows);
     private State state = new(null, "Packs loading", [new("Status", "Packs loading"), new("Last refresh", "Not checked")]);
     public IItemInfoData? Data => Volatile.Read(ref state).Data;
+    private string? identity;
+    public string? TooltipStatus => Status == "Packs ready" ? null : Status;
     public string Status => Volatile.Read(ref state).Status;
     public string Title => "PoE1 data packs";
     public IReadOnlyList<KeyValuePair<string, string>> Snapshot() => Volatile.Read(ref state).Rows;
@@ -36,10 +38,19 @@ public sealed class PackStartup(
             packs.Add(result.Pack);
             rows.Add(new(id, $"{result.Pack?.Manifest.PackVersion ?? "unavailable"} ({result.Source})"));
         }
-        var data = new PackItemInfoData(packs[0]?.Content, packs[1]?.Content, packs[2]?.Content);
-        await data.PrepareAsync(token).ConfigureAwait(false);
+        var nextIdentity = string.Join("|", packs.Select(p => p is null ? "missing" :
+            p.Manifest.PackVersion + ":" + p.Manifest.ContentSha256));
+        var data = Data;
+        if (data is null || identity != nextIdentity)
+        {
+            var prepared = new PackItemInfoData(packs[0]?.Content, packs[1]?.Content, packs[2]?.Content);
+            await prepared.PrepareAsync(token).ConfigureAwait(false);
+            data = prepared;
+        }
+        token.ThrowIfCancellationRequested();
+        identity = nextIdentity;
         rows.Add(new("Last refresh", refreshResult));
-        Volatile.Write(ref state, new(data, packs.All(p => p is not null) ? "Packs ready" : "Packs unavailable (partial data)", rows.ToArray()));
+        Volatile.Write(ref state, new(data, packs.All(p => p is not null) ? "Packs ready" : packs.Any(p => p is not null) ? "Packs unavailable (partial data)" : "Packs unavailable", rows.ToArray()));
     }
     public async Task RefreshAsync(CancellationToken token)
     {
