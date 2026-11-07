@@ -25,7 +25,7 @@ public sealed class TagSurface
         this.host = host; this.game = game; this.store = store; this.styler = styler;
         // The host needs an initial design rect; Draw replaces this owned window
         // and its surface dimensions with the current client viewport on every update.
-        window = host.Register(canvas, new OverlayRect(0, 0, 1, 1), clickThrough: true);
+        window = host.Register(canvas, DefaultOverlayLayout.StashRegistration, clickThrough: true);
         host.SetVisible(window, false);
         host.Changed += (_, _) => Draw();
     }

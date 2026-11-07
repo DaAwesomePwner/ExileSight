@@ -7,6 +7,16 @@ namespace ExileSight.Platform.Windows.Tests.Window;
 public sealed class OverlayPlatformTests
 {
     [WindowsOnlyFact]
+    public void WorkAreaLookupReturnsUsablePhysicalBounds()
+    {
+        var styler = new OverlayWindowStyler();
+        var area = styler.GetWorkArea(new(0, 0, 1, 1));
+        Assert.True(area.Width > 0);
+        Assert.True(area.Height > 0);
+        Assert.Equal(area, styler.GetWorkArea(area));
+    }
+
+    [WindowsOnlyFact]
     public void NativeStylerRejectsUnownedHandlesBeforeAnyMutation()
     {
         var styler = new OverlayWindowStyler();

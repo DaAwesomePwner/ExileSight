@@ -54,11 +54,11 @@ public sealed class TimersView
             if (list.SelectedItem is TimerRow selected && model.Snapshot().FirstOrDefault(r => r.Id == selected.Id) is { } row)
                 editor.Select(row);
         };
-        panel = host.Register(content, new OverlayRect(20, 80, 400, 530), clickThrough: false);
+        panel = host.Register(content, DefaultOverlayLayout.Timers, clickThrough: false);
         passive = host.Register(new Border { Background = Brushes.Black, Padding = new Thickness(8), Child = passiveText },
-            new OverlayRect(20, 80, 400, 220));
+            DefaultOverlayLayout.CompactTimers);
         toast = host.Register(new Border { Background = Brushes.Black, Padding = new Thickness(10), Child = toastText },
-            new OverlayRect(440, 80, 300, 100));
+            DefaultOverlayLayout.TimersToast);
         SetVisible(panel, false); SetVisible(passive, false); SetVisible(toast, false);
         host.Changed += VisibilityChanged;
         model.VisibilityChanged += Present;

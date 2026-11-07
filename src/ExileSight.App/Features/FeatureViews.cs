@@ -41,7 +41,7 @@ public sealed class FeatureViews(FeatureHost features, OverlayHost overlays, Hoo
             try { view = factory(model); }
             finally { creatingFeature = null; }
             view.DataContext = model;
-            var window = overlays.Register(view, new OverlayRect(20, 20, 400, 300), clickThrough: false);
+            var window = overlays.Register(view, DefaultOverlayLayout.GenericPanel, clickThrough: false);
             windows.Add(window);
             owners.Add(window, featureId);
             window.Activated += (_, _) => Snapshot();

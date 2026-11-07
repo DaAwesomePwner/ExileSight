@@ -9,6 +9,7 @@ using ExileSight.Core.Settings;
 using ExileSight.Platform.Abstractions.Input;
 using ExileSight.Platform.Abstractions.Storage;
 using ExileSight.Core.Input;
+using ExileSight.Core.Overlay;
 using ExileSight.Features.Macros;
 using ExileSight.Platform.Abstractions.Window;
 using Microsoft.Extensions.DependencyInjection;
@@ -87,10 +88,11 @@ public sealed class MacroWheelView : Canvas
         window = (HostedOverlayWindow)Window.GetWindow(this);
         host.SetVisible(window, false);
         window.IsVisibleChanged += VisibilityChanged;
-        host.Changed += Position;
+        window.PhysicalPlacement = (client, scale) => PopupPlacement.Place(client,
+            styler.GetWorkArea(client), origin.X, origin.Y, 400, 300, scale, centered: true);
         window.Closed += (_, _) =>
         {
-            host.Changed -= Position;
+            window.PhysicalPlacement = null;
             model.Opened -= Open; model.Closed -= Close;
             passive.Close(this);
         };
@@ -115,18 +117,6 @@ public sealed class MacroWheelView : Canvas
         host.SetVisible(window, true);
         if (!window.IsVisible) model.Reset();
     }));
-    private void Position(object? sender, EventArgs args)
-    {
-        if (window?.IsVisible != true) return;
-        Guard(() =>
-        {
-            styler.Position(new WindowInteropHelper(window).Handle,
-                WheelPlacement.Center(origin, game.Current.ClientRect, host.EffectiveScale));
-            var dpi = VisualTreeHelper.GetDpi(window);
-            ((FrameworkElement)window.Content).LayoutTransform =
-                new ScaleTransform(host.EffectiveScale / dpi.DpiScaleX, host.EffectiveScale / dpi.DpiScaleY);
-        });
-    }
     private void Close() => Dispatcher.BeginInvoke(() =>
     {
         if (window is not null && !model.IsCurrent(presentedVersion)) Guard(() => host.SetVisible(window, false));

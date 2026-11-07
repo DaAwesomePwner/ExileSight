@@ -2,6 +2,7 @@ using System.ComponentModel;
 using ExileSight.Platform.Abstractions.Window;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace ExileSight.Platform.Windows.Window;
@@ -31,6 +32,17 @@ public sealed class OverlayWindowStyler : IOverlayWindowStyler
         RECT rect;
         if (!PInvoke.GetWindowRect(hwnd, &rect)) throw new Win32Exception();
         return new(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
+    }
+
+    public unsafe PixelRect GetWorkArea(PixelRect reference)
+    {
+        RECT rect = new() { left = reference.X, top = reference.Y,
+            right = reference.X + reference.Width, bottom = reference.Y + reference.Height };
+        var monitor = PInvoke.MonitorFromRect(&rect, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
+        MONITORINFO info = new() { cbSize = (uint)sizeof(MONITORINFO) };
+        if (!PInvoke.GetMonitorInfo(monitor, &info)) throw new Win32Exception();
+        var work = info.rcWork;
+        return new(work.left, work.top, work.right - work.left, work.bottom - work.top);
     }
 
     public void Position(nint handle, PixelRect rect)
