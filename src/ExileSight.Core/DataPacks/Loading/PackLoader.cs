@@ -24,6 +24,8 @@ public sealed class PackLoader(string cacheDirectory, GitHubTransport transport,
     {
         var asset = packId switch
         {
+            "poe1/guide" => "poe1-guide", "poe1/mapmods" => "poe1-mapmods",
+            "poe1/events" => "poe1-events", "poe1/leagues" => "poe1-leagues",
             "poe1/stats" => "poe1-stats",
             "poe1/bases" => "poe1-bases", "poe1/mods" => "poe1-mods",
             "poe2/bases" => "poe2-bases", "poe2/mods" => "poe2-mods",

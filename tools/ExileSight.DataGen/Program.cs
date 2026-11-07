@@ -29,7 +29,15 @@ public static class Program
                 return await client.GetByteArrayAsync($"https://raw.githubusercontent.com/{RepoeConverter.Repository}/{sha}/data/{file}");
             }
             var packs = RepoeConverter.Convert(await Read("base_items.json"), await Read("mods.json"), sha, await Read("stat_translations.json"));
-            await PackWriter.WriteAsync(options["--out"], packs);
+            var exileSha = DataGenConfiguration.ReadExileUiSha();
+            async Task<byte[]> ReadExile(string file, string path)
+            {
+                if (options.TryGetValue("--source-dir", out var source)) return await File.ReadAllBytesAsync(Path.Combine(source, file));
+                return await client.GetByteArrayAsync(Phase3Converter.UpstreamUrl(exileSha, path));
+            }
+            var phase3 = Phase3Converter.Convert(await ReadExile("guide.json", Phase3Converter.GuidePath),
+                await Read("world_areas.json"), await Read("gems.json"), await ReadExile("map-info.txt", Phase3Converter.MapPath), sha, exileSha);
+            await PackWriter.WriteAsync(options["--out"], [.. packs, .. phase3]);
             if (options.TryGetValue("--coverage-report", out var report)) await TranslationCoverage.WriteAsync(report, packs);
             Console.WriteLine(RepoeConverter.Attribution(sha));
             return 0;

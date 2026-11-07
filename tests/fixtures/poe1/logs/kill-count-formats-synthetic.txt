@@ -1,0 +1,4 @@
+: You have killed 12,345 monsters.
+: You have killed 12.345 monsters.
+: You have killed 12 345 monsters.
+: You have killed 1 monster.

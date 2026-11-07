@@ -25,7 +25,7 @@ Release assets are `poe1-bases.json`, `poe1-mods.json`, `poe1-stats.json`, their
 
 Pass the exact `poe1-packs-<version>` tag to `PackLoader.RefreshAsync`. It downloads the `.manifest.json` and `.json` assets from `https://github.com/DaAwesomePwner/ExileSight/releases/download/<tag>/`; no latest-release lookup is involved. The `.pack.json` files are validated cache/fallback envelopes for offline use. Publish in that repository for the current loader to find the assets.
 
-CI verifies all three packs with verify-packs.py, uploads ExileSight-Packs-poe1, and copies only .pack.json envelopes, ATTRIBUTION.txt and a matching SHA256SUMS under packs/poe1 in portable and Velopack outputs. All pack artifacts carry a human-readable attribution notice covered by their checksums. App fallbackDirectory wiring is a separate task. Generated packs are never committed.
+CI verifies all seven packs with verify-packs.py, uploads ExileSight-Packs-poe1, and copies only .pack.json envelopes, ATTRIBUTION.txt and a matching SHA256SUMS under packs/poe1 in portable and Velopack outputs. All pack artifacts carry a human-readable attribution notice covered by their checksums. App fallbackDirectory wiring is a separate task. Generated packs are never committed.
 
 
 ## Stat text contract
@@ -41,3 +41,19 @@ Output uses invariant decimals without trailing zeros. Reverse matching enumerat
 Use `--coverage-report <path>` with DataGen to measure reachable, non-hidden English template lines at every packed mod's minimum and maximum endpoints. Each mod/endpoint/line counts separately. The report also counts stat occurrences with no translation. This is a reproducible endpoint probe, not coverage of every roll or evidence from a real client.
 
 Pinned-export endpoint probe (d0bc438357d849bb93ad22f3db0b12938aaf6da1): 12,648 of 84,371 reachable template-line probes remain unmatched (14.9909%). Separately, 15,081 mod-stat occurrences have no non-hidden translation in this export. This broad mods-pack metric includes non-equipment domains; it is not a percentage of player-visible equipment lines. Unsupported lookup/composite handlers and unrecoverable ignored stats remain fail-closed limitations.
+
+Phase 3 also emits guide, mapmods, events and leagues under schema 3 (the envelope is unchanged).
+`fetch-inputs.py <directory> [repoe-sha]` downloads all seven pinned inputs without redirects.
+Pass that directory to `--source-dir`; no network is used in that mode. Generated packs stay outside git.
+The guide preserves Exile-UI display markup, ordered pages, conditions, area advancement tokens and level hints.
+Quest identifiers normalize RePoE quest names and strip Exile-UI reward-page suffixes; only quest rewards are joined.
+Non-gem placeholders (including vendor-only Fallen from Grace) remain display hints, with no invented reward list.
+Map modifier IDs group alternative patterns with identical labels; differing labels retain separate entries with the same stable rating ID; `|` separates required lines and `#` marks numbers. Ratings are never packed.
+Events and historical leagues are ExileSight-authored JSON. The league list is deliberately incomplete; null end dates
+mean unknown, NOT ongoing (including Settlers); current league names come from poe.ninja index-state at runtime.
+Guide versions hash only the RePoE and Exile-UI pins; mapmods uses the Exile-UI pin, while events and leagues each use their own LF-normalised authored source hash. Mixed-source manifest file keys are pinned raw
+GitHub URLs; authored sources use repository-relative paths and content hashes. The four new optional content properties are omitted when null, preserving the exact pre-Phase-3 bases/mods/stats content bytes, hashes and versions for identical inputs.
+
+Authored JSON and notice text are normalised to LF before embedding or hashing, independently of checkout settings.
+Upstream provenance hashes retain the exact downloaded bytes. Chapter acts derive from the most frequently referenced RePoE area act;
+missing or tied act evidence fails validation. Cross-act travel references remain intact.
