@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -20,11 +21,13 @@ public sealed class GuideView
     private readonly TextBlock text = new() { Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap };
     private readonly TextBlock status = new() { Foreground = Brushes.Orange, TextWrapping = TextWrapping.Wrap };
     private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromSeconds(1) };
+    private readonly DispatcherTimer checkpoint = new() { Interval = TimeSpan.FromSeconds(60) };
+    private bool saving;
     public GuideView(GuideModel model, OverlayHost host, IGameWindow game)
     {
         this.model = model; this.host = host; this.game = game;
         var content = new StackPanel { Background = Brushes.Black, Margin = new Thickness(8) };
-        content.Children.Add(new TextBlock { Text = "Guide · Ctrl+Shift+G · ←/→ with Ctrl+Shift", Foreground = Brushes.White });
+        content.Children.Add(new TextBlock { Text = "Guide · Ctrl+Shift + F10 toggle / F11 back / F12 next", Foreground = Brushes.White });
         content.Children.Add(new ScrollViewer { Height = 300, Content = text, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
         var buttons = new WrapPanel(); content.Children.Add(buttons); content.Children.Add(status);
         void Button(string title, Action action)
@@ -34,6 +37,7 @@ public sealed class GuideView
         }
         Button("Back", () => model.Navigate(-1)); Button("Next", () => model.Navigate(1));
         Button("Import JSON (resets)", Import); Button("Export CSV", Export);
+        Button("Remove custom guide", model.RemoveCustom);
         Button("Reset run", () => model.Reset());
         Button("League start (resets)", () => model.Reset(changeLeague: true));
         Button("Bandit (resets)", () => model.Reset(changeBandit: true)); Button("Close", model.Hide);
@@ -41,7 +45,15 @@ public sealed class GuideView
         host.SetVisible(panel, false);
         host.Changed += FocusChanged;
         timer.Tick += (_, _) => Refresh(); timer.Start();
-        panel.Closed += (_, _) => { timer.Stop(); host.Changed -= FocusChanged; };
+        checkpoint.Tick += async (_, _) =>
+        {
+            if (saving) return;
+            saving = true;
+            try { await Task.Run(model.Checkpoint); }
+            finally { saving = false; }
+        };
+        checkpoint.Start();
+        panel.Closed += (_, _) => { timer.Stop(); checkpoint.Stop(); host.Changed -= FocusChanged; };
     }
     private void FocusChanged(object? sender, EventArgs args)
     {
@@ -50,6 +62,8 @@ public sealed class GuideView
     private void Run(Action action)
     {
         try { action(); status.Text = ""; }
+        catch (Exception e) when (e is RegexMatchTimeoutException or ArgumentException { InnerException: RegexMatchTimeoutException })
+        { status.Text = "Invalid guide: parsing exceeded the time limit."; }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
         { status.Text = "Guide operation failed: " + e.GetType().Name; }
         Refresh();
@@ -58,6 +72,7 @@ public sealed class GuideView
     {
         try
         {
+            if (!model.Visible) { host.SetVisible(panel, false); return; }
             var state = model.Snapshot(); text.Text = state.Text;
             host.SetVisible(panel, state.Visible && game.Current.IsForeground && game.Current.Found && !game.Current.IsMinimized);
         }

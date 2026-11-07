@@ -37,6 +37,8 @@ public sealed class GuideProgress
             throw new ArgumentException("Invalid progress.");
         Index = index; Array.Copy(times, ActMilliseconds, 11); Complete = complete; Uncertain = uncertain;
     }
+    public bool HasPendingTime(long now) => !Complete && lastTick is { } tick && lastActivity is { } activity &&
+        tick < Math.Min(now, activity + IdleMilliseconds);
     public void Tick(long now)
     {
         if (lastTick is { } tick && lastActivity is { } activity && !Complete)
@@ -68,7 +70,11 @@ public sealed class GuideProgress
             case AreaEntered area:
                 lastActivity = now;
                 var exact = generated is not null && now - generatedAt is >= 0 and <= 30000;
-                var candidates = data.Areas.Where(a => exact ? a.Id == generated : a.Name == area.Name && a.Act == Current.Act).ToArray();
+                var references = Current.Lines.Where(l => !l.Text.Contains("(hint)_", StringComparison.OrdinalIgnoreCase))
+                    .SelectMany(l => l.AreaIds).ToHashSet(StringComparer.Ordinal);
+                var candidates = data.Areas.Where(a => exact ? a.Id == generated :
+                    a.Name == area.Name && references.Contains(a.Id)).ToArray();
+                if (!exact && candidates.Length > 1) candidates = candidates.Where(a => a.Act == Current.Act).ToArray();
                 generated = null;
                 if (Complete || now < graceUntil || candidates.Length != 1) return;
                 var target = candidates[0];

@@ -12,6 +12,10 @@ public sealed class GuideModel(GuideStore? store = null, IClock? clock = null)
     private GuideProgress? progress;
     private string version = "";
     private byte[]? custom;
+    private string? customId;
+    private bool customDisabled;
+    private GuideSave? lastSaved;
+    public bool Visible { get { lock (sync) return visible; } }
     private bool leagueStart = true, visible;
     private string bandit = "none";
     private string? notice;
@@ -24,17 +28,37 @@ public sealed class GuideModel(GuideStore? store = null, IClock? clock = null)
             if (pack is not null) return;
             pack = data; version = packVersion;
             var saved = store?.Load();
+            leagueStart = saved?.LeagueStart ?? true; bandit = saved?.Bandit ?? "none";
+            customId = saved?.CustomId; customDisabled = saved?.CustomDisabled ?? false;
+            if (customDisabled) notice = "Custom guide disabled after incompatibility; using default guide. Remove custom guide to discard it.";
+            var customFailed = false;
             try
             {
-                if (saved is not null)
-                { leagueStart = saved.LeagueStart; bandit = saved.Bandit; custom = saved.Custom; }
+                custom = customDisabled ? null : customId is not null ? store!.ReadCustom(customId) : saved?.Custom;
                 progress = new(custom is null ? data : GuideImport.Read(custom, data), leagueStart, bandit);
-                if (saved is not null && saved.Version == version)
-                    progress.Restore(saved.Index, saved.Times, saved.Complete, saved.Uncertain);
-                else if (saved is not null) notice = "Guide version changed; progress reset. Timers start paused.";
             }
-            catch (ArgumentException)
-            { store?.Preserve(); custom = null; progress = new(data); notice = "Saved guide is incompatible; using default guide."; }
+            catch (Exception e) when (e is ArgumentException or IOException or UnauthorizedAccessException)
+            {
+                customFailed = true; customDisabled = true; custom = null;
+                progress = new(data, leagueStart, bandit);
+                notice = "Custom guide is incompatible; using default guide. Remove custom guide to discard it.";
+            }
+            if (!customFailed && saved is not null && saved.Version == version)
+            {
+                try { progress.Restore(saved.Index, saved.Times, saved.Complete, saved.Uncertain); }
+                catch (ArgumentException) { store?.Preserve(); notice = "Saved progress is incompatible; using first step."; }
+            }
+            else if (!customFailed && saved is not null) notice = "Guide version changed; progress reset. Timers start paused.";
+            // Migrate the old embedded payload once. Future checkpoints contain only its hash reference.
+            if (custom is not null && customId is null && store is not null)
+            {
+                try { customId = store.WriteCustom(custom); }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException) { store.Preserve(); }
+            }
+            lastSaved = saved?.Schema == 2 ? saved : saved is null ? new GuideSave(2, version, progress.Index,
+                progress.ActMilliseconds.ToArray(), progress.Complete, progress.Uncertain, leagueStart, bandit, null) : null;
+            savedAt = clock.Milliseconds;
+
         }
     }
     public void Accept(ClientLogEvent entry)
@@ -58,7 +82,26 @@ public sealed class GuideModel(GuideStore? store = null, IClock? clock = null)
             if (pack is null) throw new InvalidOperationException("Guide pack is not available.");
             var parsed = GuideImport.Read(bytes, pack);
             var next = new GuideProgress(parsed, leagueStart, bandit);
-            custom = bytes.ToArray(); progress = next; notice = "Custom guide imported; progress and timers reset."; Save();
+            var id = store?.WriteCustom(bytes);
+            customId = id; customDisabled = false; custom = bytes.ToArray(); progress = next; notice = "Custom guide imported; progress and timers reset."; Save(forceTimers: true);
+        }
+    }
+    public void RemoveCustom()
+    {
+        lock (sync)
+        {
+            if (pack is null) return;
+            var next = new GuideProgress(pack, leagueStart, bandit);
+            custom = null; customId = null; customDisabled = false; progress = next;
+            notice = "Custom guide removed; default guide selected."; Save(forceTimers: true);
+        }
+    }
+    public void Checkpoint()
+    {
+        lock (sync)
+        {
+            if (progress?.HasPendingTime(clock.Milliseconds) == true) progress.Tick(clock.Milliseconds);
+            Save();
         }
     }
     public void Reset(bool changeLeague = false, bool changeBandit = false)
@@ -75,7 +118,7 @@ public sealed class GuideModel(GuideStore? store = null, IClock? clock = null)
             }
             var next = new GuideProgress(custom is null ? pack : GuideImport.Read(custom, pack), nextLeague, nextBandit);
             leagueStart = nextLeague; bandit = nextBandit; progress = next;
-            notice = "Progress and timers reset."; Save();
+            notice = "Progress and timers reset."; Save(forceTimers: true);
         }
     }
     public (bool Visible, string Text) Snapshot()
@@ -83,7 +126,6 @@ public sealed class GuideModel(GuideStore? store = null, IClock? clock = null)
         lock (sync)
         {
             progress?.Tick(clock.Milliseconds);
-            if (clock.Milliseconds - savedAt >= 5000) { Save(); savedAt = clock.Milliseconds; }
             var header = "Single default profile — shared across all characters. Reset for a new run.\n" +
                 $"League start: {(leagueStart ? "yes" : "no")} · Bandit: {bandit}\n";
             if (progress is null) return (visible, header + "Waiting for poe1/guide pack.");
@@ -98,11 +140,14 @@ public sealed class GuideModel(GuideStore? store = null, IClock? clock = null)
         }
     }
     public string Export() { lock (sync) { progress?.Tick(clock.Milliseconds); return progress?.Csv() ?? "act,seconds,uncertain\r\n"; } }
-    private void Save()
+    private void Save(bool forceTimers = false)
     {
         if (progress is null) return;
-        try { store?.Save(new(1, version, progress.Index, progress.ActMilliseconds.ToArray(), progress.Complete,
-            progress.Uncertain, leagueStart, bandit, custom)); }
+        var state = new GuideSave(2, version, progress.Index, progress.ActMilliseconds.ToArray(), progress.Complete,
+            progress.Uncertain, leagueStart, bandit, null, customId, customDisabled);
+        if (lastSaved is not null && state with { Times = lastSaved.Times } == lastSaved &&
+            (state.Times.SequenceEqual(lastSaved.Times) || !forceTimers && clock.Milliseconds - savedAt < 60000)) return;
+        try { store?.Save(state); lastSaved = state; savedAt = clock.Milliseconds; }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { notice = "Could not save guide progress."; }
     }
 }

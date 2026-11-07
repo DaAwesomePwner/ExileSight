@@ -21,9 +21,9 @@ public sealed class GuideFeature(GuideModel model) : IFeature
         Load();
         context.RegisterOverlay(model);
         context.SubscribeLog(model.Accept);
-        Register("next", 0x27, () => model.Navigate(1));
-        Register("back", 0x25, () => model.Navigate(-1));
-        Register("toggle", 0x47, model.Toggle);
+        Register("next", 0x7B, () => model.Navigate(1));
+        Register("back", 0x7A, () => model.Navigate(-1));
+        Register("toggle", 0x79, model.Toggle);
         void Register(string command, int key, Action action)
         {
             context.RegisterCommand(command, null, _ => { action(); return new(ActionOutcome.Success); });

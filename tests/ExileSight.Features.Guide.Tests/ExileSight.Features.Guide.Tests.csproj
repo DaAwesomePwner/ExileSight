@@ -7,4 +7,5 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
   </ItemGroup>
   <ItemGroup><None Include="../fixtures/poe1/logs/guide-acts1-3.synthetic.txt" Link="guide-acts1-3.synthetic.txt" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup><None Include="../fixtures/poe1/logs/guide-cross-act.synthetic.txt" Link="guide-cross-act.synthetic.txt" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

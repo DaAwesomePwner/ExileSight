@@ -12,7 +12,7 @@ public static class GuideImport
     {
         if (bytes.Length > MaxBytes) throw new ArgumentException("Guide exceeds 1 MiB.");
         try { return Parse(bytes, pack); }
-        catch (Exception e) when (e is JsonException or InvalidOperationException or KeyNotFoundException or FormatException)
+        catch (Exception e) when (e is RegexMatchTimeoutException or JsonException or InvalidOperationException or KeyNotFoundException or FormatException)
         { throw new ArgumentException("Invalid guide schema or references.", e); }
     }
     private static GuideData Parse(byte[] bytes, GuideData pack)
