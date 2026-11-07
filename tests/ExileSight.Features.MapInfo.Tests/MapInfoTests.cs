@@ -21,6 +21,8 @@ public sealed class MapInfoTests
             var item = ItemTextParser.Parse(File.ReadAllText(path), Game.PoE1).Item!;
             var result = Matcher().Match(item);
             Assert.All(result.Mods, row => Assert.True(row.Id is not null, path + ": " + row.Text));
+            if (path.Contains("synthetic-delirious"))
+                Assert.Equal("084", Assert.Single(result.Mods).Id);
             if (path.Contains("synthetic-influences"))
                 Assert.Equal("016", Assert.Single(result.Mods).Id);
             if (path.Contains("modded-logbook"))
@@ -64,6 +66,12 @@ public sealed class MapInfoTests
     public void UnknownIsNeverGuessed()
     {
         var item = ItemTextParser.Parse("Item Class: Maps\nRarity: Rare\nDunes Map\n--------\nMonsters have novel powers", Game.PoE1).Item!;
+        Assert.Null(Assert.Single(Matcher().Match(item).Mods).Id);
+    }
+    [Fact]
+    public void NonPackRemnantsSpellingRemainsUnknown()
+    {
+        var item = ItemTextParser.Parse("Item Class: Expedition Logbooks\nRarity: Rare\nExpedition Logbook\n--------\n20% increased number of Remnants", Game.PoE1).Item!;
         Assert.Null(Assert.Single(Matcher().Match(item).Mods).Id);
     }
     [Theory]

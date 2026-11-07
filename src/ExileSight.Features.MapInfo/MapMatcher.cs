@@ -43,9 +43,8 @@ public sealed class MapMatcher
             if (logbook && i + 1 < item.Mods.Count && Npcs.TryGetValue(item.Mods[i + 1].Text, out var npc))
             { area = item.Mods[i].Text + " (" + npc + ")"; i += 2; continue; }
             var first = item.Mods[i];
-            // Plain copies have no affix headers; advanced map copies must be prefix/suffix blocks.
-            if (!logbook && (!first.Kind.HasFlag(ModKind.Explicit) ||
-                first.Header is not null && first.AffixType == AffixType.Unknown) ||
+            // Map implicits are informational; enchants still participate in pack matching.
+            if (!logbook && first.Kind.HasFlag(ModKind.Implicit) ||
                 first.Text.Contains("also apply to rarity", StringComparison.OrdinalIgnoreCase))
             { i++; continue; }
             MapModData? match = null; var consumed = 1;
@@ -54,10 +53,6 @@ public sealed class MapMatcher
                 var lines = item.Mods.Skip(i).Take(length).ToArray();
                 if (lines.Any(m => m.Group != first.Group || m.Kind != first.Kind)) continue;
                 var key = string.Join('|', lines.Select(m => Normalize(m.Text)));
-                // Existing modded-logbook plain/advanced fixtures use this explicit spelling.
-                // Restrict the alias to logbook explicits; pack text and area implicits stay exact.
-                if (logbook && first.Kind.HasFlag(ModKind.Explicit) && key == "# increased number of remnants")
-                    key = "area contains # increased number of remnants";
                 if (!patterns.TryGetValue(key, out var candidates)) continue;
                 var applicable = candidates.Where(e => e.Type != "expedition" || logbook)
                     .DistinctBy(e => e.Id).ToArray();

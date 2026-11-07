@@ -55,6 +55,14 @@
       "Patterns": [
         "area contains # increased number of monster markers"
       ]
+    },
+    {
+      "Id": "084",
+      "Type": "player",
+      "Text": "delirious: %",
+      "Patterns": [
+        "players in area are delirious"
+      ]
     }
   ]
 }
