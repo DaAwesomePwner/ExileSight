@@ -30,9 +30,22 @@ public interface IClipboard
 }
 [Flags]
 public enum KeyModifiers { None = 0, Control = 1, Alt = 2, Shift = 4, Windows = 8 }
-public sealed record HotkeyBinding(string Id, int Key, KeyModifiers Modifiers, bool Block, GameAction Action);
+public sealed record HotkeyBinding(string Id, int Key, KeyModifiers Modifiers, bool Block, GameAction? Action,
+    string Context = "gameFocused", string? FeatureCommand = null);
 public interface IHotkeys : IDisposable
 {
     bool IsAlive { get; }
     void Start();
+}
+
+/// <summary>Local feature commands have no authority to synthesize game input.</summary>
+public interface IFeatureCommandHandler
+{
+    string Command { get; }
+    ActionResult Execute();
+}
+public interface IHotkeyContexts
+{
+    void Register(string context);
+    void SetActive(string context, bool active);
 }

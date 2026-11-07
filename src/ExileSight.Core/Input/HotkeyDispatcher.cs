@@ -18,14 +18,42 @@ public readonly record struct DispatchDecision(bool Block, PhysicalPress? Press)
 /// <summary>Single hook-thread owner. Fixed lookup and state arrays keep callbacks constant time.</summary>
 public sealed class HotkeyDispatcher
 {
-    private readonly HotkeyBinding?[,] bindings = new HotkeyBinding?[256, 16];
+    private readonly HotkeyConfiguration configuration;
     private readonly bool[] held = new bool[256];
     private readonly bool[] blocked = new bool[256];
+    private readonly long[] lastDown = new long[256];
+    // Hook-blocked downs do not update GetAsyncKeyState. Recover a missing release only
+    // after hook-observed silence beyond the platform's repeat/acceptance timing plus margin.
+    internal const long BlockedReleaseSilenceMilliseconds = 1200;
+    private readonly Func<long> releaseSilenceThreshold;
     private readonly IntentRegistry registry;
-    public HotkeyDispatcher(IntentRegistry registry, IEnumerable<HotkeyBinding> bindings)
+    private int generation;
+    internal HotkeyConfiguration Configuration => configuration;
+    // Run between message dispatches, never in a low-level callback. Async state is
+    // evidence only for pass-through keys; blocked keys rely on hook events below.
+    internal void ReconcileHeld(Func<int, bool> isDown)
+    {
+        var current = configuration.Generation;
+        if (current == generation) return;
+        generation = current;
+        for (var key = 0; key < held.Length; key++)
+            if (held[key] && !blocked[key] && !isDown(key)) held[key] = false;
+    }
+    public HotkeyDispatcher(IntentRegistry registry, IEnumerable<HotkeyBinding> bindings,
+        Func<long>? releaseSilenceThreshold = null)
     {
         this.registry = registry;
-        foreach (var b in bindings) this.bindings[b.Key, (int)b.Modifiers] = b;
+        this.releaseSilenceThreshold = releaseSilenceThreshold ?? (() => BlockedReleaseSilenceMilliseconds);
+        configuration = new HotkeyConfiguration();
+        configuration.Replace(bindings, []);
+        configuration.UpdateGameFocused(true);
+    }
+    public HotkeyDispatcher(IntentRegistry registry, HotkeyConfiguration configuration,
+        Func<long>? releaseSilenceThreshold = null)
+    {
+        this.registry = registry;
+        this.releaseSilenceThreshold = releaseSilenceThreshold ?? (() => BlockedReleaseSilenceMilliseconds);
+        this.configuration = configuration;
     }
     /// <summary>Seed keys already down at hook installation; their repeats have no observed physical press.</summary>
     internal void SeedHeld(int key)
@@ -35,7 +63,7 @@ public sealed class HotkeyDispatcher
     }
     internal bool IsCandidate(PhysicalKey key) =>
         !key.Injected && key.Down && (uint)key.Key < 256 && (uint)key.Modifiers < 16 &&
-        !held[key.Key] && bindings[key.Key, (int)key.Modifiers] is not null;
+        !held[key.Key] && configuration.Match(key.Key, key.Modifiers) is not null;
 
     internal DispatchDecision Observe(PhysicalKey key, bool active)
     {
@@ -46,9 +74,14 @@ public sealed class HotkeyDispatcher
             held[key.Key] = blocked[key.Key] = false;
             return new(block, null);
         }
+        var silence = key.Timestamp - lastDown[key.Key];
+        if (held[key.Key] && blocked[key.Key] && silence > Math.Max(BlockedReleaseSilenceMilliseconds, releaseSilenceThreshold()))
+            held[key.Key] = false;
+        // Every real autorepeat extends the held interval, even when its context is inactive.
+        lastDown[key.Key] = Math.Max(lastDown[key.Key], key.Timestamp);
         if (held[key.Key]) return new(blocked[key.Key], null);
         held[key.Key] = true;
-        var binding = active ? bindings[key.Key, (int)key.Modifiers] : null;
+        var binding = active ? configuration.Match(key.Key, key.Modifiers) : null;
         blocked[key.Key] = binding?.Block == true;
         return new(blocked[key.Key], binding is null ? null : new PhysicalPress(key.Timestamp, binding));
     }
@@ -56,6 +89,6 @@ public sealed class HotkeyDispatcher
     internal IntentToken Issue(PhysicalPress press)
     {
         if (Interlocked.Exchange(ref press.Redeemed, 1) != 0) throw new InvalidOperationException("Press already issued");
-        return registry.Issue(press.Timestamp, press.Binding.Id, press.Binding.Action.Kind);
+        return registry.Issue(press.Timestamp, press.Binding.Id, (press.Binding.Action ?? throw new InvalidOperationException("Feature commands cannot issue game tokens")).Kind);
     }
 }

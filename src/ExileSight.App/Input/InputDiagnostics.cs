@@ -1,10 +1,11 @@
 using ExileSight.Core.Diagnostics;
+using ExileSight.Core.Input;
 using ExileSight.Platform.Abstractions.Input;
 using ExileSight.Platform.Abstractions.Time;
 
 namespace ExileSight.App.Input;
 
-public sealed class InputDiagnostics(IActionGate gate, IClock clock) : IDebugSection
+public sealed class InputDiagnostics(IActionGate gate, IClock clock, HotkeyConfiguration configuration) : IDebugSection
 {
     private readonly object sync = new();
     private IHotkeys? hooks;
@@ -19,10 +20,9 @@ public sealed class InputDiagnostics(IActionGate gate, IClock clock) : IDebugSec
         try { input.Start(); }
         catch (Exception error) { lock (sync) lastOutcome = $"Hook startup failed: {error.Message}"; }
     }
-    public void Execute(IntentToken token, HotkeyBinding binding)
+    public void Report(HotkeyBinding binding, ActionResult result)
     {
         lock (sync) lastHotkey = $"{binding.Id} — {clock.UtcNow:O}";
-        var result = gate.TryExecute(token, binding.Action);
         lock (sync)
         {
             auditFailed = result.AuditFailed;
@@ -35,7 +35,9 @@ public sealed class InputDiagnostics(IActionGate gate, IClock clock) : IDebugSec
         lock (sync)
             return [
                 new("Hook thread alive", (hooks?.IsAlive == true).ToString()),
-                new("Bindings (game only)", "F7: copy item; F8: /hideout (blocked)"),
+                new("Bindings", string.Join("\n", configuration.ActiveBindings)),
+                new("Rejected bindings", string.Join("\n", configuration.RejectedBindings)),
+                new("Current contexts", string.Join(", ", configuration.ActiveContexts)),
                 new("Last hotkey / UTC", lastHotkey),
                 new("Last outcome", lastOutcome),
                 new("Last copied item", string.Join("\n", copiedText.Split('\n').Take(15))),

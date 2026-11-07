@@ -35,8 +35,10 @@ public sealed class InputIntegrationTests
     public void HooksInstallAndStopOnOwnedThread()
     {
         var clock = new SystemClock();
-        using var hooks = new HookHost(new HotkeyDispatcher(new IntentRegistry(clock), []), clock,
-            (_, _) => throw new InvalidOperationException("No binding should execute"));
+        var repeatSettings = new KeyboardRepeatSettings();
+        using var hooks = new HookHost(new HotkeyDispatcher(new IntentRegistry(clock), [],
+            () => repeatSettings.SilenceMilliseconds), clock,
+            (_, _) => throw new InvalidOperationException("No binding should execute"), repeatSettings);
         hooks.Start();
         Assert.True(hooks.IsAlive);
         hooks.Dispose();
