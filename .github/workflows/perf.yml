@@ -27,6 +27,14 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tools/ExileSight.DataGen/verify-packs.py artifacts/packs/poe1 artifacts/export $sha artifacts/fallback/packs/poe1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Measure retained pack data separately from WPF
+        shell: pwsh
+        run: |
+          New-Item artifacts/perf -ItemType Directory -Force | Out-Null
+          $env:EXILESIGHT_REAL_PACKS = "$pwd/artifacts/fallback/packs/poe1"
+          $env:EXILESIGHT_MEMORY_REPORT = "$pwd/artifacts/perf/pack-memory.json"
+          dotnet test tests/ExileSight.Features.ItemInfo.Tests -c Release --filter FullyQualifiedName~RealPackMemoryTests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - run: dotnet publish src/ExileSight.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/publish
       - name: Bundle packs
         shell: pwsh
@@ -49,7 +57,11 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          dotnet publish baseline/src/ExileSight.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/baseline
+          # checkout requires a workspace path; move the entire tree before MSBuild discovery.
+          $baselineRoot = Join-Path $env:RUNNER_TEMP 'exilesight-perf-baseline'
+          if (Test-Path $baselineRoot) { throw 'Baseline destination already exists' }
+          Move-Item baseline $baselineRoot
+          dotnet publish "$baselineRoot/src/ExileSight.App" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/baseline
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Copy-Item artifacts/fallback/packs artifacts/baseline/packs -Recurse -Force
       - name: Measure baseline (comparison only)

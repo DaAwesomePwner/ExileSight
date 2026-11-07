@@ -1,0 +1,183 @@
+[
+  {
+    "stage": "before",
+    "retained": 3052960,
+    "TotalCommittedBytes": 9011200,
+    "HeapSizeBytes": 1590088,
+    "allocated": 10718680,
+    "WorkingSet64": 105480192,
+    "seconds": 0.0033531,
+    "pooled": [
+      64
+    ],
+    "IsServerGC": false
+  },
+  {
+    "stage": "read poe1/bases",
+    "retained": 12480064,
+    "TotalCommittedBytes": 9371648,
+    "HeapSizeBytes": 6303640,
+    "allocated": 22597560,
+    "WorkingSet64": 108249088,
+    "seconds": 0.0808631,
+    "pooled": [
+      64
+    ],
+    "IsServerGC": false
+  },
+  {
+    "stage": "read poe1/mods",
+    "retained": 160455384,
+    "TotalCommittedBytes": 132694016,
+    "HeapSizeBytes": 117587200,
+    "allocated": 168026552,
+    "WorkingSet64": 235028480,
+    "seconds": 0.4870702,
+    "pooled": [
+      16384,
+      512,
+      64
+    ],
+    "IsServerGC": false
+  },
+  {
+    "stage": "read poe1/stats",
+    "retained": 34688736,
+    "TotalCommittedBytes": 147324928,
+    "HeapSizeBytes": 104456848,
+    "allocated": 205961528,
+    "WorkingSet64": 249593856,
+    "seconds": 0.7428652,
+    "pooled": [
+      65536,
+      32768,
+      32768,
+      16384,
+      16384,
+      512,
+      64
+    ],
+    "IsServerGC": false
+  },
+  {
+    "stage": "read poe1/guide",
+    "retained": 45460528,
+    "TotalCommittedBytes": 115113984,
+    "HeapSizeBytes": 95229648,
+    "allocated": 239963864,
+    "WorkingSet64": 217415680,
+    "seconds": 0.8688715,
+    "pooled": [
+      32768,
+      16384,
+      4096
+    ],
+    "IsServerGC": false
+  },
+  {
+    "stage": "read poe1/mapmods",
+    "retained": 8434352,
+    "TotalCommittedBytes": 108101632,
+    "HeapSizeBytes": 83944984,
+    "allocated": 242973448,
+    "WorkingSet64": 210403328,
+    "seconds": 0.9086322,
+    "pooled": [
+      65536,
+      32768,
+      32768,
+      16384,
+      16384,
+      4096,
+      512,
+      64
+    ],
+    "IsServerGC": false
+  },
+  {
+    "stage": "read poe1/events",
+    "retained": 8148168,
+    "TotalCommittedBytes": 107790336,
+    "HeapSizeBytes": 83801960,
+    "allocated": 243088104,
+    "WorkingSet64": 210157568,
+    "seconds": 0.9114439,
+    "pooled": [
+      65536,
+      32768,
+      16384,
+      16384,
+      8192,
+      4096
+    ],
+    "IsServerGC": false
+  },
+  {
+    "stage": "read poe1/leagues",
+    "retained": 8154896,
+    "TotalCommittedBytes": 107479040,
+    "HeapSizeBytes": 83805312,
+    "allocated": 243177896,
+    "WorkingSet64": 209911808,
+    "seconds": 0.9145102,
+    "pooled": [
+      65536,
+      32768,
+      16384,
+      16384,
+      8192,
+      4096,
+      1024
+    ],
+    "IsServerGC": false
+  },
+  {
+    "stage": "startup prepared",
+    "retained": 8149824,
+    "TotalCommittedBytes": 107003904,
+    "HeapSizeBytes": 83802752,
+    "allocated": 243258456,
+    "WorkingSet64": 209469440,
+    "seconds": 0.9184531,
+    "pooled": [
+      32768,
+      16384
+    ],
+    "IsServerGC": false
+  },
+  {
+    "stage": "passive feature views",
+    "retained": 34438096,
+    "TotalCommittedBytes": 112590848,
+    "HeapSizeBytes": 96946888,
+    "allocated": 271445704,
+    "WorkingSet64": 223494144,
+    "seconds": 1.0300914,
+    "pooled": [
+      65536,
+      32768,
+      16384
+    ],
+    "IsServerGC": false
+  },
+  {
+    "stage": "settled",
+    "retained": 34375536,
+    "TotalCommittedBytes": 106545152,
+    "HeapSizeBytes": 96957904,
+    "allocated": 271541096,
+    "WorkingSet64": 218873856,
+    "seconds": 2.043156,
+    "pooled": [
+      65536,
+      32768,
+      16384,
+      8192,
+      4096,
+      2048,
+      1024,
+      512
+    ],
+    "IsServerGC": false
+  }
+]

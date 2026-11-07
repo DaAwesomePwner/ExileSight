@@ -27,7 +27,7 @@ internal static class PackViews
         "poe1/bases" or "poe1/mods" or "poe1/stats" => typeof(PackDocument), _ => null
     };
     private static IReadOnlyList<T> List<T>(IEnumerable<T> values) => Array.AsReadOnly(values.ToArray());
-    internal static object Parse(byte[] bytes, string id)
+    internal static object Parse(Stream bytes, string id)
     {
         if (TypeFor(id) == typeof(PackDocument))
         {

@@ -16,6 +16,8 @@ public sealed class ResourceDiagnostics : IDebugSection
         previous = current;
         return [new("CPU (100% = one core)", cpu),
             new("Private memory", $"{current.PrivateBytes / 1_000_000d:F1} MB"),
+            new("Managed heap (approximate)", $"{GC.GetTotalMemory(false) / 1_000_000d:F1} MB"),
+            new("GC committed (last collection)", $"{GC.GetGCMemoryInfo().TotalCommittedBytes / 1_000_000d:F1} MB"),
             new("Idle budget", "60 s average CPU < 1%; peak sampled private memory < 200 MB")];
     }
 }

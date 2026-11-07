@@ -41,7 +41,8 @@ public sealed class PublishedAppBudgetTests(ITestOutputHelper output)
             }
             process = Process.Start(new ProcessStartInfo(executable)
             {
-                WorkingDirectory = Path.GetDirectoryName(executable)!, UseShellExecute = false
+                WorkingDirectory = Path.GetDirectoryName(executable)!, UseShellExecute = false,
+                Environment = { ["EXILESIGHT_PERF_MEMORY_REPORT"] = "1" }
             }) ?? throw new InvalidOperationException("Could not launch published app.");
             Assert.True(process.WaitForInputIdle(30_000), "App did not create its UI message loop.");
             // Allow JIT, initial network refresh and pack preparation to settle.
@@ -77,6 +78,9 @@ public sealed class PublishedAppBudgetTests(ITestOutputHelper output)
                 await process.WaitForExitAsync();
                 process.Dispose();
             }
+            var memoryPath = Path.Combine(paths.RootDirectory, "perf-memory.json");
+            JsonElement? ownProcessMemory = File.Exists(memoryPath)
+                ? JsonSerializer.Deserialize<JsonElement>(await File.ReadAllTextAsync(memoryPath)) : null;
             Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
             await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(new
             {
@@ -85,7 +89,7 @@ public sealed class PublishedAppBudgetTests(ITestOutputHelper output)
                 settleSeconds = 60, cpuPercent, peakPrivateBytes,
                 cpuMarginPercentagePoints = 1 - cpuPercent,
                 memoryMarginBytes = 200_000_000 - peakPrivateBytes,
-                failure, samples
+                failure, ownProcessMemory, samples
             }, new JsonSerializerOptions { WriteIndented = true }));
             await DeleteTestDataAsync(paths.RootDirectory);
         }

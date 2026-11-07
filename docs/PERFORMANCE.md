@@ -61,24 +61,72 @@ sets the executable and treats a missing executable as failure.
 
 ## Baseline, changes and evidence
 
-| Measurement | Before (8ee74d4) | After |
-| --- | --- | --- |
-| Windows 60-second average CPU | Pending Windows CI | Pending Windows CI |
-| Windows peak private MB | Pending Windows CI | Pending Windows CI |
-| Empty events-view timer wakeups | 10/second | 1/second |
-| Minimized map-tracker status wakeups | 1/second | 0/second |
+The first Windows run ([42417510247](https://github.com/DaAwesomePwner/ExileSight/actions/runs/42417510247),
+PR #9 head `a46cd40`, tested merge `82ebad1`) **failed memory**:
 
-The CPU/memory rows are intentionally pending: implementation occurred on macOS,
-which cannot execute WPF. Read the two JSON reports before accepting the budget;
-no before/after CPU or RAM figures have been fabricated. Expected numerical
-budget margin is **unknown until that run**. A useful owner acceptance target is
-at least 0.5 percentage points CPU and 40 MB memory headroom (CPU <= 0.5%, memory
-<= 160 MB); this is a target, not a measurement or prediction. Reserve this
-0.5-point/40-MB headroom for shared-runner variation until repeated Windows runs
-establish an empirical range. Scheduler contention, JIT/GC timing and network
-completion can move a 60-second result; there is no measured flakiness bound yet.
-A result near either limit is fragile. Retain failed reports and compare repeated
-runs; do not relax the strict gate or rerun until a failure disappears.
+| Windows metric | First gate | Budget / remaining margin |
+| --- | ---: | --- |
+| Average CPU, one core | 0.83% | < 1%; +0.17 percentage points |
+| Peak private bytes | 1,541,304,320 (1541.30 MB) | < 200 MB; −1341.30 MB |
+| After memory fix | Pending PR CI | Aim <= 150 MB; do not infer a Windows pass from Core tests |
+
+Private memory stayed around 1.54 GB throughout the minute. The baseline build
+failed before measurement because its nested checkout inherited the parent
+`.editorconfig`. It now moves to `RUNNER_TEMP` before MSBuild runs, without any
+analyzer exemption. Windows used build 26100, four logical processors and the
+self-contained single-file app. CPU's 0.17-point margin is thin on shared runners;
+retain failures and compare repeated runs instead of relaxing the gate.
+
+### Root cause and measured correction
+
+The verified packs from run `42414705210` reproduce excessive memory through
+production `PackLoader`, `PackStartup` and `PackReader` on macOS ARM64/.NET 10.0.14,
+without WPF, price services or bundle extraction. Probe values are approximate
+managed heap readings, **not Windows private bytes**; Server GC was false.
+
+| Controlled pack experiment | Managed bytes after passive feature reads |
+| --- | ---: |
+| Original eager startup, forced collections | 920,878,104 |
+| Only interpreted stat regexes, forced collections | 451,998,696 |
+| Deferred adapter + compressed snapshots + direct cache decoder, forced collections | 34,375,536 |
+| Fixed path, 60 s without forced GC, default policy | 129,286,528; GC committed 224,460,800 |
+| Same fixed path, 60 s without forced GC, ConserveMemory=9 | 72,720,728; GC committed 69,287,936 |
+
+The dominant causes were eager compiled regexes (including per-line fragment
+copies), retained mutable pack graphs plus serialized snapshots, and large
+base64-decoding scratch buffers. A temporary reflection probe observed 64 MiB
+and 16 MiB byte-pool buffers after loading the real envelopes; direct decoding
+eliminated those large rentals. Local loading also deserialized/validated each
+pack twice; it now returns the already validated result.
+
+The fix retains compressed immutable snapshots and metadata, constructs the item
+adapter only at first item use, and uses interpreted regexes cached on demand.
+Streaming hash/compression avoids a full serialized JSON copy. Manifest-scoped
+reads, shared lazy views parsed once per version, detached mutable copies and
+ordered Changed notifications remain covered by existing tests. A new regression
+also checks that a deferred adapter uses its captured version after replacement.
+First item use now pays deserialization/matching cost; in-game latency and memory
+after first use still need owner validation. This gate covers tray idle.
+
+Only after reducing retained data did the no-forced-GC comparison justify
+`System.GC.ConserveMemory=9`: GC committed memory fell from 224.46 to 69.29 MB.
+The app sets this supported [.NET 10 runtime option](https://github.com/dotnet/runtime/blob/v10.0.0/src/coreclr/gc/gcconfig.h),
+with no hard heap limit, forced collection or service bypass. The Windows gate
+must confirm total private memory and CPU; 150 MB remains a target, not a claim.
+Raw probe evidence is under `tests/ExileSight.Perf.Tests/evidence/`.
+
+Reproduce the isolated probe with downloaded verified `.pack.json` files:
+
+```sh
+EXILESIGHT_REAL_PACKS=/path/to/packs EXILESIGHT_MEMORY_REPORT=/tmp/packs.json \
+  dotnet test tests/ExileSight.Features.ItemInfo.Tests --filter FullyQualifiedName~RealPackMemoryTests
+```
+
+The default probe forces GC only in the test to isolate retained data and asserts
+an < 80 MB heap increase. To compare natural idle GC, set
+`EXILESIGHT_MEMORY_NO_FORCED_GC=1`, `EXILESIGHT_MEMORY_SETTLE_SECONDS=60`, and compare
+unset `DOTNET_GCConserveMemory` with `DOTNET_GCConserveMemory=9`. CI also runs the
+isolated pack probe and uploads `pack-memory.json` alongside the real app gate.
 
 Localized fixes:
 
@@ -122,7 +170,12 @@ Memory is `GetProcessMemoryInfo(PROCESS_MEMORY_COUNTERS_EX)` on
 `GetCurrentProcess()`'s pseudo-handle. CPU is `Environment.CpuUsage.TotalTime`.
 The production reader accepts neither a PID nor a handle, opens no foreign
 process, and introduces no analyzer suppression. The external test harness
-reads only its own launched child using test-only managed process APIs.
+reads only its own launched child using test-only managed process APIs. It sets
+`EXILESIGHT_PERF_MEMORY_REPORT=1` on that child to enable a five-second own-process
+snapshot under its application-data directory. The final snapshot is included as
+`ownProcessMemory` in the report (null for the old baseline). It includes managed
+bytes, last-GC heap/committed/fragmented bytes, collection counts and private bytes.
+No GC is forced; normal installations do no background diagnostic sampling.
 
 ## Distribution size
 

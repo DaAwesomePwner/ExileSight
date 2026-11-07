@@ -89,6 +89,7 @@ public partial class App : Application
             builder.Services.AddSingleton<IDebugSection>(settingsDiagnostics);
             builder.Services.AddSingleton<DebugPanel>();
             builder.Services.AddSingleton<IDebugSection, Diagnostics.ResourceDiagnostics>();
+            builder.Services.AddHostedService<Diagnostics.MemoryReportService>();
             builder.Services.AddSingleton<IDebugSection>(trayDiagnostics);
             builder.Services.AddUpdates();
             ExileSight.App.DataPacks.PackRegistration.AddItemPacks(builder.Services);
