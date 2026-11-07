@@ -131,7 +131,8 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
             260, Math.Max(180, panel.Children.Count * 38 + 16), scale, 8);
         styler.Position(handle, bounds);
         var dpi = VisualTreeHelper.GetDpi(window);
-        ((FrameworkElement)window.Content).LayoutTransform = new ScaleTransform(scale / dpi.DpiScaleX, scale / dpi.DpiScaleY);
+        ((FrameworkElement)window.Content).LayoutTransform = new ScaleTransform(
+            OverlayRefresh.ContentScale(scale, dpi.DpiScaleX), OverlayRefresh.ContentScale(scale, dpi.DpiScaleY));
     }
     private void Observed(PassiveInput input)
     {

@@ -56,9 +56,9 @@ public sealed class TimersView
         };
         panel = host.Register(content, DefaultOverlayLayout.Timers, clickThrough: false);
         passive = host.Register(new Border { Background = Brushes.Black, Padding = new Thickness(8), Child = passiveText },
-            DefaultOverlayLayout.Timers with { Height = 220 });
+            DefaultOverlayLayout.CompactTimers);
         toast = host.Register(new Border { Background = Brushes.Black, Padding = new Thickness(10), Child = toastText },
-            new OverlayRect(440, 80, 300, 100));
+            DefaultOverlayLayout.TimersToast);
         SetVisible(panel, false); SetVisible(passive, false); SetVisible(toast, false);
         host.Changed += VisibilityChanged;
         model.VisibilityChanged += Present;

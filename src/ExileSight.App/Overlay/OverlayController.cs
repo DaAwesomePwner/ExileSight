@@ -1,4 +1,5 @@
 using ExileSight.Core.Diagnostics;
+using ExileSight.Core.Overlay;
 using ExileSight.Platform.Abstractions.Window;
 
 namespace ExileSight.App.Overlay;
@@ -30,7 +31,7 @@ public sealed class OverlayController : IDebugSection, IDisposable
             Text = "ExileSight running", Padding = new System.Windows.Thickness(6)
         };
         label.SetResourceReference(System.Windows.Controls.TextBlock.BackgroundProperty, "OverlayBackground");
-        status = host.Register(label, new(8, 8, 160, 32));
+        status = host.Register(label, DefaultOverlayLayout.Status);
         host.Start();
         host.Changed += Update;
         Update(this, EventArgs.Empty);

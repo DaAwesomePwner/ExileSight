@@ -98,9 +98,6 @@ public sealed class PolishTests
         cursor = new(999, 999);
         queue.Single()();
         Assert.Equal(new WheelOrigin(500, 400), opened);
-        Assert.Equal(new PixelRect(300, 250, 400, 300), WheelPlacement.Center(opened!, new(0, 0, 1920, 1080), 1));
-        Assert.Equal(new PixelRect(-1920, 0, 800, 600), WheelPlacement.Center(new(-2000, -100), new(-1920, 0, 1920, 1080), 2));
-        Assert.Equal(new PixelRect(10, 20, 100, 100), WheelPlacement.Center(new(999, 999), new(10, 20, 100, 100), 1));
     }
     [Fact]
     public void EditorTitleUsesMappedRebindingsAndDisabledDefaults()

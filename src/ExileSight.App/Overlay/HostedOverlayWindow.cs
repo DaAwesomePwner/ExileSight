@@ -85,16 +85,25 @@ public sealed class HostedOverlayWindow : System.Windows.Window
             ?? placement.Calculate(client, design, scaleOverride);
         bool justShown = !IsVisible;
         if (justShown) Show();
-        if (placement.NeedsPosition(physical, styler.GetBounds(handle), justShown))
+        var scale = OverlayRules.Scale(client.Height, scaleOverride);
+        OverlayRefresh Decide()
+        {
+            var dpi = VisualTreeHelper.GetDpi(this);
+            return OverlayRefresh.Decide(physical, styler.GetBounds(handle), scale,
+                dpi.DpiScaleX, dpi.DpiScaleY, contentScale.ScaleX, contentScale.ScaleY, justShown);
+        }
+        if (Decide().Reposition)
         {
             // Correct WPF's DPI-suggested rect whenever it differs from our physical geometry.
             // Show also requires reasserting HWND_TOPMOST, even when geometry already matches.
             styler.Position(handle, physical);
         }
         // Native placement establishes the destination monitor before converting content to DIPs.
-        var dpi = VisualTreeHelper.GetDpi(this);
-        var scale = OverlayRules.Scale(client.Height, scaleOverride);
-        contentScale.ScaleX = scale / dpi.DpiScaleX;
-        contentScale.ScaleY = scale / dpi.DpiScaleY;
+        var refresh = Decide();
+        if (refresh.Rescale)
+        {
+            contentScale.ScaleX = refresh.ScaleX;
+            contentScale.ScaleY = refresh.ScaleY;
+        }
     }
 }

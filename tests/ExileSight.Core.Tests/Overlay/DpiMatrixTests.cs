@@ -19,9 +19,10 @@ public sealed class DpiMatrixTests
             Assert.Equal(client.X + (int)Math.Round(20 * scale), physical.X);
             Assert.Equal(client.Y + (int)Math.Round(80 * scale), physical.Y);
             Assert.Equal((int)Math.Ceiling(400 * scale), physical.Width);
-            var dips = OverlayRules.ToDips(physical.X, physical.Y, physical.Width, physical.Height, dpi);
-            Assert.Equal(physical.X, dips.X * dpi / 96, 8);
-            Assert.Equal(physical.Width, dips.Width * dpi / 96, 8);
+            // This is the transform consumed by WPF, followed by WPF's device transform.
+            var transform = OverlayRefresh.ContentScale(scale, dpi / 96d);
+            Assert.Equal(400 * scale, 400 * transform * (dpi / 96d), 8);
+            Assert.Equal(530 * scale, 530 * transform * (dpi / 96d), 8);
         }
     }
 
@@ -38,7 +39,8 @@ public sealed class DpiMatrixTests
             Assert.InRange(rect.X, work.X, work.X + work.Width - rect.Width);
             Assert.InRange(rect.Y, work.Y, work.Y + work.Height - rect.Height);
             Assert.Equal(Math.Min(1040, (int)Math.Ceiling(600 * scale)), rect.Height);
-            Assert.Equal(rect.Height, OverlayRules.ToDips(0, 0, 1, rect.Height, dpi).Height * dpi / 96, 8);
+            Assert.Equal(430 * scale,
+                430 * OverlayRefresh.ContentScale(scale, dpi / 96d) * (dpi / 96d), 8);
         }
     }
 
@@ -68,16 +70,18 @@ public sealed class DpiMatrixTests
     [MemberData(nameof(Scales))]
     public void DefaultPanelsNeverOverlap(double scale, uint dpi)
     {
-        OverlayRect[] designs = [DefaultOverlayLayout.Guide, DefaultOverlayLayout.Timers,
-            new(20, 20, 400, 300), new(440, 80, 300, 100), new(500, 340, 340, 110)];
-        var placement = new OverlayPlacement();
-        var rects = designs.Select(d => placement.Calculate(new(-1920, 0, 1920, 1080), d, scale)).ToArray();
-        for (int i = 0; i < rects.Length; i++)
-        for (int j = i + 1; j < rects.Length; j++)
+        foreach (bool compactTimers in new[] { false, true })
         {
-            var a = rects[i]; var b = rects[j];
-            Assert.True(a.X + a.Width <= b.X || b.X + b.Width <= a.X || a.Y + a.Height <= b.Y || b.Y + b.Height <= a.Y,
-                $"Panels {i}/{j} overlap at {scale}/{dpi}");
+            var designs = DefaultOverlayLayout.FixedRegions(compactTimers);
+            var placement = new OverlayPlacement();
+            var rects = designs.Select(d => placement.Calculate(new(-1920, 0, 1920, 1080), d, scale)).ToArray();
+            for (int i = 0; i < rects.Length; i++)
+            for (int j = i + 1; j < rects.Length; j++)
+            {
+                var a = rects[i]; var b = rects[j];
+                Assert.True(a.X + a.Width <= b.X || b.X + b.Width <= a.X || a.Y + a.Height <= b.Y || b.Y + b.Height <= a.Y,
+                    $"Panels {i}/{j} overlap at {scale}/{dpi}");
+            }
         }
     }
 }

@@ -11,7 +11,7 @@ Automated placement tests run on any OS. They establish geometry, not Windows re
 | 175% | 168 | Automated | [ ] | [ ] | [ ] |
 | 200% | 192 | Automated | [ ] | [ ] | [ ] |
 
-`DpiMatrixTests` covers each row. `ProductionOverlayTests` covers correction of WPF's suggested DPI bounds and reasserting position after show. `OverlayRulesTests` covers visibility and client scaling. Windows-only `OverlayPlatformTests` checks native ownership guards and monitor work-area lookup; it does not simulate a physical mixed-DPI desktop.
+`DpiMatrixTests` covers each row, including the actual content transform used by the host and popups. Its layout inventory includes status, generic, guide, both alternative timer views, both toasts, and the hidden Stashninja registration placeholder. `OverlayRefreshTests` exercises the live pure refresh decision for 100%→150%→100% monitor moves, a negative-coordinate secondary monitor, DPI-only changes, and WPF-suggested bound correction. The same tests cover the live cursor-centered wheel placement; the superseded wheel helper and its placement assertions were removed. `ProductionOverlayTests` covers correction of WPF's suggested DPI bounds and reasserting position after show. `OverlayRulesTests` covers visibility and client scaling. Windows-only `OverlayPlatformTests` checks native ownership guards and monitor work-area lookup; it does not simulate a physical mixed-DPI desktop.
 
 ## Coordinate contract and defaults
 
@@ -19,9 +19,9 @@ The manifest declares PerMonitorV2. Client rectangles, cursor anchors, monitor w
 
 After native placement establishes the destination monitor, content transforms divide the desired physical scale by WPF's current DPI scale. WPF DpiChanged queues a placement refresh after its suggested bounds are applied. Game location/size events refresh the host. The macro wheel now supplies one placement function to that host, avoiding competing fixed-panel and cursor placements on different monitors.
 
-Guide is (440,470,460,440); Timers is (20,340,400,530). The compact timer view uses the same origin and width with height 220 (an alternative to the expanded view). These leave space for generic (20,20,400,300), timers toast (440,80,300,100), and events toast (500,340,340,110). Uniform scaling preserves separation. Arbitrarily large overrides or very narrow aspect ratios can put fixed panels beyond the client; no automatic relocation is applied to fixed panels. Generic panels share one slot and cursor popups may cover other panels intentionally.
+Status is (440,20,160,32), clear of the generic panel. Guide is (440,470,460,440); Timers is (20,340,400,530). The compact timer view uses the same origin and width with height 220 (an alternative to the expanded view). These leave space for generic (20,20,400,300), timers toast (440,80,300,100), and events toast (500,340,340,110). Uniform scaling preserves separation. Arbitrarily large overrides or very narrow aspect ratios can put fixed panels beyond the client; no automatic relocation is applied to fixed panels. Generic panels share one slot and cursor popups may cover other panels intentionally.
 
-Popups clamp to the intersection of the game client and its nearest monitor's work area, keeping them off taskbars and on the game's monitor after a move. If the client is entirely offscreen, use that nearest work area. Oversized popups shrink their bounds to fit; long content may need scrolling or may clip (especially item tooltips). Offscreen cursor anchors are clamped. No game window mutation or input synthesis is involved.
+Popups clamp to the intersection of the game client and its nearest monitor's work area, keeping them off taskbars and on the game's monitor after a move. If the client is entirely offscreen, use that nearest work area. Fitting popups move inward without shrinking, even when the cursor is at an edge. Only popups larger than the entire available area shrink their bounds to fit; long content may need scrolling or may clip (especially item tooltips). Offscreen cursor anchors are clamped. No game window mutation or input synthesis is involved.
 
 ## Owner checklist (each matrix cell)
 

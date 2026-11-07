@@ -31,7 +31,7 @@ public sealed class EventsView
         content.Children.Add(category); content.Children.Add(name);
         toast = host.Register(new Border { Background = Brushes.Black, Padding = new Thickness(12), Child = content },
             // Below Timers' toast (440,80,300,100), to the right of the fixed
-            // generic feature panel (20,20,400,300) and Timers panels (20,80,400,530).
+            // generic feature panel (20,20,400,300) and Timers panels (20,340,400,530).
             new OverlayRect(500, 340, 340, 110), clickThrough: true);
         host.SetVisible(toast, false);
         model.SettingsRequested += OpenSettings;

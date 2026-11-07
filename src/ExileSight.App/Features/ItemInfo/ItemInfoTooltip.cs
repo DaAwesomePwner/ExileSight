@@ -89,7 +89,8 @@ public sealed class ItemInfoTooltip(PassiveOverlayInput passive, IGameWindow gam
             430, panel.DesiredSize.Height + 20, scale, 12);
         styler.Position(handle, bounds);
         var dpi = VisualTreeHelper.GetDpi(window);
-        ((FrameworkElement)window.Content).LayoutTransform = new ScaleTransform(scale / dpi.DpiScaleX, scale / dpi.DpiScaleY);
+        ((FrameworkElement)window.Content).LayoutTransform = new ScaleTransform(
+            OverlayRefresh.ContentScale(scale, dpi.DpiScaleX), OverlayRefresh.ContentScale(scale, dpi.DpiScaleY));
     }
     private Brush Color(TooltipTone tone) => (Brush)window.FindResource(tone switch
     {
