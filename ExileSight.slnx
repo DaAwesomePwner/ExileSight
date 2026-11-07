@@ -28,4 +28,6 @@
   <Project Path="tests/ExileSight.Features.Timers.Tests/ExileSight.Features.Timers.Tests.csproj" />
   <Project Path="src/ExileSight.Features.Events/ExileSight.Features.Events.csproj" />
   <Project Path="tests/ExileSight.Features.Events.Tests/ExileSight.Features.Events.Tests.csproj" />
+  <Project Path="src/ExileSight.Features.Guide/ExileSight.Features.Guide.csproj" />
+  <Project Path="tests/ExileSight.Features.Guide.Tests/ExileSight.Features.Guide.Tests.csproj" />
 </Solution>
