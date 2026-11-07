@@ -4,8 +4,10 @@ namespace ExileSight.Core.Settings;
 
 internal static class SettingsValidation
 {
-    public static void Validate(VersionedDocument document)
+    public static void Validate(VersionedDocument document, Games.Game? expectedGame = null)
     {
+        if (expectedGame is not null && document.Game is not null && document.Game != expectedGame)
+            throw new JsonException("Catalog game does not match the requested game.");
         if (document.Game is { } game && !Enum.IsDefined(game)) throw new JsonException("Invalid game value.");
         if (document is SettingsDocument s)
         {

@@ -21,7 +21,7 @@ public sealed class ProfileStore : IProfileStore
             Game.PoE1 => "poe1", Game.PoE2 => "poe2",
             _ => throw new ArgumentOutOfRangeException(nameof(game))
         });
-        catalog = new(paths, Path.Combine(directory, "profiles.json"), SettingsJsonContext.Default.ProfileCatalog, () => new() { Game = game });
+        catalog = new(paths, Path.Combine(directory, "profiles.json"), SettingsJsonContext.Default.ProfileCatalog, () => new() { Game = game }, expectedGame: game);
     }
 
     public IReadOnlyList<ProfileInfo> Profiles => catalog.Snapshot.Profiles.ToArray();
