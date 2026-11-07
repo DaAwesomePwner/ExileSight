@@ -63,7 +63,8 @@ public sealed class TimersView
         host.Changed += VisibilityChanged;
         model.VisibilityChanged += Present;
         panel.Closed += (_, _) => { ticker.Stop(); host.Changed -= VisibilityChanged; model.VisibilityChanged -= Present; };
-        ticker.Tick += (_, _) => Tick(); ticker.Start();
+        ticker.Tick += (_, _) => Tick();
+        ScheduleTick();
         status.Text = model.Notice ?? "Choose a timer, or add a named countdown / stopwatch.";
     }
     private void VisibilityChanged(object? sender, EventArgs args)
@@ -85,6 +86,7 @@ public sealed class TimersView
         if (!state.Interactive) list.SelectedItem = null;
         SetVisible(panel, state.Interactive);
         SetVisible(passive, state.Visible && !state.Interactive);
+        ScheduleTick();
     }
     private void SetVisible(HostedOverlayWindow window, bool visible)
     {
@@ -99,7 +101,7 @@ public sealed class TimersView
     }
     private void Run(Action action)
     {
-        try { action(); status.Text = "Saved."; if (visibility.Visible) Refresh(); }
+        try { action(); status.Text = "Saved."; if (visibility.Visible) Refresh(); ScheduleTick(); }
         catch (Exception error) when (error is System.IO.IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
         { status.Text = "Could not save: " + error.GetType().Name; }
     }
@@ -119,6 +121,21 @@ public sealed class TimersView
         }
         catch (Exception error) when (error is System.IO.IOException or UnauthorizedAccessException or ArgumentException)
         { status.Text = "Timers unavailable: " + error.GetType().Name; }
+        finally { ScheduleTick(); }
+    }
+    // Hidden panels need only countdown deadlines and toast expiry, not display polling.
+    private void ScheduleTick()
+    {
+        ticker.Stop();
+        var delay = panel.IsVisible || passive.IsVisible ? 250d : double.PositiveInfinity;
+        foreach (var row in model.Snapshot().Where(r => r.Kind == TimerKind.Countdown && !r.Alerted))
+            if (row.EndUtc is not null || row.SavedValue == TimeSpan.Zero)
+                delay = Math.Min(delay, model.Value(row.Id).TotalMilliseconds);
+        if (toastUntil > Environment.TickCount64)
+            delay = Math.Min(delay, toastUntil - Environment.TickCount64);
+        if (double.IsPositiveInfinity(delay)) return;
+        ticker.Interval = TimeSpan.FromMilliseconds(Math.Clamp(delay, 250, int.MaxValue));
+        ticker.Start();
     }
     private void Refresh()
     {

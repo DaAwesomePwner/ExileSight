@@ -10,6 +10,41 @@ public sealed class GuideStoreTests : IDisposable
     private static GuideSave State => new(1, "v1", 1, new long[11], false, false, true, "none", null);
     public void Dispose() { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
     [Fact]
+    public void VisibilityChangesNotifyWithoutPolling()
+    {
+        var model = new GuideModel();
+        var notifications = new List<bool>();
+        model.VisibilityChanged += () => notifications.Add(model.Visible);
+        model.Toggle(); model.Hide(); model.Hide(); model.Toggle();
+        Assert.Equal([true, false, true], notifications);
+    }
+
+    [Fact]
+    public void CleanupFailureDoesNotRewriteSuccessfulProgressAndRetriesOnCheckpoint()
+    {
+        var fail = true; var attempts = 0;
+        var store = new GuideStore(directory, file =>
+        {
+            attempts++;
+            if (fail) throw new IOException("synthetic delete failure");
+            File.Delete(file);
+        });
+        var old = store.WriteCustom("old"u8.ToArray());
+        var model = new GuideModel(store); model.Load(GuideTests.Data(), "v1");
+        model.Navigate(1);
+        Assert.Equal(1, new GuideStore(directory).Load()!.Index);
+        Assert.DoesNotContain("Could not save", model.Snapshot().Text);
+        var path = Path.Combine(directory, "progress.json");
+        var marker = new DateTime(2001, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        File.SetLastWriteTimeUtc(path, marker);
+        fail = false;
+        model.Checkpoint();
+        Assert.Equal(marker, File.GetLastWriteTimeUtc(path));
+        Assert.False(File.Exists(Path.Combine(directory, old + ".json")));
+        Assert.True(attempts >= 2);
+    }
+
+    [Fact]
     public void RoundTripIsAtomicAndContainsNoCharacterName()
     {
         var store = new GuideStore(directory); store.Save(State);

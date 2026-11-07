@@ -73,8 +73,13 @@ public sealed class GuideModel(GuideStore? store = null, IClock? clock = null)
     {
         lock (sync) { progress?.Navigate(delta, clock.Milliseconds); Save(); }
     }
-    public void Toggle() { lock (sync) visible = !visible; }
-    public void Hide() { lock (sync) visible = false; }
+    public event Action? VisibilityChanged;
+    public void Toggle() { lock (sync) visible = !visible; VisibilityChanged?.Invoke(); }
+    public void Hide()
+    {
+        lock (sync) { if (!visible) return; visible = false; }
+        VisibilityChanged?.Invoke();
+    }
     public void Import(byte[] bytes)
     {
         lock (sync)
@@ -102,6 +107,7 @@ public sealed class GuideModel(GuideStore? store = null, IClock? clock = null)
         {
             if (progress?.HasPendingTime(clock.Milliseconds) == true) progress.Tick(clock.Milliseconds);
             Save();
+            if (lastSaved is not null) store?.RetryCleanup(lastSaved.CustomId);
         }
     }
     public void Reset(bool changeLeague = false, bool changeBandit = false)

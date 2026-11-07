@@ -8,10 +8,10 @@ public sealed record GuideSave(int Schema, string Version, int Index, long[] Tim
     bool Uncertain, bool LeagueStart, string Bandit, byte[]? Custom, string? CustomId = null, bool CustomDisabled = false);
 
 /// <summary>One explicitly labelled default profile, never log-derived character identity.</summary>
-public sealed class GuideStore(string directory)
+public sealed class GuideStore(string directory, Action<string>? deleteFile = null)
 {
     private readonly string path = Path.Combine(directory, "progress.json");
-    private bool readOnly;
+    private bool readOnly, cleanupPending;
     private const int MaxBytes = 1500 * 1024;
     private static readonly JsonSerializerOptions Options = new() { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow };
     public string? Notice { get; private set; }
@@ -60,10 +60,22 @@ public sealed class GuideStore(string directory)
         var bytes = JsonSerializer.SerializeToUtf8Bytes(state, Options);
         if (bytes.Length > MaxBytes) throw new IOException("Guide storage limit exceeded.");
         WriteAtomic(path, bytes);
-        // Progress now references the committed immutable custom file; old imports are no longer needed.
-        foreach (var file in Directory.EnumerateFiles(directory, "*.json"))
-            if (ValidId(Path.GetFileNameWithoutExtension(file)) && Path.GetFileNameWithoutExtension(file) != state.CustomId)
-                File.Delete(file);
+        Cleanup(state.CustomId);
+    }
+    internal void RetryCleanup(string? customId) { if (cleanupPending) Cleanup(customId); }
+    private void Cleanup(string? customId)
+    {
+        if (readOnly || !Directory.Exists(directory)) return;
+        try
+        {
+            // Progress now references the committed immutable custom file; old imports are no longer needed.
+            foreach (var file in Directory.EnumerateFiles(directory, "*.json"))
+                if (ValidId(Path.GetFileNameWithoutExtension(file)) && Path.GetFileNameWithoutExtension(file) != customId)
+                    (deleteFile ?? File.Delete)(file);
+            cleanupPending = false;
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+        { cleanupPending = true; System.Diagnostics.Trace.TraceWarning("Guide cleanup deferred: {0}", error.GetType().Name); }
     }
     private void WriteAtomic(string target, byte[] bytes)
     {
