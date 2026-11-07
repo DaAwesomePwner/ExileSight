@@ -1,0 +1,8 @@
+# Synthetic event notifications; no real player or chat data. D-044.
+2026/11/06 12:00:00 1000 abc [DEBUG Client 42] Generating level 83 area "MapWorldsBeach" with seed 100
+2026/11/06 12:00:01 1001 abc [INFO Client 42] Aven, the Cyaxan: Hire me or move on. I charge by the minute.
+2026/11/06 12:00:02 1002 abc [INFO Client 42] : Alert: The Nameless Seer has appeared nearby!
+2026/11/06 12:00:03 1003 abc [INFO Client 42] : Alert: A Reflecting Mist has manifested nearby!
+2026/11/06 12:00:04 1004 abc [INFO Client 42] Spawning discoverable Hideout
+2026/11/06 12:00:05 1005 abc [INFO Client 42] Aven, the Cyaxan: A later conversation is not a first approach.
+2026/11/06 12:00:06 1006 abc [INFO Client 42] #SyntheticPlayer: The Nameless Seer has appeared nearby!
