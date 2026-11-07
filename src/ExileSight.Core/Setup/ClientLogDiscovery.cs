@@ -43,27 +43,22 @@ public static class ClientLogDiscovery
             || !OperatingSystem.IsWindows() && Path.IsPathFullyQualified(path);
     }
 
-    public static bool IsLocalPath(string? path, ILocalPathResolver? resolver = null)
+    public static bool IsLocalPath(string? path, ILocalPathResolver? resolver = null) => PathRejection(path, resolver) is null;
+
+    public static string? PathRejection(string? path, ILocalPathResolver? resolver = null)
     {
-        if (!IsLocalAbsolutePath(path)) return false;
-        if (resolver is null) return true;
-        try
-        {
-            if (resolver.IsRemoteDrive(path!)) return false;
-            var final = resolver.FinalPath(path!);
-            if (final is null) return false;
-            if (final.StartsWith(@"\\?\UNC\", StringComparison.OrdinalIgnoreCase)) return false;
-            if (final.StartsWith(@"\\?\", StringComparison.Ordinal)) final = final[4..];
-            return IsLocalAbsolutePath(final) && !resolver.IsRemoteDrive(final);
-        }
-        catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException)
-        { return false; }
+        if (!IsLocalAbsolutePath(path)) return "Choose a fully-qualified local path; network paths are not allowed.";
+        if (resolver is null) return null;
+        try { return resolver.Rejection(path!); }
+        catch (UnauthorizedAccessException) { return "Access denied while checking the local path."; }
+        catch (Exception error) when (error is IOException or ArgumentException)
+        { return "Cannot inspect the local path."; }
     }
 
     public static string? Validate(string? path, ILocalPathResolver? resolver = null)
     {
         if (string.IsNullOrWhiteSpace(path)) return "Choose a Client.txt log file.";
-        if (!IsLocalPath(path, resolver)) return "Choose a fully-qualified local path; network paths are not allowed.";
+        if (PathRejection(path, resolver) is { } rejection) return rejection;
         if (!Names.Contains(Path.GetFileName(path), StringComparer.OrdinalIgnoreCase))
             return "Choose Client.txt, KakaoClient.txt or LatestClient.txt.";
         try

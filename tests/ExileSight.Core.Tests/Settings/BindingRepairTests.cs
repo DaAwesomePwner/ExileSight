@@ -11,7 +11,7 @@ public sealed class BindingRepairTests
     [InlineData(false, true)]
     [InlineData(true, false)]
     [InlineData(true, true)]
-    public void RepairAndEnabledChangePersistTogether(bool commit, bool enabled)
+    public void StoredDocumentWritersPersistRepairAndExplicitEnabledTogether(bool commit, bool enabled)
     {
         var root = Path.Combine(Path.GetTempPath(), "ExileSight-repair-" + Guid.NewGuid());
         Directory.CreateDirectory(root);
@@ -23,12 +23,15 @@ public sealed class BindingRepairTests
                 """);
             using var store = new JsonSettingsStore<SettingsDocument>(new AppPaths(root), path,
                 SettingsJsonContext.Default.SettingsDocument, () => new());
-            var snapshot = store.Snapshot;
-            snapshot.Hotkeys[0].Key = 118;
-            snapshot.Hotkeys[0].Enabled = enabled;
-            var rebuilt = JsonSerializer.Deserialize(JsonSerializer.Serialize(snapshot, SettingsJsonContext.Default.SettingsDocument),
-                SettingsJsonContext.Default.SettingsDocument)!;
-            void Repair(SettingsDocument settings) => settings.Hotkeys = rebuilt.Hotkeys;
+            void Repair(SettingsDocument stored)
+            {
+                // Update/Commit supply persisted values. Runtime Snapshot is never an editor model.
+                var rebuilt = JsonSerializer.Deserialize(JsonSerializer.Serialize(stored, SettingsJsonContext.Default.SettingsDocument),
+                    SettingsJsonContext.Default.SettingsDocument)!;
+                rebuilt.Hotkeys[0].Key = 118;
+                rebuilt.Hotkeys[0].Enabled = enabled;
+                stored.Hotkeys = rebuilt.Hotkeys;
+            }
             if (commit) store.Commit("hotkeys", Repair);
             else { store.Update("hotkeys", Repair); store.Flush(); }
             Assert.Equal(enabled, store.Snapshot.Hotkeys[0].Enabled);
@@ -38,7 +41,7 @@ public sealed class BindingRepairTests
         finally { Directory.Delete(root, true); }
     }
     [Fact]
-    public void RepairKeyOnlyPreservesStoredEnabled()
+    public void StoredDocumentWriterRepairingKeyOnlyPreservesStoredEnabled()
     {
         var root = Path.Combine(Path.GetTempPath(), "ExileSight-keyrepair-" + Guid.NewGuid());
         Directory.CreateDirectory(root);

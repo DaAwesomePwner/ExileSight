@@ -9,13 +9,18 @@ public sealed class CheckedLocalPathResolver(IPathComponentProbe probe) : ILocal
 {
     public bool IsRemoteDrive(string path) => Root(path) is not { } root || probe.IsRemoteDrive(root);
 
-    public string? FinalPath(string path) => Check(path.Replace('/', '\\'), 0) ? path : null;
+    public string? FinalPath(string path) => Rejection(path) is null ? path : null;
+    public string? Rejection(string path) => Check(path.Replace('/', '\\'), 0);
 
-    private bool Check(string path, int depth)
+    private string? Check(string path, int depth)
     {
-        if (depth > 32 || Root(path) is not { } root || probe.IsRemoteDrive(root)) return false;
+        if (depth > 32) return "Too many local path redirects.";
+        if (Root(path) is not { } root) return "Choose a fully-qualified local path; network paths are not allowed.";
+        var driveType = probe.DriveType(root);
+        if (driveType is 0 or 1) return "Drive not available; retrying.";
+        if (driveType == 4) return "Network paths are not allowed.";
         var components = path[root.Length..].Split('\\', StringSplitOptions.RemoveEmptyEntries);
-        if (components.Any(p => p is "." or ".." || p.Contains(':'))) return false;
+        if (components.Any(p => p is "." or ".." || p.Contains(':'))) return "Unsupported local path.";
         var current = root;
         for (var i = 0; i < components.Length; i++)
         {
@@ -23,12 +28,15 @@ public sealed class CheckedLocalPathResolver(IPathComponentProbe probe) : ILocal
             var entry = probe.Inspect(current);
             switch (entry.Kind)
             {
-                case PathComponentKind.Missing: return true; // Nearest existing ancestors passed.
-                case PathComponentKind.SymbolicLink:
-                case PathComponentKind.Rejected: return false;
+                case PathComponentKind.Missing: return null; // Nearest existing ancestors passed.
+                case PathComponentKind.DriveUnavailable: return "Drive not available; retrying.";
+                case PathComponentKind.AccessDenied: return "Access denied while checking the local path.";
+                case PathComponentKind.CloudPlaceholder: return "Cloud placeholder, not supported.";
+                case PathComponentKind.SymbolicLink: return "Symbolic links are not supported for log paths.";
+                case PathComponentKind.Rejected: return "Unsupported reparse point or local storage metadata.";
                 case PathComponentKind.MountPoint:
                     var target = entry.Target;
-                    if (target is null) return false;
+                    if (target is null) return "Unsupported local path.";
                     // NT substitute names are data, never opened before root classification.
                     if (target.StartsWith(@"\??\", StringComparison.Ordinal)) target = target[4..];
                     if (target.StartsWith("Volume{", StringComparison.OrdinalIgnoreCase)) target = @"\\?\" + target;
@@ -36,7 +44,7 @@ public sealed class CheckedLocalPathResolver(IPathComponentProbe probe) : ILocal
                     return Check(target.TrimEnd('\\') + (rest.Length == 0 ? "\\" : "\\" + rest), depth + 1);
             }
         }
-        return true;
+        return null;
     }
 
     private static string? Root(string path)

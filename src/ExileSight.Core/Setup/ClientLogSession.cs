@@ -8,7 +8,7 @@ using ExileSight.Platform.Abstractions.Storage;
 
 namespace ExileSight.Core.Setup;
 
-public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, ExileSight.Platform.Abstractions.Files.IFileTail? fileTail = null, ILocalPathResolver? pathResolver = null) : IDebugSection, IAsyncDisposable
+public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, ExileSight.Platform.Abstractions.Files.IFileTail? fileTail = null, ILocalPathResolver? pathResolver = null, IFileTailTimer? pollingTimer = null) : IDebugSection, IAsyncDisposable
 {
     private readonly object sync = new();
     private readonly SemaphoreSlim transition = new(1);
@@ -33,7 +33,7 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
             cancellation?.Dispose();
             path = next;
             lock (sync) { recent.Clear(); area = "Unknown"; level = "None"; }
-            if (!ClientLogDiscovery.IsLocalPath(path, pathResolver))
+            if (!ClientLogDiscovery.IsLocalAbsolutePath(path))
             { lock (sync) status = "Choose a fully-qualified local log path in setup."; return; }
             cancellation = new();
             running = ReadAsync(path!, cancellation.Token);
@@ -43,7 +43,7 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
 
     private async Task ReadAsync(string selected, CancellationToken token)
     {
-        var tail = fileTail ?? new PollingFileTail();
+        var tail = fileTail ?? new LocalLogTail(pathResolver, pollingTimer);
         var diagnostics = tail as IFileTailDiagnostics;
         void Report(FileTailDiagnostic warning) { lock (sync) status = warning.Message; }
         if (diagnostics is not null) diagnostics.Diagnostic += Report;

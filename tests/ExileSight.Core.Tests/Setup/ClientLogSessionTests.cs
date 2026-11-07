@@ -72,7 +72,7 @@ public sealed class ClientLogSessionTests
                 Path.Combine(root, "settings.json"), SettingsJsonContext.Default.SettingsDocument, () => new());
             settings.Update("general", s => { s.General.ClientTxtPath = log; s.General.FirstRunCompleted = true; });
             var timer = new ControlledTimer();
-            await using var session = new ClientLogSession(settings, new PollingFileTail(timer), resolver);
+            await using var session = new ClientLogSession(settings, pathResolver: resolver, pollingTimer: timer);
             await session.RefreshAsync();
             var tick = await timer.Drained();
             Assert.Contains("retrying", Rows(session)["Status"]);
