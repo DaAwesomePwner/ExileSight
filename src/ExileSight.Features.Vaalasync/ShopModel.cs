@@ -33,7 +33,7 @@ public sealed class ShopModel(HistoryStore history, Func<string> league) : IOmni
     {
         context = value;
         foreach (var choice in new[] { "minus1", "plus1", "minus10", "plus10", "custom" })
-            value.RegisterCommand(choice, ActionKind.SetPriceNote, token => Apply(choice, token));
+            value.RegisterCommand(choice, ActionKind.SetPriceNote, token => Apply(choice, token), CommandKind.OverlayOnly);
     }
     public void Handle(ParsedItem item, OmniContext context, OmniPressKind press)
     {

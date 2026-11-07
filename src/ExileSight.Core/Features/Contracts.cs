@@ -6,6 +6,12 @@ using ExileSight.Platform.Abstractions.Input;
 
 namespace ExileSight.Core.Features;
 
+public enum CommandKind { Bindable, OverlayOnly }
+public interface IFeatureCommandPolicy
+{
+    CommandKind Kind { get; }
+}
+
 public interface IFeature
 {
     FeatureManifest Manifest { get; }
@@ -16,6 +22,12 @@ public interface IFeatureContext
     IPackReader Packs => EmptyPackReader.Instance;
     ActionResult Execute(IntentToken? token, GameAction action);
     void RegisterCommand(string command, ActionKind? action, Func<IntentToken?, ActionResult> execute);
+    void RegisterCommand(string command, ActionKind? action, Func<IntentToken?, ActionResult> execute,
+        CommandKind kind)
+    {
+        if (kind != CommandKind.Bindable) throw new NotSupportedException("Command policy is not supported");
+        RegisterCommand(command, action, execute);
+    }
     // Null action means a local hold: press/release callbacks receive no input authority.
     void RegisterPressCommand(string command, ActionKind? action,
         Func<IntentToken?, PressStarted, ActionResult> press, Action<PressReleased> release) =>
