@@ -4,6 +4,7 @@ import hashlib
 import json
 import sys
 import shutil
+from urllib.parse import quote
 from pathlib import Path
 
 root, source, sha = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3].lower()
@@ -45,11 +46,13 @@ for kind in kinds:
         version = sha
     else:
         authored = Path(__file__).parent
-        events_hash, leagues_hash = (digest(authored / f"{name}.json") for name in ("events", "leagues"))
-        version = hashlib.sha256((sha + exile + events_hash + leagues_hash).encode()).hexdigest()
+        def authored_digest(path):
+            return hashlib.sha256(path.read_text(encoding="utf-8").encode("utf-8")).hexdigest()
+        version = (hashlib.sha256((sha + exile).encode()).hexdigest() if kind == "guide"
+                   else exile if kind == "mapmods" else authored_digest(authored / f"{kind}.json"))
         if kind in ("guide", "mapmods"):
             files = {f"https://raw.githubusercontent.com/Lailloken/Exile-UI/{exile}/data/english/"
-                     + ("[leveltracker] default guide.json" if kind == "guide" else "map-info.txt"):
+                     + quote("[leveltracker] default guide.json" if kind == "guide" else "map-info.txt"):
                      digest(source / ("guide.json" if kind == "guide" else "map-info.txt"))}
             if kind == "guide":
                 files.update({f"https://raw.githubusercontent.com/repoe-fork/repoe-fork.github.io/{sha}/data/{name}":
@@ -58,7 +61,7 @@ for kind in kinds:
             require("MIT License" in manifest["attribution"], "Missing MIT notice")
             provenance = {"repo": "Lailloken/Exile-UI", "sha": exile, "files": files}
         else:
-            hashed = digest(authored / f"{kind}.json")
+            hashed = authored_digest(authored / f"{kind}.json")
             provenance = {"repo": "ExileSight authored data", "sha": hashed,
                           "files": {f"tools/ExileSight.DataGen/{kind}.json": hashed}}
         field = {"mapmods": "mapMods"}.get(kind, kind)
@@ -78,8 +81,9 @@ for kind in kinds:
                 and "not affiliated with or endorsed by Grinding Gear Games" in manifest["attribution"]
                 and "D-047" not in manifest["attribution"],
                 "Missing attribution")
-    if manifest["attribution"] not in notices:
-        notices.append(manifest["attribution"])
+    attribution = manifest["attribution"].replace("\r\n", "\n").replace("\r", "\n")
+    if attribution not in notices:
+        notices.append(attribution)
     require(len(raw) <= 32 * 1024 * 1024, "Content exceeds PackLoader limit")
 notice = (root / "ATTRIBUTION.txt").read_text(encoding="utf-8")
 require(notice == "\n".join(notices) + "\n", "Missing or incorrect human-readable attribution")

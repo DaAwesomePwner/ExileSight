@@ -8,24 +8,39 @@ public static class Phase3Converter
 {
     public const string GuidePath = "data/english/[leveltracker] default guide.json";
     public const string MapPath = "data/english/map-info.txt";
-    public static string UpstreamUrl(string sha, string path) =>
-        $"https://raw.githubusercontent.com/Lailloken/Exile-UI/{sha}/{path}";
+    public static string UpstreamUrl(string sha, string path)
+    {
+        RepoeConverter.ValidateSha(sha);
+        return $"https://raw.githubusercontent.com/Lailloken/Exile-UI/{sha}/"
+            + string.Join("/", path.Split('/').Select(Uri.EscapeDataString));
+    }
+    public static byte[] NormalizeAuthored(byte[] bytes) => System.Text.Encoding.UTF8.GetBytes(
+        System.Text.Encoding.UTF8.GetString(bytes).ReplaceLineEndings("\n"));
     public static byte[] Authored(string file)
     {
         using var stream = typeof(Phase3Converter).Assembly.GetManifestResourceStream("ExileSight.DataGen." + file)
             ?? throw new InvalidOperationException("Missing authored source.");
-        using var buffer = new MemoryStream(); stream.CopyTo(buffer); return buffer.ToArray();
+        using var buffer = new MemoryStream(); stream.CopyTo(buffer); return NormalizeAuthored(buffer.ToArray());
     }
-    public static DataPack[] Convert(byte[] guide, byte[] areas, byte[] gems, byte[] map, string repoeSha, string exileSha)
+    public static DataPack[] Convert(byte[] guide, byte[] areas, byte[] gems, byte[] map, string repoeSha, string exileSha,
+        Func<string, byte[]>? readAuthored = null)
     {
         RepoeConverter.ValidateSha(repoeSha); RepoeConverter.ValidateSha(exileSha);
-        var events = Authored("events.json"); var leagues = Authored("leagues.json");
-        var version = PackCodec.Hash(System.Text.Encoding.UTF8.GetBytes(repoeSha + exileSha + PackCodec.Hash(events) + PackCodec.Hash(leagues)));
-        PackContent Content(string kind) => new("poe1/" + kind, Game.PoE1, PackCodec.SchemaVersion, version, [], []);
+        byte[] Read(string file) => NormalizeAuthored((readAuthored ?? Authored)(file));
+        var events = Read("events.json"); var leagues = Read("leagues.json");
+        string Version(string kind) => kind switch
+        {
+            "guide" => PackCodec.Hash(System.Text.Encoding.UTF8.GetBytes(repoeSha + exileSha)),
+            "mapmods" => exileSha,
+            "events" => PackCodec.Hash(events),
+            "leagues" => PackCodec.Hash(leagues),
+            _ => throw new ArgumentException("Unknown pack kind.")
+        };
+        PackContent Content(string kind) => new("poe1/" + kind, Game.PoE1, PackCodec.SchemaVersion, Version(kind), [], []);
         var upstreamNotice = $"Exile-UI (https://github.com/Lailloken/Exile-UI), commit {exileSha}, MIT, Copyright (c) 2022 Lailloken.\n"
-            + System.Text.Encoding.UTF8.GetString(Authored("guide-notices.txt"));
+            + System.Text.Encoding.UTF8.GetString(Read("guide-notices.txt"));
         DataPack Pack(PackContent content, PackSource source, string attribution) => new(
-            new(content.PackId, Game.PoE1, PackCodec.SchemaVersion, version, "unknown", DateTimeOffset.UnixEpoch,
+            new(content.PackId, Game.PoE1, PackCodec.SchemaVersion, content.PackVersion, "unknown", DateTimeOffset.UnixEpoch,
                 source, attribution, PackCodec.Hash(PackCodec.ContentBytes(content))), content);
         PackSource AuthoredSource(string file, byte[] bytes) => new("ExileSight authored data", PackCodec.Hash(bytes),
             new() { ["tools/ExileSight.DataGen/" + file] = PackCodec.Hash(bytes) });

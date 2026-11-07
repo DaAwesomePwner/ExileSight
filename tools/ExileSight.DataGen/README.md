@@ -25,7 +25,7 @@ Release assets are `poe1-bases.json`, `poe1-mods.json`, `poe1-stats.json`, their
 
 Pass the exact `poe1-packs-<version>` tag to `PackLoader.RefreshAsync`. It downloads the `.manifest.json` and `.json` assets from `https://github.com/DaAwesomePwner/ExileSight/releases/download/<tag>/`; no latest-release lookup is involved. The `.pack.json` files are validated cache/fallback envelopes for offline use. Publish in that repository for the current loader to find the assets.
 
-CI verifies all three packs with verify-packs.py, uploads ExileSight-Packs-poe1, and copies only .pack.json envelopes, ATTRIBUTION.txt and a matching SHA256SUMS under packs/poe1 in portable and Velopack outputs. All pack artifacts carry a human-readable attribution notice covered by their checksums. App fallbackDirectory wiring is a separate task. Generated packs are never committed.
+CI verifies all seven packs with verify-packs.py, uploads ExileSight-Packs-poe1, and copies only .pack.json envelopes, ATTRIBUTION.txt and a matching SHA256SUMS under packs/poe1 in portable and Velopack outputs. All pack artifacts carry a human-readable attribution notice covered by their checksums. App fallbackDirectory wiring is a separate task. Generated packs are never committed.
 
 
 ## Stat text contract
@@ -50,6 +50,10 @@ Quest identifiers normalize RePoE quest names and strip Exile-UI reward-page suf
 Non-gem placeholders (including vendor-only Fallen from Grace) remain display hints, with no invented reward list.
 Map modifier IDs group alternative patterns with identical labels; differing labels retain separate entries with the same stable rating ID; `|` separates required lines and `#` marks numbers. Ratings are never packed.
 Events and historical leagues are ExileSight-authored JSON. The league list is deliberately incomplete; null end dates
-mean unknown, and current league names come from poe.ninja index-state at runtime.
-New pack versions hash both upstream pins and authored input hashes. Mixed-source manifest file keys are pinned raw
-GitHub URLs; authored sources use repository-relative paths and content hashes. Existing RePoE pack versions stay unchanged.
+mean unknown, NOT ongoing (including Settlers); current league names come from poe.ninja index-state at runtime.
+Guide versions hash only the RePoE and Exile-UI pins; mapmods uses the Exile-UI pin, while events and leagues each use their own LF-normalised authored source hash. Mixed-source manifest file keys are pinned raw
+GitHub URLs; authored sources use repository-relative paths and content hashes. The four new optional content properties are omitted when null, preserving the exact pre-Phase-3 bases/mods/stats content bytes, hashes and versions for identical inputs.
+
+Authored JSON and notice text are normalised to LF before embedding or hashing, independently of checkout settings.
+Upstream provenance hashes retain the exact downloaded bytes. Chapter acts derive from the most frequently referenced RePoE area act;
+missing or tied act evidence fails validation. Cross-act travel references remain intact.

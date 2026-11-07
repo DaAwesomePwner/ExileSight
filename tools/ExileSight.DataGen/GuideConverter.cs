@@ -44,10 +44,11 @@ public static class GuideConverter
         var ids = areaEntries.Select(x => x.Id).ToHashSet(StringComparer.Ordinal);
         var quests = gemEntries.Where(x => x.QuestReward is not null).Select(x => x.QuestReward!.QuestId).ToHashSet();
         var pages = new List<GuidePage>();
-        var act = 0;
         foreach (var chapter in steps.RootElement.EnumerateArray())
         {
-            act++;
+            // Cross-act travel is expected. The dominant referenced area act identifies the chapter;
+            // never assign acts from array position (custom guides may start later or reorder chapters).
+            var chapterPages = new List<GuidePage>();
             var pageNumber = 0;
             foreach (var page in chapter.EnumerateArray())
             {
@@ -75,8 +76,14 @@ public static class GuideConverter
                     return new GuideLine(line, references, placeholders, Tokens(line, @"\(lvl:([^)]+)\)"));
                 }).ToArray();
                 if (converted.Length == 0) throw new InvalidOperationException("Empty guide page.");
-                pages.Add(new(act, ++pageNumber, condition, converted));
+                chapterPages.Add(new(0, ++pageNumber, condition, converted));
             }
+            var acts = chapterPages.SelectMany(p => p.Lines).SelectMany(l => l.AreaIds)
+                .Select(id => areaEntries.Single(a => a.Id == id).Act).GroupBy(act => act)
+                .OrderByDescending(group => group.Count()).ToArray();
+            if (acts.Length == 0 || (acts.Length > 1 && acts[0].Count() == acts[1].Count()))
+                throw new InvalidOperationException("Missing or ambiguous guide chapter act references.");
+            pages.AddRange(chapterPages.Select(p => p with { Act = acts[0].Key }));
         }
         if (pages.Count == 0) throw new InvalidOperationException("Empty guide.");
         return new(pages.ToArray(), areaEntries, gemEntries);

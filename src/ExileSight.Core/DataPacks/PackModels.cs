@@ -1,4 +1,5 @@
 using ExileSight.Core.Games;
+using System.Text.Json.Serialization;
 
 namespace ExileSight.Core.DataPacks;
 
@@ -19,5 +20,8 @@ public sealed record ModEntry(string Id, string Name, string AffixType, string D
     string[] TextTemplateIds, string Family = "");
 public sealed record PackContent(string PackId, Game Game, int SchemaVersion, string PackVersion,
     BaseEntry[] Bases, ModEntry[] Mods, TierLadder[]? TierLadders = null, TierContext[]? TierContexts = null, StatTranslation[]? Translations = null,
-    GuideContent? Guide = null, MapModsContent? MapMods = null, EventsContent? Events = null, LeaguesContent? Leagues = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GuideContent? Guide = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MapModsContent? MapMods = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] EventsContent? Events = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] LeaguesContent? Leagues = null);
 public sealed record DataPack(PackManifest Manifest, PackContent Content);

@@ -55,7 +55,7 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
   - A small panel showing the current step and the next one, advanced by zone changes.
   - Per-act and total timers with CSV export.
   - Supports importing a custom guide from JSON.
-- **Data:** the `poe1/guide` pack, converted from Exile-UI's `data/english/[leveltracker] default guide.json`, `areas.json` and `gems.json` (license note in THIRD-PARTY-NOTICES).
+- **Data:** the `poe1/guide` pack: Exile-UI's `data/english/[leveltracker] default guide.json` at `67d1a3637e97b791072129f0cf890e22f385b237` (Exile-UI and exile-leveling MIT notices), joined with RePoE `world_areas.json` and `gems.json` at `d0bc438357d849bb93ad22f3db0b12938aaf6da1` (GGG game data). Quest rewards only; generated in CI, never committed.
 - **Reference:** `modules/leveling tracker.ahk` (`Leveltracker_Progress` around line 3160, timer around lines 3580–3697).
 - **Done when:** a recorded Acts 1–3 log replays through the guide in a unit test, and the 🎮 gate passes.
 
@@ -65,7 +65,7 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 - **Behaviour:**
   - Map mods are shortened and ranked by the user's danger rating (4 levels, set per mod with a click).
   - Quantity, rarity and pack size are highlighted.
-- **Data:** the `poe1/mapmods` pack, converted from `data/english/map-info.txt`.
+- **Data:** the `poe1/mapmods` pack, converted from Exile-UI `data/english/map-info.txt` at `67d1a3637e97b791072129f0cf890e22f385b237` (MIT patterns/labels, GGG game text); stable IDs, no user ratings; generated in CI, never committed.
 - **Reference:** `modules/map-info.ahk`.
 - **Done when:** every map fixture parses into known mod IDs and ratings persist.
 
