@@ -58,7 +58,10 @@ without depending on the ItemInfo assembly; interactive controls require a futur
 App startup reads bundled/cache packs on a background worker and publishes the adapter
 only after preparation. Refresh runs after local loading and a five-second delay, then
 hourly after first-run setup. Attempts and their known results are persisted per
-pack/tag before network access, including failures and interrupted attempts. Unchanged
+pack/tag before network access, including failures and interrupted attempts. Invalid
+records use their last-write timestamp for a bounded one-hour retry; future attempt
+timestamps are corrected and persisted. A failed pack refresh logs its exception type
+and does not prevent the other packs or the local reload from running. Unchanged
 pack versions and content hashes reuse the prepared adapter. The configurable composition argument defaults to poe1-packs-1.0.0; no releases
 were published when this wiring was implemented. PackLoader masks download failures,
 so diagnostics report an attempted check and retained local availability, not download

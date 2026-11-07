@@ -63,6 +63,31 @@ public sealed class TooltipIntegrationTests
         feature.ViewModel.Close();
         Assert.Null(feature.ViewModel.Current);
     }
+    [Fact]
+    public async Task OnePackFailureDoesNotSkipOtherRefreshesOrLocalReload()
+    {
+        var refreshes = new List<string>();
+        var reads = new List<string>();
+        var logged = new List<(string Id, string Type)>();
+        var startup = new PackStartup((id, _) =>
+        {
+            reads.Add(id);
+            return Task.FromResult<(Core.DataPacks.DataPack?, string)>((null, "none"));
+        }, (id, _) =>
+        {
+            refreshes.Add(id);
+            if (id == "poe1/bases") throw new IOException("sensitive path must not appear in diagnostics");
+            return Task.CompletedTask;
+        }, (id, error) => logged.Add((id, error.GetType().Name)));
+        await startup.RefreshAsync(default);
+        Assert.Equal(PackStartup.PackIds, refreshes);
+        Assert.Equal(PackStartup.PackIds, reads);
+        Assert.Equal(("poe1/bases", "IOException"), Assert.Single(logged));
+        Assert.NotNull(startup.Data);
+        var diagnostic = startup.Snapshot().Single(row => row.Key == "Last refresh").Value;
+        Assert.Contains("poe1/bases: IOException", diagnostic);
+        Assert.DoesNotContain("sensitive", diagnostic);
+    }
     private sealed class ExtraFeature : IFeature, ITooltipSectionProvider
     {
         public FeatureManifest Manifest { get; } = new("extra", [Game.PoE1], [], [], [], "test");

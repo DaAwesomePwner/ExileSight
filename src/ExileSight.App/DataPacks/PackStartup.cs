@@ -7,7 +7,7 @@ namespace ExileSight.App.DataPacks;
 // Portable coordinator: IO delegates let tests exercise startup without WPF or network.
 public sealed class PackStartup(
     Func<string, CancellationToken, Task<(DataPack? Pack, string Source)>> read,
-    Func<string, CancellationToken, Task> refresh) : IDebugSection
+    Func<string, CancellationToken, Task> refresh, Action<string, Exception>? log = null) : IDebugSection
 {
     public static IReadOnlyList<string> PackIds { get; } = Array.AsReadOnly(new[] { "poe1/bases", "poe1/mods", "poe1/stats" });
     private sealed record State(IItemInfoData? Data, string Status, KeyValuePair<string, string>[] Rows);
@@ -54,8 +54,20 @@ public sealed class PackStartup(
     }
     public async Task RefreshAsync(CancellationToken token)
     {
-        foreach (var id in PackIds) await refresh(id, token).ConfigureAwait(false);
+        var failures = new List<string>();
+        foreach (var id in PackIds)
+        {
+            token.ThrowIfCancellationRequested();
+            try { await refresh(id, token).ConfigureAwait(false); }
+            catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
+            catch (Exception error)
+            {
+                failures.Add($"{id}: {error.GetType().Name}");
+                log?.Invoke(id, error);
+            }
+        }
         // PackLoader deliberately returns local fallback on failures; don't label this as a successful download.
-        await LoadAsync($"Checked {DateTimeOffset.UtcNow:u}; local data retained if download failed", token).ConfigureAwait(false);
+        await LoadAsync($"Checked {DateTimeOffset.UtcNow:u}; local data retained if download failed" +
+            (failures.Count == 0 ? "" : "; " + string.Join(", ", failures)), token).ConfigureAwait(false);
     }
 }

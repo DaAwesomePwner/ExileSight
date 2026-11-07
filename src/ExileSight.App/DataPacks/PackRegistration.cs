@@ -41,7 +41,8 @@ public static class PackRegistration
                         return result.Pack is null ? "Checked; packs unavailable" :
                             "Checked; local version " + result.Pack.Manifest.PackVersion + " available (download outcome unknown)";
                     }, token).ConfigureAwait(false);
-            });
+            }, (id, error) => sp.GetRequiredService<ILogger<PackStartup>>().LogWarning(
+                "Pack {PackId} refresh failed: {ExceptionType}", id, error.GetType().Name));
         });
         services.AddSingleton<IDebugSection>(sp => sp.GetRequiredService<PackStartup>());
         services.AddHostedService<PackRefreshService>();
