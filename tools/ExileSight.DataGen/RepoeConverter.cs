@@ -10,7 +10,7 @@ public static class RepoeConverter
 {
     public const string Repository = "repoe-fork/repoe-fork.github.io";
     public static string Attribution(string sha) =>
-        $"Data from RePoE fork at {sha.ToLowerInvariant()} (https://github.com/{Repository}); RePoE code: MIT. Game data © Grinding Gear Games; published with the owner's approval per D-047.";
+        $"Game data © Grinding Gear Games. Extracted by the RePoE fork project (commit {sha.ToLowerInvariant()}) (https://github.com/{Repository}). RePoE code: MIT. Published by ExileSight with permission of the project owner as a convenience; not affiliated with or endorsed by Grinding Gear Games.";
     public static void ValidateSha(string sha)
     {
         if (sha.Length != 40 || !sha.All(Uri.IsHexDigit)) throw new ArgumentException("A full 40-character commit SHA is required.");

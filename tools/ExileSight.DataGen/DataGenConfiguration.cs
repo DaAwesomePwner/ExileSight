@@ -4,9 +4,7 @@ namespace ExileSight.DataGen;
 
 public static class DataGenConfiguration
 {
-    public static string SourceSha { get; } = ReadSourceSha();
-
-    private static string ReadSourceSha()
+    public static string ReadSourceSha()
     {
         using var stream = typeof(DataGenConfiguration).Assembly.GetManifestResourceStream("ExileSight.DataGen.repoe.json")
             ?? throw new InvalidOperationException("Missing embedded RePoE configuration.");

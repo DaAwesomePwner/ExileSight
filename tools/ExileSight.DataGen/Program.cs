@@ -2,7 +2,10 @@ namespace ExileSight.DataGen;
 
 public static class Program
 {
-    public static async Task<int> Main(string[] args)
+    public static Task<int> Main(string[] args) => RunAsync(args, DataGenConfiguration.ReadSourceSha);
+
+    // The source configuration is loaded only when the caller did not provide a SHA.
+    public static async Task<int> RunAsync(string[] args, Func<string> readSourceSha)
     {
         try
         {
@@ -14,7 +17,7 @@ public static class Program
                 if (args[i] is not ("--repoe-sha" or "--out" or "--source-dir")) throw new ArgumentException("Unknown option.");
                 options.Add(args[i], args[i + 1]);
             }
-            var sha = options.GetValueOrDefault("--repoe-sha", DataGenConfiguration.SourceSha).ToLowerInvariant();
+            var sha = (options.TryGetValue("--repoe-sha", out var explicitSha) ? explicitSha : readSourceSha()).ToLowerInvariant();
             RepoeConverter.ValidateSha(sha);
             using var handler = new HttpClientHandler { AllowAutoRedirect = false };
             using var client = new HttpClient(handler);
@@ -30,7 +33,7 @@ public static class Program
             Console.WriteLine(RepoeConverter.Attribution(sha));
             return 0;
         }
-        catch (Exception ex) when (ex is ArgumentException or KeyNotFoundException or IOException or HttpRequestException or System.Text.Json.JsonException or InvalidOperationException or FormatException or OverflowException)
+        catch (Exception ex) when (ex is ArgumentException or KeyNotFoundException or IOException or UnauthorizedAccessException or HttpRequestException or System.Text.Json.JsonException or InvalidOperationException or FormatException or OverflowException)
         {
             Console.Error.WriteLine("DataGen input or download failed: " + ex.Message);
             return 1;

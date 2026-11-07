@@ -27,6 +27,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
     outputs:
@@ -49,8 +50,8 @@ jobs:
           from pathlib import Path
           config = json.loads(Path('tools/ExileSight.DataGen/repoe.json').read_text())
           version = os.environ['PACK_VERSION']
-          if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]*', version) or '..' in version:
-              raise SystemExit('Invalid pack version: use ASCII letters, digits, dots, underscores or hyphens; no ..')
+          if not re.fullmatch(r'[A-Za-z0-9]+([._-][A-Za-z0-9]+)*', version) or version.endswith('.lock'):
+              raise SystemExit('Invalid pack version: use alphanumeric groups separated by one dot, underscore or hyphen; no .lock suffix')
           sha = os.environ['REPOE_OVERRIDE'] or config['sourceSha']
           if not re.fullmatch(r'[0-9a-fA-F]{40}', sha):
               raise SystemExit('RePoE SHA must be a full 40-hex commit')
@@ -61,6 +62,15 @@ jobs:
           PY
       - name: Test DataGen
         run: dotnet test tests/ExileSight.DataGen.Tests -c Release
+      - name: Verify source commit belongs to upstream master
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          status=$(gh api "repos/repoe-fork/repoe-fork.github.io/compare/$REPOE_SHA...master" --jq '.status')
+          case "$status" in
+            ahead|identical) ;;
+            *) echo "::error::RePoE SHA must be reachable from upstream master (compare status: $status)."; exit 1 ;;
+          esac
       - name: Fetch pinned export and generate packs
         run: |
           mkdir -p export bundle/packs
@@ -99,9 +109,11 @@ jobs:
                           'Pack identity/version mismatch')
               require(cache['manifest'] == manifest and base64.b64decode(cache['contentBytes'], validate=True) == raw,
                       'Invalid cache envelope')
-              require(f'RePoE fork at {sha}' in manifest['attribution']
+              require(f'RePoE fork project (commit {sha})' in manifest['attribution']
                       and '© Grinding Gear Games' in manifest['attribution']
-                      and "owner's approval per D-047" in manifest['attribution'], 'Missing attribution')
+                      and "permission of the project owner" in manifest['attribution']
+                      and "not affiliated with or endorsed by Grinding Gear Games" in manifest['attribution']
+                      and "D-047" not in manifest['attribution'], 'Missing attribution')
               require(len(raw) <= 32 * 1024 * 1024, 'Content exceeds default PackLoader transport limit')
           notes = (f'PoE1 data packs: {os.environ["PACK_TAG"]}\n\n'
                    f'Source: RePoE fork https://github.com/repoe-fork/repoe-fork.github.io/tree/{sha}\n'
@@ -118,9 +130,11 @@ jobs:
           if-no-files-found: error
           retention-days: 14
   publish:
-    if: ${{ !inputs.dry_run }}
+    if: ${{ !inputs.dry_run && github.ref == 'refs/heads/main' }}
     needs: build
+    environment: release
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
@@ -136,6 +150,14 @@ jobs:
           PRERELEASE: ${{ inputs.prerelease }}
         run: |
           (cd bundle/packs && sha256sum --check --strict SHA256SUMS)
+          if gh release view "$PACK_TAG" --json tagName >/dev/null 2>release-check.err; then
+            echo "::error::A release or draft already exists for $PACK_TAG. Choose a new pack version."
+            exit 1
+          elif ! grep -qi 'release not found' release-check.err; then
+            echo "::error::Could not check for an existing release; refusing to publish."
+            cat release-check.err >&2
+            exit 1
+          fi
           options=()
           if [[ "$PRERELEASE" == 'true' ]]; then options+=(--prerelease); fi
           gh release create "$PACK_TAG" --target "$GITHUB_SHA" --draft --latest=false \
