@@ -36,7 +36,14 @@ public sealed class OmniPress(IFeatureContext context, OmniMenu menu)
         if (captured is null || release.UpTimestamp < down.Timestamp) return;
         if (release.UpTimestamp - down.Timestamp > LongPressMilliseconds)
         {
-            var origin = menu.Capture(release.Id);
+            OmniMenuOrigin origin;
+            try { origin = menu.Capture(release.Id); }
+            catch (Exception error)
+            {
+                try { menu.ReportFailure?.Invoke(error.GetType().Name); }
+                catch (Exception) { /* Reporting must not escape the release path. */ }
+                return; // No reliable cursor: drop this menu, never repeat the copy.
+            }
             context.DispatchFeature(() => menu.Show(captured, origin));
         }
         else context.DispatchOmni(captured, new(Game.PoE1), OmniPressKind.Short);

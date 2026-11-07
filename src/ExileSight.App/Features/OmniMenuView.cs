@@ -29,7 +29,7 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
         ShowActivated = false, Topmost = true, AllowsTransparency = true, Background = Brushes.Transparent,
         Width = 260, Height = 180
     };
-    private LeagueResult? discovered;
+    private OmniLeagueDiscovery? discovery;
     private OmniMenu? model;
     private nint handle;
     private PixelRect bounds;
@@ -46,18 +46,22 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
         window.DpiChanged += DpiChanged;
         menu.League = ReadLeague;
         menu.CursorPosition = () => { var point = HookHost.CursorPosition(); return (point.X, point.Y); };
-        menu.ReportFailure = type => logger.LogWarning("Item menu provider failed: {ExceptionType}", type);
+        menu.ReportFailure = type => logger.LogWarning("Omni menu failed: {ExceptionType}", type);
         menu.Presented += Open;
         window.IsVisibleChanged += VisibilityChanged;
-        if (prices is not null) _ = DiscoverLeagueAsync();
+        if (prices is not null)
+        {
+            discovery = new(() => prices.GetLeaguesAsync(cancellationToken: lifetime.ApplicationStopping),
+                type => logger.LogWarning("League discovery failed: {ExceptionType}", type));
+            _ = discovery.RefreshAsync();
+        }
         game.Changed += GameChanged;
         settings.Changed += SettingsChanged;
     }
-    private string ReadLeague() => OmniLeague.Select(settings.Snapshot.Prices.League, Volatile.Read(ref discovered));
-    private async Task DiscoverLeagueAsync()
+    private string ReadLeague()
     {
-        try { Volatile.Write(ref discovered, await prices!.GetLeaguesAsync(cancellationToken: lifetime.ApplicationStopping).ConfigureAwait(false)); }
-        catch (Exception error) { logger.LogWarning("League discovery failed: {ExceptionType}", error.GetType().Name); }
+        if (!disposed && !lifetime.ApplicationStopping.IsCancellationRequested) _ = discovery?.RefreshAsync();
+        return OmniLeague.Select(settings.Snapshot.Prices.League, discovery?.Result);
     }
     private void VisibilityChanged(object sender, DependencyPropertyChangedEventArgs args)
     {

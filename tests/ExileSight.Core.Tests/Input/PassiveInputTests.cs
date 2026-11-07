@@ -69,6 +69,37 @@ public sealed class PassiveInputTests
         Assert.Equal(2, calls);
     }
     [Fact]
+    public void OverflowRequestsDismissalOnDrainAndDoesNotLeakIntoNewEpoch()
+    {
+        var channel = new PassiveInputChannel();
+        var events = new List<PassiveInput>();
+        channel.Observed += events.Add;
+        channel.Open(0);
+        for (var i = 0; i < 10000; i++) channel.Observe(0x201, 1, 1, i);
+        Assert.Empty(events); // Hook callback only enqueues.
+        channel.Drain();
+        Assert.Equal(0x100u, Assert.Single(events).Message);
+        Assert.False(channel.IsInterested);
+        channel.Open(10000);
+        channel.Drain();
+        Assert.Single(events);
+    }
+    [Fact]
+    public void ReportsOnlyObserverExceptionTypeEvenWhenReporterFails()
+    {
+        var channel = new PassiveInputChannel();
+        var errors = new List<string>();
+        channel.ReportFailure = type => { errors.Add(type); throw new IOException(); };
+        channel.Observed += _ => throw new InvalidOperationException("private item");
+        var calls = 0;
+        channel.Observed += _ => calls++;
+        channel.Open(0);
+        channel.Observe(0x100, 0, 0, 1);
+        channel.Drain();
+        Assert.Equal(["InvalidOperationException"], errors);
+        Assert.Equal(1, calls);
+    }
+    [Fact]
     public void ObserverReopeningMenuCannotDeliverOldEventToNextObserver()
     {
         var channel = new PassiveInputChannel();

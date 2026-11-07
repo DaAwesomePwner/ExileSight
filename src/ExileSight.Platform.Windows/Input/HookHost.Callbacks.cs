@@ -35,8 +35,11 @@ public sealed partial class HookHost
         {
             var observed = *(MSLLHOOKSTRUCT*)data.Value;
             if (((uint)observed.flags & 3) == 0)
+            {
+                var now = clock.Milliseconds;
                 Passive.Observe((uint)message.Value, observed.pt.X, observed.pt.Y,
-                    clock.Milliseconds - unchecked((uint)clock.Milliseconds - observed.time));
+                    now - unchecked((uint)now - observed.time));
+            }
         }
         if (code >= 0 && NativeHookEvent.IsMouseButton((uint)message.Value))
         {

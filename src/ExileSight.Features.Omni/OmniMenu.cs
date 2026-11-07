@@ -29,7 +29,13 @@ public sealed class OmniMenu
     public void Show(ParsedItem item, OmniMenuOrigin origin)
     {
         if (!IsCurrent(origin)) return;
-        var links = OmniLinks.Build(item, League());
+        IReadOnlyList<OmniLink> links;
+        try { links = OmniLinks.Build(item, League()); }
+        catch (Exception error)
+        {
+            ReportFailure?.Invoke(error.GetType().Name);
+            return;
+        }
         var entries = ItemMenuEntries.Build(item, Providers(), error => ReportFailure?.Invoke(error.GetType().Name));
         if (!IsCurrent(origin)) return;
         Presented?.Invoke(new(origin, links, entries));

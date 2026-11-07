@@ -1,4 +1,5 @@
 using System.Windows.Threading;
+using Microsoft.Extensions.Logging;
 using ExileSight.Core.Input;
 using ExileSight.Platform.Windows.Input;
 
@@ -10,9 +11,10 @@ public sealed class PassiveOverlayInput : IDisposable
     private readonly HookHost hooks;
     private readonly Dictionary<object, (long OpenedAt, Action<PassiveInput> Observe)> observers = [];
     private readonly DispatcherTimer timer = new(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(16) };
-    public PassiveOverlayInput(HookHost hooks)
+    public PassiveOverlayInput(HookHost hooks, ILogger<PassiveOverlayInput>? logger = null)
     {
         this.hooks = hooks;
+        if (logger is not null) hooks.Passive.ReportFailure = type => logger.LogWarning("Passive observer failed: {ExceptionType}", type);
         timer.Tick += Drain;
         hooks.Passive.Observed += Observe;
     }
@@ -33,7 +35,15 @@ public sealed class PassiveOverlayInput : IDisposable
     private void Observe(PassiveInput input)
     {
         foreach (var observer in observers.Values.ToArray())
-            if (input.Timestamp >= observer.OpenedAt) observer.Observe(input);
+            if (input.Timestamp >= observer.OpenedAt)
+            {
+                try { observer.Observe(input); }
+                catch (Exception error)
+                {
+                    try { hooks.Passive.ReportFailure(error.GetType().Name); }
+                    catch (Exception) { /* Continue delivering dismissal to other overlays. */ }
+                }
+            }
     }
     public void Dispose()
     {
