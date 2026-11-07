@@ -14,6 +14,7 @@ internal static class SettingsValidation
             if (s.General is null || s.Overlay is null || s.Features is null || s.Hotkeys is null ||
                 s.Features.Enabled is null || s.Features.Sections is null ||
                 s.Features.Sections.Values.Any(x => x is null) || string.IsNullOrWhiteSpace(s.General.Language) ||
+                s.General.UpdateChannel is not ("stable" or "prerelease") ||
                 s.Overlay.ScaleOverride is double scale && (!double.IsFinite(scale) || scale <= 0))
                 throw new JsonException("Invalid settings sections.");
             if (s.Hotkeys.Any(x => x is null || string.IsNullOrWhiteSpace(x.Id) ||

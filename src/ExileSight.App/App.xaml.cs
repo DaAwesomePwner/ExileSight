@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using ExileSight.App.Spikes;
+using ExileSight.App.Updates;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -19,6 +20,7 @@ public partial class App : Application
         {
             var builder = Host.CreateApplicationBuilder();
             builder.Services.AddSingleton<DebugPanel>();
+            builder.Services.AddUpdates();
             builder.Services.AddOverlaySpike().AddInputSpike();
             host = builder.Build();
             await Task.Run(() => host.StartAsync());
