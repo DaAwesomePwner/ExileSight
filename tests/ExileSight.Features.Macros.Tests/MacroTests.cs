@@ -57,9 +57,25 @@ public sealed class MacroTests
         Assert.Empty(h.Attempts); // no hold timer
         h.Press().Release(new(1, 100, 100 + duration));
         Assert.Empty(h.Attempts);
+        var slots = h.Host.Commands.Where(c => c.Command.StartsWith("macros:slot", StringComparison.Ordinal)).ToArray();
+        Assert.Equal(8, slots.Length);
+        Assert.All(slots, c => Assert.Equal(CommandKind.OverlayOnly, Assert.IsAssignableFrom<IFeatureCommandPolicy>(c).Kind));
         var click = new IntentToken();
         Assert.Equal(ActionOutcome.Success, h.Feature.Wheel.SelectSlot(1, version, click).Outcome);
         h.Feature.Wheel.SelectSlot(1, version, click);
+        Assert.Equal((click, "/menagerie"), Assert.Single(h.Attempts));
+    }
+    [Fact]
+    public void RegisteredWheelCommandStillAcceptsOverlayClickToken()
+    {
+        var h = new Harness();
+        h.Press().Press(new(), new(1, 100));
+        h.Press().Release(new(1, 100, 400));
+        var command = h.Host.Commands.Single(c => c.Command == "macros:slot1");
+        Assert.Equal(ActionOutcome.MissingToken, command.Execute().Outcome);
+        var click = new IntentToken();
+        Assert.Equal(ActionOutcome.Success, command.Execute(click).Outcome);
+        command.Execute(click);
         Assert.Equal((click, "/menagerie"), Assert.Single(h.Attempts));
     }
     [Fact]

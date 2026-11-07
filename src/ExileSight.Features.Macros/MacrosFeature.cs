@@ -26,7 +26,7 @@ public sealed class MacrosFeature : IFeature
         for (var i = 0; i < 8; i++)
         {
             var slot = i;
-            context.RegisterCommand("slot" + i, ActionKind.SendChatCommand, token => Wheel.Select(slot, token, context));
+            context.RegisterCommand("slot" + i, ActionKind.SendChatCommand, token => Wheel.Select(slot, token, context), CommandKind.OverlayOnly);
         }
         context.RegisterOverlay(Wheel);
         void RegisterPress(string name, int key, bool travel)

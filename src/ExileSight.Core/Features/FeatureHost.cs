@@ -57,9 +57,10 @@ public sealed partial class FeatureHost
     public bool Route(ParsedItem item, OmniContext context, OmniPressKind press) =>
         new OmniRouter(omni.Select(o => o.Handler)).Route(item, context, press);
     private sealed class RegisteredCommand(string owner, string name, ActionKind? action,
-        Func<IntentToken?, ActionResult> execute) : IFeatureCommandHandler
+        Func<IntentToken?, ActionResult> execute, CommandKind kind) : IFeatureCommandHandler, IFeatureCommandPolicy
     {
         public string FeatureId => owner;
+        public CommandKind Kind => kind;
         public string Command => name;
         public ActionKind? RequiredAction => action;
         public ActionResult Execute() => Execute(null);
@@ -85,14 +86,18 @@ public sealed partial class FeatureHost
         private void Registering() { if (closed) throw new InvalidOperationException("Registration has completed"); }
         public ActionResult Execute(IntentToken? token, GameAction action) => host.execute(manifest.Id, token, action);
         public void RegisterCommand(string command, ActionKind? action, Func<IntentToken?, ActionResult> execute)
+            => RegisterCommand(command, action, execute, CommandKind.Bindable);
+        public void RegisterCommand(string command, ActionKind? action, Func<IntentToken?, ActionResult> execute,
+            CommandKind kind)
         {
             Registering();
+            if (!Enum.IsDefined(kind)) throw new ArgumentOutOfRangeException(nameof(kind));
             ArgumentException.ThrowIfNullOrWhiteSpace(command);
             ArgumentNullException.ThrowIfNull(execute);
-            if (action is { } kind && !manifest.GameActions.Contains(kind)) throw new ArgumentException("Undeclared action");
+            if (action is { } actionKind && !manifest.GameActions.Contains(actionKind)) throw new ArgumentException("Undeclared action");
             var qualified = manifest.Id + ":" + command;
             if (host.commands.Any(c => c.Command == qualified)) throw new ArgumentException("Duplicate command");
-            host.commands.Add(new RegisteredCommand(manifest.Id, qualified, action, execute));
+            host.commands.Add(new RegisteredCommand(manifest.Id, qualified, action, execute, kind));
         }
         public void RegisterPressCommand(string command, ActionKind? action,
             Func<IntentToken?, PressStarted, ActionResult> press, Action<PressReleased> release)
@@ -101,7 +106,7 @@ public sealed partial class FeatureHost
             ArgumentException.ThrowIfNullOrWhiteSpace(command);
             ArgumentNullException.ThrowIfNull(press);
             ArgumentNullException.ThrowIfNull(release);
-            if (action is { } kind && !manifest.GameActions.Contains(kind)) throw new ArgumentException("Undeclared action");
+            if (action is { } actionKind && !manifest.GameActions.Contains(actionKind)) throw new ArgumentException("Undeclared action");
             var qualified = manifest.Id + ":" + command;
             if (host.commands.Any(c => c.Command == qualified)) throw new ArgumentException("Duplicate command");
             host.commands.Add(new PressCommand(manifest.Id, qualified, action, press, release));
