@@ -21,6 +21,9 @@ public sealed class ModelAndStorageTests
             var path = Path.Combine(dir, "ratings.json"); File.WriteAllText(path, content);
             var store = new RatingStore(dir);
             Assert.NotNull(store.Notice);
+            var model = new MapInfoModel(store);
+            model.Cycle("012");
+            Assert.Equal(store.Notice, model.Notice);
             Assert.Throws<IOException>(() => store.Cycle("012"));
             Assert.Equal(content, File.ReadAllText(path));
         }
@@ -36,7 +39,7 @@ public sealed class ModelAndStorageTests
     {
         var model = new MapInfoModel(new RatingStore(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())));
         var handler = new MapInfoHandler(model, EmptyPackReader.Instance);
-        var item = ItemTextParser.Parse("Item Class: Maps\nRarity: Normal\nDunes Map\n--------\nUnknown mod", Game.PoE1).Item!;
+        var item = ItemTextParser.Parse("Item Class: Maps\nRarity: Rare\nDunes Map\n--------\nUnknown mod", Game.PoE1).Item!;
         Assert.True(handler.Priority > 100);
         Assert.True(handler.Matches(item, new(Game.PoE1)));
         model.Hold(1); Assert.Null(model.Current);

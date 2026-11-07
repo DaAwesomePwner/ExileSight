@@ -31,6 +31,30 @@
       "Patterns": [
         "# increased number of explosives"
       ]
+    },
+    {
+      "Id": "305",
+      "Type": "expedition",
+      "Text": "increased remnants: %",
+      "Patterns": [
+        "area contains # increased number of remnants"
+      ]
+    },
+    {
+      "Id": "306",
+      "Type": "expedition",
+      "Text": "explosives radius: +%",
+      "Patterns": [
+        "# increased explosive radius"
+      ]
+    },
+    {
+      "Id": "311",
+      "Type": "expedition",
+      "Text": "monster markers: +%",
+      "Patterns": [
+        "area contains # increased number of monster markers"
+      ]
     }
   ]
 }

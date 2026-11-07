@@ -23,7 +23,12 @@ Matching behaviour is derived from Lailloken/Exile-UI `modules/map-info.ahk`
 from the scoped `poe1/mapmods` reader. Indexes are reused while its immutable data
 snapshot remains unchanged. Matching strips numeric ranges and suffix markers,
 prefers complete multiline patterns, and respects advanced affix groups.
-Expedition faction labels retain their immediately preceding area and NPC.
+Maps use explicit affixes only (prefix/suffix blocks on advanced copies); map
+implicits and “also apply to rarity” informational lines are omitted. Normal and
+unique maps have no ranked affix rows. Expedition faction labels retain their
+immediately preceding area and NPC; explicit logbook modifiers remain global.
+The existing modded-logbook fixtures' explicit “# increased number of Remnants”
+spelling is an exact logbook-only alias for ID 305's “Area contains …” pattern.
 The test pack snapshot comes from that same commit's `data/english/map-info.txt`;
 `synthetic-*` fixtures are authored examples under D-044, not client recordings.
 

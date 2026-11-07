@@ -35,19 +35,31 @@ public sealed class MapMatcher
         var totals = new Dictionary<(string Id, string? Area), (int Index, decimal[] Values)>();
         string? area = null;
         var logbook = item.ItemClass == "Expedition Logbooks";
+        if (!logbook && item.Rarity is ItemRarity.Normal or ItemRarity.Unique)
+            return new(item.Name, item.MapQuantity, item.MapRarity, item.MapPackSize, rows);
         for (var i = 0; i < item.Mods.Count;)
         {
             // Labels immediately preceding a recognised faction identify the copied expedition area.
             if (logbook && i + 1 < item.Mods.Count && Npcs.TryGetValue(item.Mods[i + 1].Text, out var npc))
             { area = item.Mods[i].Text + " (" + npc + ")"; i += 2; continue; }
             var first = item.Mods[i];
+            // Plain copies have no affix headers; advanced map copies must be prefix/suffix blocks.
+            if (!logbook && (!first.Kind.HasFlag(ModKind.Explicit) ||
+                first.Header is not null && first.AffixType == AffixType.Unknown) ||
+                first.Text.Contains("also apply to rarity", StringComparison.OrdinalIgnoreCase))
+            { i++; continue; }
             MapModData? match = null; var consumed = 1;
             for (var length = Math.Min(maxLines, item.Mods.Count - i); length > 0; length--)
             {
                 var lines = item.Mods.Skip(i).Take(length).ToArray();
                 if (lines.Any(m => m.Group != first.Group || m.Kind != first.Kind)) continue;
-                if (!patterns.TryGetValue(string.Join('|', lines.Select(m => Normalize(m.Text))), out var candidates)) continue;
-                var applicable = candidates.Where(e => e.Type != "expedition" || logbook && first.Kind.HasFlag(ModKind.Implicit))
+                var key = string.Join('|', lines.Select(m => Normalize(m.Text)));
+                // Existing modded-logbook plain/advanced fixtures use this explicit spelling.
+                // Restrict the alias to logbook explicits; pack text and area implicits stay exact.
+                if (logbook && first.Kind.HasFlag(ModKind.Explicit) && key == "# increased number of remnants")
+                    key = "area contains # increased number of remnants";
+                if (!patterns.TryGetValue(key, out var candidates)) continue;
+                var applicable = candidates.Where(e => e.Type != "expedition" || logbook)
                     .DistinctBy(e => e.Id).ToArray();
                 if (applicable.Length != 1) continue; // Ambiguity is unknown, never a guess.
                 match = applicable[0]; consumed = length; break;

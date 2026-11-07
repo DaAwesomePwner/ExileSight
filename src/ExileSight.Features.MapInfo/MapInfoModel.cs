@@ -38,7 +38,7 @@ public sealed class MapInfoModel(RatingStore store)
         {
             try { store.Cycle(id); Notice = store.Notice; Refresh(); }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-            { Notice = "Could not save rating; previous rating retained."; }
+            { Notice = store.Notice ?? "Could not save rating; previous rating retained."; }
         }
         Changed?.Invoke();
     }

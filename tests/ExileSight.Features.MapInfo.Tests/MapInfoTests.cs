@@ -15,11 +15,19 @@ public sealed class MapInfoTests
     [Fact]
     public void EveryMapAndLogbookFixtureHasKnownMods()
     {
-        foreach (var path in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "fixtures"), "*.txt", SearchOption.AllDirectories))
+        foreach (var path in new[] { "maps", "expedition-logbooks" }.SelectMany(folder =>
+            Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "fixtures", folder), "*.txt")))
         {
             var item = ItemTextParser.Parse(File.ReadAllText(path), Game.PoE1).Item!;
             var result = Matcher().Match(item);
             Assert.All(result.Mods, row => Assert.True(row.Id is not null, path + ": " + row.Text));
+            if (path.Contains("synthetic-influences"))
+                Assert.Equal("016", Assert.Single(result.Mods).Id);
+            if (path.Contains("modded-logbook"))
+            {
+                Assert.Equal(new[] { "305", "306" }, result.Mods.Select(row => row.Id));
+                Assert.All(result.Mods, row => Assert.Null(row.Area));
+            }
             if (path.Contains("synthetic-critical"))
             {
                 Assert.Equal("012", Assert.Single(result.Mods).Id);
@@ -28,7 +36,12 @@ public sealed class MapInfoTests
             }
             if (path.Contains("synthetic-areas"))
             {
-                Assert.Equal(2, result.Mods.Count);
+                Assert.Equal(4, result.Mods.Count);
+                Assert.Equal("305", result.Mods[0].Id);
+                Assert.Equal("311", result.Mods[1].Id);
+                Assert.Equal("306", result.Mods[2].Id);
+                Assert.Equal("307", result.Mods[3].Id);
+                Assert.All(result.Mods.Skip(2), row => Assert.Null(row.Area));
                 Assert.Equal("Desert Ruins (Tujen)", result.Mods[0].Area);
                 Assert.Equal("Forest Ruins (Dannig)", result.Mods[1].Area);
             }
@@ -50,8 +63,16 @@ public sealed class MapInfoTests
     [Fact]
     public void UnknownIsNeverGuessed()
     {
-        var item = ItemTextParser.Parse("Item Class: Maps\nRarity: Normal\nDunes Map\n--------\nMonsters have novel powers", Game.PoE1).Item!;
+        var item = ItemTextParser.Parse("Item Class: Maps\nRarity: Rare\nDunes Map\n--------\nMonsters have novel powers", Game.PoE1).Item!;
         Assert.Null(Assert.Single(Matcher().Match(item).Mods).Id);
+    }
+    [Theory]
+    [InlineData("Normal")]
+    [InlineData("Unique")]
+    public void MapsWithoutRollableAffixesHaveNoDangerRows(string rarity)
+    {
+        var item = ItemTextParser.Parse($"Item Class: Maps\nRarity: {rarity}\nDunes Map\n--------\nSome special map property", Game.PoE1).Item!;
+        Assert.Empty(Matcher().Match(item).Mods);
     }
     [Fact]
     public void RatingsPersistAndCycleAndKeepUnknownIds()

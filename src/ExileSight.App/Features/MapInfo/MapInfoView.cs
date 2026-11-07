@@ -49,17 +49,17 @@ public sealed class MapInfoView(PassiveOverlayInput passive, IGameWindow game,
     private void Changed() => window.Dispatcher.BeginInvoke(() =>
     {
         if (disposed) return;
-        if (model?.Current is null) { Guard(Hide); return; }
-        Guard(Open);
+        var result = model?.Current;
+        if (result is null) { Guard(Hide); return; }
+        Guard(() => Open(result));
     });
-    private void Open()
+    private void Open(MapResult result)
     {
         var state = game.Current;
         var client = state.ClientRect;
         if (!state.Found || !state.IsForeground || state.IsMinimized || !settings.Snapshot.Overlay.Enabled || client.Width <= 0 || client.Height <= 0)
         { Close(); return; }
         panel.Children.Clear();
-        var result = model!.Current!;
         panel.Children.Add(Label(result.Name, Brushes.White));
         panel.Children.Add(Label($"Quantity: {result.Quantity?.ToString() ?? "?"}%   Rarity: {result.Rarity?.ToString() ?? "?"}%   Pack size: {result.PackSize?.ToString() ?? "?"}%", Brushes.Gold));
         panel.Children.Add(Label("Click a modifier to cycle danger 0–3", Brushes.LightGray));
@@ -69,10 +69,10 @@ public sealed class MapInfoView(PassiveOverlayInput passive, IGameWindow game,
             var brush = row.Rank switch { 0 => Brushes.LightGray, 1 => Brushes.Yellow, 2 => Brushes.Orange, _ => Brushes.OrangeRed };
             var button = new Button { Content = Label(text, brush), Focusable = false, IsEnabled = row.Id is not null,
                 HorizontalContentAlignment = HorizontalAlignment.Left, Background = Brushes.Transparent, Margin = new Thickness(0, 2, 0, 0) };
-            if (row.Id is { } id) button.Click += (_, _) => model.Cycle(id);
+            if (row.Id is { } id) button.Click += (_, _) => model!.Cycle(id);
             panel.Children.Add(button);
         }
-        if (model.Notice is { } notice) panel.Children.Add(Label(notice, Brushes.Orange));
+        if (model!.Notice is { } notice) panel.Children.Add(Label(notice, Brushes.Orange));
         if (!window.IsVisible)
         { var cursor = HookHost.CursorPosition(); originX = cursor.X; originY = cursor.Y; }
         Position();

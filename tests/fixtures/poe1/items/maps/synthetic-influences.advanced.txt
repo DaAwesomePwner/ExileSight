@@ -1,0 +1,17 @@
+Item Class: Maps
+Rarity: Rare
+Doom Road
+Dunes Map
+--------
+Item Level: 84
+--------
+{ Implicit Modifier }
+Map is occupied by Baran, the Crusader (implicit)
+Map is occupied by The Enslaver (implicit)
+Area is influenced by The Originator (implicit)
+Area is infested with Fungal Growths (implicit)
+Modifiers to Item Quantity also apply to Rarity (implicit)
+--------
+{ Prefix Modifier "Burning" (Tier: 1) }
+Monsters deal 90(90-110)% extra Physical Damage as Fire
+Modifiers to Item Quantity also apply to Rarity
