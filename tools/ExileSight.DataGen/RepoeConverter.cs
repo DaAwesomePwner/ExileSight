@@ -9,7 +9,8 @@ namespace ExileSight.DataGen;
 public static class RepoeConverter
 {
     public const string Repository = "repoe-fork/repoe-fork.github.io";
-    public const string Attribution = "Schema: RePoE (repoe-fork), MIT code. Game data belongs to Grinding Gear Games; not distributed until redistribution is cleared.";
+    public static string Attribution(string sha) =>
+        $"Data from RePoE fork at {sha.ToLowerInvariant()} (https://github.com/{Repository}); RePoE code: MIT. Game data © Grinding Gear Games; published with the owner's approval per D-047.";
     public static void ValidateSha(string sha)
     {
         if (sha.Length != 40 || !sha.All(Uri.IsHexDigit)) throw new ArgumentException("A full 40-character commit SHA is required.");
@@ -36,7 +37,7 @@ public static class RepoeConverter
                 kind == "mods" ? tiers.Ladders : [], kind == "mods" ? tiers.Contexts : []);
             // Unknown source patch/time are explicit, never fabricated from the local clock.
             var manifest = new PackManifest(content.PackId, Game.PoE1, PackCodec.SchemaVersion, content.PackVersion,
-                "unknown", DateTimeOffset.UnixEpoch, source, Attribution, PackCodec.Hash(PackCodec.ContentBytes(content)));
+                "unknown", DateTimeOffset.UnixEpoch, source, Attribution(sha), PackCodec.Hash(PackCodec.ContentBytes(content)));
             return new DataPack(manifest, content);
         }).ToArray();
     }
