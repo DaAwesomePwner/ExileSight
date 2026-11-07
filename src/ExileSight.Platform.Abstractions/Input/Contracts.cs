@@ -13,7 +13,12 @@ public abstract record GameAction
 public sealed class IntentToken;
 public enum ActionOutcome { Success, MissingToken, UsedOrUnknownToken, Expired, NotForeground, Undeclared, Failed }
 public sealed record ActionResult(ActionOutcome Outcome, string Reason = "", string? CopiedText = null);
-public interface IActionGate { ActionResult TryExecute(IntentToken? token, GameAction action); }
+public interface IActionGate
+{
+    string AuditPath { get; }
+    int ActionsSent { get; }
+    ActionResult TryExecute(IntentToken? token, GameAction action);
+}
 /// <summary>Phase 0 preserves Unicode text or empty only; other formats are not retained.</summary>
 public interface IClipboard
 {

@@ -4,6 +4,8 @@ using ExileSight.Platform.Abstractions.Input;
 namespace ExileSight.Core.Input;
 
 public readonly record struct KeyStroke(ushort Key, bool Down);
+// Behavior reference: Exile-UI modules/omni-key.ahk and modules/macros.ahk.
+// Only the single-action clipboard sequences are retained.
 public static class ActionData
 {
     public static IReadOnlyList<KeyStroke> Sequence(GameAction action) => action switch

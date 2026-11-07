@@ -22,3 +22,5 @@ GlobalUnlock
 GlobalFree
 CreateWindowEx
 DestroyWindow
+KBDLLHOOKSTRUCT
+GetModuleHandle

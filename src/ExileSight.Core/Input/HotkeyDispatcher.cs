@@ -27,6 +27,12 @@ public sealed class HotkeyDispatcher
         this.registry = registry;
         foreach (var b in bindings) this.bindings[b.Key, (int)b.Modifiers] = b;
     }
+    /// <summary>Seed keys already down at hook installation; their repeats have no observed physical press.</summary>
+    public void SeedHeld(int key)
+    {
+        if ((uint)key >= 256) throw new ArgumentOutOfRangeException(nameof(key));
+        held[key] = true;
+    }
     public DispatchDecision Observe(PhysicalKey key, bool active)
     {
         if (key.Injected || (uint)key.Key >= 256 || (uint)key.Modifiers >= 16) return default;

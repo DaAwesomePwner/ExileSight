@@ -9,6 +9,8 @@ namespace ExileSight.Platform.Windows.Input;
 public sealed class ActionGate(GatePolicy policy, IClipboard clipboard, IClock clock) : IActionGate
 {
     private readonly object sync = new();
+    private int actionsSent;
+    public int ActionsSent => Volatile.Read(ref actionsSent);
     public string AuditPath { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "ExileSight", "logs", "actions.log");
     public ActionResult TryExecute(IntentToken? token, GameAction action)
@@ -54,6 +56,7 @@ public sealed class ActionGate(GatePolicy policy, IClipboard clipboard, IClock c
             if (!GameForeground.IsGame()) return new(ActionOutcome.NotForeground);
             if (HookHost.Modifiers() != KeyModifiers.None) return new(ActionOutcome.Failed, "Modifier changed");
             Send(ActionData.Sequence(action));
+            Interlocked.Increment(ref actionsSent);
             if (action is GameAction.CopyItem)
             {
                 var deadline = clock.Milliseconds + 500;
