@@ -11,7 +11,8 @@ public static class BindingMapper
     public static BindingMapping Map(IEnumerable<PersistedBinding?> source, HotkeyConfiguration contexts,
         IEnumerable<IFeatureCommandHandler> handlers)
     {
-        var commands = handlers.Select(h => h.Command).ToHashSet(StringComparer.Ordinal);
+        var registered = handlers.ToArray();
+        var commands = registered.Select(h => h.Command).ToHashSet(StringComparer.Ordinal);
         var bindings = new List<HotkeyBinding>();
         var rejected = new List<string>();
         var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -35,7 +36,9 @@ public static class BindingMapper
                 ActionKind.SetPriceNote => new GameAction.SetPriceNote(b.Text!),
                 _ => null
             };
-            bindings.Add(new(b.Id, b.Key, b.Modifiers, b.Block, action, b.Context, b.FeatureCommand));
+            var handler = registered.FirstOrDefault(h => h.Command == b.FeatureCommand);
+            bindings.Add(new(b.Id, b.Key, b.Modifiers, b.Block, action, b.Context, b.FeatureCommand,
+                handler?.FeatureId ?? "builtin", handler?.RequiredAction));
         }
         return new(bindings.AsReadOnly(), rejected.AsReadOnly());
     }

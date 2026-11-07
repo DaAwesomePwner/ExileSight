@@ -7,9 +7,9 @@ public sealed class IntentRegistry(IClock clock, object? authority = null)
 {
     private readonly Dictionary<IntentToken, Press> pending = [];
     public const long LifetimeMilliseconds = 1500;
-    public sealed record Press(long Timestamp, string HotkeyId, ActionKind Action);
+    public sealed record Press(long Timestamp, string HotkeyId, ActionKind Action, string FeatureId = "builtin");
     // Only a holder of the registry's construction capability can register a physical intent.
-    internal IntentToken Register(object capability, long timestamp, string hotkey, ActionKind action)
+    internal IntentToken Register(object capability, long timestamp, string hotkey, ActionKind action, string featureId = "builtin")
     {
         if (authority is null || !ReferenceEquals(authority, capability))
             throw new InvalidOperationException("Physical-input authority required");
@@ -18,7 +18,7 @@ public sealed class IntentRegistry(IClock clock, object? authority = null)
             foreach (var old in pending.Where(p => clock.Milliseconds - p.Value.Timestamp >= LifetimeMilliseconds)
                          .Select(p => p.Key).ToArray()) pending.Remove(old);
             var token = new IntentToken();
-            pending.Add(token, new(timestamp, hotkey, action));
+            pending.Add(token, new(timestamp, hotkey, action, featureId));
             return token;
         }
     }
@@ -34,15 +34,23 @@ public sealed class IntentRegistry(IClock clock, object? authority = null)
         return age < 0 || age >= LifetimeMilliseconds ? ActionOutcome.Expired : ActionOutcome.Success;
     }
 }
-public sealed class GatePolicy(IntentRegistry registry, IEnumerable<ActionKind> declared)
+public sealed class GatePolicy(IntentRegistry registry, IEnumerable<ActionKind> declared,
+    IEnumerable<ExileSight.Core.Features.FeatureManifest>? manifests = null)
 {
-    private readonly HashSet<ActionKind> allowed = declared.ToHashSet();
+    private readonly Dictionary<string, HashSet<ActionKind>> allowed = Build(declared, manifests);
+    private static Dictionary<string, HashSet<ActionKind>> Build(IEnumerable<ActionKind> builtins,
+        IEnumerable<ExileSight.Core.Features.FeatureManifest>? manifests)
+    {
+        var result = new Dictionary<string, HashSet<ActionKind>>(StringComparer.Ordinal) { ["builtin"] = builtins.ToHashSet() };
+        foreach (var manifest in manifests ?? []) { manifest.Validate(); result.Add(manifest.Id, manifest.GameActions.ToHashSet()); }
+        return result;
+    }
     public ActionOutcome Validate(IntentToken? token, GameAction action, bool foreground, out IntentRegistry.Press? press)
     {
         var result = registry.Consume(token, out press);
         if (result != ActionOutcome.Success) return result;
         if (press!.Action != action.Kind) return ActionOutcome.WrongAction;
         if (!foreground) return ActionOutcome.NotForeground;
-        return allowed.Contains(action.Kind) ? ActionOutcome.Success : ActionOutcome.Undeclared;
+        return allowed.TryGetValue(press.FeatureId, out var actions) && actions.Contains(action.Kind) ? ActionOutcome.Success : ActionOutcome.Undeclared;
     }
 }

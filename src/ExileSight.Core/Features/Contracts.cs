@@ -1,0 +1,31 @@
+using System.Text.Json;
+using ExileSight.Core.Games;
+using ExileSight.Core.Items;
+using ExileSight.Core.Logs;
+using ExileSight.Platform.Abstractions.Input;
+
+namespace ExileSight.Core.Features;
+
+public interface IFeature
+{
+    FeatureManifest Manifest { get; }
+    void Register(IFeatureContext context);
+}
+public interface IFeatureContext
+{
+    ActionResult Execute(IntentToken? token, GameAction action);
+    void RegisterCommand(string command, ActionKind? action, Func<IntentToken?, ActionResult> execute);
+    void RegisterOmniHandler(IOmniHandler handler);
+    void Subscribe<T>(Action<T> handler) where T : LogEvent;
+    void RegisterOverlay(object viewModel);
+    JsonElement? ReadSetting(string key);
+    void WriteSetting(string key, JsonElement value);
+}
+public enum OmniPressKind { Short, Long }
+public sealed record OmniContext(Game Game, string? Area = null);
+public interface IOmniHandler
+{
+    int Priority { get; }
+    bool Matches(ParsedItem item, OmniContext context);
+    void Handle(ParsedItem item, OmniContext context, OmniPressKind press);
+}

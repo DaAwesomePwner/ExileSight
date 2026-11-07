@@ -150,6 +150,9 @@ public sealed partial class HookHost : IHotkeys
         if (code >= 0 && NativeHookEvent.IsMouseButton((uint)message.Value))
         {
             var mouse = *(MSLLHOOKSTRUCT*)data.Value;
+            if (message.Value is 0x201 or 0x202)
+                OverlayClicks.Observe(message.Value == 0x201, ((uint)mouse.flags & 3) != 0,
+                    mouse.pt.X, mouse.pt.Y, clock.Milliseconds - unchecked((uint)clock.Milliseconds - mouse.time));
             if (!NativeHookEvent.MouseAllowed((uint)message.Value, (uint)mouse.flags))
                 return PInvoke.CallNextHookEx(default, code, message, data);
             var now = clock.Milliseconds;
