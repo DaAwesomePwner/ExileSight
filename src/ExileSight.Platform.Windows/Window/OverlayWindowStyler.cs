@@ -25,6 +25,14 @@ public sealed class OverlayWindowStyler : IOverlayWindowStyler
             throw new Win32Exception("Could not apply overlay styles.");
     }
 
+    public unsafe PixelRect GetBounds(nint handle)
+    {
+        HWND hwnd = Owned(handle);
+        RECT rect;
+        if (!PInvoke.GetWindowRect(hwnd, &rect)) throw new Win32Exception();
+        return new(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
+    }
+
     public void Position(nint handle, PixelRect rect)
     {
         HWND hwnd = Owned(handle);

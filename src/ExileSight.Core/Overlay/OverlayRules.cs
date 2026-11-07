@@ -13,6 +13,21 @@ public static class OverlayRules
 
     public static double Scale(double clientHeight) => Math.Max(0, clientHeight) / 1080d;
 
+    public static double Scale(double clientHeight, double? scaleOverride) =>
+        scaleOverride is double value && double.IsFinite(value) && value > 0 ? value : Scale(clientHeight);
+
+    // Behaviour reference: Exile-UI modules/_functions.ahk, black-bar compensation.
+    public static OverlayRect Place(OverlayRect client, OverlayRect design, double? scaleOverride = null)
+    {
+        var content = Content(client.X, client.Y, client.Width, client.Height);
+        var scale = Scale(client.Height, scaleOverride);
+        return new(content.X + design.X * scale, content.Y + design.Y * scale,
+            design.Width * scale, design.Height * scale);
+    }
+
+    public static bool MatchesStreaming(uint pid, IReadOnlySet<uint> snapshot, string? title) =>
+        MatchesProcess(pid, snapshot) && IsStreamingGameTitle(title);
+
     public static OverlayRect Content(double x, double y, double width, double height)
     {
         double contentWidth = Math.Min(width, height * 21d / 9);
@@ -22,6 +37,9 @@ public static class OverlayRules
     // Strict foreground policy: even the ExileSight debug window hides the overlay.
     public static bool IsVisible(bool found, bool foreground, bool minimized) =>
         found && foreground && !minimized;
+
+    public static bool IsVisible(bool found, bool foreground, bool minimized, bool enabled, bool requested) =>
+        enabled && requested && IsVisible(found, foreground, minimized);
 
     // Detection behaviour reference: Exile-UI, Exile UI.ahk (client detection).
     public static bool Matches(string? windowClass, bool isGeForceNow, string? title) =>
