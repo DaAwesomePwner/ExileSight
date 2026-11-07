@@ -3,7 +3,7 @@
     "Game": "PoE1",
     "ItemClass": "Rings",
     "Rarity": "Magic",
-    "Name": "Healthy Gold Ring",
+    "Name": "Fecund Gold Ring",
     "ItemLevel": 84,
     "Influences": [
       "Shaper"
@@ -36,7 +36,7 @@
         "Kind": "Explicit",
         "AffixType": "Prefix",
         "Tier": 1,
-        "AffixName": "Healthy",
+        "AffixName": "Fecund",
         "Values": [
           {
             "Value": 92.0,

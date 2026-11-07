@@ -18,5 +18,5 @@ internal static class EnglishItemPatterns
     internal static readonly string[] WeaponTypes = ["One Handed Sword", "Two Handed Sword", "Thrusting One Handed Sword",
         "One Handed Axe", "Two Handed Axe", "One Handed Mace", "Two Handed Mace", "Bow", "Claw", "Dagger",
         "Rune Dagger", "Wand", "Sceptre", "Staff", "Warstaff"];
-    internal static readonly string[] Instructions = ["Right click", "Place ", "Travel to ", "Shift click", "Unmodifiable"];
+    internal static readonly string[] Instructions = ["Right click", "Place ", "Travel to ", "Shift click", "This is a Support Gem"];
 }

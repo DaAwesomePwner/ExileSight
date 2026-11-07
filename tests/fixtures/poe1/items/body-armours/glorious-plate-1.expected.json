@@ -3,7 +3,7 @@
     "Game": "PoE1",
     "ItemClass": "Body Armours",
     "Rarity": "Magic",
-    "Name": "Healthy Glorious Plate",
+    "Name": "Fecund Glorious Plate",
     "ItemLevel": 84,
     "Quality": 20,
     "SocketCount": 4,
@@ -42,7 +42,7 @@
         "Kind": "Explicit",
         "AffixType": "Prefix",
         "Tier": 1,
-        "AffixName": "Healthy",
+        "AffixName": "Fecund",
         "Values": [
           {
             "Value": 92.0,

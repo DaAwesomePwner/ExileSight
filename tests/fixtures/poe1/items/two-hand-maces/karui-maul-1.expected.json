@@ -12,13 +12,13 @@
   "plain": {
     "Mods": [
       {
-        "Text": "120% increased Physical Damage",
+        "Text": "40% increased Physical Damage",
         "Kind": "Explicit",
         "AffixType": "Unknown",
         "Tier": null,
         "Values": [
           {
-            "Value": 120.0,
+            "Value": 40,
             "Minimum": null,
             "Maximum": null
           }
@@ -30,16 +30,16 @@
   "advanced": {
     "Mods": [
       {
-        "Text": "120(110-129)% increased Physical Damage",
+        "Text": "40(40-49)% increased Physical Damage",
         "Kind": "Explicit",
         "AffixType": "Prefix",
-        "Tier": 1,
+        "Tier": 8,
         "AffixName": "Heavy",
         "Values": [
           {
-            "Value": 120.0,
-            "Minimum": 110.0,
-            "Maximum": 129.0
+            "Value": 40,
+            "Minimum": 40,
+            "Maximum": 49
           }
         ]
       }

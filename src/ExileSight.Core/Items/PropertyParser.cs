@@ -64,6 +64,11 @@ internal static class PropertyParser
         return null;
     }
 
+    internal static bool IsMetadataLine(string line) =>
+        line is "Corrupted" or "Mirrored" or "Unidentified" or "Unmodifiable" or "Fractured Item" or "Synthesised Item" or "Split" ||
+        EnglishItemPatterns.Influences.Any(i => line == i + " Item") ||
+        line.StartsWith("Note: ", StringComparison.Ordinal) || line.StartsWith('~');
+
     internal static bool Metadata(ParsedItem item, string line, List<ParseWarning> warnings)
     {
         switch (line)

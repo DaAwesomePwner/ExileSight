@@ -23,7 +23,15 @@ public static class ItemTextParser
         var item = Header(sections[headerIndex], game, warnings);
         if (item.Name.Length == 0) warnings.Add(new(WarningSeverity.Error, "Missing item name"));
         var group = 0;
-        foreach (var section in sections.Skip(headerIndex + 1)) SectionParser.Parse(item, section, warnings, ref group);
+        for (var index = headerIndex + 1; index < sections.Count; index++)
+        {
+            var section = sections[index];
+            // Flags are trailing sections, never words inside properties, rewards or flavour.
+            var metadata = section.All(PropertyParser.IsMetadataLine) &&
+                sections.Skip(index + 1).All(s => s.All(l => PropertyParser.IsMetadataLine(l) ||
+                    EnglishItemPatterns.Instructions.Any(p => l.StartsWith(p, StringComparison.Ordinal))));
+            SectionParser.Parse(item, section, warnings, ref group, metadata);
+        }
         if (item.Unidentified && item.BaseType is null) item.BaseType = item.Name;
         item.Fractured |= item.FracturedMods.Any();
         ResolveMagicBase(item);

@@ -28,7 +28,9 @@
             "Minimum": 40,
             "Maximum": 49
           }
-        ]
+        ],
+        "AffixName": "Heavy",
+        "Tier": 8
       }
     ]
   }

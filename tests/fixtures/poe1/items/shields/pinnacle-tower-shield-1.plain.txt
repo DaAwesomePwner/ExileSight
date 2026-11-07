@@ -1,6 +1,6 @@
 Item Class: Shields
 Rarity: Magic
-Healthy Pinnacle Tower Shield
+Fecund Pinnacle Tower Shield
 --------
 Chance to Block: 24%
 Armour: 400 (augmented)

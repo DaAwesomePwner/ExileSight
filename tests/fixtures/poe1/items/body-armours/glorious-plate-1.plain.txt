@@ -1,6 +1,6 @@
 Item Class: Body Armours
 Rarity: Magic
-Healthy Glorious Plate
+Fecund Glorious Plate
 --------
 Armour: 400 (augmented)
 Quality: +20% (augmented)

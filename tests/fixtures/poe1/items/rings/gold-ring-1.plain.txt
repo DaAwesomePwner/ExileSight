@@ -1,6 +1,6 @@
 Item Class: Rings
 Rarity: Magic
-Healthy Gold Ring
+Fecund Gold Ring
 --------
 Item Level: 84
 --------

@@ -10,5 +10,7 @@ Monster Pack Size: +25% (augmented)
 --------
 Item Level: 84
 --------
-{ Prefix Modifier "Healthy" (Tier: 1) — Life }
-Monsters deal 25(20-29)% extra Physical Damage as Fire
+{ Prefix Modifier "Burning" (Tier: 1) — Physical, Elemental, Fire }
+Monsters deal 90(90-110)% extra Physical Damage as Fire
+--------
+Travel to this Map by using it in a personal Map Device. Maps can only be used once.

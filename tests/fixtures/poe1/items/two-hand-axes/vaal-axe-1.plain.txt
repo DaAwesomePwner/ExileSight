@@ -3,12 +3,12 @@ Rarity: Magic
 Heavy Vaal Axe
 --------
 Two Handed Axe
-Physical Damage: 40-80
+Physical Damage: 40-80 (augmented)
 Critical Strike Chance: 5.00%
 Attacks per Second: 1.50
 --------
 Item Level: 84
 --------
-120% increased Physical Damage
+40% increased Physical Damage
 --------
 Searing Exarch Item

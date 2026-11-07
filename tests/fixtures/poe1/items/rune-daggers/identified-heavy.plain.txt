@@ -3,7 +3,7 @@ Rarity: Magic
 Heavy Imperial Skean
 --------
 Rune Dagger
-Physical Damage: 40-80
+Physical Damage: 40-80 (augmented)
 Critical Strike Chance: 6.30%
 Attacks per Second: 1.50
 --------

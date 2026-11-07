@@ -10,4 +10,6 @@ Monster Pack Size: +25% (augmented)
 --------
 Item Level: 84
 --------
-Monsters deal 25% extra Physical Damage as Fire
+Monsters deal 90% extra Physical Damage as Fire
+--------
+Travel to this Map by using it in a personal Map Device. Maps can only be used once.

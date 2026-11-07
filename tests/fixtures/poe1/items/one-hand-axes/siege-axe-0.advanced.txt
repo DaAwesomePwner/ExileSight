@@ -4,11 +4,11 @@ Doom Shelter
 Siege Axe
 --------
 One Handed Axe
-Physical Damage: 40-80
+Physical Damage: 40-80 (augmented)
 Critical Strike Chance: 5.00%
 Attacks per Second: 1.50
 --------
 Item Level: 84
 --------
-{ Prefix Modifier "Healthy" (Tier: 1) — Life }
-120(110-129)% increased Physical Damage
+{ Prefix Modifier "Heavy" (Tier: 8) — Damage, Physical, Attack }
+40(40-49)% increased Physical Damage

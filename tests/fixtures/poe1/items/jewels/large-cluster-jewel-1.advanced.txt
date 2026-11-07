@@ -2,9 +2,6 @@ Item Class: Jewels
 Rarity: Magic
 Vivid Large Cluster Jewel
 --------
-Limited to: 1
-Radius: Large
---------
 Item Level: 84
 --------
 { Enchantment Modifier }

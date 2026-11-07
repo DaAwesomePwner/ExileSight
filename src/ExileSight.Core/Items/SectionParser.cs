@@ -2,7 +2,7 @@ namespace ExileSight.Core.Items;
 
 internal static class SectionParser
 {
-    internal static void Parse(ParsedItem item, List<string> lines, List<ParseWarning> warnings, ref int group)
+    internal static void Parse(ParsedItem item, List<string> lines, List<ParseWarning> warnings, ref int group, bool metadataSection)
     {
         if (lines.Count == 0) return;
         string? header = null;
@@ -17,7 +17,8 @@ internal static class SectionParser
         foreach (var line in lines)
         {
             if (line == "Requirements:") continue;
-            if (PropertyParser.Metadata(item, line, warnings)) continue;
+            if (metadataSection && (item.Rarity != ItemRarity.DivinationCard || line.StartsWith("Note: ", StringComparison.Ordinal)) &&
+                PropertyParser.Metadata(item, line, warnings)) continue;
             if (line.StartsWith('{'))
             {
                 header = line;

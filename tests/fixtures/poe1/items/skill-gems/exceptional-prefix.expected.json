@@ -8,7 +8,11 @@
       "Maximum": 15249
     },
     "Warnings": [],
-    "OtherText": []
+    "OtherText": [
+      "Deals 9 to 14 Fire Damage",
+      "25% chance to Ignite enemies",
+      "Place into an item socket of the right colour to gain this skill. Right click to remove from a socket."
+    ]
   },
   "plain": {},
   "advanced": {}

@@ -9,7 +9,7 @@ Currently has 45 Charges
 --------
 Item Level: 84
 --------
-{ Prefix Modifier "Perpetual" (Tier: 1) — Life }
+{ Prefix Modifier "Perpetual" (Tier: 1) — Flask }
 30(25-30)% increased Charge Recovery
 --------
 Note: ~b/o 2.5 divine

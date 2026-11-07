@@ -1,10 +1,10 @@
 Item Class: Belts
 Rarity: Magic
-Healthy Leather Belt
+Fecund Leather Belt
 --------
 Item Level: 84
 --------
-{ Prefix Modifier "Healthy" (Tier: 1) — Life }
+{ Prefix Modifier "Fecund" (Tier: 1) — Life }
 +92(90-99) to maximum Life
 --------
 Crusader Item
