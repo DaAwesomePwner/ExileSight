@@ -2,9 +2,12 @@
 
 Use **Actions → Release app → Run workflow**, selecting **main**. The workflow
 has a failing job with an explicit error for off-main dispatches and uses the
-`release` environment. Before enabling releases, configure that environment in
-GitHub Settings → Environments with **Selected branches and tags: main only**
-(no tag rules), **required reviewers**, and prevention of self-review. Reviewers
+`release` environment. In GitHub Settings → Environments, that environment is
+configured with a **custom deployment-branch policy allowing only main** (no tag
+rules) and **required reviewer DaAwesomePwner**, the repository owner.
+Self-review is allowed (`prevent_self_review=false`) because the sole maintainer
+dispatches and approves their own releases (D-099). When a second maintainer joins,
+enable self-review prevention so another maintainer must approve. The reviewer
 must verify the main commit and inputs before approving a deployment. Workflow
 `if` conditions alone are not a security boundary: another branch can modify them.
 The environment restriction must be enforced by GitHub outside the workflow.
@@ -83,9 +86,10 @@ update. Downloaded updates apply on normal exit without restarting the app.
 
 ## Signing and SmartScreen
 
-No certificate has been chosen. The owner decides the certificate/provider,
-cost and key custody at the Phase 5 game-testing gate. In the GitHub `release`
-environment, set both secrets to enable signing automatically:
+The owner chose to ship **1.0 unsigned for now** (D-098). Unknown-publisher and
+SmartScreen prompts are expected and documented here and in the user guide.
+To enable signing automatically later, configure both secrets and the timestamp
+variable below in the GitHub `release` environment:
 
 - `SIGNING_CERT_PFX_BASE64`: base64-encoded PFX containing the signing private key.
 - `SIGNING_CERT_PASSWORD`: password protecting that PFX.
@@ -112,7 +116,7 @@ does not guarantee immediate reputation or removal of warnings. Test the actual
 installer on Windows; do not tell users to disable Windows protection. RFC 3161
 timestamping permits validation after the signing certificate expires, subject to
 certificate trust and revocation. Certificate and TSA provider selection remain
-owner decisions before signed GA. Timestamp/signing failures must be resolved,
+owner decisions before a future signed release. Timestamp/signing failures must be resolved,
 not worked around by removing signing options.
 
 ## Rollback and size budget
