@@ -120,8 +120,9 @@ public sealed class VelopackUpdateService(Func<UpdateSettingsSnapshot> readSetti
     }
 
     private static UpdateManager CreateManager(GeneralSettings settings, CancellationToken token) => new(new GithubSource(
-        "https://github.com/DaAwesomePwner/ExileSight", accessToken: null,
-        prerelease: UpdatePolicy.IncludePrereleases(settings), downloader: new GithubDownloader(token)));
+        UpdatePolicy.RepositoryUrl, accessToken: null,
+        prerelease: UpdatePolicy.IncludePrereleases(settings), downloader: new GithubDownloader(token)),
+        new UpdateOptions { ExplicitChannel = UpdatePolicy.ReleaseChannel(settings), AllowVersionDowngrade = false });
 
     private GeneralSettings ReadSettings()
     {
