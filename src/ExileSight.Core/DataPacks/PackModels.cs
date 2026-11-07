@@ -11,10 +11,12 @@ public sealed record BaseEntry(string Id, string Name, string ItemClass, string[
     int? UniqueDropTier = null, string Domain = "item");
 public sealed record ModStat(string Id, int Min, int Max);
 public sealed record SpawnWeight(string Tag, int Weight);
-public sealed record ModTier(string ItemClass, string Tag, int Tier);
+public sealed record ModRank(string ModId, int Tier);
+public sealed record TierLadder(string Id, ModRank[] Ranks);
+public sealed record TierContext(string ItemClass, string[] Tags, string[] LadderIds);
 public sealed record ModEntry(string Id, string Name, string AffixType, string Domain, string GenerationType,
     int RequiredLevel, string[] Groups, ModStat[] Stats, SpawnWeight[] SpawnWeights,
-    string[] TextTemplateIds, ModTier[] Tiers, string Family = "");
+    string[] TextTemplateIds, string Family = "");
 public sealed record PackContent(string PackId, Game Game, int SchemaVersion, string PackVersion,
-    BaseEntry[] Bases, ModEntry[] Mods);
+    BaseEntry[] Bases, ModEntry[] Mods, TierLadder[]? TierLadders = null, TierContext[]? TierContexts = null);
 public sealed record DataPack(PackManifest Manifest, PackContent Content);

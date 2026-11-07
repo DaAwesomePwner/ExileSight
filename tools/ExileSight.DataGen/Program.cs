@@ -14,7 +14,7 @@ public static class Program
                 if (args[i] is not ("--repoe-sha" or "--out" or "--source-dir")) throw new ArgumentException("Unknown option.");
                 options.Add(args[i], args[i + 1]);
             }
-            var sha = options["--repoe-sha"];
+            var sha = options["--repoe-sha"].ToLowerInvariant();
             RepoeConverter.ValidateSha(sha);
             using var handler = new HttpClientHandler { AllowAutoRedirect = false };
             using var client = new HttpClient(handler);
@@ -30,9 +30,9 @@ public static class Program
             Console.WriteLine(RepoeConverter.Attribution);
             return 0;
         }
-        catch (Exception ex) when (ex is ArgumentException or KeyNotFoundException or IOException or HttpRequestException or System.Text.Json.JsonException)
+        catch (Exception ex) when (ex is ArgumentException or KeyNotFoundException or IOException or HttpRequestException or System.Text.Json.JsonException or InvalidOperationException or FormatException or OverflowException)
         {
-            Console.Error.WriteLine(ex.Message);
+            Console.Error.WriteLine("DataGen input or download failed: " + ex.Message);
             return 1;
         }
     }

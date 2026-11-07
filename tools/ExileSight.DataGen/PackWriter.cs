@@ -17,7 +17,7 @@ public static class PackWriter
             {
                 [name + ".json"] = PackCodec.ContentBytes(pack.Content),
                 [name + ".manifest.json"] = JsonSerializer.SerializeToUtf8Bytes(pack.Manifest, PackJson.Default.PackManifest),
-                [name + ".pack.json"] = JsonSerializer.SerializeToUtf8Bytes(pack, PackJson.Default.DataPack)
+                [name + ".pack.json"] = JsonSerializer.SerializeToUtf8Bytes(new CachedPack(pack.Manifest, PackCodec.ContentBytes(pack.Content)), PackJson.Default.CachedPack)
             };
             foreach (var (file, bytes) in outputs)
             {

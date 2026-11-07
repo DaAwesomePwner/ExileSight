@@ -1,32 +1,42 @@
+using System.Text.Json;
 using ExileSight.Core.DataPacks;
 
 namespace ExileSight.DataGen;
 
 public static class TierDerivation
 {
-    // A tier is a level-order estimate, not a claim about power or official in-game tiers.
-    // Context = item class + complete sorted base tag set. First matching spawn weight wins.
-    // Family = domain + generation type + groups + ordered stat ids; only ordinary prefixes/suffixes.
-    // Highest required level is tier 1; equal levels share a dense rank. Never parse an id suffix.
-    public static ModEntry[] Derive(BaseEntry[] bases, ModEntry[] mods)
+    // Only item-domain prefixes/suffixes get estimates; implicit/corrupted and other domains remain unranked.
+    // Family includes generation type, fine family, groups and ordered stat IDs. First matching weight wins.
+    // Descending required level yields dense ranks, ties share rank and are ordered by ordinal mod ID.
+    // Identical eligible family ladders are stored once; class/tag contexts reference their stable hash IDs.
+    private static string Key(IEnumerable<string> parts) => string.Concat(parts.Select(p =>
+        p.Length.ToString(System.Globalization.CultureInfo.InvariantCulture) + ":" + p));
+    public static (TierLadder[] Ladders, TierContext[] Contexts) Derive(BaseEntry[] bases, ModEntry[] mods)
     {
-        var tiers = mods.ToDictionary(m => m.Id, _ => new List<ModTier>());
-        foreach (var context in bases.GroupBy(b => (b.ItemClass, Tags: string.Join(",", b.Tags.Order(StringComparer.Ordinal))))
-                     .OrderBy(g => g.Key.ItemClass, StringComparer.Ordinal).ThenBy(g => g.Key.Tags, StringComparer.Ordinal))
+        var ladders = new SortedDictionary<string, TierLadder>(StringComparer.Ordinal);
+        var contexts = new List<TierContext>();
+        foreach (var context in bases.Where(b => b.Domain == "item")
+                     .GroupBy(b => Key(new[] { b.ItemClass }.Concat(b.Tags.Order(StringComparer.Ordinal))))
+                     .OrderBy(g => g.Key, StringComparer.Ordinal))
         {
-            var domain = context.First().Domain;
             var tags = context.First().Tags.ToHashSet(StringComparer.Ordinal);
             tags.Add("default");
-            var eligible = mods.Where(m => m.GenerationType is "prefix" or "suffix" && m.Groups.Length > 0 && m.Domain == domain &&
+            var eligible = mods.Where(m => m.GenerationType is "prefix" or "suffix" && m.Groups.Length > 0 && m.Domain == "item" &&
                 m.SpawnWeights.FirstOrDefault(w => tags.Contains(w.Tag)) is { Weight: > 0 });
-            foreach (var family in eligible.GroupBy(m => string.Join("|", m.Domain, m.GenerationType, m.Family,
-                         string.Join(",", m.Groups.Order(StringComparer.Ordinal)), string.Join(",", m.Stats.Select(s => s.Id)))))
+            var ids = new List<string>();
+            foreach (var family in eligible.GroupBy(m => Key(new[] { m.GenerationType, m.Family,
+                         Key(m.Groups.Order(StringComparer.Ordinal)), Key(m.Stats.Select(s => s.Id)) })))
             {
                 var levels = family.Select(m => m.RequiredLevel).Distinct().OrderDescending().ToArray();
-                foreach (var mod in family)
-                    tiers[mod.Id].Add(new(context.Key.ItemClass, context.Key.Tags, Array.IndexOf(levels, mod.RequiredLevel) + 1));
+                var ranks = family.OrderBy(m => m.Id, StringComparer.Ordinal)
+                    .Select(m => new ModRank(m.Id, Array.IndexOf(levels, m.RequiredLevel) + 1)).ToArray();
+                var id = PackCodec.Hash(JsonSerializer.SerializeToUtf8Bytes(ranks, PackJson.Default.ModRankArray));
+                ladders.TryAdd(id, new(id, ranks));
+                ids.Add(id);
             }
+            contexts.Add(new(context.First().ItemClass, context.First().Tags.Order(StringComparer.Ordinal).ToArray(),
+                ids.Order(StringComparer.Ordinal).ToArray()));
         }
-        return mods.Select(m => m with { Tiers = tiers[m.Id].ToArray() }).ToArray();
+        return (ladders.Values.ToArray(), contexts.ToArray());
     }
 }

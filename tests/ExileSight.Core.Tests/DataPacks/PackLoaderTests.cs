@@ -11,17 +11,22 @@ public sealed class PackLoaderTests : IDisposable
 {
     private readonly string directory = Path.Combine(Path.GetTempPath(), "ExileSight-packs-" + Guid.NewGuid());
     private readonly FakeHandler handler = new();
-    private readonly HttpClient client;
-    public PackLoaderTests() { Directory.CreateDirectory(directory); client = new(handler); }
-    private PackLoader Loader(string? fallback = null) => new(directory, new(client, "1.0"), fallback);
+    private readonly GitHubTransport transport;
+    public PackLoaderTests() { Directory.CreateDirectory(directory); transport = new("1.0", () => handler); }
+    private PackLoader Loader(string? fallback = null) => new(directory, transport, fallback);
     private string CachePath => Path.Combine(directory, "poe1-bases.pack.json");
     private static DataPack Pack()
     {
-        var content = new PackContent("poe1/bases", Game.PoE1, 1, "test", [], []);
-        return new(new("poe1/bases", Game.PoE1, 1, "test", "unknown", DateTimeOffset.UnixEpoch,
+        var content = new PackContent("poe1/bases", Game.PoE1, PackCodec.SchemaVersion, "test", [], []);
+        return new(new("poe1/bases", Game.PoE1, PackCodec.SchemaVersion, "test", "unknown", DateTimeOffset.UnixEpoch,
             new("synthetic", new string('a', 40), []), "synthetic", PackCodec.Hash(PackCodec.ContentBytes(content))), content);
     }
-    private async Task Cache(DataPack pack) => await File.WriteAllBytesAsync(CachePath, JsonSerializer.SerializeToUtf8Bytes(pack, PackJson.Default.DataPack));
+    private async Task Cache(DataPack pack) => await File.WriteAllBytesAsync(CachePath, JsonSerializer.SerializeToUtf8Bytes(new CachedPack(pack.Manifest, PackCodec.ContentBytes(pack.Content), "data-v1", DateTimeOffset.UtcNow), PackJson.Default.CachedPack));
+    private async Task Stale()
+    {
+        var cached = JsonSerializer.Deserialize(await File.ReadAllBytesAsync(CachePath), PackJson.Default.CachedPack)!;
+        await File.WriteAllBytesAsync(CachePath, JsonSerializer.SerializeToUtf8Bytes(cached with { CheckedAt = DateTimeOffset.UtcNow.AddDays(-2) }, PackJson.Default.CachedPack));
+    }
     private void Serve(DataPack pack, bool corrupt = false)
     {
         handler.Respond = request => new(HttpStatusCode.OK)
@@ -55,7 +60,7 @@ public sealed class PackLoaderTests : IDisposable
     public async Task OfflineStaleCacheRemainsAvailableAndChecksAreThrottled()
     {
         await Cache(Pack());
-        File.SetLastWriteTimeUtc(CachePath, DateTime.UtcNow.AddDays(-2));
+        await Stale();
         handler.Respond = _ => throw new HttpRequestException("offline");
         var loader = Loader();
         Assert.NotNull((await loader.RefreshAsync("poe1/bases", "data-v1")).Pack);
@@ -78,7 +83,7 @@ public sealed class PackLoaderTests : IDisposable
     public async Task ChecksumMismatchDoesNotReplaceOldCache()
     {
         await Cache(Pack());
-        File.SetLastWriteTimeUtc(CachePath, DateTime.UtcNow.AddDays(-2));
+        await Stale();
         var original = await File.ReadAllBytesAsync(CachePath);
         Serve(Pack(), corrupt: true);
         Assert.NotNull((await Loader().RefreshAsync("poe1/bases", "data-v1")).Pack);
@@ -98,7 +103,7 @@ public sealed class PackLoaderTests : IDisposable
         var m = pack.Manifest;
         m = mismatch switch
         {
-            "schema" => m with { SchemaVersion = 2 }, "version" => m with { PackVersion = "other" },
+            "schema" => m with { SchemaVersion = 999 }, "version" => m with { PackVersion = "other" },
             "game" => m with { Game = Game.PoE2 }, "hash" => m with { ContentSha256 = "bad" },
             _ => m with { PackId = "poe1/mods" }
         };
@@ -113,7 +118,7 @@ public sealed class PackLoaderTests : IDisposable
         Assert.Null((await Loader().ReadLocalAsync("poe1/bases")).Pack);
         var fallback = Path.Combine(directory, "fallback");
         Directory.CreateDirectory(fallback);
-        await File.WriteAllBytesAsync(Path.Combine(fallback, "poe1-bases.pack.json"), JsonSerializer.SerializeToUtf8Bytes(Pack(), PackJson.Default.DataPack));
+        await File.WriteAllBytesAsync(Path.Combine(fallback, "poe1-bases.pack.json"), JsonSerializer.SerializeToUtf8Bytes(new CachedPack(Pack().Manifest, PackCodec.ContentBytes(Pack().Content)), PackJson.Default.CachedPack));
         Assert.NotNull((await Loader(fallback).ReadLocalAsync("poe1/bases")).Pack);
     }
 
@@ -125,7 +130,7 @@ public sealed class PackLoaderTests : IDisposable
     [InlineData("https://github.com:444/no")]
     public async Task RejectsHostsBeforeSending(string uri)
     {
-        await Assert.ThrowsAsync<HttpRequestException>(() => new GitHubTransport(client, "1.0").GetAsync(new(uri), null, default));
+        await Assert.ThrowsAsync<HttpRequestException>(() => transport.GetAsync(new(uri), null, default));
         Assert.Equal(0, handler.Calls);
     }
 
@@ -145,11 +150,11 @@ public sealed class PackLoaderTests : IDisposable
             Assert.Equal("\"synthetic\"", request.Headers.IfNoneMatch.Single().ToString());
             return new(HttpStatusCode.NotModified);
         };
-        using var response = await new GitHubTransport(client, "1.0").GetAsync(new("https://github.com/test"), "\"synthetic\"", default);
+        using var response = await transport.GetAsync(new("https://github.com/test"), "\"synthetic\"", default);
         Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
     }
 
-    public void Dispose() { client.Dispose(); Directory.Delete(directory, true); }
+    public void Dispose() { transport.Dispose(); Directory.Delete(directory, true); }
     private sealed class FakeHandler : HttpMessageHandler
     {
         public int Calls { get; private set; }

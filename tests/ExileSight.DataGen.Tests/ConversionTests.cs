@@ -12,15 +12,15 @@ public sealed class ConversionTests
         var bases = await File.ReadAllBytesAsync(Path.Combine(AppContext.BaseDirectory, "fixtures/base_items.json"));
         var mods = await File.ReadAllBytesAsync(Path.Combine(AppContext.BaseDirectory, "fixtures/mods.json"));
         var packs = RepoeConverter.Convert(bases, mods, new string('a', 40));
-        Assert.All(packs, p => Assert.True(PackCodec.IsValid(p, p.Manifest.PackId)));
+        Assert.All(packs, p => Assert.NotNull(PackCodec.Validate(p.Manifest, PackCodec.ContentBytes(p.Content), p.Manifest.PackId)));
         var hat = Assert.Single(packs[0].Content.Bases);
         Assert.Null(hat.UniqueDropTier);
         Assert.Equal(new NumericRange(4, 9), hat.Defences["armour"]);
         Assert.Equal(7, hat.Requirements["strength"]);
-        var entries = packs[1].Content.Mods.ToDictionary(m => m.Id);
-        Assert.Equal(1, Assert.Single(entries["Invented1"].Tiers).Tier);
-        Assert.Equal(2, Assert.Single(entries["Invented99"].Tiers).Tier);
-        Assert.Empty(entries["InventedExcluded"].Tiers);
+        var entries = Assert.Single(packs[1].Content.TierLadders!).Ranks.ToDictionary(r => r.ModId);
+        Assert.Equal(1, entries["Invented1"].Tier);
+        Assert.Equal(2, entries["Invented99"].Tier);
+        Assert.False(entries.ContainsKey("InventedExcluded"));
         var first = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         var second = first + "-second";
         try

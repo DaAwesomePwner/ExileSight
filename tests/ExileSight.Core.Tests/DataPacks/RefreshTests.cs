@@ -14,8 +14,8 @@ public sealed class RefreshTests
     public async Task HourlyRefreshUsesEtagAndNotModifiedKeepsCache()
     {
         var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var content = new PackContent("poe1/mods", Game.PoE1, 1, "synthetic", [], []);
-        var manifest = new PackManifest(content.PackId, Game.PoE1, 1, content.PackVersion, "unknown",
+        var content = new PackContent("poe1/mods", Game.PoE1, PackCodec.SchemaVersion, "synthetic", [], []);
+        var manifest = new PackManifest(content.PackId, Game.PoE1, PackCodec.SchemaVersion, content.PackVersion, "unknown",
             DateTimeOffset.UnixEpoch, new("synthetic", new string('b', 40), []), "synthetic", PackCodec.Hash(PackCodec.ContentBytes(content)));
         var clock = new Clock();
         using var handler = new Handler(request =>
@@ -32,8 +32,8 @@ public sealed class RefreshTests
                     ? JsonSerializer.SerializeToUtf8Bytes(manifest, PackJson.Default.PackManifest) : PackCodec.ContentBytes(content))
             };
         });
-        using var client = new HttpClient(handler);
-        var loader = new PackLoader(path, new(client, "1.0"), timeProvider: clock);
+        using var transport = new GitHubTransport("1.0", () => handler);
+        var loader = new PackLoader(path, transport, timeProvider: clock);
         try
         {
             Assert.NotNull((await loader.RefreshAsync("poe1/mods", "v1")).Pack);
@@ -53,8 +53,8 @@ public sealed class RefreshTests
         using var handler = new Handler(request => request.RequestUri!.Host == "github.com"
             ? new(HttpStatusCode.Redirect) { Headers = { Location = new("https://objects.githubusercontent.com/test") } }
             : new(HttpStatusCode.OK));
-        using var client = new HttpClient(handler);
-        using var response = await new GitHubTransport(client, "1.0").GetAsync(new("https://github.com/test"), null, default);
+        using var transport = new GitHubTransport("1.0", () => handler);
+        using var response = await transport.GetAsync(new("https://github.com/test"), null, default);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(2, handler.Calls);
     }

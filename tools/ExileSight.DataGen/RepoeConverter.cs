@@ -24,7 +24,7 @@ public static class RepoeConverter
             .Select(p => ReadBase(p.Name, p.Value)).ToArray();
         var mods = modsDoc.RootElement.EnumerateObject().OrderBy(p => p.Name, StringComparer.Ordinal)
             .Select(p => ReadMod(p.Name, p.Value)).ToArray();
-        mods = TierDerivation.Derive(bases, mods);
+        var tiers = TierDerivation.Derive(bases, mods);
         var source = new PackSource(Repository, sha.ToLowerInvariant(), new()
         {
             ["data/base_items.json"] = PackCodec.Hash(basesJson), ["data/mods.json"] = PackCodec.Hash(modsJson)
@@ -32,7 +32,8 @@ public static class RepoeConverter
         return new[] { "bases", "mods" }.Select(kind =>
         {
             var content = new PackContent("poe1/" + kind, Game.PoE1, PackCodec.SchemaVersion, sha.ToLowerInvariant(),
-                kind == "bases" ? bases : [], kind == "mods" ? mods : []);
+                kind == "bases" ? bases : [], kind == "mods" ? mods : [],
+                kind == "mods" ? tiers.Ladders : [], kind == "mods" ? tiers.Contexts : []);
             // Unknown source patch/time are explicit, never fabricated from the local clock.
             var manifest = new PackManifest(content.PackId, Game.PoE1, PackCodec.SchemaVersion, content.PackVersion,
                 "unknown", DateTimeOffset.UnixEpoch, source, Attribution, PackCodec.Hash(PackCodec.ContentBytes(content)));
@@ -64,7 +65,7 @@ public static class RepoeConverter
             new SpawnWeight(Text(w, "tag"), w.GetProperty("weight").GetInt32())).ToArray();
         return new(id, Text(value, "name"), generation, Text(value, "domain"), generation,
             value.GetProperty("required_level").GetInt32(), Strings(value, "groups"), stats, weights,
-            stats.Select(s => s.Id).ToArray(), [], OptionalText(value, "type", ""));
+            stats.Select(s => s.Id).ToArray(), OptionalText(value, "type", ""));
     }
 
     private static string OptionalText(JsonElement value, string name, string fallback) =>
