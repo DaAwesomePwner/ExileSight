@@ -17,7 +17,9 @@ internal sealed class CharacterIdentity
     }
     public bool Confirm(string? name)
     {
-        if (name is not null && !Candidates.Contains(name, StringComparer.Ordinal)) return false;
+        if (name is null)
+        { Clear("Character unconfirmed — confirm character again"); return true; }
+        if (!Candidates.Contains(name, StringComparer.Ordinal)) return false;
         Confirmed = name; Reconfirm = null; Notice = null; return true;
     }
     public void Clear(string reason)

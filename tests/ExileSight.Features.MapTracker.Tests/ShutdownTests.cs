@@ -19,7 +19,7 @@ public sealed class ShutdownTests
         await model.StopAsync();
         var final = Assert.Single(store.Read("L"));
         Assert.Equal(expected, final.Seconds); Assert.True(final.Incomplete);
-        Assert.Equal(TransitionTests.At(0).Timestamp.AddSeconds(25.5), final.Ended);
+        Assert.Equal(TransitionTests.At(0).Timestamp.AddSeconds(expected), final.Ended);
         var writes = store.Writes.Count; await model.StopAsync();
         model.Accept(TransitionTests.Area(100, "MapWorldsDunes")); await model.FlushAsync();
         Assert.Equal(writes, store.Writes.Count);
@@ -96,23 +96,27 @@ public sealed class ShutdownTests
         clock.Milliseconds = 6 * 60 * 60 * 1000; // Includes sleep, just like TickCount64.
         await model.StopAsync();
         var run = Assert.Single(store.Read("L"));
-        Assert.Equal(expected, run.Seconds); Assert.Equal(TransitionTests.At(70).Timestamp, run.Ended);
+        Assert.Equal(expected, run.Seconds); Assert.Equal(TransitionTests.At((int)expected).Timestamp, run.Ended); Assert.True(run.Incomplete);
     }
     [Fact]
-    public async Task PeriodicCheckpointAfterHoursOfSilenceClosesAtLastActivityPlusOneWindow()
+    public async Task SleepAcrossObservedCheckpointIsCountedFromLogUptimeWithoutClosingRun()
     {
         var clock = new FakeClock(); var store = new TestStore(); var model = new TrackerModel(store, clock);
         model.SelectLeague("L"); model.Accept(TransitionTests.Area(0, "MapWorldsBeach"));
         clock.Milliseconds = 60000;
         model.Accept(TransitionTests.E(new Unknown("", TransitionTests.At(60)))); await model.FlushAsync();
-        Assert.Equal(60, Assert.Single(store.Read("L")).Seconds);
-        clock.Milliseconds = 6 * 60 * 60 * 1000;
+        var checkpoint = Assert.Single(store.Read("L"));
+        Assert.Equal(60, checkpoint.Seconds);
+        clock.Milliseconds = 6 * 60 * 60 * 1000; // Simulated sleep; no log evidence yet.
+        await model.FlushAsync();
+        Assert.Equal(checkpoint, Assert.Single(store.Read("L")));
         model.Accept(TransitionTests.E(new Unknown("", TransitionTests.At(21600)))); await model.FlushAsync();
-        var bounded = Assert.Single(store.Read("L"));
-        Assert.Equal(120, bounded.Seconds); Assert.Equal(TransitionTests.At(120).Timestamp, bounded.Ended);
-        Assert.True(bounded.Incomplete);
-        clock.Milliseconds *= 2; await model.StopAsync();
-        Assert.Equal(bounded, Assert.Single(store.Read("L"))); // Exit cannot add another window.
+        var resumed = Assert.Single(store.Read("L"));
+        Assert.Equal(checkpoint.Id, resumed.Id);
+        Assert.Equal(21600, resumed.Seconds); Assert.Equal(TransitionTests.At(21600).Timestamp, resumed.Ended);
+        model.Accept(TransitionTests.Area(21610, "MapWorldsDunes")); await model.StopAsync();
+        var completed = Assert.Single(store.Read("L"), r => r.Id == checkpoint.Id);
+        Assert.Equal(21610, completed.Seconds); Assert.False(completed.Incomplete);
     }
     private sealed class FakeClock : IClock
     {

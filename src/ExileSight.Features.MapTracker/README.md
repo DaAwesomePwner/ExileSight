@@ -34,12 +34,23 @@ occur at most once per 60 seconds of observed map time. No disk I/O holds the
 tracker/omni lock or runs on log delivery. Normal exit freezes log delivery, drains pending writes, then saves and drains a
 final incomplete checkpoint at the exit cutoff, including elapsed active time
 since the latest live log event, capped at 60 seconds for both duration and end
-time. If an active run receives another log event after a gap exceeding 60 seconds,
-it closes incomplete at the previous activity plus 60 seconds; periodic saving
-cannot turn sleep or hours of silence into play time. This conservative policy
-can undercount genuine play with sparse logging. It does not add time while paused or extrapolate
-replay-only events. A crash
-may lose the last minute of timer progress; recovered active rows are incomplete.
+time. Paused runs add neither duration nor end time at exit; replay-only events
+are never extrapolated.
+
+A later live or replayed log line credits the full positive log uptime delta.
+Silence alone never closes a run or clears identity. Periodic checkpoints save
+observed time only, leaving the run open: while no line arrives the saved duration
+is a lower bound, and the next line updates that same row with the full gap.
+No timer-based extrapolation is used for periodic saves; the 60-second cap applies
+only to unobserved time extrapolated at exit, not to log-backed elapsed time.
+
+Sleep is not detected or subtracted in this reducer. If the client's log uptime
+advances during sleep, that interval is counted when a later line arrives, even
+across a checkpoint. Log silence cannot distinguish sleep from a quiet boss fight.
+Excluding sleep would require a platform-provided sleep-excluding clock or explicit
+suspend/resume evidence; neither is inferred from a duration threshold. Exit with
+no later evidence still extrapolates at most 60 seconds. A crash may lose progress
+since the last observed checkpoint; recovered active rows are incomplete.
 Write failure/queue saturation visibly disables recording for the affected league
 rather than dropping saved rows. Other leagues remain usable. All persistence
 exceptions are contained; diagnostics receive exception types only, even when the
@@ -52,7 +63,8 @@ entry. Candidates and identity exist in memory only. The viewer shows
 "Deaths: counting for <name>" or "Deaths: not counted — confirm character" and
 refreshes that state with a reason when a session boundary clears the identity.
 The last confirmed name remains in memory as a "Confirm <name> again" choice,
-even across repeated boundaries. Other old candidates are cleared. Reconfirmation
+even across repeated boundaries or explicit `ConfirmCharacter(null)` unconfirmation.
+Unconfirmation disables counting but preserves that choice. Other old candidates are cleared. Reconfirmation
 is always explicit; rejected/stale choices produce visible feedback.
 
 Runs begun before confirmation have unknown deaths. Confirming partway through
@@ -61,7 +73,7 @@ unknown. History and totals say "unknown"; CSV leaves the death field empty.
 Schema-1 uses a DeathsKnown flag defaulting to true, so older rows retain their
 known numeric counts. Names never appear in stored runs or CSV.
 Other players' deaths and deaths outside the map/associated side areas are ignored.
-Source changes, gaps, detected restarts and recognized logout/login diagnostics
+Source changes, dropped-line gaps (`DroppedBefore`), detected restarts and recognized logout/login diagnostics
 clear identity and close the run incomplete at its last known timestamp. A new
 map generation is required to start recording again. Logout diagnostics are
 recognized only on client Unknown events, never chat. If the client produces no
