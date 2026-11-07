@@ -3,7 +3,9 @@ using ExileSight.Core.Items;
 
 namespace ExileSight.Features.ItemInfo;
 
-// Reverse local defence formula: Exile-UI modules/item-checker.ahk:412–465 (MIT).
+// Algorithm structure: Exile-UI modules/item-checker.ahk:412–465 (MIT).
+// Formula per PoB/game: quality adds to local increased defence. This deliberately
+// diverges from Exile-UI's quality treatment; integer bases must reproduce the rounded display.
 internal static class DefenceCalculator
 {
     public static IReadOnlyList<DefenceInfo> Calculate(ParsedItem item, IItemInfoData? data)
@@ -40,9 +42,16 @@ internal static class DefenceCalculator
         var rounded = Round(displayed / multiplier) - flat;
         // Integer display loses precision. Validate every candidate with the forward formula, including endpoints.
         decimal[] candidates = [rounded, rounded - 1, rounded + 1, range.Min, range.Max];
+        bool Reproduces(decimal candidate) => candidate >= range.Min && candidate <= range.Max &&
+            candidate == decimal.Truncate(candidate) && Round((candidate + flat) * multiplier) == displayed;
         foreach (var candidate in candidates.Distinct())
-            if (candidate >= range.Min && candidate <= range.Max && candidate == decimal.Truncate(candidate) &&
-                Round((candidate + flat) * multiplier) == displayed) return candidate;
+        {
+            if (!Reproduces(candidate)) continue;
+            // Rounding is monotonic: if multiple integer bases reproduce the display, an immediate
+            // neighbour of any matching base also does. Check within the range, including endpoints.
+            if (multiplier <= 1 && (Reproduces(candidate - 1) || Reproduces(candidate + 1))) return null;
+            return candidate;
+        }
         return null;
     }
     private static decimal Round(decimal value) => decimal.Round(value, 0, MidpointRounding.AwayFromZero);

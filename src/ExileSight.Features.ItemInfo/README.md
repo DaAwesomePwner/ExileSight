@@ -21,11 +21,15 @@ Matching requires the base name and normalized RePoE class, its domain (includin
 flask/jewel domains), quoted affix name, type, stat ranges and every template fragment.
 The first matching spawn-weight tag decides eligibility, including zero exclusions.
 Parsed influences add generic and RePoE slot tags (Redeemer=eyrie, Hunter=basilisk,
-Warlord=adjudicator). Pack order breaks ties.
+Warlord=adjudicator). Exactly one slot comes from the normalized item class, not
+generic base tags: two-hand sword/axe/mace use 2h_*; Rune Daggers use rune_dagger;
+Warstaves use warstaff. Pack order breaks ties.
 
 Defence estimates reverse local flat defence and the sum of quality and local
 increased defence. The inferred integer base must reproduce the rounded displayed
 property; neighbours and range endpoints are tried before returning unknown.
+When a multiplier at or below one permits multiple integer bases, the percentile
+remains unknown instead of selecting one of those indistinguishable rolls.
 Local translations take precedence over identical global text on equipment. Only
 local defence candidates require exact values; unrelated rounded stats are ignored.
 Unsupported local defence stats or unmatched defence text remain unknown.
@@ -35,7 +39,7 @@ off the first-copy path. Core's StatText.PrepareAsync warms loaded translations 
 worker thread. Neither method performs IO or game actions.
 
 The review probe generates packs outside git with DataGen's default pinned SHA
-d0bc438357d849bb93ad22f3db0b12938aaf6da1, then runs the LocalGlobalCollisions tests with
+d0bc438357d849bb93ad22f3db0b12938aaf6da1, then runs the LocalGlobalCollisions and FrenzyChargeResolvesTo84 tests with
 EXILESIGHT_ITEMINFO_REVIEW_PACKS pointing to that output directory. These tests always
 run with synthetic data in ordinary CI; the manual probe substitutes generated packs.
 The export confirms local/global armour, evasion and ES text collisions, local_ward,
