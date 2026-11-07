@@ -30,7 +30,12 @@ internal sealed record StatTransform(decimal Multiplier, decimal Divisor, int? D
             var found = false;
             for (var raw = start; raw <= end; raw++)
             {
-                if (Apply(raw) != displayed) continue;
+                var exact = raw * Multiplier / Divisor;
+                // Binary-float display may land on either neighbour of a decimal midpoint.
+                var midpointNeighbour = !Floor && Digits is not null &&
+                    displayed / unit == decimal.Truncate(displayed / unit) &&
+                    Math.Abs(exact - displayed) == unit / 2;
+                if (Apply(raw) != displayed && !midpointNeighbour) continue;
                 if (!found) min = raw;
                 max = raw;
                 found = true;

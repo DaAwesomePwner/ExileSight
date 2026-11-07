@@ -10,4 +10,6 @@
   <Project Path="tests/ExileSight.BanCoverage.Tests/ExileSight.BanCoverage.Tests.csproj" />
   <Project Path="tools/ExileSight.RedactLog/ExileSight.RedactLog.csproj" />
   <Project Path="tests/ExileSight.DataGen.Tests/ExileSight.DataGen.Tests.csproj" />
+  <Project Path="src/ExileSight.Features.ItemInfo/ExileSight.Features.ItemInfo.csproj" />
+  <Project Path="tests/ExileSight.Features.ItemInfo.Tests/ExileSight.Features.ItemInfo.Tests.csproj" />
 </Solution>

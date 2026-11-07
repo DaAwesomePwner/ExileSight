@@ -1,0 +1,20 @@
+Item Class: Body Armours
+Rarity: Rare
+Synthetic Guard
+Synthetic Plate
+--------
+Quality: +20%
+Armour: 216
+Evasion Rating: 216
+Energy Shield: 216
+Ward: 216
+--------
+Item Level: 80
+--------
+{ Prefix Modifier "Synthetic" (Tier: 2) }
++10(5-15) to Armour
+20(10-30)% increased Armour
+{ Suffix Modifier "of Testing" (Tier: 1) — Fractured }
++30(20-40)% to Fire Resistance (fractured)
+--------
+Corrupted

@@ -9,14 +9,14 @@ public sealed class StatReviewTests
         [new("{0} Glow", [new()], ["#"], [[handler]])]);
 
     [Theory]
-    [InlineData("per_minute_to_per_second", 2000, "33.3", 1996, 2000)]
-    [InlineData("per_minute_to_per_second_0dp", 2000, "33", 1951, 2009)]
+    [InlineData("per_minute_to_per_second", 2000, "33.3", 1995, 2001)]
+    [InlineData("per_minute_to_per_second_0dp", 2000, "33", 1950, 2010)]
     [InlineData("per_minute_to_per_second_1dp", 120, "2", 117, 123)]
     [InlineData("per_minute_to_per_second_2dp", 2000, "33.33", 2000, 2000)]
     [InlineData("per_minute_to_per_second_2dp_if_required", 120, "2", 120, 120)]
     [InlineData("milliseconds_to_seconds", 1500, "1.5", 1500, 1500)]
     [InlineData("milliseconds_to_seconds_0dp", 2000, "2", 1500, 2500)]
-    [InlineData("milliseconds_to_seconds_1dp", 1500, "1.5", 1451, 1549)]
+    [InlineData("milliseconds_to_seconds_1dp", 1500, "1.5", 1450, 1550)]
     [InlineData("milliseconds_to_seconds_2dp", 1500, "1.5", 1495, 1505)]
     [InlineData("milliseconds_to_seconds_2dp_if_required", 1500, "1.5", 1495, 1505)]
     [InlineData("divide_by_one_hundred", 150, "1.5", 150, 150)]

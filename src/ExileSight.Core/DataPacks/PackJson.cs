@@ -31,7 +31,7 @@ public static class PackCodec
             m.Source is not null && !string.IsNullOrWhiteSpace(m.PackVersion) && m.Game == c.Game &&
             packId.StartsWith(m.Game == Games.Game.PoE1 ? "poe1/" : "poe2/", StringComparison.Ordinal) &&
             m.PackVersion == c.PackVersion ? new DataPack(m, c) : null;
-        if (valid?.Content.Translations is { } translations) StatText.Prepare(translations);
+        // Patterns are cached lazily on the returned translations, never on discarded validation copies.
         return valid;
     }
 }

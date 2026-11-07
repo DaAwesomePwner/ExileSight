@@ -1,0 +1,20 @@
+Item Class: Helmets
+Rarity: Unique
+Synthetic Crown
+Synthetic Hat
+--------
+Item Level: 80
+--------
+{ Enchantment Modifier }
+10(5-15)% increased Test Speed (enchant)
+--------
+{ Implicit Modifier }
++20(10-30) to Test (implicit)
+--------
+{ Unique Modifier }
++40(30-50) to maximum Life
+{ Crafted Prefix Modifier "Synthetic" }
++10(5-15) to maximum Mana (crafted)
+--------
+Unidentified
+Corrupted
