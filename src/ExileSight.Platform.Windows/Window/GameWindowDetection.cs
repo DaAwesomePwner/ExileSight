@@ -9,11 +9,7 @@ internal static class GameWindowDetection
 {
     internal static unsafe HWND Find(out bool streaming)
     {
-        // Enumeration provides IDs without opening individual process handles.
-        var processes = Process.GetProcessesByName("GeForceNOW");
-        HashSet<uint> streamingPids;
-        try { streamingPids = processes.Select(process => (uint)process.Id).ToHashSet(); }
-        finally { foreach (var process in processes) process.Dispose(); }
+        var streamingPids = StreamingPids();
 
         HWND result = default;
         bool resultStreaming = false;
@@ -41,10 +37,20 @@ internal static class GameWindowDetection
         return result;
     }
 
-    internal static unsafe bool HasGameTitle(HWND hwnd)
+    private static HashSet<uint> StreamingPids()
+    {
+        // GetProcessesByName uses the OS process snapshot; Id does not open a process handle.
+        var processes = Process.GetProcessesByName("GeForceNOW");
+        try { return processes.Select(process => (uint)process.Id).ToHashSet(); }
+        finally { foreach (var process in processes) process.Dispose(); }
+    }
+
+    internal static unsafe bool IsStreamingGame(HWND hwnd)
     {
         char* buffer = stackalloc char[1024];
         int length = PInvoke.GetWindowText(hwnd, buffer, 1024);
-        return OverlayRules.IsStreamingGameTitle(new string(buffer, 0, Math.Max(0, length)));
+        uint pid = 0;
+        PInvoke.GetWindowThreadProcessId(hwnd, &pid);
+        return OverlayRules.MatchesStreaming(pid, StreamingPids(), new string(buffer, 0, Math.Max(0, length)));
     }
 }

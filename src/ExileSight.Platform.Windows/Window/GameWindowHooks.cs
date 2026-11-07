@@ -12,6 +12,7 @@ internal sealed class GameWindowHooks(WINEVENTPROC callback) : IDisposable
 
     internal void Start()
     {
+        if (!foreground.IsNull) return;
         // Do not skip our process: focusing ExileSight must hide the overlay too.
         foreground = PInvoke.SetWinEventHook(WinEvents.Foreground, WinEvents.Foreground,
             default, callback, 0, 0, PInvoke.WINEVENT_OUTOFCONTEXT);

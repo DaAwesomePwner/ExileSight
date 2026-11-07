@@ -61,7 +61,7 @@ public sealed class OverlayPlatformTests
         var first = stats.Sample();
         var second = stats.Sample();
         Assert.True(first.WorkingSetBytes > 0);
-        Assert.True(first.PrivateBytes > 0);
+        Assert.Equal(0, first.PrivateBytes); // Unavailable without a process handle.
         Assert.Equal(0, first.CpuPercent);
         Assert.InRange(second.CpuPercent, 0, 100);
     }

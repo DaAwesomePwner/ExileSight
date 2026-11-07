@@ -59,6 +59,16 @@ public sealed class CompilerGuardTests
                         _ = p.HasExited;
                         _ = p.ProcessName;
                         _ = Process.GetProcessById(1);
+                        _ = p.TotalProcessorTime;
+                        _ = p.UserProcessorTime;
+                        _ = p.PrivilegedProcessorTime;
+                        _ = p.PriorityBoostEnabled;
+                        _ = p.MinWorkingSet;
+                        _ = p.MaxWorkingSet;
+                        _ = p.EnableRaisingEvents;
+                        p.WaitForInputIdle();
+                        p.WaitForInputIdle(1);
+                        p.WaitForInputIdle(TimeSpan.Zero);
                         p.WaitForExit();
                         _ = p.WaitForExitAsync();
                         _ = new DynamicMethod("x", typeof(void), Type.EmptyTypes);
@@ -70,8 +80,8 @@ public sealed class CompilerGuardTests
                 """);
             var banned = await Run(directory, "build", project, "--no-restore", "-nr:false");
             Assert.NotEqual(0, banned.ExitCode);
-            foreach (var symbol in new[] { "PriorityClass", "ProcessorAffinity", "HasExited", "ProcessName", "GetProcessById", "WaitForExit()", "WaitForExitAsync(", "DynamicMethod", "EmitCalli", "DefinePInvokeMethod" })
-                Assert.Contains(banned.Output.Split('\n'), line => line.Contains("error RS0030:", StringComparison.Ordinal) && line.Contains(symbol, StringComparison.Ordinal));
+            foreach (var symbol in new[] { "TotalProcessorTime", "UserProcessorTime", "PrivilegedProcessorTime", "PriorityBoostEnabled", "MinWorkingSet", "MaxWorkingSet", "EnableRaisingEvents", "WaitForInputIdle()", "WaitForInputIdle(int)", "WaitForInputIdle(TimeSpan)", "PriorityClass", "ProcessorAffinity", "HasExited", "ProcessName", "GetProcessById", "WaitForExit()", "WaitForExitAsync(", "DynamicMethod", "EmitCalli", "DefinePInvokeMethod" })
+                Assert.True(banned.Output.Split('\n').Any(line => line.Contains("error RS0030:", StringComparison.Ordinal) && line.Contains(symbol, StringComparison.Ordinal)), symbol + Environment.NewLine + banned.Output);
 
         }
         finally

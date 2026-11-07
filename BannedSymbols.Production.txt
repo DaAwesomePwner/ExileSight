@@ -24,3 +24,14 @@ P:System.Diagnostics.Process.StartTime; Opens a handle to a foreign process (pos
 P:System.Diagnostics.Process.ExitTime; Opens a handle to a foreign process (possibly the game).
 P:System.Diagnostics.Process.ExitCode; Opens a handle to a foreign process (possibly the game).
 P:System.Diagnostics.Process.Responding; Opens a handle to a foreign process (possibly the game).
+// Audited against dotnet/runtime v10.0.0 Process.cs and Process.Windows.cs.
+P:System.Diagnostics.Process.TotalProcessorTime; Opens a process handle; use own-process Environment statistics instead.
+P:System.Diagnostics.Process.UserProcessorTime; Opens a process handle; use own-process Environment statistics instead.
+P:System.Diagnostics.Process.PrivilegedProcessorTime; Opens a process handle; use own-process Environment statistics instead.
+P:System.Diagnostics.Process.PriorityBoostEnabled; Opens a process handle; use own-process Environment statistics instead.
+P:System.Diagnostics.Process.MinWorkingSet; Opens a process handle; use own-process Environment statistics instead.
+P:System.Diagnostics.Process.MaxWorkingSet; Opens a process handle; use own-process Environment statistics instead.
+P:System.Diagnostics.Process.EnableRaisingEvents; Opens a process handle; use own-process Environment statistics instead.
+M:System.Diagnostics.Process.WaitForInputIdle; Opens a process handle.
+M:System.Diagnostics.Process.WaitForInputIdle(System.Int32); Opens a process handle.
+M:System.Diagnostics.Process.WaitForInputIdle(System.TimeSpan); Opens a process handle.

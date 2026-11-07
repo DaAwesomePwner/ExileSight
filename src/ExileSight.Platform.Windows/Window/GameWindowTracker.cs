@@ -1,4 +1,5 @@
 using ExileSight.Platform.Abstractions.Window;
+using ExileSight.Core.Overlay;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Accessibility;
@@ -35,7 +36,6 @@ public sealed class GameWindowTracker : IGameWindow
             throw new InvalidOperationException("Start requires a UI synchronization context and message loop.");
         try
         {
-            hooks.Start();
             retry = new Timer(_ => QueueRefresh(), null, Timeout.Infinite, Timeout.Infinite);
             Refresh();
         }
@@ -62,19 +62,16 @@ public sealed class GameWindowTracker : IGameWindow
 
     private void Refresh()
     {
-        try { RefreshCore(); }
-        catch (Exception error)
-        {
-            // Missing state notifies the host to hide, even if hook installation keeps failing.
-            Publish(GameWindowState.Missing with { LastEventTime = DateTimeOffset.UtcNow }, error.Message);
-        }
+        var result = TrackingRefresh.Run(RefreshCore);
+        Publish(result.State, result.Error);
     }
 
-    private unsafe void RefreshCore()
+    private unsafe GameWindowState RefreshCore()
     {
+        hooks.Start();
         HWND hwnd = new(Current.Handle);
         if (hwnd.IsNull || !PInvoke.IsWindow(hwnd) ||
-            (streaming && !GameWindowDetection.HasGameTitle(hwnd)))
+            (streaming && !GameWindowDetection.IsStreamingGame(hwnd)))
             hwnd = GameWindowDetection.Find(out streaming);
         var next = GameWindowState.Missing with { LastEventTime = DateTimeOffset.UtcNow };
         if (!hwnd.IsNull)
@@ -90,14 +87,14 @@ public sealed class GameWindowTracker : IGameWindow
         uint pid = 0;
         if (next.Found) PInvoke.GetWindowThreadProcessId(hwnd, &pid);
         hooks.ScopeTo(pid);
-        Publish(next, null);
+        return next;
     }
 
     private void Publish(GameWindowState next, string? error)
     {
         Volatile.Write(ref lastError, error);
         Volatile.Write(ref current, next);
-        retry?.Change(next.Found ? Timeout.Infinite : 1500, Timeout.Infinite);
+        retry?.Change(new TrackingRefresh(next, error).RetryMilliseconds, Timeout.Infinite);
         foreach (EventHandler handler in Changed?.GetInvocationList() ?? [])
         {
             try { handler(this, EventArgs.Empty); }
