@@ -16,9 +16,9 @@ public sealed class PackLoader(string cacheDirectory, GitHubTransport transport,
     private readonly Dictionary<string, DateTimeOffset> checkedAt = new();
     public static void ValidateSegment(string value)
     {
-        if (string.IsNullOrEmpty(value) || value.Contains("..", StringComparison.Ordinal) ||
+        if (string.IsNullOrEmpty(value) || value.All(c => c == '.') || value.Contains("..", StringComparison.Ordinal) ||
             !value.All(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '_' or '-'))
-            throw new ArgumentException("Release tags and asset names must contain only ASCII letters, digits, dots, underscores or hyphens, without '..'.");
+            throw new ArgumentException("Release tags and asset names must contain only ASCII letters, digits, dots, underscores or hyphens, without dot-only segments or '..'.");
     }
     public static string AssetName(string packId)
     {
@@ -53,7 +53,8 @@ public sealed class PackLoader(string cacheDirectory, GitHubTransport transport,
             var now = (timeProvider ?? TimeProvider.System).GetUtcNow();
             var last = checkedAt.GetValueOrDefault(key);
             if (matching is not null && matching.CheckedAt > last) last = matching.CheckedAt;
-            if (now - last < TimeSpan.FromHours(1)) return await ReadLocalAsync(packId, cancellationToken);
+            // Future timestamps are stale: clock skew must not prevent refresh.
+            if (last <= now && now - last < TimeSpan.FromHours(1)) return await ReadLocalAsync(packId, cancellationToken);
             checkedAt[key] = now;
             var root = "https://github.com/DaAwesomePwner/ExileSight/releases/download/" + releaseTag + "/";
             var uri = new Uri(root + asset + ".manifest.json");

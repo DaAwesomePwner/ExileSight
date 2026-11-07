@@ -55,6 +55,25 @@ public sealed class CacheRegressionTests : IDisposable
     }
 
     [Theory]
+    [InlineData(1)]
+    [InlineData(86400)]
+    public async Task FuturePersistedCheckAllowsRefresh(int secondsAhead)
+    {
+        Directory.CreateDirectory(directory);
+        var cached = new CachedPack(Manifest, PackCodec.ContentBytes(content), "v1", clock.Now.AddSeconds(secondsAhead));
+        await File.WriteAllBytesAsync(PathName, JsonSerializer.SerializeToUtf8Bytes(cached, PackJson.Default.CachedPack));
+        var handler = new Handler(Serve);
+        using var transport = new GitHubTransport("1.0", () => handler);
+        var loader = new PackLoader(directory, transport, timeProvider: clock);
+        Assert.NotNull((await loader.RefreshAsync(content.PackId, "v1")).Pack);
+        Assert.Equal(2, handler.Calls);
+        var refreshed = JsonSerializer.Deserialize(await File.ReadAllBytesAsync(PathName), PackJson.Default.CachedPack)!;
+        Assert.Equal(clock.Now, refreshed.CheckedAt);
+        await loader.RefreshAsync(content.PackId, "v1");
+        Assert.Equal(2, handler.Calls);
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public async Task MissingOrCorruptCacheDoesNotSendEtagAndRetriesUnexpected304(bool corrupt)
@@ -93,7 +112,10 @@ public sealed class CacheRegressionTests : IDisposable
 
     [Theory]
     [InlineData("")]
+    [InlineData(".")]
     [InlineData("..")]
+    [InlineData("...")]
+    [InlineData(".......")]
     [InlineData("v..1")]
     [InlineData("v/1")]
     [InlineData("v\\1")]

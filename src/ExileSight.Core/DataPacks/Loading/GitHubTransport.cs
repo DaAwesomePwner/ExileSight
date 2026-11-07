@@ -2,13 +2,16 @@ using System.Net;
 
 namespace ExileSight.Core.DataPacks.Loading;
 
-/// <summary>Owns a non-redirecting client. The optional handler factory is solely a test seam.</summary>
+/// <summary>Owns a non-redirecting client. The internal handler factory is solely a test seam.</summary>
 public sealed class GitHubTransport : IDisposable
 {
     private readonly HttpClient client;
     private readonly string version;
     private readonly int maximumBytes;
-    public GitHubTransport(string version, Func<HttpMessageHandler>? testHandlerFactory = null, int maximumBytes = 32 * 1024 * 1024)
+    public GitHubTransport(string version, int maximumBytes = 32 * 1024 * 1024)
+        : this(version, null, maximumBytes) { }
+
+    internal GitHubTransport(string version, Func<HttpMessageHandler>? testHandlerFactory, int maximumBytes = 32 * 1024 * 1024)
     {
         if (maximumBytes <= 0) throw new ArgumentOutOfRangeException(nameof(maximumBytes));
         this.version = version;
