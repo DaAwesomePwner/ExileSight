@@ -27,12 +27,20 @@ public sealed class OverlayPlatformTests
         {
             using var tracker = new GameWindowTracker();
             int changes = 0;
-            tracker.Changed += (_, _) => throw new InvalidOperationException("subscriber failed");
+            EventHandler failingHandler = (_, _) => throw new InvalidOperationException("subscriber failed");
+            tracker.Changed += failingHandler;
             tracker.Changed += (_, _) => changes++;
             tracker.Start();
             Assert.Equal(1, changes);
             Assert.Equal("subscriber failed", tracker.LastError);
             Assert.NotEqual(default, tracker.Current.LastEventTime);
+            tracker.Changed -= failingHandler;
+            // Drive the same refresh used by native events without requiring a live game.
+            typeof(GameWindowTracker).GetMethod("Refresh",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                .Invoke(tracker, null);
+            Assert.Equal(2, changes);
+            Assert.Null(tracker.LastError);
             tracker.Dispose();
             tracker.Dispose();
             Assert.Throws<ObjectDisposedException>(() => tracker.Start());

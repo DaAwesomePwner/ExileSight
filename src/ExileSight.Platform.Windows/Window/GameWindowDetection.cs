@@ -7,7 +7,7 @@ namespace ExileSight.Platform.Windows.Window;
 
 internal static class GameWindowDetection
 {
-    internal static unsafe HWND Find()
+    internal static unsafe HWND Find(out bool streaming)
     {
         // Enumeration provides IDs without opening individual process handles.
         var processes = Process.GetProcessesByName("GeForceNOW");
@@ -16,6 +16,7 @@ internal static class GameWindowDetection
         finally { foreach (var process in processes) process.Dispose(); }
 
         HWND result = default;
+        bool resultStreaming = false;
         PInvoke.EnumWindows((hwnd, _) =>
         {
             if (!PInvoke.IsWindowVisible(hwnd)) return true;
@@ -24,17 +25,26 @@ internal static class GameWindowDetection
             string windowClass = new(buffer, 0, Math.Max(0, length));
             uint pid = 0;
             PInvoke.GetWindowThreadProcessId(hwnd, &pid);
-            bool streaming = OverlayRules.MatchesProcess(pid, streamingPids);
+            bool isStreaming = OverlayRules.MatchesProcess(pid, streamingPids);
             string? title = null;
-            if (streaming)
+            if (isStreaming)
             {
                 length = PInvoke.GetWindowText(hwnd, buffer, 1024);
                 title = new(buffer, 0, Math.Max(0, length));
             }
-            if (!OverlayRules.Matches(windowClass, streaming, title)) return true;
+            if (!OverlayRules.Matches(windowClass, isStreaming, title)) return true;
             result = hwnd;
+            resultStreaming = !OverlayRules.Matches(windowClass, false, null);
             return false;
         }, default);
+        streaming = resultStreaming;
         return result;
+    }
+
+    internal static unsafe bool HasGameTitle(HWND hwnd)
+    {
+        char* buffer = stackalloc char[1024];
+        int length = PInvoke.GetWindowText(hwnd, buffer, 1024);
+        return OverlayRules.IsStreamingGameTitle(new string(buffer, 0, Math.Max(0, length)));
     }
 }

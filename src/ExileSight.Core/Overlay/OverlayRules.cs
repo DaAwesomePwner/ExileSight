@@ -26,7 +26,10 @@ public static class OverlayRules
     // Detection behaviour reference: Exile-UI, Exile UI.ahk (client detection).
     public static bool Matches(string? windowClass, bool isGeForceNow, string? title) =>
         string.Equals(windowClass, "POEWindowClass", StringComparison.Ordinal) ||
-        (isGeForceNow && title?.Contains("Path of Exile", StringComparison.OrdinalIgnoreCase) == true);
+        (isGeForceNow && IsStreamingGameTitle(title));
+
+    public static bool IsStreamingGameTitle(string? title) =>
+        title?.Contains("Path of Exile", StringComparison.OrdinalIgnoreCase) == true;
 
     public static bool MatchesProcess(uint windowPid, IReadOnlySet<uint> geForceNowPids) =>
         windowPid != 0 && geForceNowPids.Contains(windowPid);

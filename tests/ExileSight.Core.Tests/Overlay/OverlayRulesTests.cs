@@ -93,4 +93,15 @@ public sealed class OverlayRulesTests
         Assert.Equal(expected, dips.X, 8);
         Assert.Equal(0, dips.Y);
     }
+    [Theory]
+    [InlineData("GeForce NOW")]
+    [InlineData("")]
+    [InlineData(null)]
+    public void StreamingMatchIsDroppedWhenTheSameWindowReturnsToLauncher(string? launcherTitle)
+    {
+        Assert.True(OverlayRules.IsStreamingGameTitle("Path of Exile - GeForce NOW"));
+        Assert.False(OverlayRules.IsStreamingGameTitle(launcherTitle));
+        Assert.False(OverlayRules.Matches("StreamingWindow", true, launcherTitle));
+        Assert.True(OverlayRules.IsStreamingGameTitle("Path of Exile - GeForce NOW"));
+    }
 }

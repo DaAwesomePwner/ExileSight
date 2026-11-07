@@ -17,6 +17,7 @@ public sealed class GameWindowTracker : IGameWindow
     private GameWindowState current = GameWindowState.Missing;
     private int pending;
     private bool disposed;
+    private bool streaming;
     public GameWindowState Current => Volatile.Read(ref current);
     public event EventHandler? Changed;
 
@@ -55,19 +56,26 @@ public sealed class GameWindowTracker : IGameWindow
         {
             Interlocked.Exchange(ref pending, 0);
             if (disposed) return;
-            try { Refresh(); }
-            catch (Exception error)
-            {
-                Volatile.Write(ref lastError, error.Message);
-                retry?.Change(1500, Timeout.Infinite);
-            }
+            Refresh();
         }, null);
     }
 
-    private unsafe void Refresh()
+    private void Refresh()
+    {
+        try { RefreshCore(); }
+        catch (Exception error)
+        {
+            // Missing state notifies the host to hide, even if hook installation keeps failing.
+            Publish(GameWindowState.Missing with { LastEventTime = DateTimeOffset.UtcNow }, error.Message);
+        }
+    }
+
+    private unsafe void RefreshCore()
     {
         HWND hwnd = new(Current.Handle);
-        if (hwnd.IsNull || !PInvoke.IsWindow(hwnd)) hwnd = GameWindowDetection.Find();
+        if (hwnd.IsNull || !PInvoke.IsWindow(hwnd) ||
+            (streaming && !GameWindowDetection.HasGameTitle(hwnd)))
+            hwnd = GameWindowDetection.Find(out streaming);
         var next = GameWindowState.Missing with { LastEventTime = DateTimeOffset.UtcNow };
         if (!hwnd.IsNull)
         {
@@ -82,12 +90,18 @@ public sealed class GameWindowTracker : IGameWindow
         uint pid = 0;
         if (next.Found) PInvoke.GetWindowThreadProcessId(hwnd, &pid);
         hooks.ScopeTo(pid);
+        Publish(next, null);
+    }
+
+    private void Publish(GameWindowState next, string? error)
+    {
+        Volatile.Write(ref lastError, error);
         Volatile.Write(ref current, next);
         retry?.Change(next.Found ? Timeout.Infinite : 1500, Timeout.Infinite);
         foreach (EventHandler handler in Changed?.GetInvocationList() ?? [])
         {
             try { handler(this, EventArgs.Empty); }
-            catch (Exception error) { Volatile.Write(ref lastError, error.Message); }
+            catch (Exception subscriberError) { Volatile.Write(ref lastError, subscriberError.Message); }
         }
     }
 

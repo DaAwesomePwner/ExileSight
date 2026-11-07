@@ -26,7 +26,7 @@ internal sealed class GameWindowHooks(WINEVENTPROC callback) : IDisposable
         try
         {
             foreach (uint eventId in new[] { WinEvents.LocationChange, WinEvents.MinimizeStart,
-                WinEvents.MinimizeEnd, WinEvents.Destroy })
+                WinEvents.MinimizeEnd, WinEvents.Destroy, WinEvents.NameChange })
             {
                 var hook = PInvoke.SetWinEventHook(eventId, eventId, default, callback,
                     pid, 0, PInvoke.WINEVENT_OUTOFCONTEXT | PInvoke.WINEVENT_SKIPOWNPROCESS);

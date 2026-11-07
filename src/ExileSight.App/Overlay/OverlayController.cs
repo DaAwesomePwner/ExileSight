@@ -35,7 +35,11 @@ public sealed class OverlayController : IDebugSection, IDisposable
 
     private void Update(object? sender, EventArgs e)
     {
-        try { window?.Update(game.Current); }
+        try
+        {
+            window?.Update(game.Current);
+            lock (gate) lastError = null;
+        }
         catch (Exception error)
         {
             lock (gate) lastError = error.Message;
@@ -58,7 +62,8 @@ public sealed class OverlayController : IDebugSection, IDisposable
                 ["IsForeground"] = state.IsForeground.ToString(),
                 ["IsMinimized"] = state.IsMinimized.ToString(),
                 ["Overlay visible"] = visible.ToString(),
-                ["Last error"] = lastError ?? game.LastError ?? "none",
+                ["Overlay last error"] = lastError ?? "none",
+                ["Tracker last error"] = game.LastError ?? "none",
                 ["Last event time"] = state.LastEventTime.ToString("O"),
                 ["Own working set MB"] = (sample.WorkingSetBytes / 1048576d).ToString("F1"),
                 ["Own private MB"] = (sample.PrivateBytes / 1048576d).ToString("F1"),
