@@ -1,0 +1,35 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Shields",
+    "Rarity": "Magic",
+    "Name": "Stalwart Pinnacle Tower Shield",
+    "BaseType": null,
+    "ItemLevel": 84,
+    "Quality": 20,
+    "SocketCount": 4,
+    "MaximumLinks": 3,
+    "Synthesised": true
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "+92 to maximum Life",
+        "Kind": "Explicit",
+        "AffixType": "Unknown",
+        "Tier": null
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Text": "+92(90-99) to maximum Life",
+        "Kind": "Explicit",
+        "AffixType": "Prefix",
+        "Tier": 1,
+        "AffixName": "Healthy"
+      }
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+Item Class: Skill Gems
+Rarity: Gem
+Fireball
+--------
+Level: 20 (Max)
+Quality: +20%
+Experience: 1,000/2,000

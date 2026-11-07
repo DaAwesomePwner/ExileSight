@@ -1,0 +1,12 @@
+{
+  "common": {
+    "ItemClass": "Body Armours",
+    "Name": "Tabula Rasa",
+    "Rarity": "Unique",
+    "SocketCount": 6,
+    "MaximumLinks": 6,
+    "Mods": []
+  },
+  "plain": {},
+  "advanced": {}
+}

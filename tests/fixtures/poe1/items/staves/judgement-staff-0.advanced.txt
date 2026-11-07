@@ -1,0 +1,5 @@
+Item Class: Staves
+Rarity: Normal
+Judgement Staff
+--------
+Item Level: 84

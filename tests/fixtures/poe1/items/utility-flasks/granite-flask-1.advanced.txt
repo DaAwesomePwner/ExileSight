@@ -1,0 +1,8 @@
+Item Class: Utility Flasks
+Rarity: Magic
+Stalwart Granite Flask
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Healthy" (Tier: 1) — Life }
+30(25-30)% increased Charge Recovery

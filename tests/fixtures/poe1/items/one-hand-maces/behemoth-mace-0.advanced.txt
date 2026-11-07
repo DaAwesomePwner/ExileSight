@@ -1,0 +1,9 @@
+Item Class: One Hand Maces
+Rarity: Rare
+Doom Shelter
+Behemoth Mace
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Healthy" (Tier: 1) — Life }
+120(110-129)% increased Physical Damage

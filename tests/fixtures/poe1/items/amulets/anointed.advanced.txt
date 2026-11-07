@@ -1,0 +1,15 @@
+Item Class: Amulets
+Rarity: Rare
+Doom Beads
+Onyx Amulet
+--------
+{ Enchantment Modifier }
+Allocates Charisma (enchant)
+--------
+{ Implicit Modifier }
++16(10-16) to all Attributes (implicit)
+--------
+{ Fractured Prefix Modifier "Healthy" (Tier: 1) — Life }
++92(90-99) to maximum Life (fractured)
+--------
+Note: ~price 3/2 divine

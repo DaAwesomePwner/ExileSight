@@ -1,0 +1,10 @@
+Item Class: Claws
+Rarity: Rare
+Doom Shelter
+Imperial Claw
+--------
+Item Level: 84
+--------
+120% increased Physical Damage
+--------
+Fractured Item

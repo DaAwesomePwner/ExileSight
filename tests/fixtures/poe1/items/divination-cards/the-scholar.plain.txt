@@ -1,0 +1,5 @@
+Item Class: Divination Cards
+Rarity: Divination Card
+The Scholar
+--------
+Stack Size: 3/3

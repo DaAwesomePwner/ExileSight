@@ -1,0 +1,9 @@
+Item Class: Bows
+Rarity: Magic
+Stalwart Spine Bow
+--------
+Item Level: 84
+--------
+120% increased Physical Damage
+--------
+Crusader Item

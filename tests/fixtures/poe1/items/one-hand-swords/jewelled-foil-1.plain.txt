@@ -1,0 +1,10 @@
+Item Class: One Hand Swords
+Rarity: Rare
+Doom Shelter
+Jewelled Foil
+--------
+Item Level: 84
+--------
+120% increased Physical Damage
+--------
+Hunter Item

@@ -1,0 +1,35 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Maps",
+    "Rarity": "Rare",
+    "Name": "Doom Shelter",
+    "BaseType": "Dunes Map",
+    "ItemLevel": 84,
+    "MapTier": 16,
+    "MapQuantity": 80,
+    "MapRarity": 40,
+    "MapPackSize": 25
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "Monsters deal 25% extra Physical Damage as Fire",
+        "Kind": "Explicit",
+        "AffixType": "Unknown",
+        "Tier": null
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Text": "Monsters deal 25% extra Physical Damage as Fire",
+        "Kind": "Explicit",
+        "AffixType": "Prefix",
+        "Tier": 1,
+        "AffixName": "Healthy"
+      }
+    ]
+  }
+}

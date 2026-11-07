@@ -1,0 +1,7 @@
+Item Class: Utility Flasks
+Rarity: Magic
+Stalwart Granite Flask
+--------
+Item Level: 84
+--------
+30% increased Charge Recovery

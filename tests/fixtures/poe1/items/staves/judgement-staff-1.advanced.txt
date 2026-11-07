@@ -1,0 +1,12 @@
+Item Class: Staves
+Rarity: Magic
+Stalwart Judgement Staff
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Healthy" (Tier: 1) — Life }
+120(110-129)% increased Physical Damage
+--------
+Shaper Item
+--------
+Note: ~b/o 2.5 divine

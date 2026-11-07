@@ -1,0 +1,11 @@
+Item Class: Helmets
+Rarity: Rare
+Doom Crown
+Hubris Circlet
+--------
+Energy Shield: 200
+--------
+{ Searing Exarch Implicit Modifier (Tier: 3) }
++12(10-12)% to Fire Resistance (implicit)
+{ Eater of Worlds Implicit Modifier (Tier: 3) }
++12(10-12)% to Cold Resistance (implicit)

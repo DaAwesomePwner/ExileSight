@@ -1,0 +1,11 @@
+Item Class: Warstaves
+Rarity: Rare
+Doom Shelter
+Ezomyte Staff
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Healthy" (Tier: 1) — Life }
+120(110-129)% increased Physical Damage
+--------
+Elder Item

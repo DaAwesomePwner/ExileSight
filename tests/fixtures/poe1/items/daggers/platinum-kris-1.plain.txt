@@ -1,0 +1,12 @@
+Item Class: Daggers
+Rarity: Rare
+Doom Shelter
+Platinum Kris
+--------
+Item Level: 84
+--------
+120% increased Physical Damage
+--------
+Mirrored
+--------
+Note: ~b/o 2.5 divine

@@ -1,0 +1,34 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Warstaves",
+    "Rarity": "Rare",
+    "Name": "Doom Shelter",
+    "BaseType": "Ezomyte Staff",
+    "ItemLevel": 84,
+    "Influences": [
+      "Elder"
+    ]
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "120% increased Physical Damage",
+        "Kind": "Explicit",
+        "AffixType": "Unknown",
+        "Tier": null
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Text": "120(110-129)% increased Physical Damage",
+        "Kind": "Explicit",
+        "AffixType": "Prefix",
+        "Tier": 1,
+        "AffixName": "Healthy"
+      }
+    ]
+  }
+}

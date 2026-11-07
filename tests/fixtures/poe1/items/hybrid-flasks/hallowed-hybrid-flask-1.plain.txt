@@ -1,0 +1,9 @@
+Item Class: Hybrid Flasks
+Rarity: Magic
+Stalwart Hallowed Hybrid Flask
+--------
+Item Level: 84
+--------
+30% increased Charge Recovery
+--------
+Note: ~b/o 2.5 divine

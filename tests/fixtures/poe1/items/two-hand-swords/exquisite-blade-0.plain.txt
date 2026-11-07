@@ -1,0 +1,5 @@
+Item Class: Two Hand Swords
+Rarity: Normal
+Exquisite Blade
+--------
+Item Level: 84

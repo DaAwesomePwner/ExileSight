@@ -1,0 +1,8 @@
+Item Class: Warstaves
+Rarity: Rare
+Doom Shelter
+Ezomyte Staff
+--------
+Item Level: 84
+--------
+120% increased Physical Damage

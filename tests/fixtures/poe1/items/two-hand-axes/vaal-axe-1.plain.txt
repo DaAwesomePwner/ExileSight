@@ -1,0 +1,9 @@
+Item Class: Two Hand Axes
+Rarity: Magic
+Stalwart Vaal Axe
+--------
+Item Level: 84
+--------
+120% increased Physical Damage
+--------
+Searing Exarch Item

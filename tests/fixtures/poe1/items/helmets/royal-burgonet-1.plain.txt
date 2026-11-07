@@ -1,0 +1,13 @@
+Item Class: Helmets
+Rarity: Rare
+Doom Shelter
+Royal Burgonet
+--------
+Item Level: 84
+Armour: 400 (augmented)
+Quality: +20% (augmented)
+Sockets: R-R-G B
+--------
++92 to maximum Life
+--------
+Mirrored

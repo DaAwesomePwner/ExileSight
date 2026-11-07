@@ -1,0 +1,9 @@
+Item Class: Helmets
+Rarity: Rare
+Doom Crown
+Hubris Circlet
+--------
+Energy Shield: 200
+--------
++12% to Fire Resistance (implicit)
++12% to Cold Resistance (implicit)

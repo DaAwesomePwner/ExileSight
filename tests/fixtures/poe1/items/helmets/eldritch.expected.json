@@ -1,0 +1,24 @@
+{
+  "common": {
+    "ItemClass": "Helmets",
+    "Name": "Doom Crown",
+    "Properties": {
+      "Energy Shield": {
+        "Values": [
+          {
+            "Value": 200
+          }
+        ]
+      }
+    }
+  },
+  "plain": {
+    "Influences": []
+  },
+  "advanced": {
+    "Influences": [
+      "Searing Exarch",
+      "Eater of Worlds"
+    ]
+  }
+}

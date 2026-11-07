@@ -1,0 +1,5 @@
+Item Class: Two Hand Axes
+Rarity: Normal
+Vaal Axe
+--------
+Item Level: 84

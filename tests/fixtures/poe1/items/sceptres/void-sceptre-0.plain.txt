@@ -1,0 +1,8 @@
+Item Class: Sceptres
+Rarity: Rare
+Doom Shelter
+Void Sceptre
+--------
+Item Level: 84
+--------
+120% increased Physical Damage

@@ -1,0 +1,5 @@
+Item Class: Hybrid Flasks
+Rarity: Normal
+Hallowed Hybrid Flask
+--------
+Item Level: 84

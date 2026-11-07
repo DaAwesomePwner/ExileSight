@@ -1,0 +1,19 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Body Armours",
+    "Rarity": "Normal",
+    "Name": "Glorious Plate",
+    "BaseType": "Glorious Plate",
+    "ItemLevel": 84,
+    "Quality": 20,
+    "SocketCount": 4,
+    "MaximumLinks": 3
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

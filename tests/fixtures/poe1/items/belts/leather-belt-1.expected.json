@@ -1,0 +1,34 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Belts",
+    "Rarity": "Magic",
+    "Name": "Stalwart Leather Belt",
+    "BaseType": null,
+    "ItemLevel": 84,
+    "Influences": [
+      "Crusader"
+    ]
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "+92 to maximum Life",
+        "Kind": "Explicit",
+        "AffixType": "Unknown",
+        "Tier": null
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Text": "+92(90-99) to maximum Life",
+        "Kind": "Explicit",
+        "AffixType": "Prefix",
+        "Tier": 1,
+        "AffixName": "Healthy"
+      }
+    ]
+  }
+}

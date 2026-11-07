@@ -1,0 +1,29 @@
+{
+  "common": {
+    "ItemClass": "Expedition Logbooks",
+    "Name": "Doom Expedition",
+    "ItemLevel": 83
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "20% increased number of Remnants"
+      },
+      {
+        "Text": "30% increased Explosive Radius"
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Group": 1,
+        "Tier": 1
+      },
+      {
+        "Group": 1,
+        "Tier": 1
+      }
+    ]
+  }
+}

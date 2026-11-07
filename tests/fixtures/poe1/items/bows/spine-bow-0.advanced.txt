@@ -1,0 +1,5 @@
+Item Class: Bows
+Rarity: Normal
+Spine Bow
+--------
+Item Level: 84

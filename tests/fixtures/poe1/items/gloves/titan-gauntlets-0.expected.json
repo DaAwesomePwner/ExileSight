@@ -1,0 +1,19 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Gloves",
+    "Rarity": "Normal",
+    "Name": "Titan Gauntlets",
+    "BaseType": "Titan Gauntlets",
+    "ItemLevel": 84,
+    "Quality": 20,
+    "SocketCount": 4,
+    "MaximumLinks": 3
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

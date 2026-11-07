@@ -1,0 +1,5 @@
+Item Class: Life Flasks
+Rarity: Normal
+Divine Life Flask
+--------
+Item Level: 84

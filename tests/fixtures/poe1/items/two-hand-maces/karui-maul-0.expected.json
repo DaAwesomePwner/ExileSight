@@ -1,0 +1,16 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Two Hand Maces",
+    "Rarity": "Normal",
+    "Name": "Karui Maul",
+    "BaseType": "Karui Maul",
+    "ItemLevel": 84
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

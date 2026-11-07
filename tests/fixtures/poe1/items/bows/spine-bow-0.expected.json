@@ -1,0 +1,16 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Bows",
+    "Rarity": "Normal",
+    "Name": "Spine Bow",
+    "BaseType": "Spine Bow",
+    "ItemLevel": 84
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

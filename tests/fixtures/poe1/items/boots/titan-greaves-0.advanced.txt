@@ -1,0 +1,12 @@
+Item Class: Boots
+Rarity: Rare
+Doom Shelter
+Titan Greaves
+--------
+Item Level: 84
+Armour: 400 (augmented)
+Quality: +20% (augmented)
+Sockets: R-R-G B
+--------
+{ Prefix Modifier "Healthy" (Tier: 1) — Life }
++92(90-99) to maximum Life

@@ -1,0 +1,36 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Hybrid Flasks",
+    "Rarity": "Magic",
+    "Name": "Stalwart Hallowed Hybrid Flask",
+    "BaseType": null,
+    "ItemLevel": 84,
+    "Price": {
+      "Amount": 2.5,
+      "Currency": "divine",
+      "Kind": "~b/o"
+    }
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "30% increased Charge Recovery",
+        "Kind": "Explicit",
+        "AffixType": "Unknown",
+        "Tier": null
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Text": "30(25-30)% increased Charge Recovery",
+        "Kind": "Explicit",
+        "AffixType": "Prefix",
+        "Tier": 1,
+        "AffixName": "Healthy"
+      }
+    ]
+  }
+}

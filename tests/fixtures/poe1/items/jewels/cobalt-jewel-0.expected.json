@@ -1,0 +1,31 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Jewels",
+    "Rarity": "Rare",
+    "Name": "Doom Shelter",
+    "BaseType": "Cobalt Jewel",
+    "ItemLevel": 84
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "7% increased maximum Life",
+        "Kind": "Explicit",
+        "AffixType": "Unknown",
+        "Tier": null
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Text": "7(5-7)% increased maximum Life",
+        "Kind": "Explicit",
+        "AffixType": "Prefix",
+        "Tier": 1,
+        "AffixName": "Healthy"
+      }
+    ]
+  }
+}

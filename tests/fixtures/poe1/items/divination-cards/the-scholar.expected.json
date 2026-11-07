@@ -1,0 +1,12 @@
+{
+  "common": {
+    "ItemClass": "Divination Cards",
+    "Name": "The Scholar",
+    "StackSize": {
+      "Current": 3,
+      "Maximum": 3
+    }
+  },
+  "plain": {},
+  "advanced": {}
+}

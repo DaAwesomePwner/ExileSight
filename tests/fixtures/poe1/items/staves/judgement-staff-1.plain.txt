@@ -1,0 +1,11 @@
+Item Class: Staves
+Rarity: Magic
+Stalwart Judgement Staff
+--------
+Item Level: 84
+--------
+120% increased Physical Damage
+--------
+Shaper Item
+--------
+Note: ~b/o 2.5 divine

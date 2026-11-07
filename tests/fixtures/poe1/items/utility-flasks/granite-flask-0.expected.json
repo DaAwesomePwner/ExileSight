@@ -1,0 +1,16 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Utility Flasks",
+    "Rarity": "Normal",
+    "Name": "Granite Flask",
+    "BaseType": "Granite Flask",
+    "ItemLevel": 84
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

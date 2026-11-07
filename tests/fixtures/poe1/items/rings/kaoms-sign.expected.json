@@ -1,0 +1,12 @@
+{
+  "common": {
+    "ItemClass": "Rings",
+    "Name": "Kaom's Sign",
+    "FlavourText": [
+      "A token from the sea.",
+      "A promise from the king."
+    ]
+  },
+  "plain": {},
+  "advanced": {}
+}

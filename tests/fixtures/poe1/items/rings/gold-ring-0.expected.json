@@ -1,0 +1,16 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Rings",
+    "Rarity": "Normal",
+    "Name": "Gold Ring",
+    "BaseType": "Gold Ring",
+    "ItemLevel": 84
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

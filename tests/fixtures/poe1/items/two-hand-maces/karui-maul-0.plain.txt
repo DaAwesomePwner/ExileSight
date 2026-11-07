@@ -1,0 +1,5 @@
+Item Class: Two Hand Maces
+Rarity: Normal
+Karui Maul
+--------
+Item Level: 84

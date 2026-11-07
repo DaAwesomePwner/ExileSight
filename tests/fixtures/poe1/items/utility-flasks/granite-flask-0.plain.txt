@@ -1,0 +1,5 @@
+Item Class: Utility Flasks
+Rarity: Normal
+Granite Flask
+--------
+Item Level: 84

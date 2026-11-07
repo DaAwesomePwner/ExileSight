@@ -1,0 +1,16 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Two Hand Swords",
+    "Rarity": "Normal",
+    "Name": "Exquisite Blade",
+    "BaseType": "Exquisite Blade",
+    "ItemLevel": 84
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

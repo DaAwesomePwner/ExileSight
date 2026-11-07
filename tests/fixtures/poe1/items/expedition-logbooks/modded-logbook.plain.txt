@@ -1,0 +1,9 @@
+Item Class: Expedition Logbooks
+Rarity: Rare
+Doom Expedition
+Expedition Logbook
+--------
+Item Level: 83
+--------
+20% increased number of Remnants
+30% increased Explosive Radius

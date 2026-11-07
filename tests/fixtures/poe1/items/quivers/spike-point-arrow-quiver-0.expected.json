@@ -1,0 +1,31 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Quivers",
+    "Rarity": "Rare",
+    "Name": "Doom Shelter",
+    "BaseType": "Spike-Point Arrow Quiver",
+    "ItemLevel": 84
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "+92 to maximum Life",
+        "Kind": "Explicit",
+        "AffixType": "Unknown",
+        "Tier": null
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Text": "+92(90-99) to maximum Life",
+        "Kind": "Explicit",
+        "AffixType": "Prefix",
+        "Tier": 1,
+        "AffixName": "Healthy"
+      }
+    ]
+  }
+}

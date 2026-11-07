@@ -1,0 +1,13 @@
+Item Class: Daggers
+Rarity: Rare
+Doom Shelter
+Platinum Kris
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Healthy" (Tier: 1) — Life }
+120(110-129)% increased Physical Damage
+--------
+Mirrored
+--------
+Note: ~b/o 2.5 divine

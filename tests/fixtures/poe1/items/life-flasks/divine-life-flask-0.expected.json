@@ -1,0 +1,16 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Life Flasks",
+    "Rarity": "Normal",
+    "Name": "Divine Life Flask",
+    "BaseType": "Divine Life Flask",
+    "ItemLevel": 84
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

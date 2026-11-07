@@ -1,0 +1,9 @@
+Item Class: Rings
+Rarity: Magic
+Stalwart Gold Ring
+--------
+Item Level: 84
+--------
++92 to maximum Life
+--------
+Shaper Item

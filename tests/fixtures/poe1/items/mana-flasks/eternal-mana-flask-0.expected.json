@@ -1,0 +1,16 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Mana Flasks",
+    "Rarity": "Normal",
+    "Name": "Eternal Mana Flask",
+    "BaseType": "Eternal Mana Flask",
+    "ItemLevel": 84
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

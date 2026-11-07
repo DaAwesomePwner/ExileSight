@@ -1,0 +1,12 @@
+{
+  "common": {
+    "ItemClass": "Map Fragments",
+    "Name": "Sacrifice at Dusk",
+    "StackSize": {
+      "Current": 2,
+      "Maximum": 10
+    }
+  },
+  "plain": {},
+  "advanced": {}
+}

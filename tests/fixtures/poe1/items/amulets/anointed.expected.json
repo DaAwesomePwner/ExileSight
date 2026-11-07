@@ -1,0 +1,29 @@
+{
+  "common": {
+    "ItemClass": "Amulets",
+    "Name": "Doom Beads",
+    "Anointment": "Charisma",
+    "Fractured": true,
+    "Price": {
+      "Amount": 1.5,
+      "Currency": "divine"
+    },
+    "EnchantMods": [
+      {
+        "Kind": "Enchant"
+      }
+    ],
+    "ImplicitMods": [
+      {
+        "Kind": "Implicit"
+      }
+    ],
+    "FracturedMods": [
+      {
+        "Kind": "Explicit, Fractured"
+      }
+    ]
+  },
+  "plain": {},
+  "advanced": {}
+}

@@ -1,0 +1,5 @@
+Item Class: Wands
+Rarity: Normal
+Imbued Wand
+--------
+Item Level: 84

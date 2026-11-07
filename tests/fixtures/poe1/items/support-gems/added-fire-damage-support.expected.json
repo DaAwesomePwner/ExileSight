@@ -1,0 +1,9 @@
+{
+  "common": {
+    "ItemClass": "Support Gems",
+    "Name": "Added Fire Damage Support",
+    "GemLevel": 1
+  },
+  "plain": {},
+  "advanced": {}
+}

@@ -1,0 +1,39 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Staves",
+    "Rarity": "Magic",
+    "Name": "Stalwart Judgement Staff",
+    "BaseType": null,
+    "ItemLevel": 84,
+    "Influences": [
+      "Shaper"
+    ],
+    "Price": {
+      "Amount": 2.5,
+      "Currency": "divine",
+      "Kind": "~b/o"
+    }
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "120% increased Physical Damage",
+        "Kind": "Explicit",
+        "AffixType": "Unknown",
+        "Tier": null
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Text": "120(110-129)% increased Physical Damage",
+        "Kind": "Explicit",
+        "AffixType": "Prefix",
+        "Tier": 1,
+        "AffixName": "Healthy"
+      }
+    ]
+  }
+}

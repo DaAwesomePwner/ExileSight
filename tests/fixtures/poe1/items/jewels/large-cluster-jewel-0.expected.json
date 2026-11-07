@@ -1,0 +1,16 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Jewels",
+    "Rarity": "Normal",
+    "Name": "Large Cluster Jewel",
+    "BaseType": "Large Cluster Jewel",
+    "ItemLevel": 84
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

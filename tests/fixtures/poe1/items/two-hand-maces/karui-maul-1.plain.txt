@@ -1,0 +1,9 @@
+Item Class: Two Hand Maces
+Rarity: Magic
+Stalwart Karui Maul
+--------
+Item Level: 84
+--------
+120% increased Physical Damage
+--------
+Corrupted

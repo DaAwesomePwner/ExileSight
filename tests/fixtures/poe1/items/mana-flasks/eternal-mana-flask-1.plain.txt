@@ -1,0 +1,7 @@
+Item Class: Mana Flasks
+Rarity: Magic
+Stalwart Eternal Mana Flask
+--------
+Item Level: 84
+--------
+30% increased Charge Recovery

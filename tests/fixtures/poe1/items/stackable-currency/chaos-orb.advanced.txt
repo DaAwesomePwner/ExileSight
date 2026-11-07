@@ -1,0 +1,5 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Chaos Orb
+--------
+Stack Size: 1,234/5,000

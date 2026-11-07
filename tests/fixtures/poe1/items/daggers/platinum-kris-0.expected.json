@@ -1,0 +1,31 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Daggers",
+    "Rarity": "Rare",
+    "Name": "Doom Shelter",
+    "BaseType": "Platinum Kris",
+    "ItemLevel": 84
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "120% increased Physical Damage",
+        "Kind": "Explicit",
+        "AffixType": "Unknown",
+        "Tier": null
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Text": "120(110-129)% increased Physical Damage",
+        "Kind": "Explicit",
+        "AffixType": "Prefix",
+        "Tier": 1,
+        "AffixName": "Healthy"
+      }
+    ]
+  }
+}

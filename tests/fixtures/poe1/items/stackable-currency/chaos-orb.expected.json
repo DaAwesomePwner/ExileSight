@@ -1,0 +1,12 @@
+{
+  "common": {
+    "ItemClass": "Stackable Currency",
+    "Name": "Chaos Orb",
+    "StackSize": {
+      "Current": 1234,
+      "Maximum": 5000
+    }
+  },
+  "plain": {},
+  "advanced": {}
+}

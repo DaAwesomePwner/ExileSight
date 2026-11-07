@@ -1,0 +1,11 @@
+Item Class: Two Hand Swords
+Rarity: Magic
+Stalwart Exquisite Blade
+--------
+Item Level: 84
+--------
+120% increased Physical Damage
+--------
+Redeemer Item
+--------
+Note: ~b/o 2.5 divine

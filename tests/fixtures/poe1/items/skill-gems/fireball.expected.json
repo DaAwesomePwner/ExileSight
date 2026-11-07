@@ -1,0 +1,14 @@
+{
+  "common": {
+    "ItemClass": "Skill Gems",
+    "Name": "Fireball",
+    "GemLevel": 20,
+    "Quality": 20,
+    "GemExperience": {
+      "Current": 1000,
+      "Maximum": 2000
+    }
+  },
+  "plain": {},
+  "advanced": {}
+}
