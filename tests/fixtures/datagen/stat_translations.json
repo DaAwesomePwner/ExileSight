@@ -1,0 +1,4 @@
+[
+ {"ids":["imaginary_glow"],"English":[{"condition":[{"min":1}],"format":["+#"],"index_handlers":[[]],"string":"{0} to Imaginary Glow"}]},
+ {"ids":["unused"],"English":[{"conditions":[{}],"format":["#"],"index_handlers":[[]],"string":"{0} unused"}]}
+]

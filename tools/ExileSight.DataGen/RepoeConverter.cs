@@ -16,7 +16,7 @@ public static class RepoeConverter
         if (sha.Length != 40 || !sha.All(Uri.IsHexDigit)) throw new ArgumentException("A full 40-character commit SHA is required.");
     }
 
-    public static DataPack[] Convert(byte[] basesJson, byte[] modsJson, string sha)
+    public static DataPack[] Convert(byte[] basesJson, byte[] modsJson, string sha, byte[]? translationsJson = null)
     {
         ValidateSha(sha);
         using var basesDoc = JsonDocument.Parse(basesJson);
@@ -25,16 +25,20 @@ public static class RepoeConverter
             .Select(p => ReadBase(p.Name, p.Value)).ToArray();
         var mods = modsDoc.RootElement.EnumerateObject().OrderBy(p => p.Name, StringComparer.Ordinal)
             .Select(p => ReadMod(p.Name, p.Value)).ToArray();
+        var translations = TranslationConverter.Read(translationsJson ?? "[]"u8.ToArray(), mods);
+        mods = mods.Select(m => m with { TextTemplateIds = translations
+            .Where(t => t.StatIds.Any(id => m.Stats.Any(s => s.Id == id))).Select(t => t.Id).ToArray() }).ToArray();
         var tiers = TierDerivation.Derive(bases, mods);
         var source = new PackSource(Repository, sha.ToLowerInvariant(), new()
         {
             ["data/base_items.json"] = PackCodec.Hash(basesJson), ["data/mods.json"] = PackCodec.Hash(modsJson)
         });
-        return new[] { "bases", "mods" }.Select(kind =>
+        if (translationsJson is not null) source.Files["data/stat_translations.json"] = PackCodec.Hash(translationsJson);
+        return (translationsJson is null ? new[] { "bases", "mods" } : new[] { "bases", "mods", "stats" }).Select(kind =>
         {
             var content = new PackContent("poe1/" + kind, Game.PoE1, PackCodec.SchemaVersion, sha.ToLowerInvariant(),
                 kind == "bases" ? bases : [], kind == "mods" ? mods : [],
-                kind == "mods" ? tiers.Ladders : [], kind == "mods" ? tiers.Contexts : []);
+                kind == "mods" ? tiers.Ladders : [], kind == "mods" ? tiers.Contexts : [], kind == "stats" ? translations : []);
             // Unknown source patch/time are explicit, never fabricated from the local clock.
             var manifest = new PackManifest(content.PackId, Game.PoE1, PackCodec.SchemaVersion, content.PackVersion,
                 "unknown", DateTimeOffset.UnixEpoch, source, Attribution(sha), PackCodec.Hash(PackCodec.ContentBytes(content)));
@@ -46,11 +50,11 @@ public static class RepoeConverter
     {
         var requirements = new Dictionary<string, int>();
         if (value.TryGetProperty("requirements", out var req) && req.ValueKind == JsonValueKind.Object)
-            foreach (var p in req.EnumerateObject().OrderBy(p => p.Name, StringComparer.Ordinal)) requirements[p.Name] = p.Value.GetInt32();
+            foreach (var p in req.EnumerateObject().OrderBy(p => p.Name, StringComparer.Ordinal)) if (p.Value.ValueKind == JsonValueKind.Number) requirements[p.Name] = p.Value.GetInt32();
         var defences = new Dictionary<string, NumericRange>();
         if (value.TryGetProperty("properties", out var props))
-            foreach (var name in new[] { "armour", "energy_shield", "evasion" })
-                if (props.TryGetProperty(name, out var range))
+            foreach (var name in new[] { "armour", "energy_shield", "evasion", "ward" })
+                if (props.TryGetProperty(name, out var range) && range.ValueKind != JsonValueKind.Null)
                     defences[name] = range.ValueKind == JsonValueKind.Number ? new(range.GetInt32(), range.GetInt32()) :
                         new(range.GetProperty("min").GetInt32(), range.GetProperty("max").GetInt32());
         return new(id, Text(value, "name"), Text(value, "item_class"), Strings(value, "tags"),
