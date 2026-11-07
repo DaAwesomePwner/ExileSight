@@ -5,6 +5,8 @@ It lives in the notification area beside the clock. Right-click its icon for
 **Debug panel**, **Run setup again**, **Open settings folder**, and **Exit**.
 Clicking the icon opens diagnostics; closing that window leaves the app running.
 
+The stash price panel is inactive until supported stash layouts ship.
+
 This product isn't affiliated with or endorsed by Grinding Gear Games in any way.
 
 ## Install and update
@@ -13,6 +15,8 @@ Use the win-x64 Velopack setup executable from a trusted ExileSight build. In
 GitHub Actions, the installer files are in **ExileSight-Velopack-win-x64**;
 **ExileSight-App-win-x64** is the separate portable app. CI creates artifacts;
 it does not publish a release automatically. Run setup, then complete the wizard.
+Once releases are published, get builds from the project’s
+[GitHub Releases](https://github.com/DaAwesomePwner/ExileSight/releases) page.
 
 Installed copies check the project's GitHub releases after a five-second startup
 delay, then every six hours. Available updates download in the background and
@@ -22,8 +26,9 @@ not apply a pending update through the normal-exit path.
 
 The default channel is `stable`. To include prereleases, set
 `general.updateChannel` to `"prerelease"` in your active settings file; set
-`general.checkForUpdates` to `false` to disable checks. Exit before editing and
-restart afterward. See [Rebinding keys](#rebinding-keys) for finding that file.
+`general.checkForUpdates` to `false` to disable checks. Preferences are reread
+for checks, downloads and normal exit; channel changes take effect at the next
+scheduled check. See [Rebinding keys](#rebinding-keys) for finding that file.
 Diagnostics show the current version, update status and last check.
 
 Settings normally live in `%APPDATA%\ExileSight\poe1\`. Back up the whole
@@ -58,8 +63,9 @@ already-open price note, or send one chat message/command. Timers, log events an
 price downloads only update local displays; they never send game input. Actions
 are refused when the game is not foreground. A failed action needs a fresh gesture.
 
-The Action Gate attempts to preserve and restore your clipboard. Diagnostics report
-unsupported clipboard formats or restoration problems; preservation is not guaranteed
+The Action Gate is the single input sender that enforces one game action per
+physical gesture. It attempts to preserve and restore your clipboard. Diagnostics
+report unsupported clipboard formats or restoration problems; preservation is not guaranteed
 for every format. Close unfinished chat drafts before using chat macros: opening chat
 with Enter can submit an existing draft.
 
@@ -72,15 +78,18 @@ the game is foreground. Unless noted, a bound key is consumed by ExileSight.
 
 ### Omni and item info — CapsLock
 
-Hover an item, tap **CapsLock**, then release to show the matching tool. Equipment
-opens item info, with tiers, rolls and other supported details when the copied text
+Omni is the shared item hotkey that selects a tool from copied item text.
+Hover an item, tap **CapsLock** for at most 200 ms, then release to show the
+matching tool. Maps and priced items route to their specialized panels only on
+this short tap. Equipment opens item info, with tiers, rolls and other supported
+details when the copied text
 and data packs provide them. Unsupported values stay unknown. Move away or press
 **Esc** to dismiss the item tooltip.
 
 Hold CapsLock for more than 200 ms, then release to open the item menu instead.
 It offers applicable local tools and browser links. Copy happens once on key-down;
-keeping the key held does not repeatedly copy. Maps and priced items route to their
-specialized panels. **F7** also copies an item, but does not run the omni tools.
+keeping the key held does not repeatedly copy. **F7** also copies an item, but
+does not run the omni tools.
 
 ### Gear comparison — omni menu
 
@@ -93,13 +102,15 @@ are suggestions until you explicitly choose one.
 
 ### Price check / stashninja — Ctrl+Shift+N
 
+Stashninja is the stash-layout price-tag panel, inactive until supported layouts ship.
+
 Open **Ctrl+Shift+N**, or choose **Price stash tab…** in the omni menu. Select a
 fixed tab/page and load its poe.ninja prices. Tags describe item types, not your
 stash contents or quantities. The default price league is the current softcore
 challenge league excluding SSF/Ruthless, with Standard as fallback; you can set
 `prices.league` in your profile. Stale or incomplete prices are labelled.
 
-**This checkout ships no supported stash layouts.** Without a measured layout,
+**This version ships no supported stash layouts.** Without a measured layout,
 the panel reports that none is available. See the
 [layout instructions](../data/stash-layouts/poe1/README.md) for that requirement.
 With a layout available, calibrate using two distinct **empty** cells while holding
@@ -108,6 +119,8 @@ resolution. A physical **Highlight** click pastes one search; loading prices doe
 not. Searches over the game's supported limit are disabled.
 
 ### Shop repricing / vaalasync — omni on a priced item
+
+Vaalasync is the shop repricing and local price-history tool.
 
 There is no separate default key. Tap CapsLock over an item with a `~b/o` or
 `~price` note. Open the game's note box yourself, then click one price button to
@@ -246,7 +259,7 @@ information. Review files before sharing them. The app never edits your game log
   at the end of the file, so old lines are not imported; change zones to test it.
 - **Missing item details or notifications:** check data-pack diagnostics. Let packs
   load, then copy the item again. Unknown values are not guessed. Stash tags also
-  require a supported measured layout, which is absent from this checkout.
+  require a supported measured layout, which is absent from this version.
 - **Antivirus or SmartScreen warning:** CI installers are unsigned. Check the build's
   origin before running it. Keep protection enabled; if it blocks the build, include
   the detection name and build version in a bug report instead of adding a blanket

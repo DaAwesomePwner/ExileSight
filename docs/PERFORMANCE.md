@@ -18,11 +18,12 @@ miss shorter spikes.
 | Baseline 8ee74d4 / 42419392581 | 0.285% | 1633.94 | Memory failed |
 | 4ca85cc / 42419392581 | 0.960% | 246.35 | Memory failed |
 | a76bed6 / 42422827112 | 0.908% | 222.66 | Memory failed; CPU margin 0.092 pp |
-| Current round, one-shot report after measurement | Pending CI | Pending CI | Unverified |
+| PR #9, 91b00f9 / 42424378300 | 0.597% | 57.58 | Passed tray-idle gate |
 
 Sources: [first run](https://github.com/DaAwesomePwner/ExileSight/actions/runs/42417510247),
 [second run](https://github.com/DaAwesomePwner/ExileSight/actions/runs/42419392581),
-[third run](https://github.com/DaAwesomePwner/ExileSight/actions/runs/42422827112).
+[third run](https://github.com/DaAwesomePwner/ExileSight/actions/runs/42422827112),
+[passing PR #9 run](https://github.com/DaAwesomePwner/ExileSight/actions/runs/42424378300).
 These used Windows build 26100, four logical processors and a self-contained
 single-file app. The third run's steady private memory was approximately 217 MB.
 
@@ -145,10 +146,13 @@ impact has not been isolated. No new production periodic timer is added here.
 
 The 10 Hz foreground heartbeat (HookForeground.cs:21) and 1 Hz repeat refresh
 (HookHost.cs:62) remain safety timers: stalled UI must pass keys through and held
-keys must respect Windows repeat settings. Guide 1 Hz and Timers 4 Hz view ticks
-are deferred to a follow-up. Existing fixes retain 1 Hz empty-event polling and
-pause hidden/minimized tracker status. CPU <=0.5% remains a goal; the latest
-measured 0.908% included periodic diagnostics, and the new Windows result is pending.
+keys must respect Windows repeat settings. P5-T6 stops Guide 1 Hz display ticks
+while hidden, retaining 60 s background checkpoints. Timers display ticks run at
+4 Hz only while a timer panel is visible; hidden panels schedule pending countdown
+deadlines and toast expiry with a maximum 5 s recheck interval, and stop ticking
+when neither needs service. Existing fixes retain 1 Hz empty-event polling and
+pause hidden/minimized tracker status. CPU <=0.5% remains a goal; the passing
+Windows run measured 0.597% with periodic diagnostics excluded.
 
 ## CI, local reproduction and owner checks
 
