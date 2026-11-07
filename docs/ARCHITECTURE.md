@@ -7,14 +7,16 @@ ExileSight is a Windows-first .NET 10 application with a WPF UI. Everything that
 ```
 ExileSight.slnx
 Directory.Build.props          nullable on, warnings as errors, EnableWindowsTargeting=true
+Directory.Build.targets        RS0030 forced to error, no warning-error exemptions
 Directory.Packages.props       central package versions
-BannedSymbols.txt              input/memory APIs banned outside the Action Gate (see FAIR-PLAY.md)
+BannedSymbols.txt              global input/interop/Reflection.Emit/Win32 process-memory bans
+BannedSymbols.Production.txt   additional managed Process member bans for src/ and tools/
 src/
   ExileSight.Core/                    net10.0       game model, item parser, mod matcher, log events, pricing, feature logic
   ExileSight.Platform.Abstractions/   net10.0       IGameWindow, IHotkeys, IActionGate, IClipboard, IClock, IFileTail …
   ExileSight.Platform.Windows/        net10.0-windows10.0.19041.0   Win32/WinRT implementations (CsWin32)
   ExileSight.Features.<Name>/         net10.0       one per feature: logic + view models, no WPF references
-  ExileSight.App/                     net10.0-windows  WPF views, overlay host, tray, settings, first-run wizard
+  ExileSight.App/                     net10.0-windows10.0.19041.0  WPF views, overlay host, tray, settings, first-run wizard
 tools/
   ExileSight.DataGen/                 net10.0       builds versioned data packs (bases, mods, tiers, guides)
 tests/
@@ -79,3 +81,15 @@ The omni-key is a router feature. Other features register `IOmniHandler`s with a
 ## Mac later
 
 A future `Platform.Mac` would implement the same abstractions (CGEventTap, ScreenCaptureKit, Vision OCR), and a new UI project would reuse `Features.*` view models. Nothing in Core or Features may assume Windows.
+
+## Scaffold enforcement decisions (D-015, D-018–D-029)
+
+The App targets Windows 10 build 19041 to reference Platform.Windows (the shorthand `net10.0-windows` defaults to Windows 7). Its application manifest declares PerMonitorV2 DPI awareness. WPF supplies HwndSource and WindowInteropHelper without additional package or project changes.
+
+CsWin32 is the only native-import path: hand-written imports, extern methods and unmanaged function pointers are forbidden throughout src/ and tools/, including Platform.Windows. Its generated members are internal; marshaling is enabled for typed callback delegates, while friendly overloads and SafeHandle wrappers are disabled. Window/NativeMethods.txt and Input/NativeMethods.txt are separate generator inputs. Only SendInput among restricted APIs may be generated in production. A separate test-only ExileSight.BanCoverage.Tests inventory generates the other restricted APIs for exact metadata/ban coverage; production cannot reference it. Only Input/ActionGate.cs may suppress RS0030. Evaluated compiler guards before and after CoreCompile reject removed analyzers/bans, warning downgrades and unapproved analyzer configs, including mutations registered late in the build.
+
+Architecture tests inspect exact current-configuration assembly paths, fail clearly when an assembly is missing, enforce project and compiled dependency edges, and reject P/Invoke metadata everywhere except Platform.Windows. DataGen is portable net10.0 and may reference Core and Abstractions. Core and Abstractions cannot reference features; features cannot reference each other. Only App and Platform.Windows.Tests may reference Platform.Windows. Build the entire solution before running architecture tests independently.
+
+The normal debug window polls thread-safe IDebugSection snapshots; a section failure becomes an error row. Generic-host startup and shutdown are awaited off the dispatcher, while spike startup and WPF window work stay on the dispatcher. Source uses LF line endings and build-enforced file-scoped namespaces.
+
+The build also rejects the compiler's final `_SkipAnalyzers` flag and any compiler response file. A separate architecture test audits every solution project's resolved compiler state through MSBuild, checks canonical imports and guard execution markers, and independently enforces the pinned analyzer allowlist. Production native checks match restricted names and entry points across all src assemblies. Managed System.Diagnostics.Process member bans apply through BannedSymbols.Production.txt only to src/ and tools/. Tests can terminate their owned child processes normally, without any pragma. The only permitted RS0030 suppression anywhere remains Input/ActionGate.cs. Both the guard and independent audit require the production list in addition to the global list for all production projects.

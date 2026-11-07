@@ -1,0 +1,6 @@
+{
+  "public": false,
+  "allowMarshaling": true,
+  "useSafeHandles": false,
+  "friendlyOverloads": { "enabled": false }
+}

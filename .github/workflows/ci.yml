@@ -1,0 +1,25 @@
+name: CI
+on:
+  push:
+    branches: [main, 'integration/**', 'fixtures/**']
+  pull_request:
+    branches: [main, 'integration/**']
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - run: dotnet restore ExileSight.slnx
+      - run: dotnet build ExileSight.slnx -c Release -warnaserror
+      - run: dotnet test ExileSight.slnx -c Release --no-build
+      - run: dotnet publish src/ExileSight.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/publish
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ExileSight-App-win-x64
+          path: artifacts/publish/
+          if-no-files-found: error

@@ -1,0 +1,26 @@
+// Additional Process member bans for every project under src/ and tools/; not tests/.
+M:System.Diagnostics.Process.CloseMainWindow; Native bypass and process access are forbidden.
+M:System.Diagnostics.Process.Kill; Native bypass and process access are forbidden.
+M:System.Diagnostics.Process.Kill(System.Boolean); Native bypass and process access are forbidden.
+P:System.Diagnostics.Process.Handle; Native bypass and process access are forbidden.
+P:System.Diagnostics.Process.MainModule; Native bypass and process access are forbidden.
+P:System.Diagnostics.Process.Modules; Native bypass and process access are forbidden.
+P:System.Diagnostics.Process.SafeHandle; Native bypass and process access are forbidden.
+M:System.Diagnostics.Process.WaitForExit; Native emission or process access is forbidden.
+M:System.Diagnostics.Process.WaitForExit(System.Int32); Native emission or process access is forbidden.
+M:System.Diagnostics.Process.WaitForExit(System.TimeSpan); Native emission or process access is forbidden.
+M:System.Diagnostics.Process.WaitForExitAsync(System.Threading.CancellationToken); Native emission or process access is forbidden.
+M:System.Diagnostics.Process.set_PriorityClass(System.Diagnostics.ProcessPriorityClass); Native emission or process access is forbidden.
+M:System.Diagnostics.Process.set_ProcessorAffinity(System.IntPtr); Native emission or process access is forbidden.
+P:System.Diagnostics.Process.HasExited; Native emission or process access is forbidden.
+P:System.Diagnostics.Process.PriorityClass; Property ban is required to reject setter syntax.
+P:System.Diagnostics.Process.ProcessorAffinity; Property ban is required to reject setter syntax.
+M:System.Diagnostics.Process.GetProcessById(System.Int32); Opens a handle to a foreign process (possibly the game); compare pids from a GetProcessesByName snapshot instead.
+M:System.Diagnostics.Process.GetProcessById(System.Int32,System.String); Opens a handle to a foreign process (possibly the game).
+P:System.Diagnostics.Process.ProcessName; Opens a handle to a foreign process (possibly the game).
+P:System.Diagnostics.Process.MainWindowHandle; Opens a handle to a foreign process (possibly the game).
+P:System.Diagnostics.Process.MainWindowTitle; Opens a handle to a foreign process (possibly the game).
+P:System.Diagnostics.Process.StartTime; Opens a handle to a foreign process (possibly the game).
+P:System.Diagnostics.Process.ExitTime; Opens a handle to a foreign process (possibly the game).
+P:System.Diagnostics.Process.ExitCode; Opens a handle to a foreign process (possibly the game).
+P:System.Diagnostics.Process.Responding; Opens a handle to a foreign process (possibly the game).
