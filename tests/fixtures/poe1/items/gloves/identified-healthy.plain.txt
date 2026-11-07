@@ -1,0 +1,15 @@
+Item Class: Gloves
+Rarity: Magic
+Healthy Titan Gauntlets
+--------
+Armour: 200
+--------
+Requirements:
+Level: 69
+Str: 98
+--------
+Sockets: R-R-G-B
+--------
+Item Level: 84
+--------
++20 to maximum Life

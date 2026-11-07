@@ -1,0 +1,12 @@
+{
+  "common": {
+    "ItemClass": "Expedition Logbooks",
+    "Name": "Expedition Logbook",
+    "ItemLevel": 83,
+    "Warnings": [],
+    "OtherText": [],
+    "Mods": []
+  },
+  "plain": {},
+  "advanced": {}
+}

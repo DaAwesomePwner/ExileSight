@@ -1,0 +1,6 @@
+GetDriveType
+CreateFile
+CloseHandle
+DeviceIoControl
+GetFileInformationByHandleEx
+FILE_ATTRIBUTE_TAG_INFO

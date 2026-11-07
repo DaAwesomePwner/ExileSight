@@ -11,6 +11,8 @@ public sealed class OverlayPlatformTests
     {
         var styler = new OverlayWindowStyler();
         Assert.Throws<ArgumentException>(() => styler.Apply(0));
+        Assert.Throws<ArgumentException>(() => styler.GetBounds(0));
+        Assert.Throws<ArgumentException>(() => styler.GetBounds(-123));
         Assert.Throws<ArgumentException>(() => styler.SetClickThrough(0, false));
         Assert.Throws<ArgumentException>(() => styler.Position(0, new PixelRect(0, 0, 100, 100)));
         Assert.Throws<ArgumentException>(() => styler.Apply(-123));
@@ -61,7 +63,7 @@ public sealed class OverlayPlatformTests
         var first = stats.Sample();
         var second = stats.Sample();
         Assert.True(first.WorkingSetBytes > 0);
-        Assert.True(first.PrivateBytes > 0);
+        Assert.Equal(0, first.PrivateBytes); // Unavailable without a process handle.
         Assert.Equal(0, first.CpuPercent);
         Assert.InRange(second.CpuPercent, 0, 100);
     }

@@ -1,0 +1,12 @@
+Item Class: Jewels
+Rarity: Magic
+Vivid Large Cluster Jewel
+--------
+Item Level: 84
+--------
+Adds 8 Passive Skills (enchant)
+Added Small Passive Skills grant: 12% increased Attack Damage (enchant)
+--------
+7% increased maximum Life
+--------
+Corrupted

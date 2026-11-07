@@ -1,0 +1,18 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Two Hand Axes",
+    "Rarity": "Normal",
+    "Name": "Vaal Axe",
+    "BaseType": "Vaal Axe",
+    "ItemLevel": 84,
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

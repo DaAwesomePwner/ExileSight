@@ -1,0 +1,18 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Staves",
+    "Rarity": "Normal",
+    "Name": "Judgement Staff",
+    "BaseType": "Judgement Staff",
+    "ItemLevel": 84,
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

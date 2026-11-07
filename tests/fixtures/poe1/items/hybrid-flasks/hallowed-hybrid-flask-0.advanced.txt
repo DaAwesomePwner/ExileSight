@@ -1,0 +1,10 @@
+Item Class: Hybrid Flasks
+Rarity: Normal
+Hallowed Hybrid Flask
+--------
+Recovers 2400 Life over 7 Seconds
+Recovers 600 Mana over 5 Seconds
+Consumes 15 of 45 Charges on use
+Currently has 45 Charges
+--------
+Item Level: 84

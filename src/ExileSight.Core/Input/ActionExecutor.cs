@@ -27,7 +27,9 @@ public sealed class ActionExecutor : IActionGate
             catch (Exception) { /* Fail closed; still consume the token and audit the refusal. */ }
             var verdict = policy.Validate(token, action, foreground, out var press);
             ActionResult result = new(verdict, verdict == ActionOutcome.Success ? "" : verdict.ToString());
-            if (verdict == ActionOutcome.Success)
+            if (verdict == ActionOutcome.Success && !sender.CanExecuteOnCurrentThread)
+                result = new(ActionOutcome.Failed, "Input requires a dedicated worker thread");
+            if (result.Outcome == ActionOutcome.Success)
             {
                 try { audit.EnsureWritable(); }
                 catch (Exception) { result = new(ActionOutcome.Failed, "Audit unavailable before sending", AuditFailed: true); }

@@ -1,4 +1,5 @@
 using ExileSight.Platform.Abstractions.Window;
+using ExileSight.Core.Overlay;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Accessibility;
@@ -8,7 +9,8 @@ namespace ExileSight.Platform.Windows.Window;
 /// <summary>Out-of-context hooks live on the caller's UI message loop; callbacks only enqueue refreshes.</summary>
 public sealed class GameWindowTracker : IGameWindow
 {
-    private readonly GameWindowHooks hooks;
+    private readonly IGameWindowHooks hooks;
+    private readonly GameWindowDetection detection;
     private string? lastError;
     public string? LastError => Volatile.Read(ref lastError);
     private readonly WINEVENTPROC callback;
@@ -17,7 +19,6 @@ public sealed class GameWindowTracker : IGameWindow
     private GameWindowState current = GameWindowState.Missing;
     private int pending;
     private bool disposed;
-    private bool streaming;
     public GameWindowState Current => Volatile.Read(ref current);
     public event EventHandler? Changed;
 
@@ -25,6 +26,14 @@ public sealed class GameWindowTracker : IGameWindow
     {
         callback = OnEvent;
         hooks = new GameWindowHooks(callback);
+        detection = GameWindowDetection.Shared;
+    }
+
+    internal GameWindowTracker(IGameWindowHooks hooks, GameWindowDetection detection)
+    {
+        callback = OnEvent;
+        this.hooks = hooks;
+        this.detection = detection;
     }
 
     public void Start()
@@ -35,7 +44,6 @@ public sealed class GameWindowTracker : IGameWindow
             throw new InvalidOperationException("Start requires a UI synchronization context and message loop.");
         try
         {
-            hooks.Start();
             retry = new Timer(_ => QueueRefresh(), null, Timeout.Infinite, Timeout.Infinite);
             Refresh();
         }
@@ -44,9 +52,15 @@ public sealed class GameWindowTracker : IGameWindow
 
     private unsafe void OnEvent(HWINEVENTHOOK hook, uint eventId, HWND hwnd, int objectId,
         int childId, uint thread, uint time)
+        => HandleEvent(eventId, (nint)hwnd.Value, objectId, childId);
+
+    internal void HandleEvent(uint eventId, nint handle, int objectId = 0, int childId = 0)
     {
-        if (eventId == WinEvents.Foreground || ((nint)hwnd.Value == Current.Handle && objectId == 0 && childId == 0))
+        if (eventId == WinEvents.Foreground || (handle == Current.Handle && objectId == 0 && childId == 0))
+        {
+            if (eventId is WinEvents.NameChange or WinEvents.Destroy) detection.InvalidateSnapshot();
             QueueRefresh();
+        }
     }
 
     private void QueueRefresh()
@@ -62,42 +76,23 @@ public sealed class GameWindowTracker : IGameWindow
 
     private void Refresh()
     {
-        try { RefreshCore(); }
-        catch (Exception error)
-        {
-            // Missing state notifies the host to hide, even if hook installation keeps failing.
-            Publish(GameWindowState.Missing with { LastEventTime = DateTimeOffset.UtcNow }, error.Message);
-        }
+        var result = TrackingRefresh.Run(RefreshCore);
+        Publish(result.State, result.Error);
     }
 
-    private unsafe void RefreshCore()
+    private GameWindowState RefreshCore()
     {
-        HWND hwnd = new(Current.Handle);
-        if (hwnd.IsNull || !PInvoke.IsWindow(hwnd) ||
-            (streaming && !GameWindowDetection.HasGameTitle(hwnd)))
-            hwnd = GameWindowDetection.Find(out streaming);
-        var next = GameWindowState.Missing with { LastEventTime = DateTimeOffset.UtcNow };
-        if (!hwnd.IsNull)
-        {
-            RECT rect;
-            System.Drawing.Point origin = default;
-            if (PInvoke.GetClientRect(hwnd, &rect) && PInvoke.ClientToScreen(hwnd, &origin))
-                next = new(true, (nint)hwnd.Value, new(origin.X, origin.Y,
-                    rect.right - rect.left, rect.bottom - rect.top),
-                    Math.Max(96u, PInvoke.GetDpiForWindow(hwnd)),
-                    PInvoke.GetForegroundWindow() == hwnd, PInvoke.IsIconic(hwnd), DateTimeOffset.UtcNow);
-        }
-        uint pid = 0;
-        if (next.Found) PInvoke.GetWindowThreadProcessId(hwnd, &pid);
+        hooks.Start();
+        var next = detection.Refresh(Current, out uint pid);
         hooks.ScopeTo(pid);
-        Publish(next, null);
+        return next;
     }
 
     private void Publish(GameWindowState next, string? error)
     {
         Volatile.Write(ref lastError, error);
         Volatile.Write(ref current, next);
-        retry?.Change(next.Found ? Timeout.Infinite : 1500, Timeout.Infinite);
+        retry?.Change(new TrackingRefresh(next, error).RetryMilliseconds, Timeout.Infinite);
         foreach (EventHandler handler in Changed?.GetInvocationList() ?? [])
         {
             try { handler(this, EventArgs.Empty); }

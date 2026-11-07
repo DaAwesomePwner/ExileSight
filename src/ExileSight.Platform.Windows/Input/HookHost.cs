@@ -1,6 +1,7 @@
 using ExileSight.Core.Input;
 using ExileSight.Platform.Abstractions.Input;
 using ExileSight.Platform.Abstractions.Time;
+using ExileSight.Platform.Abstractions.Window;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
@@ -8,11 +9,13 @@ using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace ExileSight.Platform.Windows.Input;
 
-public sealed class HookHost : IHotkeys
+public sealed partial class HookHost : IHotkeys
 {
     private readonly HotkeyDispatcher dispatcher;
     private readonly IClock clock;
-    private readonly Action<IntentToken, HotkeyBinding> execute;
+    private readonly KeyboardRepeatSettings repeatSettings;
+    private readonly PressRouter router;
+    private readonly Action<HotkeyBinding, ActionResult> report;
     private readonly PressQueue queue = new();
     private readonly EventWaitHandle stop = new(false, EventResetMode.ManualReset);
     private readonly AutoResetEvent ready = new(false);
@@ -21,12 +24,23 @@ public sealed class HookHost : IHotkeys
     private readonly HOOKPROC mouse;
     private Thread? hookThread;
     private Thread? worker;
+    private Timer? repeatTimer;
+    private readonly HookForeground foreground;
     private volatile Exception? startupError;
     private int disposed;
-    private int refreshForeground;
-    public HookHost(HotkeyDispatcher dispatcher, IClock clock, Action<IntentToken, HotkeyBinding> execute)
+    private readonly HotkeyConfiguration configuration;
+    internal HookHost(HotkeyDispatcher dispatcher, IClock clock,
+        Func<IntentToken?, HotkeyBinding, ActionResult> execute, KeyboardRepeatSettings repeatSettings,
+        Action<HotkeyBinding, ActionResult>? report = null, IGameWindow? gameWindow = null)
     {
-        this.dispatcher = dispatcher; this.clock = clock; this.execute = execute;
+        this.repeatSettings = repeatSettings;
+        ArgumentNullException.ThrowIfNull(gameWindow);
+        foreground = new(gameWindow, dispatcher.Configuration, clock);
+        dispatcher.SetRepeatProvider(() => repeatSettings.SilenceMilliseconds);
+        configuration = dispatcher.Configuration;
+        this.dispatcher = dispatcher; this.clock = clock;
+        router = new(dispatcher, clock, GameForeground.IsGame, execute);
+        this.report = report ?? ((_, _) => { });
         keyboard = Keyboard; mouse = Mouse;
     }
     public bool IsAlive => hookThread?.IsAlive == true && worker?.IsAlive == true && startupError is null;
@@ -34,32 +48,45 @@ public sealed class HookHost : IHotkeys
     {
         ObjectDisposedException.ThrowIf(disposed != 0, this);
         if (hookThread is not null) throw new InvalidOperationException("Hooks already started");
+        repeatSettings.Refresh(); // caller thread, before the hook can receive any input
         worker = new Thread(Work) { IsBackground = true, Name = "Input actions" };
+        worker.SetApartmentState(ApartmentState.MTA);
         hookThread = new Thread(Run) { IsBackground = true, Name = "Low-level input hooks" };
         hookThread.SetApartmentState(ApartmentState.STA);
+        foreground.Start();
+        repeatTimer = new Timer(_ => RefreshRepeat(), null, 1000, 1000);
         worker.Start(); hookThread.Start(); started.Wait();
         if (startupError is not null) { Dispose(); throw new InvalidOperationException("Hook startup failed", startupError); }
     }
     private void Work()
     {
-        try { Consume(); }
+        try
+        {
+            Volatile.Write(ref workerApartment, (int)Thread.CurrentThread.GetApartmentState());
+            Consume();
+        }
         catch (Exception error)
         {
             startupError = error;
             stop.Set();
         }
     }
-    private unsafe void Consume()
+    private void RefreshRepeat()
+    {
+        try { repeatSettings.Refresh(); }
+        catch (Exception error) { startupError = error; stop.Set(); ready.Set(); }
+    }
+    private void Consume()
     {
         while (!stop.WaitOne(0))
         {
-            if (Interlocked.Exchange(ref refreshForeground, 0) != 0) GameForeground.IsGame();
+            ReportIgnoredHotkey();
             while (queue.TryDequeue(out var press))
             {
                 if (stop.WaitOne(0)) return;
-                if (GameForeground.IsGame()) execute(dispatcher.Issue(press!), press!.Binding);
+                report(press!.Binding, router.Route(press));
             }
-            ready.WaitOne(); // wake only for physical input or shutdown
+            ready.WaitOne();
         }
     }
     private unsafe void Run()
@@ -67,7 +94,6 @@ public sealed class HookHost : IHotkeys
         HHOOK k = default, m = default;
         try
         {
-            GameForeground.IsGame(); // one startup snapshot; never poll
             for (var key = 0; key < 256; key++)
                 if (Down(key)) dispatcher.SeedHeld(key);
             var module = PInvoke.GetModuleHandle(null);
@@ -80,9 +106,11 @@ public sealed class HookHost : IHotkeys
             {
                 PInvoke.MsgWaitForMultipleObjectsEx(1, &handle, 100, QUEUE_STATUS_FLAGS.QS_ALLINPUT,
                     MSG_WAIT_FOR_MULTIPLE_OBJECTS_EX_FLAGS.MWMO_INPUTAVAILABLE);
+                dispatcher.ReconcileHeld(Down);
                 MSG message;
                 while (PInvoke.PeekMessage(&message, default, 0, 0, PEEK_MESSAGE_REMOVE_TYPE.PM_REMOVE))
                 {
+                    dispatcher.ReconcileHeld(Down);
                     PInvoke.TranslateMessage(&message);
                     PInvoke.DispatchMessage(&message);
                 }
@@ -103,27 +131,40 @@ public sealed class HookHost : IHotkeys
         if (code >= 0)
         {
             var key = *(KBDLLHOOKSTRUCT*)data.Value;
-            var injected = (key.flags & KBDLLHOOKSTRUCT_FLAGS.LLKHF_INJECTED) != 0;
+            if (!NativeHookEvent.KeyboardAllowed((uint)message.Value, (uint)key.flags))
+                return PInvoke.CallNextHookEx(default, code, message, data);
             // Hook timestamps share the system tick epoch; unsigned subtraction handles 32-bit wrap.
             var now = clock.Milliseconds;
             var timestamp = now - unchecked((uint)now - key.time);
             var physical = new PhysicalKey((int)key.vkCode,
-                message.Value is 0x100 or 0x104, injected, Modifiers(), timestamp);
-            var active = false;
-            if (dispatcher.IsCandidate(physical))
-            {
-                active = GameForeground.IsCandidate(out var refresh);
-                if (refresh) { Interlocked.Exchange(ref refreshForeground, 1); ready.Set(); }
-            }
-            var decision = dispatcher.Observe(physical, active);
+                message.Value is 0x100 or 0x104, false, Modifiers(), timestamp);
+            var decision = ObserveWithFocus(physical);
             // Overflow fails closed: the key stays blocked, but no intent/action is issued.
             if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
             if (decision.Block) return new LRESULT(1);
         }
         return PInvoke.CallNextHookEx(default, code, message, data);
     }
-    private static LRESULT Mouse(int code, WPARAM message, LPARAM data) =>
-        PInvoke.CallNextHookEx(default, code, message, data); // no mouse token issuance in Phase 0
+    private unsafe LRESULT Mouse(int code, WPARAM message, LPARAM data)
+    {
+        if (code >= 0 && NativeHookEvent.IsMouseButton((uint)message.Value))
+        {
+            var mouse = *(MSLLHOOKSTRUCT*)data.Value;
+            if (!NativeHookEvent.MouseAllowed((uint)message.Value, (uint)mouse.flags))
+                return PInvoke.CallNextHookEx(default, code, message, data);
+            var now = clock.Milliseconds;
+            var key = MouseButtonEvent.Decode((uint)message.Value, mouse.mouseData,
+                false, KeyModifiers.None,
+                now - unchecked((uint)now - mouse.time));
+            if (key is { } physical)
+            {
+                var decision = ObserveWithFocus(physical with { Modifiers = Modifiers() });
+                if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
+                if (decision.Block) return new LRESULT(1);
+            }
+        }
+        return PInvoke.CallNextHookEx(default, code, message, data);
+    }
     public static KeyModifiers Modifiers()
     {
         var result = KeyModifiers.None;
@@ -138,6 +179,12 @@ public sealed class HookHost : IHotkeys
     {
         if (Interlocked.Exchange(ref disposed, 1) != 0) return;
         stop.Set(); ready.Set(); hookThread?.Join(); worker?.Join();
+        foreground.Dispose();
+        if (repeatTimer is not null)
+        {
+            using var drained = new ManualResetEvent(false);
+            if (repeatTimer.Dispose(drained)) drained.WaitOne();
+        }
         stop.Dispose(); ready.Dispose(); started.Dispose();
     }
 }

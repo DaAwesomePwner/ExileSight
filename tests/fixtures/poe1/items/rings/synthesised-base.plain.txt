@@ -1,0 +1,7 @@
+Item Class: Rings
+Rarity: Normal
+Synthesised Gold Ring
+--------
+Item Level: 84
+--------
++12% to Fire Resistance (implicit)

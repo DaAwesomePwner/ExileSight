@@ -1,0 +1,8 @@
+Item Class: Divination Cards
+Rarity: Divination Card
+The Encroaching Darkness
+--------
+Stack Size: 1/8
+--------
+Map
+Corrupted

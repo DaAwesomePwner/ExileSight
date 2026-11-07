@@ -1,0 +1,10 @@
+Item Class: Two Hand Axes
+Rarity: Normal
+Vaal Axe
+--------
+Two Handed Axe
+Physical Damage: 40-80
+Critical Strike Chance: 5.00%
+Attacks per Second: 1.50
+--------
+Item Level: 84

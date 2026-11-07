@@ -1,0 +1,51 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Bows",
+    "Rarity": "Magic",
+    "Name": "Heavy Spine Bow",
+    "ItemLevel": 84,
+    "Influences": [
+      "Crusader"
+    ],
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "40% increased Physical Damage",
+        "Kind": "Explicit",
+        "AffixType": "Unknown",
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 40,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ],
+    "BaseType": null
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Text": "40(40-49)% increased Physical Damage",
+        "Kind": "Explicit",
+        "AffixType": "Prefix",
+        "Tier": 8,
+        "AffixName": "Heavy",
+        "Values": [
+          {
+            "Value": 40,
+            "Minimum": 40,
+            "Maximum": 49
+          }
+        ]
+      }
+    ],
+    "BaseType": "Spine Bow"
+  }
+}

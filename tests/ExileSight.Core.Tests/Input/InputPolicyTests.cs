@@ -19,12 +19,12 @@ public sealed class InputPolicyTests
     {
         var dispatcher = new HotkeyDispatcher(registry, [new("copy", 118, 0, true, Copy)]);
         var decision = dispatcher.Observe(new(118, true, false, 0, timestamp ?? clock.Milliseconds), true);
-        return dispatcher.Issue(decision.Press!);
+        return dispatcher.IssueForTest(decision.Press!);
     }
     [Fact]
     public void MissingAndForgedTokensAreRefused()
     {
-        var registry = new IntentRegistry(clock);
+        var registry = TestIntents.Create(clock);
         Assert.Equal(ActionOutcome.MissingToken, registry.Consume(null, out _));
         Assert.Equal(ActionOutcome.UsedOrUnknownToken, registry.Consume(new IntentToken(), out _));
     }
@@ -35,7 +35,7 @@ public sealed class InputPolicyTests
     [InlineData(-1, ActionOutcome.Expired)]
     public void LifetimeUsesPhysicalTimestamp(long age, ActionOutcome expected)
     {
-        var registry = new IntentRegistry(clock);
+        var registry = TestIntents.Create(clock);
         var token = Token(registry);
         clock.Milliseconds += age;
         Assert.Equal(expected, registry.Consume(token, out var press));
@@ -49,7 +49,7 @@ public sealed class InputPolicyTests
     [InlineData(true, true, ActionOutcome.Success)]
     public void PolicyConsumesEvenOnFailure(bool foreground, bool declared, ActionOutcome expected)
     {
-        var registry = new IntentRegistry(clock);
+        var registry = TestIntents.Create(clock);
         var gate = new GatePolicy(registry, declared ? [ActionKind.CopyItem] : []);
         var token = Token(registry);
         Assert.Equal(expected, gate.Validate(token, Copy, foreground, out _));
@@ -58,14 +58,14 @@ public sealed class InputPolicyTests
     [Fact]
     public void QueuingDoesNotExtendLifetime()
     {
-        var registry = new IntentRegistry(clock);
+        var registry = TestIntents.Create(clock);
         var token = Token(registry, clock.Milliseconds - 1600);
         Assert.Equal(ActionOutcome.Expired, registry.Consume(token, out _));
     }
     [Fact]
     public void OnlyOneConcurrentConsumerSucceeds()
     {
-        var registry = new IntentRegistry(clock);
+        var registry = TestIntents.Create(clock);
         var token = Token(registry);
         var outcomes = new ActionOutcome[20];
         Parallel.For(0, outcomes.Length, i => outcomes[i] = registry.Consume(token, out _));
@@ -74,7 +74,7 @@ public sealed class InputPolicyTests
     [Fact]
     public void TokenCannotCrossRegistryBoundary()
     {
-        var token = Token(new IntentRegistry(clock));
-        Assert.Equal(ActionOutcome.UsedOrUnknownToken, new IntentRegistry(clock).Consume(token, out _));
+        var token = Token(TestIntents.Create(clock));
+        Assert.Equal(ActionOutcome.UsedOrUnknownToken, TestIntents.Create(clock).Consume(token, out _));
     }
 }

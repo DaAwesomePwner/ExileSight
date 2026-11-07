@@ -27,3 +27,17 @@ GetModuleHandle
 GetWindowText
 MapVirtualKey
 GlobalSize
+MSLLHOOKSTRUCT
+SystemParametersInfo
+FILTERKEYS
+EnumClipboardFormats
+RegisterClass
+UnregisterClass
+DefWindowProc
+GetOpenClipboardWindow
+
+FKF_FILTERKEYSON
+RegisterClipboardFormat
+
+IsClipboardFormatAvailable
+GetClipboardOwner

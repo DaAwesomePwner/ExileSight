@@ -1,0 +1,14 @@
+Item Class: Helmets
+Rarity: Rare
+Doom Shelter
+Royal Burgonet
+--------
+Armour: 400 (augmented)
+Quality: +20% (augmented)
+--------
+Sockets: R-R-G B
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Fecund" (Tier: 1) — Life }
++92(90-99) to maximum Life

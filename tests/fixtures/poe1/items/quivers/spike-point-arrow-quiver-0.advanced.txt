@@ -1,0 +1,9 @@
+Item Class: Quivers
+Rarity: Rare
+Doom Shelter
+Spike-Point Arrow Quiver
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Fecund" (Tier: 1) — Life }
++92(90-99) to maximum Life

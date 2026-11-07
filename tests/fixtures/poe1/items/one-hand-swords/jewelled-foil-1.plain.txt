@@ -1,0 +1,15 @@
+Item Class: One Hand Swords
+Rarity: Rare
+Doom Shelter
+Jewelled Foil
+--------
+Thrusting One Handed Sword
+Physical Damage: 40-80 (augmented)
+Critical Strike Chance: 5.00%
+Attacks per Second: 1.50
+--------
+Item Level: 84
+--------
+40% increased Physical Damage
+--------
+Hunter Item

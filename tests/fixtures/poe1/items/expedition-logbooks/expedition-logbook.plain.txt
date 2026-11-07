@@ -1,0 +1,5 @@
+Item Class: Expedition Logbooks
+Rarity: Rare
+Expedition Logbook
+--------
+Item Level: 83

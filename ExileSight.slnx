@@ -8,4 +8,6 @@
   <Project Path="tests/ExileSight.Architecture.Tests/ExileSight.Architecture.Tests.csproj" />
   <Project Path="tests/ExileSight.Platform.Windows.Tests/ExileSight.Platform.Windows.Tests.csproj" />
   <Project Path="tests/ExileSight.BanCoverage.Tests/ExileSight.BanCoverage.Tests.csproj" />
+  <Project Path="tools/ExileSight.RedactLog/ExileSight.RedactLog.csproj" />
+  <Project Path="tests/ExileSight.DataGen.Tests/ExileSight.DataGen.Tests.csproj" />
 </Solution>

@@ -1,0 +1,8 @@
+Item Class: Rings
+Rarity: Magic
+Healthy Gold Ring of the Fox
+--------
+Item Level: 84
+--------
++20 to maximum Life
++10 to Dexterity

@@ -1,0 +1,54 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Maps",
+    "Rarity": "Rare",
+    "Name": "Doom Shelter",
+    "BaseType": "Dunes Map",
+    "ItemLevel": 84,
+    "MapTier": 16,
+    "MapQuantity": 80,
+    "MapRarity": 40,
+    "MapPackSize": 25,
+    "Mirrored": true,
+    "Warnings": [],
+    "OtherText": [
+      "Travel to this Map by using it in a personal Map Device. Maps can only be used once."
+    ]
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "Monsters deal 90% extra Physical Damage as Fire",
+        "Kind": "Explicit",
+        "AffixType": "Unknown",
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 90,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Text": "Monsters deal 90(90-110)% extra Physical Damage as Fire",
+        "Kind": "Explicit",
+        "AffixType": "Prefix",
+        "Tier": 1,
+        "AffixName": "Burning",
+        "Values": [
+          {
+            "Value": 90,
+            "Minimum": 90,
+            "Maximum": 110
+          }
+        ]
+      }
+    ]
+  }
+}

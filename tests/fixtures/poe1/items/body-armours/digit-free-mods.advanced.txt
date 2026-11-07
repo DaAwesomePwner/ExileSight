@@ -1,0 +1,9 @@
+Item Class: Body Armours
+Rarity: Unique
+Skin of the Lords
+Simple Robe
+--------
+Item Level: 84
+--------
+{ Unique Modifier }
+Iron Reflexes

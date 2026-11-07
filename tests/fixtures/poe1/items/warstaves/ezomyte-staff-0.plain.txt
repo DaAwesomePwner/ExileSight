@@ -1,0 +1,13 @@
+Item Class: Warstaves
+Rarity: Rare
+Doom Shelter
+Ezomyte Staff
+--------
+Warstaff
+Physical Damage: 40-80 (augmented)
+Critical Strike Chance: 5.00%
+Attacks per Second: 1.50
+--------
+Item Level: 84
+--------
+40% increased Physical Damage

@@ -1,0 +1,50 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "One Hand Maces",
+    "Rarity": "Rare",
+    "Name": "Doom Shelter",
+    "BaseType": "Behemoth Mace",
+    "ItemLevel": 84,
+    "Influences": [
+      "Eater of Worlds"
+    ],
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "40% increased Physical Damage",
+        "Kind": "Explicit",
+        "AffixType": "Unknown",
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 40,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Text": "40(40-49)% increased Physical Damage",
+        "Kind": "Explicit",
+        "AffixType": "Prefix",
+        "Tier": 8,
+        "AffixName": "Heavy",
+        "Values": [
+          {
+            "Value": 40,
+            "Minimum": 40,
+            "Maximum": 49
+          }
+        ]
+      }
+    ]
+  }
+}

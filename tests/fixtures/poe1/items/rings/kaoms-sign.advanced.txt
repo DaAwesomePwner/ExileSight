@@ -1,0 +1,15 @@
+Item Class: Rings
+Rarity: Unique
+Kaom's Sign
+Coral Ring
+--------
+{ Implicit Modifier }
++30(20-30) to maximum Life (implicit)
+--------
+{ Unique Modifier }
++15(10-20) to Strength
+{ Unique Modifier }
++1 to Maximum Endurance Charges
+--------
+A token from the sea.
+A promise from the king.

@@ -1,0 +1,9 @@
+Item Class: Life Flasks
+Rarity: Normal
+Divine Life Flask
+--------
+Recovers 2400 Life over 7 Seconds
+Consumes 15 of 45 Charges on use
+Currently has 45 Charges
+--------
+Item Level: 84

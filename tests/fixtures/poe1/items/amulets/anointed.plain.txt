@@ -1,0 +1,12 @@
+Item Class: Amulets
+Rarity: Rare
+Doom Beads
+Onyx Amulet
+--------
+Allocates Charisma (enchant)
+--------
++16 to all Attributes (implicit)
+--------
++92 to maximum Life (fractured)
+--------
+Note: ~price 3/2 divine

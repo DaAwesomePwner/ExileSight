@@ -1,0 +1,21 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Shields",
+    "Rarity": "Normal",
+    "Name": "Pinnacle Tower Shield",
+    "BaseType": "Pinnacle Tower Shield",
+    "ItemLevel": 84,
+    "Quality": 20,
+    "SocketCount": 4,
+    "MaximumLinks": 3,
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

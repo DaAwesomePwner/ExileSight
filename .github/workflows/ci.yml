@@ -14,12 +14,36 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
+      - name: Compute package version
+        shell: pwsh
+        run: |
+          $version = "0.1.$env:GITHUB_RUN_NUMBER"
+          if ($env:GITHUB_REF -ne "refs/heads/main") { $version += "-ci.$env:GITHUB_RUN_NUMBER" }
+          "APP_VERSION=$version" >> $env:GITHUB_ENV
       - run: dotnet restore ExileSight.slnx
       - run: dotnet build ExileSight.slnx -c Release -warnaserror
       - run: dotnet test ExileSight.slnx -c Release --no-build
-      - run: dotnet publish src/ExileSight.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/publish
+      - run: dotnet publish src/ExileSight.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.APP_VERSION }} -o artifacts/publish
       - uses: actions/upload-artifact@v4
         with:
           name: ExileSight-App-win-x64
           path: artifacts/publish/
+          if-no-files-found: error
+      - name: Publish Client.txt redaction tool
+        run: dotnet publish tools/ExileSight.RedactLog -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.APP_VERSION }} -o artifacts/redactlog
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ExileSight-RedactLog-win-x64
+          path: artifacts/redactlog/
+          if-no-files-found: error
+      - name: Install pinned Velopack CLI
+        run: dotnet tool install --global vpk --version 1.2.161
+      - name: Publish folder for Velopack
+        run: dotnet publish src/ExileSight.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:Version=${{ env.APP_VERSION }} -o artifacts/velopack
+      - name: Pack installer and updates (no publishing)
+        run: vpk pack --packId ExileSight --packVersion ${{ env.APP_VERSION }} --packDir artifacts/velopack --mainExe ExileSight.App.exe --packTitle ExileSight --outputDir Releases
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ExileSight-Velopack-win-x64
+          path: Releases/
           if-no-files-found: error

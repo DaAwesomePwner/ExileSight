@@ -1,0 +1,12 @@
+Item Class: Mana Flasks
+Rarity: Magic
+Perpetual Eternal Mana Flask
+--------
+Recovers 2400 Mana over 7 Seconds
+Consumes 15 of 45 Charges on use
+Currently has 45 Charges
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Perpetual" (Tier: 1) — Flask }
+30(25-30)% increased Charge Recovery

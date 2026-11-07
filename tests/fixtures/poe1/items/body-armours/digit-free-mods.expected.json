@@ -1,0 +1,14 @@
+{
+  "common": {
+    "Mods": [
+      {
+        "Text": "Iron Reflexes",
+        "Values": []
+      }
+    ],
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {},
+  "advanced": {}
+}
