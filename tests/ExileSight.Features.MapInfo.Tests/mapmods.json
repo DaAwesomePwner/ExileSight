@@ -1,0 +1,36 @@
+{
+  "Entries": [
+    {
+      "Id": "012",
+      "Type": "monsters",
+      "Text": "crit/multi: +%",
+      "Patterns": [
+        "monsters have # increased critical strike chance|# to monster critical strike multiplier"
+      ]
+    },
+    {
+      "Id": "014",
+      "Type": "monsters",
+      "Text": "damage: +%",
+      "Patterns": [
+        "# increased monster damage"
+      ]
+    },
+    {
+      "Id": "016",
+      "Type": "monsters",
+      "Text": "phys as fire: %",
+      "Patterns": [
+        "monsters deal # extra physical damage as fire"
+      ]
+    },
+    {
+      "Id": "307",
+      "Type": "expedition",
+      "Text": "explosives count: +%",
+      "Patterns": [
+        "# increased number of explosives"
+      ]
+    }
+  ]
+}

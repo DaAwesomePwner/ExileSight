@@ -26,4 +26,6 @@
   <Project Path="tests/ExileSight.Features.Macros.Tests/ExileSight.Features.Macros.Tests.csproj" />
   <Project Path="src/ExileSight.Features.Timers/ExileSight.Features.Timers.csproj" />
   <Project Path="tests/ExileSight.Features.Timers.Tests/ExileSight.Features.Timers.Tests.csproj" />
+  <Project Path="src/ExileSight.Features.MapInfo/ExileSight.Features.MapInfo.csproj" />
+  <Project Path="tests/ExileSight.Features.MapInfo.Tests/ExileSight.Features.MapInfo.Tests.csproj" />
 </Solution>
