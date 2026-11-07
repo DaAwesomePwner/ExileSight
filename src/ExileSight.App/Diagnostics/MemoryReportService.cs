@@ -13,10 +13,13 @@ public sealed class MemoryReportService(IAppPaths paths, ILogger<MemoryReportSer
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        if (Environment.GetEnvironmentVariable("EXILESIGHT_PERF_MEMORY_REPORT") != "1") return;
+        var mode = Environment.GetEnvironmentVariable("EXILESIGHT_PERF_MEMORY_REPORT");
+        if (mode is not ("1" or "after-measurement")) return;
         var path = Path.Combine(paths.RootDirectory, "perf-memory.json");
         try
         {
+            if (mode == "after-measurement")
+                await MemoryReportRequest.WaitAsync(paths.RootDirectory, stoppingToken).ConfigureAwait(false);
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
@@ -42,6 +45,7 @@ public sealed class MemoryReportService(IAppPaths paths, ILogger<MemoryReportSer
                 }
                 catch (Exception error) when (error is IOException or UnauthorizedAccessException)
                 { logger.LogWarning("Memory report unavailable: {ExceptionType}", error.GetType().Name); }
+                if (mode == "after-measurement") return;
                 await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken).ConfigureAwait(false);
             }
         }

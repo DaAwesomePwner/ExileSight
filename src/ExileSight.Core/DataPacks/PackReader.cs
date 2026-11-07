@@ -42,6 +42,7 @@ internal sealed class PackReader : IPackReader
         lock (gate)
             return entries.TryGetValue(packId, out var e) ? new(packId, e.Version, e.Source, e.Payload, e.Data) : null;
     }
+    private static bool TypeIsItemPack(string id) => PackViews.TypeFor(id) == typeof(PackDocument);
     internal void Publish(string packId, DataPack? pack, string source)
     {
         if (pack is not null && (pack.Manifest.PackId != packId || pack.Content.PackId != packId))
@@ -53,6 +54,7 @@ internal sealed class PackReader : IPackReader
         {
             entries.TryGetValue(packId, out var previous);
             changed = previous?.Version != pack?.Manifest.PackVersion || previous?.Hash != hash;
+            if (changed && previous is not null && TypeIsItemPack(packId)) StatPattern.Clear();
             if (pack is null) entries.Remove(packId);
             else if (!changed) entries[packId] = previous! with { Source = source };
             else

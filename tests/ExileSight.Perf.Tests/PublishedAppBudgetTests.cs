@@ -24,7 +24,7 @@ public sealed class PublishedAppBudgetTests(ITestOutputHelper output)
         double? cpuPercent = null;
         long peakPrivateBytes = 0;
         string? failure = null;
-        JsonElement? ownProcessMemoryAtStart = null;
+        var requestReport = Environment.GetEnvironmentVariable("EXILESIGHT_PERF_REQUEST_REPORT") == "1";
         try
         {
             Directory.CreateDirectory(paths.RootDirectory);
@@ -43,15 +43,12 @@ public sealed class PublishedAppBudgetTests(ITestOutputHelper output)
             process = Process.Start(new ProcessStartInfo(executable)
             {
                 WorkingDirectory = Path.GetDirectoryName(executable)!, UseShellExecute = false,
-                Environment = { ["EXILESIGHT_PERF_MEMORY_REPORT"] = "1" }
+                Environment = { ["EXILESIGHT_PERF_MEMORY_REPORT"] = "after-measurement" }
             }) ?? throw new InvalidOperationException("Could not launch published app.");
             Assert.True(process.WaitForInputIdle(30_000), "App did not create its UI message loop.");
             // Allow JIT, initial network refresh and pack preparation to settle.
             await Task.Delay(TimeSpan.FromSeconds(60));
             EnsureTrayOnly(process);
-            var initialMemoryPath = Path.Combine(paths.RootDirectory, "perf-memory.json");
-            if (File.Exists(initialMemoryPath))
-                ownProcessMemoryAtStart = JsonSerializer.Deserialize<JsonElement>(await File.ReadAllTextAsync(initialMemoryPath));
             process.Refresh();
             var initialCpu = process.TotalProcessorTime;
             var clock = Stopwatch.StartNew();
@@ -69,6 +66,16 @@ public sealed class PublishedAppBudgetTests(ITestOutputHelper output)
             } while (true);
             var last = samples[^1];
             cpuPercent = 100 * last.CpuSeconds / last.Seconds;
+            // CPU/private sampling is finished before any own-process diagnostic reads,
+            // JSON serialization or diagnostic file writes are requested.
+            if (requestReport)
+            {
+                await File.WriteAllTextAsync(Path.Combine(paths.RootDirectory, "perf-memory.request"), "snapshot");
+                var deadline = Stopwatch.StartNew();
+                while (!File.Exists(Path.Combine(paths.RootDirectory, "perf-memory.json")) && deadline.Elapsed < TimeSpan.FromSeconds(10))
+                    await Task.Delay(100);
+                Assert.True(File.Exists(Path.Combine(paths.RootDirectory, "perf-memory.json")), "Requested own-process report missing.");
+            }
             Assert.True(cpuPercent < 1, $"Idle CPU {cpuPercent:F3}% >= 1% of one core.");
             Assert.True(peakPrivateBytes < 200_000_000, $"Private bytes {peakPrivateBytes} >= 200 MB.");
         }
@@ -85,18 +92,6 @@ public sealed class PublishedAppBudgetTests(ITestOutputHelper output)
             var memoryPath = Path.Combine(paths.RootDirectory, "perf-memory.json");
             JsonElement? ownProcessMemory = File.Exists(memoryPath)
                 ? JsonSerializer.Deserialize<JsonElement>(await File.ReadAllTextAsync(memoryPath)) : null;
-            object? observedIdleGc = null;
-            if (ownProcessMemoryAtStart is { } before && ownProcessMemory is { } after &&
-                before.TryGetProperty("totalAllocatedBytes", out var allocatedBefore) &&
-                after.TryGetProperty("totalAllocatedBytes", out var allocatedAfter))
-                observedIdleGc = new
-                {
-                    seconds = (after.GetProperty("utc").GetDateTimeOffset() - before.GetProperty("utc").GetDateTimeOffset()).TotalSeconds,
-                    allocatedBytes = allocatedAfter.GetInt64() - allocatedBefore.GetInt64(),
-                    gen0 = after.GetProperty("gen0").GetInt32() - before.GetProperty("gen0").GetInt32(),
-                    gen1 = after.GetProperty("gen1").GetInt32() - before.GetProperty("gen1").GetInt32(),
-                    gen2 = after.GetProperty("gen2").GetInt32() - before.GetProperty("gen2").GetInt32()
-                };
             Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
             await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(new
             {
@@ -105,7 +100,7 @@ public sealed class PublishedAppBudgetTests(ITestOutputHelper output)
                 settleSeconds = 60, cpuPercent, peakPrivateBytes,
                 cpuMarginPercentagePoints = 1 - cpuPercent,
                 memoryMarginBytes = 200_000_000 - peakPrivateBytes,
-                failure, ownProcessMemoryAtStart, ownProcessMemory, observedIdleGc, samples
+                failure, diagnosticsDuringMeasurement = false, reportRequestedAfterMeasurement = requestReport, ownProcessMemory, samples
             }, new JsonSerializerOptions { WriteIndented = true }));
             await DeleteTestDataAsync(paths.RootDirectory);
         }

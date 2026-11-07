@@ -1,199 +1,207 @@
 # Idle performance budget
 
-The 1.0 budget applies to **idle during a normal session, including after item
-checks and other feature use**, not just an untouched tray process. Average CPU
-must be **< 1% of one core** and private memory **< 200,000,000 bytes**. The targets
-for headroom are <= 0.5% CPU and <= 150 MB private memory. Neither target is a
-claim about an unmeasured build.
+The 1.0 gate applies to **idle during a normal session, including after item
+checks and feature use**: average CPU **<1% of one core**, private memory
+**<200,000,000 bytes**. The <=0.5% CPU and <=150 MB memory figures are headroom
+goals, not additional gates. Windows private bytes remain authoritative.
 
 CPU is `100 × delta process CPU seconds / elapsed wall seconds`, without division
-by processor count. One fully occupied core is 100%. Memory is the maximum of
-one-second private-byte samples in decimal MB, not managed heap or working set.
-Spikes between samples can escape this measurement.
+by processor count. One occupied core is 100%. Memory is the maximum one-second
+private-byte sample in decimal MB, not managed heap or working set. Sampling can
+miss shorter spikes.
 
 ## Windows evidence
 
 | Revision / run | CPU | Peak private MB | Result |
 | --- | ---: | ---: | --- |
-| a46cd40, PR merge 82ebad1 / 42417510247 | 0.829% | 1541.30 | Memory failed |
+| a46cd40 / 42417510247 | 0.829% | 1541.30 | Memory failed |
 | Baseline 8ee74d4 / 42419392581 | 0.285% | 1633.94 | Memory failed |
-| 4ca85cc, PR merge 352da9d / 42419392581 | 0.960% | 246.35 | Memory failed; CPU margin only 0.04 pp |
-| Current session-memory fix | Pending PR CI | Pending PR CI | Not yet verified on Windows |
+| 4ca85cc / 42419392581 | 0.960% | 246.35 | Memory failed |
+| a76bed6 / 42422827112 | 0.908% | 222.66 | Memory failed; CPU margin 0.092 pp |
+| Current round, one-shot report after measurement | Pending CI | Pending CI | Unverified |
 
-Reports: [first run](https://github.com/DaAwesomePwner/ExileSight/actions/runs/42417510247),
-[second run](https://github.com/DaAwesomePwner/ExileSight/actions/runs/42419392581).
-Windows build 26100 had four logical processors and a self-contained single-file
-app. At the end of the second run, its own report showed approximately 61 MB
-managed bytes, 126 MB last-GC heap, 157 MB committed, and 87 MB fragmentation.
-Non-GC private memory was approximately 86–90 MB. These different counters have
-different sampling semantics; managed bytes are not total process memory.
+Sources: [first run](https://github.com/DaAwesomePwner/ExileSight/actions/runs/42417510247),
+[second run](https://github.com/DaAwesomePwner/ExileSight/actions/runs/42419392581),
+[third run](https://github.com/DaAwesomePwner/ExileSight/actions/runs/42422827112).
+These used Windows build 26100, four logical processors and a self-contained
+single-file app. The third run's steady private memory was approximately 217 MB.
 
-The gen0/1/2 values 15/14/12 were **cumulative since process startup**, not twelve
-gen2 collections proven to occur in the idle minute. The harness now saves
-snapshots at measurement start/end and reports `observedIdleGc`: allocation-byte
-and collection-count deltas with their actual sample interval. Diagnostic reports
-also include process-query counts/skips and their managed allocations. This will
-separate startup collections, ongoing allocation and GC policy effects in CI.
+The second run had about 61 MB managed, 126 MB heap, 157 MB GC committed and
+87 MB fragmentation. Its gen0/1/2 counts 15/14/12 were cumulative since startup.
+The third run proves there were **zero collections during the idle minute**, with
+989,096 allocated bytes. Its own snapshots showed 25 MB managed, 24.3 MB heap,
+138.9 MB committed and only 0.02 MB fragmentation: about 115 MB committed but
+empty, plus approximately 78 MB non-GC private memory. This explains the remaining
+memory failure; ongoing GC does not explain the CPU regression.
 
-## Root causes and corrections
+## Retention and collection fixes
 
-The real shipping packs reproduce excessive allocation without WPF, prices or
-bundle extraction. Earlier experiments found eager compiled regex preparation,
-retained wire graphs, duplicate validation, and 64 MiB/16 MiB base64 scratch
-buffers. Round 1 removed those buffers and compressed snapshots, but deferring
-large DTO copies and exhaustive regex construction merely moved costs to first
-use. Its initial tray-only claim was insufficient for the session budget.
+Real shipping packs reproduce large allocations without WPF, prices or bundle
+extraction. Earlier fixes removed full JSON/base64 scratch buffers, repeated
+validation and eagerly prepared regexes. Deferring full DTO copies only moved
+retention to first item use and did not satisfy the session budget.
 
-The current implementation:
+The current item adapter is compacted once during background pack loading using
+already validated DTOs. It shares repeated strings, weights, stats and arrays,
+drops unused wire fields, and keeps only prefix/suffix mods in loaded base domains
+(the only mods FindMod can return). Construction pools are released afterward.
+Guide views share identical immutable gem requirement maps and levels.
 
-- Builds one compact item adapter on the background pack-loading path while
-  validated DTOs are already available; first use no longer deserializes three
-  full copies. Unused pack fields are released. Only prefix/suffix mods whose
-  domains occur in loaded bases are retained: these are the only entries
-  `FindMod` can return. Repeated strings, weights, stats and arrays are shared
-  within the version; construction pools are then released.
-- Uses a necessary literal from each template line to reject unrelated variants
-  before constructing regexes. Empty literals fall back to matching; the existing
-  regex/value/condition logic remains authoritative. Fragment patterns are built
-  only for candidate mods, with at most 512 stat variants retaining regexes.
-  Evicted patterns rebuild identically. Fixture lines are compared against the
-  frozen exhaustive matcher; existing parser/ItemInfo fixtures remain unchanged.
-- Shares identical immutable guide gem requirement maps and levels rather than
-  retaining tens of thousands of equivalent dictionaries. Source detachment and
-  immutability have regression coverage.
-- Removes the deferred Lazy entirely. Failed preparation does not publish an
-  adapter or cache an exception; the next load retries even at the same version.
-  Successful unchanged versions reuse the same adapter. Manifest scoping, shared
-  lazy pack views, hash identity and Changed notifications remain unchanged.
+Literal candidates reject unrelated stat templates before regex construction;
+regex/value/condition matching remains authoritative. Covers fragments are lazy.
+The 512-entry matcher cache now has weak keys **and a weak eviction queue**.
+Item-pack version/content replacement or removal clears both before Changed
+notifications; source-only publication keeps them. Late old-version calls cannot
+root obsolete variants. Tests cover eviction, invalidation and collectibility.
+Shared pack views still parse once per version; scoped access, hashes and Changed
+semantics are unchanged. Failed adapter construction retries on the next load.
 
-### First use and session measurements
+The new real-pack equivalence test compares every fixture's FindMod results and
+complete ItemInfoCalculator output against the frozen **4ca85cc adapter, calculator,
+identity and defence helpers**. All 172 fixture files (plus the synthetic item)
+match, including five successful mod groups. Successful
+real-pack matches are required, including a synthetic Fecund Glorious Plate.
+StatText has a separate frozen exhaustive-oracle comparison. No game packs are
+committed. See also [matching/preparation guidance](../src/ExileSight.Core/DataPacks/README.md).
 
-Production `PackLoader`, `PackStartup`, `MatchLine`, `FindMod` and
-`ItemInfoCalculator` were measured with verified packs from run `42414705210` on
-macOS ARM64/.NET 10.0.14. The first item is a synthetic advanced-copy Glorious
-Plate with the real Fecund life affix. The session stage checks every repository
-item fixture. Values below include the test host's managed baseline and are
-**not Windows private-memory measurements**.
+After a bulk load allocating >=32 MB, PackStartup performs one
+`GC.Collect(2, GCCollectionMode.Aggressive, blocking: true, compacting: true)`.
+[Aggressive explicitly requests decommit](https://github.com/dotnet/runtime/blob/v10.0.0/src/coreclr/System.Private.CoreLib/src/System/GC.CoreCLR.cs),
+unlike the earlier Forced collection that left empty committed memory on Windows.
+Both loading and reclamation explicitly use Task.Run; the collection action has
+no awaits, so it cannot execute on the hook/UI thread even if a read delegate
+completes there. GC can still pause managed threads globally during collection.
+There is no periodic GC timer and no collection on an item check.
 
-| Probe stage | 4ca85cc | Current fix |
+ConserveMemory=9 remains: earlier natural-GC probes ended at 193.46 MB committed
+with policy 5 versus 105.41 MB with policy 9. No hard heap limit, RetainVM or
+GC-affinity override is added. A prior 96 MiB hard-limit experiment failed to
+load every pack. Policy changes are not used to conceal live retention.
+
+## Real-pack session measurements and enforced ceilings
+
+The production PackLoader/PackStartup/MatchLine/FindMod/ItemInfoCalculator path
+runs with verified packs from run 42414705210. Local measurements below are
+macOS ARM64/.NET 10.0.14, **not Windows private-memory results**.
+
+| Measurement | Earlier evidence | Current Aggressive/background path |
 | --- | ---: | ---: |
-| First item latency | 534.0 ms | 26.8 ms |
-| Live managed bytes after first item, full GC | 244.48 MB | 38.68 MB |
-| Tray live managed bytes, full GC | 34 MB in prior probe | 35.50 MB |
-| Live managed bytes after fixture session, full GC | Not measured | 39.21 MB |
+| First item latency | 534.0 ms at 4ca85cc | 22.0 ms |
+| Full-GC live heap after session | 244.48 MB after first item at 4ca85cc | 39.88 MB |
+| Committed immediately after startup load | 71.53 MB, background Forced comparison | 71.20 MB |
+| Startup collection pause | 15.8 ms, background Forced comparison | 15.9 ms |
+| Natural committed after fixture items | 37.32 MB, background Forced comparison | 37.32 MB |
+| Natural fragmentation after fixture items | 8.50 MB, background Forced comparison | 0.108 MB |
+| Committed immediately after refresh load | Not recorded in comparison | 91.03 MB |
+| Refresh collection pause | 13.1 ms, background Forced comparison | 11.9 ms |
+| Natural committed after refresh and more items | 31.83 MB, background Forced comparison | 34.50 MB |
+| Natural fragmentation after refresh and more items | 0.032 MB, background Forced comparison | 0.029 MB |
 
-The enforced Core-path limits are < 50 MB retained heap increase after the
-session and < 500 ms for first item use. Full GC at probe sample points measures
-live data. Raw evidence is in `tests/ExileSight.Perf.Tests/evidence/`.
+The local comparison does not establish a decommit advantage for Aggressive on
+macOS. Its Windows effect and CPU without diagnostic sampling require the next
+CI run. Raw observations are in `tests/ExileSight.Perf.Tests/evidence/`;
+`round3-background-forced.json` and `round3-aggressive.json` record that Debug comparison.
+A Release repeat also passed: 37.34/31.82 MB committed after items/refresh,
+70.22/91.10 MB immediately after loads, 16.9/11.8 ms collection pauses and
+22.0 ms first use (`round3-release.json`).
 
-After reducing live retention, bulk-load LOH fragmentation still left 108.82 MB
-committed in the probe. Compacting once after pack preparation reduced that to
-31.69 MB after the session; live data stayed approximately 39 MB. Production now
-performs one blocking compacting collection after a load allocating >=32 MB,
-once transient loader DTOs are out of scope. Small loads, idle polling and item
-checks do not trigger this cleanup. The measured bulk-load pause was 23.8 ms;
-Windows startup/hourly-refresh pause and committed bytes need CI confirmation.
+The enforced probe now runs all fixture items, performs one same-version pack
+refresh through the production coordinator (verified local fallback reads, no
+network), runs the items again, and records committed bytes and fragmentation.
+**No diagnostic forced GC occurs until after both natural session observations.**
+Production bulk-load reclamation remains enabled because it is normal behavior.
+The final full-GC sample still enforces <50 MB live heap increase; first use must
+remain <500 ms. Both collection actions assert thread-pool execution and report
+pause duration and committed-after-load bytes.
 
-Before bulk-load reclamation, 60-second probes without diagnostic forced GC
-ended at 193.46 MB GC committed with ConserveMemory=5 and 105.41 MB with 9.
-With reclamation and policy 9, committed memory was 84.71 MB tray-idle and
-91.18 MB after the fixture session; first use was 24.7 ms and cleanup 24.7 ms.
-No gen2 collection occurred during the final idle minute. These natural-GC
-experiments retain uncollected garbage and fail the probe's stricter 50 MB live
-assertion; they are policy comparisons, not the enforced full-GC live check.
-Raw evidence includes `session-natural-reclaim.json`. Keep ConserveMemory=9;
-a 96 MiB hard-limit experiment could not load all packs. No hard limit, RetainVM
-or GC-affinity override is shipped. Adding the earlier Windows native footprint
-to 91.18 MB suggests 177–181 MB total (19–23 MB budget margin), **an inference,
-not a Windows result**. The <=150 MB headroom target remains unverified.
+Immediate post-load and post-refresh committed bytes, and both natural session
+committed readings, must be **<110,000,000 bytes**:
+`200 MB private budget − 90 MB non-GC allowance = 110 MB GC ceiling`.
+The 90 MB allowance conservatively covers the earlier 86–90 MB breakdown and the
+latest ~78 MB. GC counters describe the last collection and are not current total
+private memory. At 37.32 MB committed plus 90 MB allowance, the local session
+estimate is 127.32 MB (72.68 MB margin); it is an inference, not a Windows pass.
 
-### Idle work
+## Idle CPU and diagnostic isolation
 
-`TailReader` used a fresh buffered FileStream at each 350 ms poll despite owning
-its own read buffer. The regression probe measures 1000 quiet polls: the old
-populated-log path allocated 9,652,816 bytes versus 1,256,256 after the fix
-(87% less). Empty-log polling dropped from 973,200 to 533,792 bytes. The new path
-disables redundant buffering and skips an empty EOF read. This is a measured
-allocator, not proof it caused the Windows CPU regression (the CI log is empty).
+The new gate disables counter sampling, serialization and diagnostic writes
+throughout the CPU interval. It requests **one** own-process snapshot only after
+saving the final CPU/private-byte samples. The env-gated service waits on a
+filtered FileSystemWatcher in the app's own directory; it has no polling timer.
+No request can synthesize input, collect GC, alter settings or disable features.
+Request/wait/cancellation behavior has portable tests. Ordinary installations
+have no sampler. EXILESIGHT_PERF_MEMORY_REPORT=1 still enables optional periodic
+owner diagnostics; the gate uses `after-measurement` instead.
 
-Missing-game detection previously requested a GeForceNOW process snapshot every
-1.5 seconds. The [.NET implementation](https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/ProcessManager.Win32.cs)
-allocates a native system-information buffer and managed metadata for that query.
-`WindowSource` now first checks for a visible matching title using stack buffers;
-it queries and verifies the process only when a streaming match is possible.
-No title is retained or logged. Native-client detection, foreground checks and
-GFN process validation remain in place. The new query/skip counters verify this
-path on Windows; CPU savings are not yet measured there.
+Compared with baseline, new resource diagnostics are sampled only by a visible
+debug panel, which is closed during the gate. The old gate's 15-second report
+sampler is now excluded from the measured interval. WindowSource's matching-title
+precheck avoids GeForceNOW process snapshots (third run: zero queries); TailReader
+avoids redundant FileStream buffers and EOF reads. Quiet populated-log allocation
+fell from 9,652,816 to 1,256,256 bytes per 1000 polls (87% less); empty logs fell
+from 973,200 to 533,792. These allocation savings do not prove CPU causation.
+Window title prechecks add enumeration work relative to baseline; their net CPU
+impact has not been isolated. No new production periodic timer is added here.
 
-Diagnostic file sampling is opt-in and reduced from 5 s to 15 s. The report
-measures allocations of the counter reads themselves; it does not assume that
-GC.GetGCMemoryInfo caused the regression. The 10 Hz foreground lease heartbeat
-and 1 Hz keyboard-repeat refresh are unchanged safety timers: stalled UI must
-pass keys through, and held keys must respect Windows repeat settings.
-The Guide 1 Hz and Timers 4 Hz view ticks remain deferred to a follow-up. Earlier
-fixes retain 1 Hz empty-event polling and pause hidden/minimized tracker status.
+The 10 Hz foreground heartbeat (HookForeground.cs:21) and 1 Hz repeat refresh
+(HookHost.cs:62) remain safety timers: stalled UI must pass keys through and held
+keys must respect Windows repeat settings. Guide 1 Hz and Timers 4 Hz view ticks
+are deferred to a follow-up. Existing fixes retain 1 Hz empty-event polling and
+pause hidden/minimized tracker status. CPU <=0.5% remains a goal; the latest
+measured 0.908% included periodic diagnostics, and the new Windows result is pending.
 
-## CI and local measurement
+## CI, local reproduction and owner checks
 
-`perf.yml` runs on integration/1.0 pushes, PRs targeting integration/** and manual
-dispatch. It publishes and bundles verified packs, then runs the real Windows
-tray gate: valid settings are seeded through ProfileStore, an empty readable
-Client.txt is created, startup safety checks stay enabled, and all features and
-refresh services remain enabled. After 60 s settling it measures at least 60 s.
-The test fails on process exit, visible setup/error windows, or either budget.
-Tray-only visibility is a startup smoke check, not proof all background IO ended.
+perf.yml runs on integration/1.0 pushes, PRs targeting integration/** and manual
+dispatch. It publishes and bundles verified packs, seeds valid settings using
+ProfileStore, creates an empty readable Client.txt and keeps all safety checks,
+features and refresh services enabled. It settles 60 seconds, then measures at
+least 60 seconds. Process exit, setup/error windows or either budget fail the gate.
+The first-use/session probe and both equivalence checks run afterward with
+`if: always()`, so their failure cannot hide the Windows report.
 
-The enforced first-use/session Core probe runs **after** the Windows gate with
-`if: always()`, followed by real-pack equivalence tests. A failing probe cannot
-hide Windows private-memory numbers. There is no existing external test trigger
-for an item check in the published app without a real game/physical intent.
-We do not add a production safety bypass or fake an Action Gate token. The Core
-session probe is therefore the enforced after-use fallback authorized for CI;
-full-app post-use Windows private bytes still require owner validation.
+There is no external test item-check trigger without a real game/physical intent.
+The Core/app-pack-path session probe is the authorized after-use fallback; full-app
+post-use Windows private bytes still require owner validation. The gate makes no
+Action Gate token and adds no safety bypass. Near-limit failures should be retained
+rather than rerun until green; shared-runner variability is not yet quantified.
 
-The job summary and `ExileSight-idle-performance` artifact contain current and
-baseline CPU/private-memory margins, the managed session stages/latency, JSON,
-TRX and distribution-size manifests. Baseline checkout moves to RUNNER_TEMP
-before MSBuild to avoid inherited analyzer configuration. Once the reviewed
-before/after Windows numbers are recorded, remove the marked temporary baseline
-block; keep both current gates and summaries.
+Reports, margins, session stages, GC pauses, TRX and distribution manifests are
+uploaded as ExileSight-idle-performance and summarized in GITHUB_STEP_SUMMARY.
+The temporary baseline is isolated under RUNNER_TEMP to preserve compiler
+boundaries. Remove its marked workflow block after reviewed Windows comparisons
+are recorded. Keep the current gates and summaries.
 
-Use a disposable Windows account with no game and no existing ExileSight app
-data; the harness refuses existing data. It kills only its child, retries cleanup
-five times 250 ms apart, and logs a final IOException without masking the budget
-result. Persistent locks can leave data behind; later runs refuse to overwrite it.
+Use a disposable Windows account without existing ExileSight data; the harness
+refuses to overwrite it, kills only its child and retries cleanup five times.
+Persistent file locks are logged and can leave data requiring manual removal.
 
 ```powershell
 $env:EXILESIGHT_PERF_APP = "$pwd\artifacts\publish\ExileSight.App.exe"
 $env:EXILESIGHT_PERF_REPORT = "$pwd\artifacts\perf\local.json"
+$env:EXILESIGHT_PERF_REQUEST_REPORT = '1'
 dotnet test tests/ExileSight.Perf.Tests -c Release
 ```
 
 ```sh
-EXILESIGHT_REAL_PACKS=/path/to/verified/packs EXILESIGHT_MEMORY_REPORT=/tmp/packs.json \
-  dotnet test tests/ExileSight.Features.ItemInfo.Tests --filter FullyQualifiedName~RealPackMemoryTests
+DOTNET_GCConserveMemory=9 EXILESIGHT_REAL_PACKS=/path/to/verified/packs \
+  EXILESIGHT_MEMORY_REPORT=/tmp/packs.json dotnet test tests/ExileSight.Features.ItemInfo.Tests \
+  --filter FullyQualifiedName~RealPackMemoryTests
+EXILESIGHT_REAL_PACKS=/path/to/verified/packs dotnet test tests/ExileSight.Features.ItemInfo.Tests \
+  --filter FullyQualifiedName~RealPackItemEquivalenceTests
 ```
 
-For natural-GC comparisons additionally set EXILESIGHT_MEMORY_NO_FORCED_GC=1,
-EXILESIGHT_MEMORY_SETTLE_SECONDS=60 and DOTNET_GCConserveMemory. Without pack files
-the real-pack probes explicitly skip; without a published executable the Windows
-gate skips. CI supplies both. Portable regression tests still run on macOS.
+EXILESIGHT_MEMORY_SETTLE_SECONDS optionally extends each Core idle interval.
+The old NO_FORCED_GC probe switch is retired: natural measurements now always
+precede the final live-data collection. Real-pack tests skip when packs are absent;
+the published gate skips off Windows or without an executable. CI supplies both.
+Run equivalence separately from the memory probe to exclude the frozen oracle's
+intentionally retained DTOs. Debug panel shows own-process CPU/private MB and GC
+committed memory; close it when measuring a quiet minute after real item checks.
 
-## Owner checks and distribution
+## Distribution sizes
 
-Open Debug panel from the tray for CPU, private MB, approximate managed heap and
-last-GC committed memory. Close it during idle measurement. Own-process memory
-uses GetProcessMemoryInfo on the current-process pseudo-handle; CPU uses
-Environment.CpuUsage. No foreign process handles or analyzer suppressions were
-added. The opt-in EXILESIGHT_PERF_MEMORY_REPORT=1 records only resource counters
-under the app's own directory; normal installations have no diagnostic sampler.
-
-On Windows, also measure a quiet minute after several item checks and feature
-uses, with the debug panel closed. Check first-use responsiveness and the <=150 MB
-headroom target; preserve near-limit failures rather than rerunning until green.
-Shared-runner variance has no established bound; CPU <=0.5% is the target.
-
-Run 42419392581 reported these distribution sizes (alternate downloads, not RAM):
+Run 42419392581 reported alternate downloads, not RAM:
 
 | Artifact | Decimal MB |
 | --- | ---: |
@@ -202,8 +210,8 @@ Run 42419392581 reported these distribution sizes (alternate downloads, not RAM)
 | ExileSight-win-Portable.zip | 78.88 |
 | Total (plus <1 KB metadata) | 244.14 |
 
-The earlier ~215 MB estimate predates bundled packs. The single-file executable
+The earlier ~215 MB estimate predates bundled packs; the single-file executable
 is 159.99 MB. Exact bytes are in distribution-sizes.json and publish-sizes.json.
-Safe follow-ups: distribute symbols separately, avoid redundant download formats,
-and optionally offer a framework-dependent build. Do not trim WPF, remove packs
-or enable NativeAOT without compatibility evidence. Release packaging is unchanged.
+Safe follow-ups: separate symbols, avoid redundant download formats, optionally
+offer a framework-dependent build. Do not trim WPF, remove packs or enable NativeAOT
+without compatibility evidence. Release packaging is unchanged.

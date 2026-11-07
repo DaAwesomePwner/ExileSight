@@ -36,22 +36,38 @@ public sealed class PackStartup(
         });
     }
     public double LastLoadReclaimMilliseconds { get; private set; }
-    public async Task LoadAsync(string refreshResult, CancellationToken token)
+    public bool LastLoadReclaimOnThreadPool { get; private set; }
+    public long LastLoadCommittedBytes { get; private set; }
+    // Start loading on the thread pool even when invoked from the hook/UI thread.
+    // Reclamation is independently queued below after asynchronous reads finish.
+    public Task LoadAsync(string refreshResult, CancellationToken token) =>
+        Task.Run(() => LoadInBackgroundAsync(refreshResult, token), token);
+    private async Task LoadInBackgroundAsync(string refreshResult, CancellationToken token)
     {
         var allocatedBefore = GC.GetTotalAllocatedBytes();
         try { await PrepareAsync(refreshResult, token).ConfigureAwait(false); }
         finally
         {
             // Shipping pack decoding creates hundreds of MB of temporary wire graphs/LOH
-            // arrays. Reclaim them once at the bulk-load boundary, never on an idle tick or
+            // arrays. Aggressive collection requests decommit of empty segments here,
+            // unlike Forced which can leave >100 MB committed. Never on an idle tick or
             // item check. Small loads (<32 MB allocated) do not warrant a blocking collection.
             LastLoadReclaimMilliseconds = 0;
+            LastLoadReclaimOnThreadPool = false;
+            LastLoadCommittedBytes = GC.GetGCMemoryInfo().TotalCommittedBytes;
             if (GC.GetTotalAllocatedBytes() - allocatedBefore >= 32_000_000)
             {
-                var clock = Stopwatch.StartNew();
-                GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-                GC.Collect(2, GCCollectionMode.Forced, blocking: true, compacting: true);
-                LastLoadReclaimMilliseconds = clock.Elapsed.TotalMilliseconds;
+                await Task.Run(() =>
+                {
+                    // Explicit scheduling also covers a read delegate completing inline
+                    // on a non-pool thread. No cancellation after the allocations occurred.
+                    LastLoadReclaimOnThreadPool = Thread.CurrentThread.IsThreadPoolThread;
+                    var clock = Stopwatch.StartNew();
+                    GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+                    GC.Collect(2, GCCollectionMode.Aggressive, blocking: true, compacting: true);
+                    LastLoadReclaimMilliseconds = clock.Elapsed.TotalMilliseconds;
+                    LastLoadCommittedBytes = GC.GetGCMemoryInfo().TotalCommittedBytes;
+                }).ConfigureAwait(false);
             }
         }
     }

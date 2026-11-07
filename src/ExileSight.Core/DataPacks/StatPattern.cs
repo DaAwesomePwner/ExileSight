@@ -13,10 +13,16 @@ internal sealed record StatPattern(Regex Regex, HashSet<int> Seen, bool Partial)
     private static readonly ConditionalWeakTable<StatVariant, Lazy<StatPattern[]>> Cache = new();
 
     private static readonly object CacheGate = new();
-    private static readonly Queue<StatVariant> Recent = new();
+    private static readonly Queue<WeakReference<StatVariant>> Recent = new();
     internal const int Capacity = 512;
 
-    // Bound session-wide regex retention even after checking many unrelated item types.
+    internal static void Clear()
+    {
+        lock (CacheGate) { Cache.Clear(); Recent.Clear(); }
+    }
+
+    // At most 512 cached variants, with weak keys AND weak eviction entries. Refresh
+    // clears both; late old-version callers cannot root obsolete pack data.
     // Eviction may rebuild a pattern, but never changes pack parsing or matching results.
     internal static StatPattern[] For(StatVariant variant)
     {
@@ -27,8 +33,8 @@ internal sealed record StatPattern(Regex Regex, HashSet<int> Seen, bool Partial)
             {
                 value = new(() => Build(variant));
                 Cache.Add(variant, value);
-                Recent.Enqueue(variant);
-                if (Recent.Count > Capacity) Cache.Remove(Recent.Dequeue());
+                Recent.Enqueue(new(variant));
+                if (Recent.Count > Capacity && Recent.Dequeue().TryGetTarget(out var oldest)) Cache.Remove(oldest);
             }
         }
         return value.Value;

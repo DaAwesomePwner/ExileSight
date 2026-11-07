@@ -37,6 +37,7 @@ jobs:
           $env:EXILESIGHT_PERF_APP = "$pwd/artifacts/publish/ExileSight.App.exe"
           $env:EXILESIGHT_PERF_REPORT = "$pwd/artifacts/perf/current.json"
           $env:PERF_REVISION = '${{ github.sha }}'
+          $env:EXILESIGHT_PERF_REQUEST_REPORT = '1'
           dotnet test tests/ExileSight.Perf.Tests -c Release --logger "trx;LogFileName=current.trx" --results-directory artifacts/perf
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Enforce item-use memory and latency separately from WPF
@@ -46,6 +47,7 @@ jobs:
           New-Item artifacts/perf -ItemType Directory -Force | Out-Null
           $env:EXILESIGHT_REAL_PACKS = "$pwd/artifacts/fallback/packs/poe1"
           $env:EXILESIGHT_MEMORY_REPORT = "$pwd/artifacts/perf/pack-memory.json"
+          $env:DOTNET_GCConserveMemory = '9' # Match the published app runtime policy.
           dotnet test tests/ExileSight.Features.ItemInfo.Tests -c Release --filter FullyQualifiedName~RealPackMemoryTests
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Compare real-pack matching with the exhaustive reference
@@ -54,6 +56,13 @@ jobs:
         run: |
           $env:EXILESIGHT_REAL_PACKS = "$pwd/artifacts/fallback/packs/poe1"
           dotnet test tests/ExileSight.Core.Tests -c Release --filter FullyQualifiedName~RealPackEquivalenceTests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Compare complete item path with the pre-compaction reference
+        if: always()
+        shell: pwsh
+        run: |
+          $env:EXILESIGHT_REAL_PACKS = "$pwd/artifacts/fallback/packs/poe1"
+          dotnet test tests/ExileSight.Features.ItemInfo.Tests -c Release --filter FullyQualifiedName~RealPackItemEquivalenceTests
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       # BEGIN temporary baseline comparison: remove after recording reviewed Windows numbers.
       - uses: actions/checkout@v4
@@ -117,14 +126,17 @@ jobs:
           $summary += '', 'Positive margins are headroom; zero or negative margins fail the strict budget. Baseline is informational. See the uploaded JSON/TRX files for samples and failure details.'
           if (Test-Path artifacts/perf/pack-memory.json) {
             $pack = Get-Content artifacts/perf/pack-memory.json -Raw | ConvertFrom-Json
-            $summary += '', '### Production item-path probe (managed heap, not Windows private bytes)', '', '| Stage | Managed MB | First-use ms |', '| --- | ---: | ---: |'
+            $summary += '', '### Production item-path probe (managed heap, not Windows private bytes)', '', '| Stage | Managed MB | GC committed MB | Fragmented MB | Elapsed ms |', '| --- | ---: | ---: | ---: | ---: |'
             foreach ($sample in $pack) {
-              if ($sample.stage -notin @('tray idle', 'first item latency', 'idle after first item', 'idle after fixture session')) { continue }
+              if ($sample.stage -notin @('tray idle', 'first item latency', 'idle after first item', 'idle after fixture session', 'idle after item session (natural)', 'idle after refresh session (natural)', 'bulk-load reclamation', 'refresh reclamation')) { continue }
               $mb = if ($null -ne $sample.retained) { '{0:F2}' -f ($sample.retained / 1000000) } else { '—' }
               $ms = if ($null -ne $sample.milliseconds) { '{0:F1}' -f $sample.milliseconds } else { '—' }
-              $summary += "| $($sample.stage) | $mb | $ms |"
+              $committedBytes = if ($null -ne $sample.TotalCommittedBytes) { $sample.TotalCommittedBytes } else { $sample.committedAfterLoad }
+              $committed = if ($null -ne $committedBytes) { '{0:F2}' -f ($committedBytes / 1000000) } else { '—' }
+              $fragmented = if ($null -ne $sample.FragmentedBytes) { '{0:F2}' -f ($sample.FragmentedBytes / 1000000) } else { '—' }
+              $summary += "| $($sample.stage) | $mb | $committed | $fragmented | $ms |"
             }
-            $summary += '', 'Enforced limits: retained pack heap increase < 50 MB after item use; first item < 500 ms. The published Windows gate still requires total private bytes < 200 MB.'
+            $summary += '', 'Counter sampling is disabled during the Windows CPU interval; its one-shot report is requested afterward.', 'Enforced limits: natural GC committed < 110 MB after items and refresh (200 MB private minus 90 MB native allowance); final full-GC retained pack heap increase < 50 MB; first item < 500 ms. The published Windows gate still requires total private bytes < 200 MB.'
           }
           $summary | Add-Content $env:GITHUB_STEP_SUMMARY
       - name: Measure distribution sizes
