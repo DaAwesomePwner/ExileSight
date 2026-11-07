@@ -29,6 +29,17 @@ public static class StatText
             _ = StatPattern.For(variant);
     }
 
+    /// <summary>Host awaits this after loading, before publishing a pack to interactive consumers.</summary>
+    public static Task PrepareAsync(IEnumerable<StatTranslation> entries, CancellationToken cancellationToken = default) =>
+        Task.Run(() =>
+        {
+            foreach (var entry in entries)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                Prepare([entry]);
+            }
+        }, cancellationToken);
+
     public static string? Render(StatTranslation entry, decimal[] values)
     {
         if (entry.Hidden || values.Length != entry.StatIds.Length) return null;

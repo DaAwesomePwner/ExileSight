@@ -30,8 +30,18 @@ internal static class ModParser
         var affix = header?.Contains("Prefix", StringComparison.Ordinal) == true ? AffixType.Prefix :
             header?.Contains("Suffix", StringComparison.Ordinal) == true ? AffixType.Suffix : AffixType.Unknown;
         var tier = Regex.Match(header ?? "", @"Tier: (\d+)");
+        int? parsedTier = int.TryParse(tier.Groups[1].Value, out var t) ? t : null;
+        if (parsedTier is null && (kind & (ModKind.Eater | ModKind.Exarch)) != 0)
+        {
+            var eldritch = Regex.Match(headerType, @"\b(Lesser|Greater|Grand|Exceptional|Exquisite|Perfect)\b");
+            parsedTier = eldritch.Value switch
+            {
+                "Lesser" => 6, "Greater" => 5, "Grand" => 4, "Exceptional" => 3,
+                "Exquisite" => 2, "Perfect" => 1, _ => null
+            };
+        }
         var name = Regex.Match(header ?? "", "\"([^\"]+)\"");
-        return new(text, kind, affix, int.TryParse(tier.Groups[1].Value, out var t) ? t : null,
+        return new(text, kind, affix, parsedTier,
             name.Success ? name.Groups[1].Value : null, Values(text), group, header);
     }
 }

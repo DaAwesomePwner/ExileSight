@@ -10,10 +10,10 @@ internal sealed record StatPattern(Regex Regex, HashSet<int> Seen, bool Partial)
     internal const string Number = @"[+-]?\d+(?:\.\d+)?";
     internal const string Range = @"\(" + Number + @"\s*(?:–|-| to )\s*" + Number + @"\)";
     internal static readonly Regex Placeholder = new(@"\{(\d+)\}", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
-    private static readonly ConditionalWeakTable<StatVariant, StatPattern[]> Cache = new();
+    private static readonly ConditionalWeakTable<StatVariant, Lazy<StatPattern[]>> Cache = new();
 
     // Variants belong to an immutable loaded pack. Weak keys allow old packs and compiled code to be collected.
-    internal static StatPattern[] For(StatVariant variant) => Cache.GetValue(variant, Build);
+    internal static StatPattern[] For(StatVariant variant) => Cache.GetValue(variant, v => new(() => Build(v))).Value;
     private static StatPattern[] Build(StatVariant variant)
     {
         var lines = variant.Text.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n');
