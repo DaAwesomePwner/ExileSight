@@ -27,9 +27,11 @@ Log subscriptions are passive and run on the reader thread. Do not throw from th
 NetworkHosts declares in-process HTTP access only, not default-browser destinations.
 Browser calls require exact HTTPS host allowlists; no wildcard/subdomain matching.
 
-For a duration-sensitive command use RegisterPressCommand. The down callback receives
-the original intent and a PressStarted ID/timestamp. Release receives only the same ID
-and hook down/up timestamps; it cannot authorize another action. The queue drops
+For a duration-sensitive command use RegisterPressCommand. With a declared ActionKind,
+the down callback receives the original intent and a PressStarted ID/timestamp. Pass
+null for an action-free hold command: it never receives or holds a token, and its
+binding can pass the key through with Block=false. Release receives only the same ID
+and hook down/up timestamps; release never authorizes an action. The queue drops
 releases whose down was refused or lost, and drops delivery while the game is unfocused.
 D-059 silence recovery replaces the old pending press, dropping its missing release.
 Omni copies on down and only routes the captured item on release (>200 ms means long).

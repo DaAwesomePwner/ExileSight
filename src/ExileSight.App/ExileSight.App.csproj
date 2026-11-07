@@ -14,4 +14,5 @@
   <ItemGroup><ProjectReference Include="../ExileSight.Features.Stashninja/ExileSight.Features.Stashninja.csproj" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../ExileSight.Features.SearchStrings/ExileSight.Features.SearchStrings.csproj" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../ExileSight.Features.Macros/ExileSight.Features.Macros.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.Timers/ExileSight.Features.Timers.csproj" /></ItemGroup>
 </Project>

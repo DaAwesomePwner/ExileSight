@@ -15,7 +15,8 @@ public interface IFeatureContext
 {
     ActionResult Execute(IntentToken? token, GameAction action);
     void RegisterCommand(string command, ActionKind? action, Func<IntentToken?, ActionResult> execute);
-    void RegisterPressCommand(string command, ActionKind action,
+    // Null action means a local hold: press/release callbacks receive no input authority.
+    void RegisterPressCommand(string command, ActionKind? action,
         Func<IntentToken?, PressStarted, ActionResult> press, Action<PressReleased> release) =>
         throw new NotSupportedException();
     void RegisterDefaultBinding(FeatureDefaultBinding binding) => throw new NotSupportedException();

@@ -30,7 +30,8 @@ public static class FeatureRegistration
         new ExileSight.Features.Macros.MacrosFeature(),
         Vaalasync.ShopRegistration.Create(services),
         Stashninja.StashRegistration.Create(services),
-        new ExileSight.Features.SearchStrings.SearchStringsFeature()];
+        new ExileSight.Features.SearchStrings.SearchStringsFeature(),
+        Timers.TimersRegistration.Create(services)];
     public static IServiceCollection AddFeatureModules(this IServiceCollection services)
     {
         services.AddSingleton<IBrowser, WindowsBrowser>();
@@ -62,6 +63,7 @@ public static class FeatureRegistration
         var views = services.GetRequiredService<FeatureViews>();
         Vaalasync.ShopRegistration.Register(services, views);
         Stashninja.StashRegistration.Register(services, views);
+        Timers.TimersRegistration.Register(services, views);
         views.RegisterManaged<ExileSight.Features.ItemInfo.ItemInfoViewModel>(services.GetRequiredService<ItemInfo.ItemInfoTooltip>().Start);
         SearchStrings.SearchStringsRegistration.Register(services, views);
         Macros.MacrosRegistration.Register(services, views);
