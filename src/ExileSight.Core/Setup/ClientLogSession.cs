@@ -18,6 +18,7 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
     private string? path;
     private string area = "Unknown", level = "None", status = "Waiting for setup";
     private bool disposed;
+    public ClientLogFeed Events { get; } = new();
     public string Title => "Client log (read-only)";
 
     public async Task RefreshAsync()
@@ -32,6 +33,7 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
             await running.ConfigureAwait(false);
             cancellation?.Dispose();
             path = next;
+            Events.ChangePath();
             lock (sync) { recent.Clear(); area = "Unknown"; level = "None"; }
             if (!ClientLogDiscovery.IsLocalAbsolutePath(path))
             { lock (sync) status = "Choose a fully-qualified local log path in setup."; return; }
@@ -54,6 +56,7 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
             await foreach (var line in tail.ReadLinesAsync(selected, cancellationToken: token).ConfigureAwait(false))
             {
                 var parsed = parser.Parse(line);
+                Events.Publish(parsed);
                 if (parsed is Unknown) continue;
                 lock (sync)
                 {
@@ -77,13 +80,13 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
     public IReadOnlyList<KeyValuePair<string, string>> Snapshot()
     {
         lock (sync) return [new("Status", status), new("Current area", area), new("Last level-up", level),
-            new("Last 10 parsed events", string.Join("\n", recent))];
+            new("Event delivery", Events.Diagnostic), new("Last 10 parsed events", string.Join("\n", recent))];
     }
 
     public async ValueTask DisposeAsync()
     {
         await transition.WaitAsync().ConfigureAwait(false);
-        try { if (disposed) return; disposed = true; cancellation?.Cancel(); await running.ConfigureAwait(false); cancellation?.Dispose(); }
+        try { if (disposed) return; disposed = true; cancellation?.Cancel(); await running.ConfigureAwait(false); cancellation?.Dispose(); Events.Dispose(); }
         finally { transition.Release(); }
     }
 }

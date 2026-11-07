@@ -6,7 +6,7 @@ using ExileSight.Platform.Abstractions.Input;
 namespace ExileSight.Core.Features;
 
 /// <summary>Compiled-in modules only. Registration completes before input starts.</summary>
-public sealed class FeatureHost
+public sealed partial class FeatureHost
 {
     private readonly Func<string, IntentToken?, GameAction, ActionResult> execute;
     private readonly List<IFeatureCommandHandler> commands = [];
@@ -44,7 +44,7 @@ public sealed class FeatureHost
     public IReadOnlyList<IFeatureCommandHandler> Commands => commands.AsReadOnly();
     public IReadOnlyList<(string FeatureId, object ViewModel)> Overlays => overlays.AsReadOnly();
     public IReadOnlyList<FeatureDefaultBinding> DefaultBindings => defaults.AsReadOnly();
-    public bool HasLogSubscriptions => subscriptions.Count != 0;
+    public bool HasLogSubscriptions => subscriptions.Count != 0 || envelopeSubscriptions.Count != 0;
     public void Publish(LogEvent value, Action<string, Exception>? report = null)
     {
         foreach (var (featureId, handler) in subscriptions)
@@ -122,6 +122,8 @@ public sealed class FeatureHost
         public void RegisterOmniHandler(IOmniHandler handler) { Registering(); host.omni.Add((manifest.Id, handler)); }
         public void Subscribe<T>(Action<T> handler) where T : LogEvent
         { Registering(); host.subscriptions.Add((manifest.Id, value => { if (value is T typed) handler(typed); })); }
+        public void SubscribeLog(Action<ClientLogEvent> handler, LogReplay? replay = null)
+        { Registering(); host.envelopeSubscriptions.Add((manifest.Id, handler, replay)); }
         public IReadOnlyList<ITooltipSectionProvider> TooltipSections => host.tooltipSections.AsReadOnly();
         public void RegisterTooltipSection(ITooltipSectionProvider provider)
         { Registering(); host.tooltipSections.Add(provider); }

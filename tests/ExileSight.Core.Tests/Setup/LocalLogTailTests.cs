@@ -28,6 +28,7 @@ public sealed class LocalLogTailTests
             var timer = new ControlledTimer();
             var identity = new OpenCounter();
             await using var session = new ClientLogSession(settings, new LocalLogTail(resolver, timer, identity));
+            using var featureFeed = session.Events.Subscribe(_ => { });
             await session.RefreshAsync();
             var tick = await timer.Drained();
             Assert.Contains("Drive not available", Rows(session)["Status"]);
