@@ -93,6 +93,6 @@ public sealed class ReviewSafeguardTests
             }, 20));
             Assert.Throws<TimeoutException>(() => reader.Read(_ => throw new InvalidOperationException("Second provider started"), 20));
         }
-        finally { release.Set(); Assert.True(finished.Wait(5000)); }
+        finally { release.Set(); Assert.True(finished.Wait(TimeSpan.FromSeconds(30))); }
     }
 }

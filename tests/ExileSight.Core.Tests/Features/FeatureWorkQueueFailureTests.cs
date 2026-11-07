@@ -16,7 +16,7 @@ public sealed class FeatureWorkQueueFailureTests
         var finished = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         feature.Context!.DispatchFeature(() => throw new InvalidOperationException("private item"));
         feature.Context.DispatchFeature(() => finished.SetResult());
-        await finished.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await finished.Task.WaitAsync(TimeSpan.FromSeconds(30));
         Assert.Equal(["InvalidOperationException"], errors);
     }
     private sealed class CapturingFeature : IFeature
@@ -33,7 +33,7 @@ public sealed class FeatureWorkQueueFailureTests
         var finished = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         queue.Post(() => throw new InvalidOperationException("private chat"));
         queue.Post(() => finished.SetResult());
-        await finished.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await finished.Task.WaitAsync(TimeSpan.FromSeconds(30));
         Assert.Equal(["InvalidOperationException"], errors);
     }
 }

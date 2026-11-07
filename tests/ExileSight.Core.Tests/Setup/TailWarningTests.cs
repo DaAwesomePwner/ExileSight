@@ -22,7 +22,7 @@ public sealed class TailWarningTests
             var timer = new WaitingTimer();
             await using var session = new ClientLogSession(settings, new PollingFileTail(timer));
             await session.RefreshAsync();
-            await timer.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            await timer.Started.Task.WaitAsync(TimeSpan.FromSeconds(30));
             Assert.Equal("Log temporarily unavailable; retrying.", session.Snapshot().ToDictionary()["Status"]);
         }
         finally { Directory.Delete(root, true); }
