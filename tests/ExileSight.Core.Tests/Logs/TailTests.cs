@@ -4,7 +4,6 @@ using System.Threading.Channels;
 using ExileSight.Core.Logs;
 using ExileSight.Core.Logs.Tail;
 using ExileSight.Platform.Abstractions.Files;
-using ExileSight.Platform.Abstractions.Time;
 using Xunit;
 
 namespace ExileSight.Core.Tests.Logs;
@@ -22,24 +21,28 @@ public sealed class TailTests : IDisposable
     {
         var path = Path.Combine(directory, "Client.txt");
         await File.WriteAllTextAsync(path, "old\n");
-        var clock = new SignalingClock();
+        var timer = new ManualTailTimer();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        await using var lines = new PollingFileTail(clock, 25).ReadLinesAsync(path, cancellationToken: cts.Token).GetAsyncEnumerator();
+        await using var lines = new PollingFileTail(timer, 25).ReadLinesAsync(path, cancellationToken: cts.Token).GetAsyncEnumerator();
         var next = lines.MoveNextAsync().AsTask();
-        await clock.Polled.Reader.ReadAsync(cts.Token);
+        var poll = await timer.NextAsync(cts.Token);
         var utf8 = Encoding.UTF8.GetBytes("雪\r\n");
         await Append(path, utf8[..1]);
-        await clock.Polled.Reader.ReadAsync(cts.Token);
+        poll.Release();
+        poll = await timer.NextAsync(cts.Token); // now the first UTF-8 byte has actually been read
         Assert.False(next.IsCompleted);
         await Append(path, utf8[1..]);
+        poll.Release();
         Assert.True(await next);
         Assert.Equal("雪", lines.Current);
-        // Pending old-file fragments must not leak into the replacement.
-        await Append(path, Encoding.UTF8.GetBytes("unfinished"));
         next = lines.MoveNextAsync().AsTask();
-        await clock.Polled.Reader.ReadAsync(cts.Token);
+        poll = await timer.NextAsync(cts.Token);
+        await Append(path, Encoding.UTF8.GetBytes("unfinished"));
+        poll.Release();
+        poll = await timer.NextAsync(cts.Token);
         if (rotate) File.Move(path, path + ".old");
         await File.WriteAllTextAsync(path, "new\n");
+        poll.Release();
         Assert.True(await next);
         Assert.Equal("new", lines.Current);
         next = lines.MoveNextAsync().AsTask();
@@ -51,17 +54,19 @@ public sealed class TailTests : IDisposable
     public async Task PositionBomAndMissingFile()
     {
         var path = Path.Combine(directory, "Client.txt");
-        var clock = new SignalingClock();
+        var timer = new ManualTailTimer();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        await using var lines = new PollingFileTail(clock, 25).ReadLinesAsync(path, 0, cts.Token).GetAsyncEnumerator();
+        await using var lines = new PollingFileTail(timer, 25).ReadLinesAsync(path, 0, cts.Token).GetAsyncEnumerator();
         var next = lines.MoveNextAsync().AsTask();
-        await clock.Polled.Reader.ReadAsync(cts.Token);
+        var poll = await timer.NextAsync(cts.Token);
+        Assert.Equal(50, poll.Milliseconds);
         await File.WriteAllTextAsync(path, "first\nsecond\n", new UTF8Encoding(true));
+        poll.Release();
         Assert.True(await next);
         Assert.Equal("first", lines.Current);
         Assert.True(await lines.MoveNextAsync());
         Assert.Equal("second", lines.Current);
-        await using var resumed = new PollingFileTail(clock).ReadLinesAsync(path, 9, cts.Token).GetAsyncEnumerator();
+        await using var resumed = new PollingFileTail().ReadLinesAsync(path, 9, cts.Token).GetAsyncEnumerator();
         Assert.True(await resumed.MoveNextAsync());
         Assert.Equal("second", resumed.Current);
     }
@@ -77,18 +82,10 @@ public sealed class TailTests : IDisposable
         Assert.Equal("Ember", stream.LastKnownCharacter);
     }
 
-    private static async Task Append(string path, byte[] bytes)
+    internal static async Task Append(string path, byte[] bytes)
     {
         await using var file = new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
         await file.WriteAsync(bytes);
-    }
-
-    private sealed class SignalingClock : IClock
-    {
-        public Channel<bool> Polled { get; } = Channel.CreateUnbounded<bool>();
-        public long Milliseconds => Environment.TickCount64;
-        public DateTimeOffset UtcNow => DateTimeOffset.UtcNow;
-        public void Delay(int milliseconds) { Polled.Writer.TryWrite(true); Thread.Sleep(milliseconds); }
     }
 
     private sealed class FakeTail : IFileTail
@@ -101,5 +98,23 @@ public sealed class TailTests : IDisposable
             yield return ": Ember (Witch) is now level 3";
             yield return "unrecognized";
         }
+    }
+}
+
+internal sealed class ManualTailTimer : IFileTailTimer
+{
+    private readonly Channel<Poll> polls = Channel.CreateUnbounded<Poll>();
+    public ValueTask<Poll> NextAsync(CancellationToken token) => polls.Reader.ReadAsync(token);
+    public async Task DelayAsync(int milliseconds, CancellationToken cancellationToken)
+    {
+        var poll = new Poll(milliseconds);
+        await polls.Writer.WriteAsync(poll, cancellationToken);
+        await poll.Completion.Task.WaitAsync(cancellationToken);
+    }
+    internal sealed class Poll(int milliseconds)
+    {
+        internal int Milliseconds => milliseconds;
+        internal TaskCompletionSource Completion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal void Release() => Completion.SetResult();
     }
 }

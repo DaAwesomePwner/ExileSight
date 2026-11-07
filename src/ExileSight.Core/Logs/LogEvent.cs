@@ -18,4 +18,4 @@ public sealed record DndChanged(string Raw, LogEnvelope? Envelope, bool Enabled)
 public record ChatMessage(string Raw, LogEnvelope? Envelope, string Channel, string Sender, string Text) : LogEvent(Raw, Envelope);
 /// <summary>A trade request is display data, never proof that a sale completed.</summary>
 public sealed record TradeWhisper(string Raw, LogEnvelope? Envelope, string Direction, string Peer, string Text,
-    string Item, string Price, string League, string? Stash) : ChatMessage(Raw, Envelope, Direction, Peer, Text);
+    string Item, string? Price, string League, string? Stash) : ChatMessage(Raw, Envelope, Direction, Peer, Text);

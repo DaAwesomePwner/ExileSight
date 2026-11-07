@@ -34,7 +34,7 @@ public sealed class LogRedactor(string? keep = null)
             AfkModeChanged a => $"{system}AFK mode is now {(a.Enabled ? "ON" : "OFF")}.",
             DndChanged d => $"{system}DND mode is now {(d.Enabled ? "ON" : "OFF")}.",
             AreaGenerated or AreaEntered or MapEvent => e.Envelope?.Message ?? line,
-            NpcDialogue d => $"{d.Npc}: [dialogue removed]",
+            NpcDialogue d => $"{(EnglishPatterns.IsKnownNpc(d.Npc) ? d.Npc : Name(d.Npc))}: [dialogue removed]",
             FilterReloaded => "Finished reloading filter [name removed]",
             _ => "[unrecognized line removed]"
         });

@@ -21,7 +21,7 @@ public sealed class ParserTests
     [Fact]
     public void EnvelopeAndNumbers()
     {
-        var e = Assert.IsType<AreaGenerated>(new LogParser().Parse("\uFEFF2026/11/06 12:00:00 123 abc [INFO Client 42] Generating level 83 area \"MapWorldsBeach\" with seed 4294967295"));
+        var e = Assert.IsType<AreaGenerated>(new LogParser().Parse("\uFEFF2026/11/06 12:00:00 123 abc [DEBUG Client 42] Generating level 83 area \"MapWorldsBeach\" with seed 4294967295"));
         Assert.Equal(4294967295L, e.Seed);
         Assert.Equal(123, e.Envelope!.UptimeMilliseconds);
         Assert.Equal("abc", e.Envelope.Id);

@@ -3,6 +3,12 @@ namespace ExileSight.Core.Logs;
 
 internal static class EnglishPatterns
 {
+    internal static bool IsMercenary(string speaker) =>
+        new[] { ", the Cyaxan", ", the Keitan", ", the Azadin", ", the Bardiyan" }
+            .Any(title => speaker.Length > title.Length && speaker.EndsWith(title, StringComparison.Ordinal));
+
+    internal static bool IsKnownNpc(string speaker) => Npcs.Contains(speaker) || IsMercenary(speaker);
+
     internal static readonly HashSet<string> Npcs = new(StringComparer.Ordinal)
     {
         "Strange Voice",
@@ -17,6 +23,7 @@ internal static class EnglishPatterns
         "Cameria the Coldblooded",
         "Elreon, Light's Judge",
         "Gravicius Reborn",
+        "Guff \"Tiny\" Grenn",
         "Haku, Warmaster",
         "Hillock, the Blacksmith",
         "It That Fled",

@@ -1,7 +1,7 @@
 # Synthetic made-up data; real owner recordings override this fixture.
 2026/11/06 12:00:00 1000 abc [INFO Client 42] : You have entered The Twilight Strand.
-2026/11/06 12:00:01 1001 abc [INFO Client 42] : Ember Vale (Witch) is now level 2
+2026/11/06 12:00:01 1001 abc [INFO Client 42] : Ember_Vale (Witch) is now level 2
 2026/11/06 12:00:02 1002 abc [INFO Client 42] : You have entered The Forest Encampment.
-2026/11/06 12:00:03 1003 abc [INFO Client 42] : Ember Vale (Witch) is now level 15
+2026/11/06 12:00:03 1003 abc [INFO Client 42] : Ember_Vale (Witch) is now level 15
 2026/11/06 12:00:04 1004 abc [INFO Client 42] : You have entered The Sarn Encampment.
-2026/11/06 12:00:05 1005 abc [INFO Client 42] : Ember Vale (Witch) is now level 24
+2026/11/06 12:00:05 1005 abc [INFO Client 42] : Ember_Vale (Witch) is now level 24
