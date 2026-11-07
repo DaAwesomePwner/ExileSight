@@ -62,6 +62,9 @@ internal static class BoundaryScanner
         return false;
     }
 
+    internal static bool GuardOverride(string text) => Regex.IsMatch(text,
+        @"ImportDirectoryBuildTargets|ImportDirectoryBuildProps|DirectoryBuildTargetsPath|DirectoryBuildPropsPath|_SkipAnalyzers|CompilerResponseFile|/skipanalyzers|/nowarn|<Target\b[^>]*\bName\s*=\s*['"" ]ExileSightGuard", Options);
+
     internal static bool Interop(string text) => Regex.IsMatch(Code(text),
         @"\b(?:DllImport|LibraryImport)(?:Attribute)?\b|\bextern\b|\bdelegate\s*\*\s*unmanaged\b");
 

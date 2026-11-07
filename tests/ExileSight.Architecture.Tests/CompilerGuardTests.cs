@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text.Json;
 using Xunit;
 
@@ -24,6 +23,8 @@ public sealed class CompilerGuardTests
                 """);
             await File.WriteAllTextAsync(Path.Combine(directory, "Probe.cs"), "namespace GuardProbe; public sealed class Probe { public void Inspect(System.Diagnostics.Process p) { p.Refresh(); _ = p.Id; _ = p.ProcessName; } }");
             await File.WriteAllTextAsync(Path.Combine(directory, "policy.txt"), "is_global = true\ndotnet_diagnostic.RS0030.severity = none\n");
+            await File.WriteAllTextAsync(Path.Combine(directory, "compiler.rsp"), "/skipanalyzers+\n/nowarn:RS0030\n");
+            File.Copy(typeof(CompilerGuardTests).Assembly.Location, Path.Combine(directory, "ExtraAnalyzer.dll"));
             var mutationFile = Path.Combine(directory, "Mutation.targets");
             await File.WriteAllTextAsync(mutationFile, "<Project />");
             using var assets = JsonDocument.Parse(File.ReadAllText(Path.Combine(Repository.Root, "tests/ExileSight.Architecture.Tests/obj/project.assets.json")));
@@ -79,6 +80,10 @@ public sealed class CompilerGuardTests
 
     private static IEnumerable<(string Mutation, string Expected)> Cases()
     {
+        yield return ("<PropertyGroup><_SkipAnalyzers>true</_SkipAnalyzers></PropertyGroup>", "_SkipAnalyzers must not");
+        yield return ("<PropertyGroup><CompilerResponseFile>compiler.rsp</CompilerResponseFile></PropertyGroup>", "CompilerResponseFile is forbidden");
+        yield return ("<ItemGroup><CompilerResponseFile Include=\"compiler.rsp\" /></ItemGroup>", "CompilerResponseFile is forbidden");
+        yield return ("<ItemGroup><Analyzer Include=\"ExtraAnalyzer.dll\" /></ItemGroup>", "Unapproved analyzer");
         yield return ("<PropertyGroup><Hidden>RS0030</Hidden><NoWarn>$(NoWarn);$(Hidden)</NoWarn></PropertyGroup>", "NoWarn contains");
         yield return ("<PropertyGroup><WarningsNotAsErrors>RS0030</WarningsNotAsErrors></PropertyGroup>", "WarningsNotAsErrors contains");
         yield return ("<PropertyGroup><TreatWarningsAsErrors>false</TreatWarningsAsErrors><WarningsAsErrors /></PropertyGroup>", "WarningsAsErrors must contain");
@@ -91,19 +96,6 @@ public sealed class CompilerGuardTests
         yield return ("<ItemGroup><EditorConfigFiles Include=\"policy.txt\" /></ItemGroup>", "Unapproved analyzer config");
     }
 
-    private static async Task<(int ExitCode, string Output)> Run(string directory, params string[] arguments)
-    {
-        var start = new ProcessStartInfo("dotnet") { WorkingDirectory = directory, RedirectStandardOutput = true, RedirectStandardError = true };
-        foreach (var argument in arguments)
-            start.ArgumentList.Add(argument);
-        start.Environment["MSBUILDDISABLENODEREUSE"] = "1";
-        var completion = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
-        using var process = new Process { StartInfo = start, EnableRaisingEvents = true };
-        process.Exited += (_, _) => completion.TrySetResult(process.ExitCode);
-        Assert.True(process.Start());
-        var output = process.StandardOutput.ReadToEndAsync();
-        var errors = process.StandardError.ReadToEndAsync();
-        var code = await completion.Task;
-        return (code, await output + await errors);
-    }
+    private static Task<(int ExitCode, string Output)> Run(string directory, params string[] arguments) =>
+        DotnetProcess.Run(directory, arguments);
 }

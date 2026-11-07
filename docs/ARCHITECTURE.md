@@ -81,7 +81,7 @@ The omni-key is a router feature. Other features register `IOmniHandler`s with a
 
 A future `Platform.Mac` would implement the same abstractions (CGEventTap, ScreenCaptureKit, Vision OCR), and a new UI project would reuse `Features.*` view models. Nothing in Core or Features may assume Windows.
 
-## Scaffold enforcement decisions (D-015, D-018–D-025)
+## Scaffold enforcement decisions (D-015, D-018–D-029)
 
 The App targets Windows 10 build 19041 to reference Platform.Windows (the shorthand `net10.0-windows` defaults to Windows 7). Its application manifest declares PerMonitorV2 DPI awareness. WPF supplies HwndSource and WindowInteropHelper without additional package or project changes.
 
@@ -90,3 +90,5 @@ CsWin32 is the only native-import path: hand-written imports, extern methods and
 Architecture tests inspect exact current-configuration assembly paths, fail clearly when an assembly is missing, enforce project and compiled dependency edges, and reject P/Invoke metadata everywhere except Platform.Windows. DataGen is portable net10.0 and may reference Core and Abstractions. Core and Abstractions cannot reference features; features cannot reference each other. Only App and Platform.Windows.Tests may reference Platform.Windows. Build the entire solution before running architecture tests independently.
 
 The normal debug window polls thread-safe IDebugSection snapshots; a section failure becomes an error row. Generic-host startup and shutdown are awaited off the dispatcher, while spike startup and WPF window work stay on the dispatcher. Source uses LF line endings and build-enforced file-scoped namespaces.
+
+The build also rejects the compiler's final `_SkipAnalyzers` flag and any compiler response file. A separate architecture test audits every solution project's resolved compiler state through MSBuild, checks canonical imports and guard execution markers, and independently enforces the pinned analyzer allowlist. Production native checks match restricted names and entry points across all src assemblies. Test subprocess cleanup alone has one narrowly scoped Process.Kill exception; no production suppression permissions change.

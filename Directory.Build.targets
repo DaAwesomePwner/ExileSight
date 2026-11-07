@@ -11,6 +11,12 @@
       <TreatWarningsAsErrors ParameterType="System.String" />
       <RunAnalyzers ParameterType="System.String" />
       <RunAnalyzersDuringBuild ParameterType="System.String" />
+      <SkipAnalyzers ParameterType="System.String" />
+      <ResponseProperty ParameterType="System.String" />
+      <ResponseFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
+      <PackageDirectory ParameterType="System.String" Required="true" />
+      <PackDirectory ParameterType="System.String" Required="true" />
+      <AnalyzerAllowlist ParameterType="System.String" Required="true" />
       <Analyzers ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
       <AdditionalFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
       <Configs ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
@@ -24,7 +30,9 @@
       <Using Namespace="System.IO" />
       <Using Namespace="System.Linq" />
       <Using Namespace="System.Text.RegularExpressions" />
-      <Code Type="Fragment" Language="cs"><![CDATA[
+      <Code Type="Method" Language="cs"><![CDATA[
+      public override bool Execute()
+      {
         Action<string> fail = message => Log.LogError("ExileSight compiler boundary: " + message);
         Func<string, bool> containsBan = value => Regex.IsMatch(value ?? "", @"(?i)\bRS0030\b");
         if (containsBan(NoWarn)) fail("NoWarn contains RS0030.");
@@ -33,7 +41,19 @@
             fail("WarningsAsErrors must contain RS0030.");
         if (string.Equals(RunAnalyzers, "false", StringComparison.OrdinalIgnoreCase) || string.Equals(RunAnalyzersDuringBuild, "false", StringComparison.OrdinalIgnoreCase))
             fail("Analyzers must run during compilation.");
+        if (string.Equals(SkipAnalyzers, "true", StringComparison.OrdinalIgnoreCase)) fail("_SkipAnalyzers must not be true.");
+        if (!string.IsNullOrWhiteSpace(ResponseProperty) || (ResponseFiles != null && ResponseFiles.Length != 0))
+            fail("CompilerResponseFile is forbidden.");
+        var approved = File.ReadAllLines(AnalyzerAllowlist).Where(line => !string.IsNullOrWhiteSpace(line)).Select(line =>
+        {
+            var split = line.IndexOf('/');
+            var root = line.Substring(0, split) == "sdk" ? SdkDirectory : line.Substring(0, split) == "packs" ? PackDirectory : PackageDirectory;
+            return Path.GetFullPath(Path.Combine(root, line.Substring(split + 1)));
+        }).ToArray();
         var analyzers = Analyzers ?? new Microsoft.Build.Framework.ITaskItem[0];
+        foreach (var analyzer in analyzers)
+            if (!approved.Contains(Path.GetFullPath(analyzer.ItemSpec), StringComparer.OrdinalIgnoreCase))
+                fail("Unapproved analyzer: " + analyzer.ItemSpec);
         foreach (var required in new[] { "Microsoft.CodeAnalysis.BannedApiAnalyzers.dll", "Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.dll" })
             if (!analyzers.Any(a => string.Equals(Path.GetFileName(a.ItemSpec), required, StringComparison.OrdinalIgnoreCase) && File.Exists(a.ItemSpec)))
                 fail("Missing BannedApiAnalyzers compiler assembly: " + required);
@@ -54,6 +74,8 @@
             if (generated && File.Exists(path) && Regex.IsMatch(File.ReadAllText(path), @"(?i)RS0030|ApiDesign|dotnet_analyzer_diagnostic"))
                 fail("Generated analyzer config changes diagnostic policy: " + path);
         }
+        return !Log.HasLoggedErrors;
+      }
       ]]></Code>
     </Task>
   </UsingTask>
@@ -61,15 +83,23 @@
   <Target Name="ExileSightGuardBeforeCompile" BeforeTargets="CoreCompile">
     <ExileSightValidateCompilerInputs NoWarn="$(NoWarn)" WarningsNotAsErrors="$(WarningsNotAsErrors)" WarningsAsErrors="$(WarningsAsErrors)"
       TreatWarningsAsErrors="$(TreatWarningsAsErrors)" RunAnalyzers="$(RunAnalyzers)" RunAnalyzersDuringBuild="$(RunAnalyzersDuringBuild)"
+      SkipAnalyzers="$(_SkipAnalyzers)" ResponseProperty="$(CompilerResponseFile)" ResponseFiles="@(CompilerResponseFile)"
+      PackageDirectory="$(NuGetPackageRoot)" PackDirectory="$(NetCoreTargetingPackRoot)"
+      AnalyzerAllowlist="$(MSBuildThisFileDirectory)tests/ExileSight.Architecture.Tests/AnalyzerAllowlist.txt"
       Analyzers="@(Analyzer)" AdditionalFiles="@(AdditionalFiles)" Configs="@(GlobalAnalyzerConfigFiles);@(EditorConfigFiles)"
       BannedFile="$(MSBuildThisFileDirectory)BannedSymbols.txt" RepoConfig="$(MSBuildThisFileDirectory).editorconfig"
       GeneratedConfig="$(GeneratedMSBuildEditorConfigFile)" SdkDirectory="$(MSBuildToolsPath)" />
+    <PropertyGroup><ExileSightGuardBeforeRan>true</ExileSightGuardBeforeRan></PropertyGroup>
   </Target>
   <Target Name="ExileSightGuardAfterCompile" AfterTargets="CoreCompile">
     <ExileSightValidateCompilerInputs NoWarn="$(NoWarn)" WarningsNotAsErrors="$(WarningsNotAsErrors)" WarningsAsErrors="$(WarningsAsErrors)"
       TreatWarningsAsErrors="$(TreatWarningsAsErrors)" RunAnalyzers="$(RunAnalyzers)" RunAnalyzersDuringBuild="$(RunAnalyzersDuringBuild)"
+      SkipAnalyzers="$(_SkipAnalyzers)" ResponseProperty="$(CompilerResponseFile)" ResponseFiles="@(CompilerResponseFile)"
+      PackageDirectory="$(NuGetPackageRoot)" PackDirectory="$(NetCoreTargetingPackRoot)"
+      AnalyzerAllowlist="$(MSBuildThisFileDirectory)tests/ExileSight.Architecture.Tests/AnalyzerAllowlist.txt"
       Analyzers="@(Analyzer)" AdditionalFiles="@(AdditionalFiles)" Configs="@(GlobalAnalyzerConfigFiles);@(EditorConfigFiles)"
       BannedFile="$(MSBuildThisFileDirectory)BannedSymbols.txt" RepoConfig="$(MSBuildThisFileDirectory).editorconfig"
       GeneratedConfig="$(GeneratedMSBuildEditorConfigFile)" SdkDirectory="$(MSBuildToolsPath)" />
+    <PropertyGroup><ExileSightGuardAfterRan>true</ExileSightGuardAfterRan></PropertyGroup>
   </Target>
 </Project>

@@ -11,7 +11,26 @@ public sealed class SourceBoundaryTests
         {
             if (Repository.Relative(path).Equals("src/ExileSight.Platform.Windows/Input/ActionGate.cs", StringComparison.OrdinalIgnoreCase))
                 continue;
-            Assert.False(BoundaryScanner.Suppression(File.ReadAllText(path), Path.GetExtension(path)), path);
+            var text = File.ReadAllText(path);
+            if (Repository.Relative(path) == "tests/ExileSight.Architecture.Tests/DotnetProcess.cs")
+            {
+                const string exception = "#pragma warning disable RS0030 // Test-only process owner: terminate only the child tree started above.";
+                Assert.Equal(2, text.Split(exception, StringSplitOptions.None).Length);
+                text = text.Replace(exception, "", StringComparison.Ordinal);
+            }
+            Assert.False(BoundaryScanner.Suppression(text, Path.GetExtension(path)), path);
+        }
+    }
+
+    [Fact]
+    public void BuildControlTokensCannotOverrideTheGuard()
+    {
+        foreach (var path in Repository.Files("*").Where(p => new[] { ".csproj", ".props", ".targets", ".rsp" }
+                     .Contains(Path.GetExtension(p), StringComparer.OrdinalIgnoreCase)))
+        {
+            if (Repository.Relative(path) == "Directory.Build.targets")
+                continue;
+            Assert.False(BoundaryScanner.GuardOverride(File.ReadAllText(path)), path);
         }
     }
 
