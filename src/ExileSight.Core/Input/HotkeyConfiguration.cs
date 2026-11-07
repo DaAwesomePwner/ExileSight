@@ -8,6 +8,10 @@ public sealed class HotkeyConfiguration : IHotkeyContexts
 {
     private readonly object sync = new();
     private readonly Dictionary<string, bool> contexts = new(StringComparer.Ordinal) { ["gameFocused"] = false };
+    private int generation;
+    private nint foreground;
+    internal int Generation => Volatile.Read(ref generation);
+    public event Action? ContextRegistered;
     private HotkeyBinding[] bindings = [];
     private string[] rejected = [];
     private Snapshot snapshot = new(new HotkeyBinding?[256, 16], [], [], []);
@@ -20,15 +24,32 @@ public sealed class HotkeyConfiguration : IHotkeyContexts
     public void Register(string context)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(context);
-        lock (sync) contexts.TryAdd(context, false);
+        if (context == "gameFocused") throw new ArgumentException("Reserved context", nameof(context));
+        bool added;
+        lock (sync) added = contexts.TryAdd(context, false);
+        if (added) ContextRegistered?.Invoke();
     }
     public void SetActive(string context, bool active)
+    {
+        if (context == "gameFocused") throw new ArgumentException("Reserved context", nameof(context));
+        SetContext(context, active);
+    }
+    internal void UpdateGameFocused(bool active, nint window = default)
+    {
+        lock (sync)
+        {
+            if (foreground != window) { foreground = window; Interlocked.Increment(ref generation); }
+            SetContext("gameFocused", active);
+        }
+    }
+    private void SetContext(string context, bool active)
     {
         lock (sync)
         {
             if (!contexts.TryGetValue(context, out var previous)) throw new ArgumentException("Unknown context", nameof(context));
             if (previous == active) return;
             contexts[context] = active;
+            Interlocked.Increment(ref generation);
             Publish();
         }
     }
@@ -50,10 +71,16 @@ public sealed class HotkeyConfiguration : IHotkeyContexts
     private void Publish()
     {
         var table = new HotkeyBinding?[256, 16];
+        var warnings = new List<string>(rejected);
         foreach (var b in bindings)
-            if (contexts[b.Context]) table[b.Key, (int)b.Modifiers] ??= b;
+        {
+            if (!contexts[b.Context]) continue;
+            if (table[b.Key, (int)b.Modifiers] is { } winner)
+                warnings.Add($"{b.Id}: Shadowed by {winner.Id} in active context {winner.Context}");
+            else table[b.Key, (int)b.Modifiers] = b;
+        }
         Volatile.Write(ref snapshot, new(table,
             bindings.Select(b => $"{b.Id}: VK {b.Key:X2}, {b.Modifiers}, {b.Context}, {(b.Block ? "block" : "pass")}").ToArray(),
-            rejected, contexts.Where(c => c.Value).Select(c => c.Key).ToArray()));
+            warnings.ToArray(), contexts.Where(c => c.Value).Select(c => c.Key).ToArray()));
     }
 }

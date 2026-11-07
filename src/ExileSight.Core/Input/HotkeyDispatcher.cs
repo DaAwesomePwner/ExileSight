@@ -22,12 +22,24 @@ public sealed class HotkeyDispatcher
     private readonly bool[] held = new bool[256];
     private readonly bool[] blocked = new bool[256];
     private readonly IntentRegistry registry;
+    private int generation;
+    internal HotkeyConfiguration Configuration => configuration;
+    // Run between message dispatches, never in a low-level callback. Preserve still-held
+    // keys to suppress repeats; retain blocked release tombstones until up or a fresh down.
+    internal void ReconcileHeld(Func<int, bool> isDown)
+    {
+        var current = configuration.Generation;
+        if (current == generation) return;
+        generation = current;
+        for (var key = 0; key < held.Length; key++)
+            if (held[key] && !isDown(key)) held[key] = false;
+    }
     public HotkeyDispatcher(IntentRegistry registry, IEnumerable<HotkeyBinding> bindings)
     {
         this.registry = registry;
         configuration = new HotkeyConfiguration();
         configuration.Replace(bindings, []);
-        configuration.SetActive("gameFocused", true);
+        configuration.UpdateGameFocused(true);
     }
     public HotkeyDispatcher(IntentRegistry registry, HotkeyConfiguration configuration)
     {

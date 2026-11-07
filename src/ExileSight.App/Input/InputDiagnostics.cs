@@ -5,8 +5,7 @@ using ExileSight.Platform.Abstractions.Time;
 
 namespace ExileSight.App.Input;
 
-public sealed class InputDiagnostics(IActionGate gate, IClock clock, HotkeyConfiguration configuration,
-    HotkeyExecution execution) : IDebugSection
+public sealed class InputDiagnostics(IActionGate gate, IClock clock, HotkeyConfiguration configuration) : IDebugSection
 {
     private readonly object sync = new();
     private IHotkeys? hooks;
@@ -21,15 +20,9 @@ public sealed class InputDiagnostics(IActionGate gate, IClock clock, HotkeyConfi
         try { input.Start(); }
         catch (Exception error) { lock (sync) lastOutcome = $"Hook startup failed: {error.Message}"; }
     }
-    public void Execute(IntentToken? token, HotkeyBinding binding)
+    public void Report(HotkeyBinding binding, ActionResult result)
     {
         lock (sync) lastHotkey = $"{binding.Id} — {clock.UtcNow:O}";
-        ActionResult result;
-        try
-        {
-            result = execution.Execute(token, binding);
-        }
-        catch (Exception error) { result = new(ActionOutcome.Failed, error.Message); }
         lock (sync)
         {
             auditFailed = result.AuditFailed;

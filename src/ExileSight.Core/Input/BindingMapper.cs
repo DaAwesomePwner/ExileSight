@@ -6,6 +6,8 @@ namespace ExileSight.Core.Input;
 public sealed record BindingMapping(IReadOnlyList<HotkeyBinding> Bindings, IReadOnlyList<string> Rejected);
 public static class BindingMapper
 {
+    // Conservative PoE chat cap, measured in UTF-16 code units before input synthesis.
+    public const int MaximumChatLength = 400;
     public static BindingMapping Map(IEnumerable<PersistedBinding?> source, HotkeyConfiguration contexts,
         IEnumerable<IFeatureCommandHandler> handlers)
     {
@@ -39,6 +41,16 @@ public static class BindingMapper
     {
         if (string.IsNullOrWhiteSpace(b.Id)) return "ID required";
         if (b.Key is < 1 or > 254 or 1 or 2 or 3) return "Invalid VK (left/right mouse buttons are forbidden)";
+        if (b.Key is >= 0x10 and <= 0x12) return "Use a left/right modifier VK";
+        var ownModifier = b.Key switch
+        {
+            0xA0 or 0xA1 => KeyModifiers.Shift,
+            0xA2 or 0xA3 => KeyModifiers.Control,
+            0xA4 or 0xA5 => KeyModifiers.Alt,
+            0x5B or 0x5C => KeyModifiers.Windows,
+            _ => KeyModifiers.None
+        };
+        if ((b.Modifiers & ownModifier) != 0) return "A modifier key cannot require its own modifier";
         if ((uint)b.Modifiers >= 16) return "Invalid modifiers";
         if (string.IsNullOrWhiteSpace(b.Context) || !contexts.ContainsContext(b.Context)) return "Unknown context";
         var hasCommand = !string.IsNullOrWhiteSpace(b.FeatureCommand);
@@ -49,6 +61,8 @@ public static class BindingMapper
         if (b.Action == ActionKind.SendChatCommand &&
             (string.IsNullOrWhiteSpace(b.Text) || b.Text.Any(c => char.IsControl(c) || c is '\u2028' or '\u2029')))
             return "Chat text must be nonempty and single line";
+        if (b.Action == ActionKind.SendChatCommand && b.Text!.Length > MaximumChatLength)
+            return $"Chat text exceeds {MaximumChatLength} characters";
         return null;
     }
 }

@@ -27,7 +27,7 @@ public sealed class HotkeySettingsTests
     {
         using var store = new Store();
         var configuration = new HotkeyConfiguration();
-        configuration.SetActive("gameFocused", true);
+        configuration.UpdateGameFocused(true);
         var settings = new HotkeySettings(store, configuration, []);
         var dispatcher = new HotkeyDispatcher(new(new FakeClock()), configuration);
         Assert.NotNull(dispatcher.Observe(new(118, true, false, 0, 10000), true).Press);
@@ -44,7 +44,7 @@ public sealed class HotkeySettingsTests
     {
         using var store = new Store();
         var configuration = new HotkeyConfiguration();
-        configuration.SetActive("gameFocused", true);
+        configuration.UpdateGameFocused(true);
         using var settings = new HotkeySettings(store, configuration, []);
         var dispatcher = new HotkeyDispatcher(new(new FakeClock()), configuration);
         store.Warnings = ["Binding 'copy-item' disabled by settings validation: invalid modifiers."];
@@ -68,5 +68,31 @@ public sealed class HotkeySettingsTests
         Assert.Null(dispatcher.Observe(new(118, true, false, 0, 10000), true).Press);
         dispatcher.Observe(new(118, false, false, 0, 10000), true);
         Assert.NotNull(dispatcher.Observe(new(118, true, false, 0, 10000), true).Press);
+    }
+    [Fact]
+    public void LateContextRegistrationRemapsUnknownBinding()
+    {
+        using var store = new Store();
+        store.Snapshot.Hotkeys[0].Context = "late-overlay";
+        var configuration = new HotkeyConfiguration();
+        using var settings = new HotkeySettings(store, configuration, []);
+        Assert.Contains(configuration.RejectedBindings, x => x.Contains("Unknown context"));
+        configuration.Register("late-overlay");
+        Assert.Empty(configuration.RejectedBindings);
+        configuration.SetActive("late-overlay", true);
+        Assert.Equal("copy-item", configuration.Match(118, 0)!.Id);
+    }
+
+    [Fact]
+    public void OpeningSettingsFailurePublishesDefaultsAndDiagnostic()
+    {
+        var configuration = new HotkeyConfiguration();
+        using var settings = new HotkeySettings(
+            () => throw new IOException("Profile inaccessible"), configuration, []);
+        Assert.Equal(2, configuration.ActiveBindings.Count);
+        Assert.Contains("Settings unavailable; using default bindings: Profile inaccessible",
+            configuration.RejectedBindings);
+        configuration.Register("late-overlay");
+        Assert.Contains(configuration.RejectedBindings, x => x.Contains("Profile inaccessible"));
     }
 }

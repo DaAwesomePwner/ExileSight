@@ -128,7 +128,7 @@ public sealed class ProductionHotkeyTests
     public async Task ConcurrentReloadNeverExposesPartialTable()
     {
         var configuration = new HotkeyConfiguration();
-        configuration.SetActive("gameFocused", true);
+        configuration.UpdateGameFocused(true);
         HotkeyBinding a = new("a", 118, 0, true, new GameAction.CopyItem());
         HotkeyBinding b = a with { Id = "b", Block = false };
         configuration.Replace([a], []);

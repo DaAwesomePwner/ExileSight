@@ -97,4 +97,35 @@ public sealed class BindingMapperTests
         Assert.Equal(2, mapped.Bindings.Count);
         Assert.Empty(mapped.Rejected);
     }
+    [Theory]
+    [InlineData(0x10, KeyModifiers.None)]
+    [InlineData(0x11, KeyModifiers.None)]
+    [InlineData(0x12, KeyModifiers.None)]
+    [InlineData(0xA0, KeyModifiers.Shift)]
+    [InlineData(0xA1, KeyModifiers.Shift)]
+    [InlineData(0xA2, KeyModifiers.Control)]
+    [InlineData(0xA3, KeyModifiers.Control)]
+    [InlineData(0xA4, KeyModifiers.Alt)]
+    [InlineData(0xA5, KeyModifiers.Alt)]
+    [InlineData(0x5B, KeyModifiers.Windows)]
+    [InlineData(0x5C, KeyModifiers.Windows)]
+    public void AmbiguousOrSelfModifiedKeysAreRejected(int key, KeyModifiers modifiers)
+    {
+        var binding = Copy(key: key); binding.Modifiers = modifiers;
+        var result = BindingMapper.Map([binding], new(), []);
+        Assert.Empty(result.Bindings);
+        Assert.Single(result.Rejected);
+    }
+
+    [Theory]
+    [InlineData(400, true)]
+    [InlineData(401, false)]
+    public void ChatHasConservativeFourHundredCharacterLimit(int length, bool accepted)
+    {
+        var binding = Copy(); binding.Action = ActionKind.SendChatCommand;
+        binding.Text = new string('a', length);
+        var result = BindingMapper.Map([binding], new(), []);
+        Assert.Equal(accepted ? 1 : 0, result.Bindings.Count);
+        if (!accepted) Assert.Contains("400 characters", Assert.Single(result.Rejected));
+    }
 }

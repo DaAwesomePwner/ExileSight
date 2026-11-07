@@ -26,25 +26,36 @@ public static class InputRegistration
         services.TryAddSingleton<IClock, SystemClock>();
         services.AddSingleton<HotkeyConfiguration>();
         services.AddSingleton<IHotkeyContexts>(sp => sp.GetRequiredService<HotkeyConfiguration>());
-        services.AddSingleton<HotkeySettings>();
-        services.AddSingleton<IntentRegistry>();
-        services.AddSingleton<HotkeyDispatcher>(sp => new(sp.GetRequiredService<IntentRegistry>(),
-            sp.GetRequiredService<HotkeyConfiguration>()));
+        services.AddSingleton<HotkeySettings>(sp => new(
+            () => sp.GetRequiredService<ISettingsStore<SettingsDocument>>(),
+            sp.GetRequiredService<HotkeyConfiguration>(), sp.GetServices<IFeatureCommandHandler>()));
+        services.AddSingleton<InputPipeline>();
         services.AddSingleton<IClipboard, WindowsClipboard>();
-        services.AddSingleton<IActionGate>(sp => new ActionGate(
-            new GatePolicy(sp.GetRequiredService<IntentRegistry>(), [ActionKind.CopyItem, ActionKind.SendChatCommand]),
-            sp.GetRequiredService<IClipboard>(), sp.GetRequiredService<IClock>()));
+        services.AddSingleton<IActionGate>(sp => sp.GetRequiredService<InputPipeline>().Gate);
         services.AddSingleton<HotkeyExecution>();
         services.AddSingleton<InputDiagnostics>();
         services.AddSingleton<IDebugSection>(sp => sp.GetRequiredService<InputDiagnostics>());
-        services.AddSingleton<IHotkeys>(sp => new HookHost(sp.GetRequiredService<HotkeyDispatcher>(),
-            sp.GetRequiredService<IClock>(), sp.GetRequiredService<InputDiagnostics>().Execute,
-            sp.GetRequiredService<HotkeyConfiguration>()));
+        services.AddSingleton<IHotkeys>(sp => new HookHost(sp.GetRequiredService<InputPipeline>().Dispatcher,
+            sp.GetRequiredService<IClock>(), sp.GetRequiredService<HotkeyExecution>().Execute,
+            sp.GetRequiredService<InputDiagnostics>().Report));
         return services;
     }
     public static void StartProductionInput(IServiceProvider services)
     {
         services.GetRequiredService<HotkeySettings>();
         services.GetRequiredService<InputDiagnostics>().Start(services.GetRequiredService<IHotkeys>());
+    }
+    // Private wiring holds authority. IntentRegistry itself is never a DI service.
+    private sealed class InputPipeline
+    {
+        public HotkeyDispatcher Dispatcher { get; }
+        public IActionGate Gate { get; }
+        public InputPipeline(IClock clock, HotkeyConfiguration configuration, IClipboard clipboard)
+        {
+            var registry = new IntentRegistry(clock);
+            Dispatcher = new(registry, configuration);
+            Gate = new ActionGate(new GatePolicy(registry, [ActionKind.CopyItem, ActionKind.SendChatCommand]),
+                clipboard, clock);
+        }
     }
 }
