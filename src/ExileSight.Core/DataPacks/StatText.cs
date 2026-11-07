@@ -1,19 +1,33 @@
 using System.Globalization;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace ExileSight.Core.DataPacks;
 
-/// <summary>Pure English stat rendering/matching. Unsupported handlers and unknown ignored values fail closed.</summary>
+/// <summary>Pure English stat rendering/matching. Treat loaded translations as immutable.</summary>
 public static class StatText
 {
     private static readonly CultureInfo Culture = CultureInfo.InvariantCulture;
-    private static readonly Regex Placeholder = new(@"\{(\d+)\}", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
-    private const string Number = @"[+-]?\d+(?:\.\d+)?";
-    private const string Range = @"\(" + Number + @"\s*(?:–|-| to )\s*" + Number + @"\)";
-    private static readonly Regex Value = new(@"^(?<sign>[+-]?)(?:\((?<lo>" + Number +
-        @")\s*(?:–|-| to )\s*(?<hi>" + Number + @")\)|(?<one>\d+(?:\.\d+)?)(?:" + Range + @")?)$",
+    private static readonly Regex Value = new(@"^(?<sign>[+-]?)(?:\((?<lo>" + StatPattern.Number +
+        @")\s*(?:–|-| to )\s*(?<hi>" + StatPattern.Number + @")\)|(?<one>\d+(?:\.\d+)?)(?:" + StatPattern.Range + @")?)$",
         RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+    private static readonly string[] Suffixes = ["(crafted)", "(implicit)", "(fractured)", "(enchant)", "— Unscalable Value"];
+
+    /// <summary>Call before Match for advanced-copy annotations; unknown suffixes remain literal.</summary>
+    public static string StripCopySuffixes(string line)
+    {
+        line = line.TrimEnd();
+        while (Suffixes.FirstOrDefault(s => line.EndsWith(" " + s, StringComparison.Ordinal)) is string suffix)
+            line = line[..^suffix.Length].TrimEnd();
+        return line;
+    }
+
+    /// <summary>Precompile once at pack load; manually constructed entries are cached lazily.</summary>
+    public static void Prepare(IEnumerable<StatTranslation> entries)
+    {
+        foreach (var entry in entries.Where(e => !e.Hidden))
+        foreach (var variant in entry.English.Where(v => Valid(v, entry.StatIds.Length)))
+            _ = StatPattern.For(variant);
+    }
 
     public static string? Render(StatTranslation entry, decimal[] values)
     {
@@ -21,14 +35,19 @@ public static class StatText
         var variant = entry.English.FirstOrDefault(v => Valid(v, values.Length) &&
             values.Select((n, i) => v.Conditions[i].Accepts(n)).All(b => b));
         if (variant is null) return null;
-        var formatted = new string[values.Length];
-        for (var i = 0; i < values.Length; i++)
+        try
         {
-            if (!StatHandlers.Scale(variant.IndexHandlers[i], out var scale)) return null;
-            var value = StatHandlers.Apply(values[i], scale);
-            formatted[i] = (variant.Formats[i] == "+#" && value > 0 ? "+" : "") + value.ToString(Culture);
+            var formatted = new string[values.Length];
+            for (var i = 0; i < values.Length; i++)
+            {
+                var transform = StatHandlers.Resolve(variant.IndexHandlers[i]);
+                if (transform is null) return null;
+                var value = transform.Apply(values[i]);
+                formatted[i] = (variant.Formats[i] == "+#" && value > 0 ? "+" : "") + value.ToString("0.############################", Culture);
+            }
+            return StatPattern.Placeholder.Replace(variant.Text, m => formatted[int.Parse(m.Groups[1].Value, Culture)]);
         }
-        return Placeholder.Replace(variant.Text, m => formatted[int.Parse(m.Groups[1].Value, Culture)]);
+        catch (Exception ex) when (ex is OverflowException or RegexMatchTimeoutException) { return null; }
     }
 
     public static StatMatch[] Match(string line, IEnumerable<StatTranslation> entries)
@@ -38,59 +57,68 @@ public static class StatText
         foreach (var entry in entries.Where(e => !e.Hidden))
         foreach (var variant in entry.English.Where(v => Valid(v, entry.StatIds.Length)))
         {
-            var pattern = new StringBuilder("^");
-            var position = 0;
-            var seen = new HashSet<int>();
-            foreach (Match slot in Placeholder.Matches(variant.Text))
+            try
             {
-                pattern.Append(Regex.Escape(variant.Text[position..slot.Index]));
-                var i = int.Parse(slot.Groups[1].Value, Culture);
-                pattern.Append(seen.Add(i) ? $"(?<v{i}>[+-]?(?:{Range}|\\d+(?:\\.\\d+)?(?:{Range})?))" : $@"\k<v{i}>");
-                position = slot.Index + slot.Length;
-            }
-            pattern.Append(Regex.Escape(variant.Text[position..])).Append('$');
-            var match = Regex.Match(line, pattern.ToString(), RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
-            if (!match.Success) continue;
-            var values = new List<StatValue>();
-            for (var i = 0; i < entry.StatIds.Length; i++)
-            {
-                if (!StatHandlers.Scale(variant.IndexHandlers[i], out var scale)) break;
-                decimal lo, hi;
-                if (!seen.Contains(i))
+                foreach (var pattern in StatPattern.For(variant))
                 {
-                    // A boolean/ignored stat is recoverable only when its condition fixes its value.
-                    var c = variant.Conditions[i];
-                    if (c.Negated || c.Min is null || c.Min != c.Max) break;
-                    lo = hi = c.Min.Value;
+                    var match = pattern.Regex.Match(line);
+                    if (!match.Success) continue;
+                    var values = ReadValues(entry, variant, pattern, match);
+                    if (values is { Length: > 0 }) result.Add(new(entry.Id, values));
                 }
-                else
-                {
-                    var parsed = Value.Match(match.Groups[$"v{i}"].Value);
-                    if (!parsed.Success) break;
-                    var sign = parsed.Groups["sign"].Value == "-" ? -1 : 1;
-                    if (!decimal.TryParse(parsed.Groups["one"].Success ? parsed.Groups["one"].Value : parsed.Groups["lo"].Value,
-                        NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, Culture, out lo)) break;
-                    hi = lo;
-                    if (parsed.Groups["hi"].Success && !decimal.TryParse(parsed.Groups["hi"].Value,
-                        NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, Culture, out hi)) break;
-                    try
-                    {
-                        lo = StatHandlers.Reverse(lo * sign, scale);
-                        hi = StatHandlers.Reverse(hi * sign, scale);
-                    }
-                    catch (OverflowException) { break; }
-                }
-                if (!variant.Conditions[i].Accepts(lo) || !variant.Conditions[i].Accepts(hi)) break;
-                values.Add(new(entry.StatIds[i], Math.Min(lo, hi), Math.Max(lo, hi)));
             }
-            if (values.Count == entry.StatIds.Length)
-                result.Add(new(entry.Id, values.ToArray()));
+            catch (RegexMatchTimeoutException) { /* Untrusted copied text: no candidate on timeout. */ }
         }
         return result.DistinctBy(r => (r.TranslationId, string.Join(";", r.Values.Select(v => $"{v.StatId}:{v.Min}:{v.Max}")))).ToArray();
     }
 
+    private static StatValue[]? ReadValues(StatTranslation entry, StatVariant variant, StatPattern pattern, Match match)
+    {
+        var values = new List<StatValue>();
+        for (var i = 0; i < entry.StatIds.Length; i++)
+        {
+            decimal lo, hi;
+            if (!pattern.Seen.Contains(i))
+            {
+                // A separate copied line cannot establish stats or conditions on the other lines.
+                if (pattern.Partial) continue;
+                var c = variant.Conditions[i];
+                if (c.Negated || c.Min is null || c.Min != c.Max) return null;
+                lo = hi = c.Min.Value;
+            }
+            else
+            {
+                var transform = StatHandlers.Resolve(variant.IndexHandlers[i]);
+                if (transform is null) return null;
+                var parsed = Value.Match(match.Groups[$"v{i}"].Value);
+                if (!parsed.Success) return null;
+                var sign = parsed.Groups["sign"].Value == "-" ? -1 : 1;
+                if (!decimal.TryParse(parsed.Groups["one"].Success ? parsed.Groups["one"].Value : parsed.Groups["lo"].Value,
+                    NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, Culture, out lo)) return null;
+                hi = lo;
+                if (parsed.Groups["hi"].Success && !decimal.TryParse(parsed.Groups["hi"].Value,
+                    NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, Culture, out hi)) return null;
+                if (!transform.Reverse(lo * sign, out var a, out var b) ||
+                    !transform.Reverse(hi * sign, out var c, out var d)) return null;
+                lo = Math.Min(a, c);
+                hi = Math.Max(b, d);
+            }
+            var condition = variant.Conditions[i];
+            if (!condition.Negated)
+            {
+                lo = Math.Max(lo, condition.Min ?? lo);
+                hi = Math.Min(hi, condition.Max ?? hi);
+            }
+            // A negated condition that creates disjoint intervals cannot be represented by one range.
+            if (lo > hi || !condition.Accepts(lo) || !condition.Accepts(hi) ||
+                (condition.Negated && condition.Min >= lo && condition.Max <= hi)) return null;
+            values.Add(new(entry.StatIds[i], lo, hi));
+        }
+        return values.ToArray();
+    }
+
     private static bool Valid(StatVariant v, int count) =>
-        v.Conditions.Length == count && v.Formats.Length == count && v.IndexHandlers.Length == count &&
+        v.Text.Length <= 16384 && v.Conditions.Length == count && v.Formats.Length == count && v.IndexHandlers.Length == count &&
         v.Formats.All(f => f is "#" or "+#" or "ignored") &&
-        Placeholder.Matches(v.Text).All(m => int.TryParse(m.Groups[1].Value, out var i) && i < count);
+        StatPattern.Placeholder.Matches(v.Text).All(m => int.TryParse(m.Groups[1].Value, out var i) && i < count);
 }

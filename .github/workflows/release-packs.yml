@@ -120,7 +120,7 @@ jobs:
                    f'Source SHA: {sha}\n\n' + manifest['attribution'] + '\n\n'
                    "This product isn't affiliated with or endorsed by Grinding Gear Games in any way.\n"
                    'Manifests record per-input SHA-256, schema and source-SHA pack versions. '
-                   'SHA256SUMS covers all nine generated JSON assets. No game data is committed to git.\n')
+                   'SHA256SUMS covers all nine generated JSON assets and ATTRIBUTION.txt. No game data is committed to git.\n')
           Path('bundle/RELEASE-NOTES.md').write_text(notes, encoding='utf-8')
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -162,5 +162,5 @@ jobs:
           if [[ "$PRERELEASE" == 'true' ]]; then options+=(--prerelease); fi
           gh release create "$PACK_TAG" --target "$GITHUB_SHA" --draft --latest=false \
             --title "$PACK_TAG" --notes-file bundle/RELEASE-NOTES.md "${options[@]}"
-          gh release upload "$PACK_TAG" bundle/packs/*.json bundle/packs/SHA256SUMS
+          gh release upload "$PACK_TAG" bundle/packs/*.json bundle/packs/SHA256SUMS bundle/packs/ATTRIBUTION.txt
           gh release edit "$PACK_TAG" --draft=false --latest=false

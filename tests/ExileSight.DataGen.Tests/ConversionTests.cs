@@ -29,6 +29,11 @@ public sealed class ConversionTests
         {
             await PackWriter.WriteAsync(first, packs);
             await PackWriter.WriteAsync(second, RepoeConverter.Convert(bases, mods, new string('a', 40)));
+            var notice = await File.ReadAllTextAsync(Path.Combine(first, "ATTRIBUTION.txt"));
+            Assert.Contains("Game data © Grinding Gear Games", notice);
+            Assert.Contains(new string('a', 40), notice);
+            Assert.Contains("not affiliated with or endorsed by Grinding Gear Games", notice);
+            Assert.Contains("  ATTRIBUTION.txt", await File.ReadAllTextAsync(Path.Combine(first, "SHA256SUMS")));
             foreach (var file in Directory.GetFiles(first))
                 Assert.Equal(await File.ReadAllBytesAsync(file), await File.ReadAllBytesAsync(Path.Combine(second, Path.GetFileName(file))));
         }

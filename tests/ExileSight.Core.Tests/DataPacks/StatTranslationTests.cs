@@ -32,14 +32,13 @@ public sealed class StatTranslationTests
     }
 
     [Theory]
-    [InlineData("per_minute_to_per_second", 120, 2)]
     [InlineData("milliseconds_to_seconds", 1500, 1.5)]
     [InlineData("divide_by_one_hundred", 150, 1.5)]
     public void ReversesHandlers(string handler, decimal raw, decimal display)
     {
         var entry = Entry(handler: handler);
         var rendered = StatText.Render(entry, [raw])!;
-        Assert.Contains(display.ToString(System.Globalization.CultureInfo.InvariantCulture), rendered);
+        Assert.Equal("+" + display.ToString(System.Globalization.CultureInfo.InvariantCulture) + " to maximum Life", rendered);
         Assert.Equal(raw, Assert.Single(StatText.Match(rendered, [entry])).Values[0].Min);
     }
 

@@ -25,11 +25,13 @@ public static class PackCodec
     {
         if (m is null || bytes is null || m.SchemaVersion != SchemaVersion || m.ContentSha256 != Hash(bytes)) return null;
         var c = JsonSerializer.Deserialize(bytes, PackJson.Default.PackContent);
-        return c is not null && m.PackId == packId && c.PackId == packId &&
+        var valid = c is not null && m.PackId == packId && c.PackId == packId &&
             m.SchemaVersion == SchemaVersion && c.SchemaVersion == SchemaVersion &&
             m.Game is Games.Game.PoE1 or Games.Game.PoE2 && c.Bases is not null && c.Mods is not null &&
             m.Source is not null && !string.IsNullOrWhiteSpace(m.PackVersion) && m.Game == c.Game &&
             packId.StartsWith(m.Game == Games.Game.PoE1 ? "poe1/" : "poe2/", StringComparison.Ordinal) &&
-            m.PackVersion == c.PackVersion ? new(m, c) : null;
+            m.PackVersion == c.PackVersion ? new DataPack(m, c) : null;
+        if (valid?.Content.Translations is { } translations) StatText.Prepare(translations);
+        return valid;
     }
 }
