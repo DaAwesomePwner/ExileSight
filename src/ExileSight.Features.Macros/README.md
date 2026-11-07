@@ -4,7 +4,7 @@ Default bindings: blocked F5 (`macros.travel`) and F6 (`macros.macro`).
 Persisted bindings with those IDs win, including disabled bindings.
 
 A release with the same press ID and down timestamp, within 200 ms, spends the original key-down token on /hideout (F5)
-or command slot 0 (F6). The Action Gate still enforces its 1.5 s expiry.
+or the separate command 0 (`Command0`, F6). The Action Gate still enforces its 1.5 s expiry.
 The release never mints or authorizes another action. A longer press opens the wheel
 **on release**, without spending that token. The wheel is centred on the cursor captured
 at release and clamped to the game client.

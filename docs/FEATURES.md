@@ -49,7 +49,7 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 - **Done when:** delta maths is unit-tested and the stored gear survives a restart.
 
 ### `guide`: Act-tracker guide
-- **Trigger:** passive, driven by `AreaEntered` and `CharacterLevelUp` log events. Hotkeys move the step forward or back manually.
+- **Trigger:** passive, driven by `AreaEntered` and `CharacterLevelUp` log events. Ctrl+Shift+F10 toggles the panel; Ctrl+Shift+F11 goes back and Ctrl+Shift+F12 moves forward manually.
 - **Actions:** none.
 - **Behaviour:**
   - A small panel showing the current step and the next one, advanced by zone changes.
@@ -60,7 +60,7 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 - **Done when:** a recorded Acts 1–3 log replays through the guide in a unit test, and the 🎮 gate passes.
 
 ### `mapinfo`: Map-info panel
-- **Trigger:** the omni handler for maps and logbooks. Optionally shown while Tab is held in a map, using the last copied map.
+- **Trigger:** the omni handler for maps and logbooks. Optional `mapinfo:hold` shows the last copied map while held; it has no default binding because timers owns Tab.
 - **Actions:** none beyond the omni copy.
 - **Behaviour:**
   - Map mods are shortened and ranked by the user's danger rating (4 levels, set per mod with a click).
@@ -71,7 +71,7 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 
 ### `maptracker`: Map tracker + log viewer
 - **Trigger:** passive, driven by log events (area generated with seed and level, area entered, deaths, NPC dialogue for mechanics).
-- **Actions:** `SendChatCommand("/kills")`, only from its own hotkey and never automatically.
+- **Actions:** `SendChatCommand("/kills")`, once per Ctrl+Shift+K press and never automatically. Ctrl+Shift+M opens the viewer.
 - **Behaviour:**
   - Records each run with map name, tier, duration (time spent in hideout excluded), deaths, mechanics, map mods (if the map was copied before the run) and notes.
   - A log viewer with filters, totals and CSV export.
@@ -80,7 +80,7 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 - **Done when:** a recorded mapping log replays into the expected runs in a unit test.
 
 ### `events`: Map-event notifications
-- **Trigger:** passive log events: infamous mercenary, discoverable hideout, and similar.
+- **Trigger:** passive log events: infamous mercenary, discoverable hideout, and similar. Ctrl+Shift+E opens settings.
 - **Actions:** none.
 - **Behaviour:** a short toast overlay, which can be turned off per event.
 - **Data:** the `poe1/events` pack, from `data/english/mercenaries.json` and the patterns in `client log.ahk` around lines 578–592.
