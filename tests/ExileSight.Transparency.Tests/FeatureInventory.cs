@@ -14,18 +14,41 @@ internal static class FeatureInventory
     // Discovery is test-only: production still explicitly composes compiled-in modules.
     internal static FeatureHost Read(string root, string scratch)
     {
-        var features = Directory.GetFiles(Path.Combine(root, "src"), "ExileSight.Features.*.csproj",
-                SearchOption.AllDirectories).Order(StringComparer.Ordinal)
-            .Select(project => Assembly.Load(Path.GetFileNameWithoutExtension(project)))
-            .Select(assembly => assembly.GetExportedTypes().Single(t => !t.IsAbstract && typeof(IFeature).IsAssignableFrom(t)))
-            .Select(type => Compose(type, scratch)).ToArray();
-        if (features.Length == 0) throw new InvalidOperationException("No feature projects found.");
+        var types = Types(root);
+        AssertRegisteredSet(root, types);
+        var features = types.Select(type => Compose(type, scratch)).ToArray();
         return new(features, (_, _) => null, (_, _, _) =>
             throw new InvalidOperationException("Transparency generation must not write feature settings."),
             dispatch: action => action());
     }
 
-    private static IFeature Compose(Type type, string scratch)
+    internal static Type[] Types(string root) => Directory.GetFiles(Path.Combine(root, "src"), "ExileSight.Features.*.csproj",
+                SearchOption.AllDirectories).Order(StringComparer.Ordinal)
+            .Select(project => Assembly.Load(Path.GetFileNameWithoutExtension(project)))
+            .Select(assembly => assembly.GetExportedTypes().Single(t => !t.IsAbstract && typeof(IFeature).IsAssignableFrom(t)))
+            .ToArray();
+
+    internal static void AssertRegisteredSet(string root, IReadOnlyList<Type> types)
+    {
+        var registered = RegistrationSource.Read(root, types).Order(StringComparer.Ordinal).ToArray();
+        var discovered = types.Select(t => t.FullName!).Order(StringComparer.Ordinal).ToArray();
+        if (discovered.Length == 0 || !discovered.SequenceEqual(registered))
+            throw new InvalidOperationException("Feature projects differ from App CompiledModules. " +
+                "Register/remove the feature or update portable composition.\nProjects: " + string.Join(", ", discovered) +
+                "\nApp registrations: " + string.Join(", ", registered));
+    }
+
+    internal static IFeature Compose(Type type, string scratch)
+    {
+        try { return ComposeCore(type, scratch); }
+        catch (Exception error)
+        {
+            throw new InvalidOperationException($"Cannot instantiate feature {type.FullName}. " +
+                "Update FeatureInventory.ComposeCore with portable constructor dependencies; do not reference App/WPF.", error);
+        }
+    }
+
+    private static IFeature ComposeCore(Type type, string scratch)
     {
         // Only storage-dependent modules need portable composition; no App/WPF, network or input.
         var directory = Path.Combine(scratch, type.Name);

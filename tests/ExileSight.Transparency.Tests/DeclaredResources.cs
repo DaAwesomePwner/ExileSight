@@ -14,7 +14,7 @@ internal static class DeclaredResources
         ["events"] = ["active profile JSON (event settings)"],
         ["gearcmp"] = ["poe1/gearcmp/active.json", "poe1/gearcmp/default.json", "poe1/gearcmp/character-{hash}.json"],
         ["guide"] = ["poe1/guide/progress.json", "poe1/guide/{hash}.json", "user-selected CSV export"],
-        ["iteminfo"] = [],
+        ["iteminfo"] = ["active profile JSON (highlight profiles)"],
         ["macros"] = ["active profile JSON (commands)"],
         ["mapinfo"] = ["poe1/mapinfo/ratings.json"],
         ["maptracker"] = ["active profile JSON (league)", "poe1/maptracker/{league-hash}.jsonl", "user-selected CSV export"],

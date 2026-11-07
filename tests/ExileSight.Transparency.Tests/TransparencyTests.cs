@@ -45,7 +45,7 @@ public sealed class TransparencyTests
         return $"README transparency section is stale. Regenerate: {TransparencyTable.UpdateCommand}\n" + string.Join('\n', changes);
     }
 
-    private static string FindRoot()
+    internal static string FindRoot()
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
             if (File.Exists(Path.Combine(directory.FullName, "ExileSight.slnx"))) return directory.FullName;
