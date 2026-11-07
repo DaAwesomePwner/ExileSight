@@ -1,4 +1,5 @@
 using System.Security;
+using ExileSight.Core.Setup;
 using ExileSight.Platform.Abstractions.Install;
 using Microsoft.Win32;
 
@@ -24,7 +25,7 @@ public sealed class InstallLocations : IInstallLocations
                 value = key?.GetValue(name) as string;
             }
             catch (Exception error) when (error is SecurityException or UnauthorizedAccessException or IOException) { }
-            if (!string.IsNullOrWhiteSpace(value)) yield return value;
+            if (ClientLogDiscovery.IsLocalAbsolutePath(value)) yield return value!;
         }
     }
 
@@ -42,6 +43,7 @@ public sealed class InstallLocations : IInstallLocations
 
     public string? ReadLibraryFolders(string steamRoot)
     {
+        if (!ClientLogDiscovery.IsLocalAbsolutePath(steamRoot)) return null;
         try { return File.ReadAllText(Path.Combine(steamRoot, "steamapps", "libraryfolders.vdf")); }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException) { return null; }
     }

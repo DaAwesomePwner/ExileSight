@@ -4,9 +4,9 @@ using ExileSight.Core.Logs.Tail;
 using ExileSight.Core.Settings;
 using ExileSight.Platform.Abstractions.Storage;
 
-namespace ExileSight.App.Logs;
+namespace ExileSight.Core.Setup;
 
-public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings) : IDebugSection, IAsyncDisposable
+public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, ExileSight.Platform.Abstractions.Files.IFileTail? fileTail = null) : IDebugSection, IAsyncDisposable
 {
     private readonly object sync = new();
     private readonly SemaphoreSlim transition = new(1);
@@ -20,27 +20,28 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings) 
 
     public async Task RefreshAsync()
     {
-        await transition.WaitAsync();
+        await transition.WaitAsync().ConfigureAwait(false);
         try
         {
             if (disposed) return;
             var next = settings.Snapshot.General.ClientTxtPath;
             if (next == path) return;
             cancellation?.Cancel();
-            await running;
+            await running.ConfigureAwait(false);
             cancellation?.Dispose();
             path = next;
             lock (sync) { recent.Clear(); area = "Unknown"; level = "None"; }
-            if (string.IsNullOrWhiteSpace(path)) return;
+            if (!ClientLogDiscovery.IsLocalAbsolutePath(path))
+            { lock (sync) status = "Choose a fully-qualified local log path in setup."; return; }
             cancellation = new();
-            running = ReadAsync(path, cancellation.Token);
+            running = ReadAsync(path!, cancellation.Token);
         }
         finally { transition.Release(); }
     }
 
     private async Task ReadAsync(string selected, CancellationToken token)
     {
-        var tail = new PollingFileTail(warning: warning => { lock (sync) status = warning; });
+        var tail = fileTail ?? new PollingFileTail(warning: warning => { lock (sync) status = warning; });
         var parser = new LogParser();
         try
         {
@@ -75,8 +76,8 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings) 
 
     public async ValueTask DisposeAsync()
     {
-        await transition.WaitAsync();
-        try { disposed = true; cancellation?.Cancel(); await running; cancellation?.Dispose(); }
+        await transition.WaitAsync().ConfigureAwait(false);
+        try { if (disposed) return; disposed = true; cancellation?.Cancel(); await running.ConfigureAwait(false); cancellation?.Dispose(); }
         finally { transition.Release(); }
     }
 }

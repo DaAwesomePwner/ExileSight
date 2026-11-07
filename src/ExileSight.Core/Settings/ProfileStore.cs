@@ -33,7 +33,7 @@ public sealed class ProfileStore : IProfileStore
     public bool IsReadOnlyNewerSchema => catalog.IsReadOnlyNewerSchema;
 
     /// <summary>Caller owns/disposes the returned store; keep only one open owner for each profile.</summary>
-    public ISettingsStore<SettingsDocument> Open(string id)
+    public ITransactionalSettingsStore<SettingsDocument> Open(string id)
     {
         lock (sync)
         {

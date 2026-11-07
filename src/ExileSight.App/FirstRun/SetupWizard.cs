@@ -11,13 +11,13 @@ namespace ExileSight.App.FirstRun;
 
 public sealed class SetupWizard : Window
 {
-    private readonly ISettingsStore<SettingsDocument> settings;
+    private readonly ITransactionalSettingsStore<SettingsDocument> settings;
     private readonly StackPanel body = new() { Margin = new Thickness(24) };
     private readonly ComboBox path = new() { IsEditable = true, MinWidth = 470 };
     private readonly TextBlock message = new() { TextWrapping = TextWrapping.Wrap };
     private int page;
 
-    public SetupWizard(ISettingsStore<SettingsDocument> settings, IInstallLocations locations)
+    public SetupWizard(ITransactionalSettingsStore<SettingsDocument> settings, IInstallLocations locations)
     {
         this.settings = settings;
         Title = "Welcome to ExileSight";
@@ -80,8 +80,7 @@ public sealed class SetupWizard : Window
         if (page < 3) { page++; Render(); return; }
         try
         {
-            settings.Update("general", s => { s.General.ClientTxtPath = path.Text; s.General.FirstRunCompleted = true; });
-            settings.Flush();
+            SetupCommit.Finish(settings, path.Text);
             DialogResult = true;
         }
         catch (Exception saveError) when (saveError is IOException or UnauthorizedAccessException or InvalidOperationException)

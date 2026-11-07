@@ -15,9 +15,11 @@ public sealed class TrayHome : IDisposable
     private readonly HwndSource broadcasts;
     private ITrayIcon? icon;
     private bool disposed;
+    private readonly TrayDiagnostics diagnostics;
 
-    public TrayHome(ITrayIconFactory factory, Action debug, Action setup, Action folder, Action exit)
+    public TrayHome(ITrayIconFactory factory, TrayDiagnostics diagnostics, Action debug, Action setup, Action folder, Action exit)
     {
+        this.diagnostics = diagnostics;
         Add("Debug panel", debug);
         Add("Run setup again", setup);
         Add("Open settings folder", folder);
@@ -48,7 +50,8 @@ public sealed class TrayHome : IDisposable
                 icon.DoubleClick += (_, _) => Dispatch(debug);
                 icon.RightClick += (_, _) => Dispatch(() => menu.IsOpen = true);
                 menu.Opened += MenuOpened;
-                icon.Show();
+                try { icon.Show(); }
+                catch (Win32Exception error) { diagnostics.Record(error); }
             }
             catch { icon?.Dispose(); broadcasts.Dispose(); throw; }
         }
@@ -79,10 +82,10 @@ public sealed class TrayHome : IDisposable
     {
         if (disposed || icon is null) return 0;
         try { handled = icon.ProcessMessage(window, (uint)message, wParam, lParam); }
-        catch (Win32Exception error)
+        catch (Exception error)
         {
             // Never unwind a managed exception through the native window procedure.
-            Dispatch(() => MessageBox.Show(error.Message, "ExileSight notification area"));
+            diagnostics.Record(error);
         }
         return 0;
     }

@@ -42,7 +42,7 @@ public sealed record UpdateSettingsSnapshot(GeneralSettings Settings, IReadOnlyL
     }
     private static void ValidateHeader(JsonElement root)
     {
-        if (!root.TryGetProperty("schemaVersion", out var version) || !version.TryGetInt32(out var number) || number != 1 ||
+        if (!root.TryGetProperty("schemaVersion", out var version) || !version.TryGetInt32(out var number) || number != new MigrationPipeline().CurrentVersion ||
             !root.TryGetProperty("game", out var game) || !game.TryGetInt32(out var gameId) || gameId != 1)
             throw new JsonException("Updater requires supported schemaVersion and PoE1 game settings.");
     }

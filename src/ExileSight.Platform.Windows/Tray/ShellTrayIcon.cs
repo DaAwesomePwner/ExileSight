@@ -21,6 +21,7 @@ public sealed class ShellTrayIcon : ITrayIcon
     private string tooltip = "ExileSight";
     private TrayIconImage icon;
     private bool disposed;
+    private bool wanted;
     public bool IsVisible { get; private set; }
     public event EventHandler? LeftClick;
     public event EventHandler? RightClick;
@@ -64,6 +65,7 @@ public sealed class ShellTrayIcon : ITrayIcon
     {
         VerifyAccess();
         if (IsVisible) return;
+        wanted = true;
         Add();
         IsVisible = true;
     }
@@ -78,7 +80,7 @@ public sealed class ShellTrayIcon : ITrayIcon
     public void Hide()
     {
         VerifyAccess();
-        if (!IsVisible) return;
+        wanted = false;
         Delete();
         IsVisible = false;
     }
@@ -88,7 +90,13 @@ public sealed class ShellTrayIcon : ITrayIcon
         VerifyAccess();
         if (window == broadcastWindow && message == taskbarCreated)
         {
-            if (IsVisible) Add();
+            if (wanted)
+            {
+                IsVisible = false;
+                Delete();
+                Add();
+                IsVisible = true;
+            }
             return true;
         }
         if (!IsVisible || window != callbackWindow || message != CallbackMessage ||

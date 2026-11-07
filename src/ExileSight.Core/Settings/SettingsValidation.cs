@@ -69,7 +69,7 @@ internal static class SettingsValidation
         foreach (var binding in updated.Hotkeys)
         {
             if (binding is null || binding.Id is null || !unknown.TryGetValue(binding.Id, out var previous)) continue;
-            if (BindingProblems(binding).Any()) binding.Enabled = previous.Enabled;
+            binding.Enabled = previous.Enabled;
             if (previous.Action is { } action && !Enum.IsDefined(action)) binding.Action = previous.Action;
         }
     }
