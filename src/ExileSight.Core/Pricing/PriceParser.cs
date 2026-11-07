@@ -23,6 +23,9 @@ public static class PriceParser
         decimal? chaosPerPrimary = 1, divinePerPrimary = null;
         if (root.TryGetProperty("core", out var core))
         {
+            if (core.TryGetProperty("items", out var coreItems))
+                foreach (var item in coreItems.EnumerateArray())
+                    if (Text(item, "id") is { } id) metadata.TryAdd(id, item);
             var primary = Text(core, "primary");
             core.TryGetProperty("rates", out var rates);
             chaosPerPrimary = primary == "chaos" ? 1 : Number(rates, "chaos");
@@ -42,7 +45,7 @@ public static class PriceParser
             foreach (var key in new[] { "sparkline", "sparkLine", "receiveSparkLine", "lowConfidenceSparkline", "lowConfidenceSparkLine" })
             {
                 if (!line.TryGetProperty(key, out var spark) || spark.ValueKind != JsonValueKind.Object ||
-                    !spark.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array) continue;
+                    !spark.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array || data.GetArrayLength() == 0) continue;
                 history.AddRange(data.EnumerateArray().TakeLast(7).Select(v => v.TryDecimal()));
                 break;
             }
@@ -50,7 +53,7 @@ public static class PriceParser
             prices.Add(new(id, name, category, Text(line, "baseType") ?? Text(meta, "baseType"),
                 chaos.Value, Number(line, "divineValue") ?? Number(line, "primaryValue") * divinePerPrimary,
                 history.AsReadOnly(), count is >= 0 and <= int.MaxValue ? (int)count : null, Text(line, "confidence"),
-                Number(line, "links") is >= 0 and <= 6 ? (int?)Number(line, "links") : null, Text(line, "variant")));
+                Number(line, "links") is >= 0 and <= 6 ? (int?)Number(line, "links") : null, Text(line, "variant"), Text(meta, "category")));
         }
         var divine = prices.FirstOrDefault(p => p.Name == "Divine Orb" || p.Id == "divine")?.ChaosValue;
         divine ??= divinePerPrimary is > 0 ? chaosPerPrimary / divinePerPrimary : null;

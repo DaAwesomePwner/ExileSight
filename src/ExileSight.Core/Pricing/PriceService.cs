@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Collections.Concurrent;
 using ExileSight.Platform.Abstractions.Storage;
 using ExileSight.Platform.Abstractions.Time;
 
@@ -9,19 +10,29 @@ public sealed record LeagueResult(IReadOnlyList<string> Leagues, string DefaultL
 
 public sealed class PriceService(IAppPaths paths, IClock clock, PriceTransport transport)
 {
+    private readonly ConcurrentDictionary<string, (string Json, PriceOverview Overview)> parsed = new();
     private readonly PriceDocumentCache cache = new(paths, clock, transport);
     public async Task<PriceResult> GetAsync(string league, string category, TimeSpan refreshInterval,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(league)) return new(null, null, true, "Set your league in Prices settings.");
         var result = await cache.GetAsync(PriceEndpoints.Overview(league, category),
-            json => PriceParser.Parse(json, category), refreshInterval, cancellationToken).ConfigureAwait(false);
+            json => Parse(json, league, category), refreshInterval, cancellationToken).ConfigureAwait(false);
         try
         {
-            return new(result.Json is null ? null : PriceParser.Parse(result.Json, category),
+            return new(result.Json is null ? null : Parse(result.Json, league, category),
                 result.UpdatedAt, result.IsStale, result.Diagnostic);
         }
-        catch (JsonException) { return new(null, result.UpdatedAt, true, "Cached prices are invalid."); }
+        catch (Exception e) when (e is JsonException or OverflowException) { return new(null, result.UpdatedAt, true, "Cached prices are invalid."); }
+    }
+
+    private PriceOverview Parse(string json, string league, string category)
+    {
+        var key = league.ToUpperInvariant() + "/" + category;
+        if (parsed.TryGetValue(key, out var entry) && entry.Json == json) return entry.Overview;
+        var overview = PriceParser.Parse(json, category);
+        parsed[key] = (json, overview);
+        return overview;
     }
 
     /// <summary>A configured league always wins; otherwise prefer a current softcore challenge league.</summary>
@@ -33,6 +44,7 @@ public sealed class PriceService(IAppPaths paths, IClock clock, PriceTransport t
         try { if (result.Json is not null) leagues = ParseLeagues(result.Json); }
         catch (JsonException) { return new([], configuredLeague ?? "Standard", true, "Set your league; cached league list is invalid."); }
         var preferred = leagues.FirstOrDefault(l => !l.Contains("Hardcore", StringComparison.OrdinalIgnoreCase) &&
+            !l.Contains("Ruthless", StringComparison.OrdinalIgnoreCase) &&
             !l.Contains("SSF", StringComparison.OrdinalIgnoreCase) && l != "Standard");
         return new(leagues, string.IsNullOrWhiteSpace(configuredLeague) ? preferred ?? "Standard" : configuredLeague,
             result.IsStale, result.Diagnostic ?? (leagues.Count == 0 ? "Set your league; league list is unavailable." : null));

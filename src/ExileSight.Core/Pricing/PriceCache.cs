@@ -2,8 +2,10 @@ using System.Text.Json.Serialization;
 
 namespace ExileSight.Core.Pricing;
 
-internal sealed class PriceCache
+internal sealed record PriceCache
 {
+    [JsonIgnore]
+    public bool NeedsRepair { get; set; }
     public DateTimeOffset? LastAttempt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
     public string? Json { get; set; }

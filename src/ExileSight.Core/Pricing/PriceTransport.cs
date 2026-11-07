@@ -17,7 +17,7 @@ public sealed class PriceTransport : IDisposable
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maximumBytes);
         this.maximumBytes = maximumBytes;
         client = new(handler?.Invoke() ?? new SocketsHttpHandler
-        { AllowAutoRedirect = false, UseCookies = false, Credentials = null, UseProxy = false });
+        { AllowAutoRedirect = false, UseCookies = false, Credentials = null });
         client.Timeout = TimeSpan.FromSeconds(30);
         client.DefaultRequestHeaders.UserAgent.ParseAdd(
             $"ExileSight/{version} (+https://github.com/DaAwesomePwner/ExileSight)");

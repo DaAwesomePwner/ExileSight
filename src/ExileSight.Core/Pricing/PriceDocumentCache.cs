@@ -10,71 +10,109 @@ namespace ExileSight.Core.Pricing;
 
 internal sealed record CachedPriceDocument(string? Json, DateTimeOffset? UpdatedAt, bool IsStale, string? Diagnostic);
 
-/// <summary>Persist attempts before HTTP, including failed/cancelled requests. Never refresh inside one hour.</summary>
+/// <summary>Persist attempts before HTTP. Readers retain the last published copy while a writer refreshes.</summary>
 internal sealed class PriceDocumentCache(IAppPaths paths, IClock clock, PriceTransport transport)
 {
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> Locks = new();
+    private readonly ConcurrentDictionary<string, PriceCache> memory = new();
     private readonly RootedFiles files = new(paths.RootDirectory);
     public async Task<CachedPriceDocument> GetAsync(Uri uri, Action<string> validate, TimeSpan refreshInterval,
         CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var interval = refreshInterval < TimeSpan.FromHours(1) ? TimeSpan.FromHours(1) : refreshInterval;
-        var key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(uri.AbsoluteUri)));
+        var key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(uri.AbsoluteUri.ToUpperInvariant())));
         var path = files.Check(Path.Combine(paths.RootDirectory, "cache", "poe1", "poeninja", key + ".json"));
         var gate = Locks.GetOrAdd(path, _ => new(1, 1));
-        await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        if (!gate.Wait(0)) return Result(ReadAvailable(path), interval, "Price refresh in progress.");
         PriceCache cache = new();
         try
         {
+            cache = ReadAvailable(path);
             Directory.CreateDirectory(files.Check(Path.GetDirectoryName(path)!));
-            // Prevent independent app instances from racing an attempt timestamp.
             using var lease = new FileStream(files.Check(path + ".lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-            cache = Read(path);
+            // Refresh disk state when due, so separate app instances observe each other's attempts.
+            if (!IsWaiting(cache, interval)) cache = Read(path);
             var now = clock.UtcNow;
-            if (cache.LastAttempt is { } attempted && now - attempted < interval)
-                return Result(cache, interval, cache.Error);
+            if (cache.LastAttempt > now || cache.UpdatedAt > now || cache.NeedsRepair)
+            {
+                cache = cache with
+                {
+                    LastAttempt = cache.LastAttempt > now ? now : cache.LastAttempt,
+                    UpdatedAt = cache.UpdatedAt > now ? now : cache.UpdatedAt,
+                    NeedsRepair = false
+                };
+                Write(path, cache);
+            }
+            memory[path] = cache;
+            if (IsWaiting(cache, interval)) return Result(cache, interval, cache.Error);
             cancellationToken.ThrowIfCancellationRequested();
-            cache.LastAttempt = now;
-            cache.Error = "Price refresh did not complete.";
+            cache = cache with { LastAttempt = now, Error = "Price refresh did not complete." };
             Write(path, cache); // Failure here must prevent HTTP.
+            memory[path] = cache;
             try
             {
                 var response = await transport.GetAsync(uri, cache.ETag, cache.LastModified, cancellationToken).ConfigureAwait(false);
                 var json = response.Json ?? cache.Json ?? throw new JsonException("304 without cached overview.");
                 validate(json);
-                cache.Json = json;
-                cache.UpdatedAt = clock.UtcNow;
-                cache.ETag = response.ETag;
-                cache.LastModified = response.LastModified;
-                cache.Error = null;
+                cache = cache with
+                {
+                    Json = json, UpdatedAt = clock.UtcNow, ETag = response.ETag,
+                    LastModified = response.LastModified, Error = null
+                };
                 Write(path, cache);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
-            catch (Exception e) when (e is HttpRequestException or IOException or JsonException or OperationCanceledException)
+            catch (Exception e) when (e is HttpRequestException or IOException or JsonException or
+                OperationCanceledException or OverflowException or UriFormatException)
             {
-                cache.Error = "Price refresh unavailable; cached prices may be stale.";
+                cache = cache with { Error = $"Price refresh unavailable ({e.GetType().Name}); cached prices may be stale." };
                 Write(path, cache);
             }
+            memory[path] = cache;
             return Result(cache, interval, cache.Error);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            return Result(cache, interval, "Price cache unavailable; no further request was made.");
+            return Result(cache, interval, "Price cache unavailable; serving the existing copy.");
         }
         finally { gate.Release(); }
     }
+    private bool IsWaiting(PriceCache cache, TimeSpan interval) =>
+        cache.LastAttempt is { } attempted && clock.UtcNow - attempted <
+            (cache.Error is null ? interval : TimeSpan.FromHours(1));
+
     private CachedPriceDocument Result(PriceCache cache, TimeSpan interval, string? diagnostic)
     {
-        var stale = cache.Json is null || cache.UpdatedAt is null || clock.UtcNow - cache.UpdatedAt >= interval || diagnostic is not null;
-        return new(cache.Json, cache.UpdatedAt, stale, diagnostic);
+        var updated = cache.UpdatedAt > clock.UtcNow ? clock.UtcNow : cache.UpdatedAt;
+        var stale = cache.Json is null || updated is null || clock.UtcNow - updated >= interval || diagnostic is not null;
+        return new(cache.Json, updated, stale, diagnostic);
+    }
+    private PriceCache ReadAvailable(string path)
+    {
+        if (memory.TryGetValue(path, out var cached)) return cached;
+        var result = Read(path);
+        memory[path] = result;
+        return result;
     }
     private PriceCache Read(string path)
     {
-        if (!File.Exists(files.Check(path))) return new();
-        if (new FileInfo(path).Length > 64 * 1024 * 1024) throw new IOException("Price cache too large.");
-        // A malformed timestamp record fails closed instead of bypassing the refresh limit.
-        try { return JsonSerializer.Deserialize(File.ReadAllBytes(path), PriceJsonContext.Default.PriceCache) ?? throw new JsonException(); }
-        catch (JsonException e) { throw new IOException("Invalid price cache.", e); }
+        path = files.Check(path);
+        if (!File.Exists(path)) return new();
+        try
+        {
+            if (new FileInfo(path).Length > 64 * 1024 * 1024) throw new IOException("Price cache too large.");
+            return JsonSerializer.Deserialize(File.ReadAllBytes(path), PriceJsonContext.Default.PriceCache) ?? throw new JsonException();
+        }
+        catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException)
+        {
+            var modified = new DateTimeOffset(File.GetLastWriteTimeUtc(path));
+            return new()
+            {
+                LastAttempt = modified > clock.UtcNow ? clock.UtcNow : modified,
+                Error = "Invalid price cache; retry after one hour.", NeedsRepair = true
+            };
+        }
     }
     private void Write(string path, PriceCache cache) =>
         files.Write(path, JsonSerializer.SerializeToUtf8Bytes(cache, PriceJsonContext.Default.PriceCache), false);
