@@ -25,7 +25,8 @@ P:System.Diagnostics.Process.ExitTime; Opens a handle to a foreign process (poss
 P:System.Diagnostics.Process.ExitCode; Opens a handle to a foreign process (possibly the game).
 P:System.Diagnostics.Process.Responding; Opens a handle to a foreign process (possibly the game).
 // Process timing/working-set paths checked against dotnet/runtime v10.0.0 Process.cs and Process.Windows.cs.
-// Also block thread access wholesale and debug-privilege mutation; snapshots and Id remain allowed.
+// Block Process.Threads, the production acquisition path for ProcessThread objects, and debug-privilege mutation.
+// No ProcessThread type/member bans are needed here; process snapshots and Id remain allowed.
 P:System.Diagnostics.Process.TotalProcessorTime; Opens a process handle; use own-process Environment statistics instead.
 P:System.Diagnostics.Process.UserProcessorTime; Opens a process handle; use own-process Environment statistics instead.
 P:System.Diagnostics.Process.PrivilegedProcessorTime; Opens a process handle; use own-process Environment statistics instead.
@@ -37,6 +38,5 @@ M:System.Diagnostics.Process.WaitForInputIdle; Opens a process handle.
 M:System.Diagnostics.Process.WaitForInputIdle(System.Int32); Opens a process handle.
 M:System.Diagnostics.Process.WaitForInputIdle(System.TimeSpan); Opens a process handle.
 P:System.Diagnostics.Process.Threads; Exposes target threads whose members open native thread handles.
-T:System.Diagnostics.ProcessThread; Target thread inspection and mutation are forbidden.
 M:System.Diagnostics.Process.EnterDebugMode; Debug privilege mutation is forbidden.
 M:System.Diagnostics.Process.LeaveDebugMode; Debug privilege mutation is forbidden.
