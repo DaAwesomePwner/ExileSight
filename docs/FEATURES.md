@@ -23,7 +23,7 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 - **Done when:** routing is unit-tested with fixtures, and one key press results in at most one `CopyItem`.
 
 ### `iteminfo`: Item-info tooltip
-- **Trigger:** the omni handler for gear, jewels and flasks. An optional separate hotkey.
+- **Trigger:** the omni handler for gear, jewels and flasks; no separate item-info hotkey is registered.
 - **Actions:** none beyond the omni copy.
 - **Behaviour:**
   - A compact tooltip near the cursor showing:
@@ -31,18 +31,20 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
     - affix item-level requirement
     - prefix and suffix counts
     - base percentile for defences
-  - Up to 5 highlight profiles (desired and undesired mods, global or per item class), and unique drop tier.
+  - Up to 5 highlight profiles (desired and undesired mods, global or per item class). Unique drop tiers remain unknown.
+  - Tiers come from advanced-copy headers. Defence percentiles use quality additive with local increased defence and forward-validated integer reversal; ambiguous results remain unknown, deliberately diverging from Exile-UI.
   - Closes on mouse move beyond a threshold or on Esc.
-- **Data:** the `poe1/mods` and `poe1/bases` packs, plus unique drop tiers.
+- **Data:** the `poe1/mods`, `poe1/bases` and `poe1/stats` packs; no unique drop-tier data is loaded.
 - **Reference:** `modules/item-checker.ahk` (parsing around lines 123–289, PoE1 mod matching around lines 1447–1460, drop tiers around 1819–1825), `data/global/item mods.json`, `item bases.json`, `item drop-tiers.json`.
 - **Done when:** fixture tests cover every rarity and slot class, and the 🎮 gate shows tiers matching the game on 20 real items.
 
 ### `gearcmp`: Gear comparison
-- **Trigger:** the tooltip has a **Set as equipped** button. The slot is inferred from the item class; for rings the user picks left or right.
+- **Trigger:** choose **Set as equipped** in the omni long-press menu. The tooltip stays click-through. The slot is inferred from the item class; for rings the user picks left or right.
 - **Actions:** none.
 - **Behaviour:**
-  - Store equipped items per character, using the character name from Client.txt.
-  - The item-info tooltip for the same slot shows stat deltas: life, resistances, attributes, DPS for weapons, and defences.
+  - Store equipped items in the default profile or an explicitly confirmed character profile. Client.txt names are in-memory candidates until confirmed in the omni menu; profile filenames are hashed.
+  - The item-info tooltip for the same slot shows stat deltas: life, resistances, attributes, copied weapon DPS, and defences. Unknown stats are omitted; hybrid stats expand to components.
+  - Preview and equip use the same replacement rule; bows retain quivers, and quivers pair only with bows.
 - **Reference:** `modules/item-checker.ahk` (`Iteminfo_GearParse` around lines 2354–2613, comparison around lines 865–1100). Exile-UI's inventory-pixel button placement is **not** ported (D-006).
 - **Done when:** delta maths is unit-tested and the stored gear survives a restart.
 
@@ -98,7 +100,8 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 - **Actions:** `CopyItem` (omni), then `SetPriceNote(text)` once per button click. The user opens the note box themselves.
 - **Behaviour:**
   - Buttons offer ±1, ±10% and custom prices, suggested from the current note.
-  - Each listing and price change is logged. "Sold" is marked by hand or detected from trade whisper text in the log (display only).
+  - After a send or uncertain outcome, buttons disarm until the item is read again with omni. Only explicit pre-input gate refusals leave buttons armed; double clicks are suppressed.
+  - Each listing and price change is saved in local history (500 listings × 50 prices, at most 8 MB). Corrupt files are quarantined and buyer names are never stored. "Sold" is marked by hand; trade whisper matches are display-only evidence and never mark a sale.
   - A sales and purchase log viewer converts prices with poe.ninja rates.
 - **Reference:** `modules/exchange.ahk` (async trade around lines 760–860). Exile-UI's automatic right-click is **not** ported (FAIR-PLAY.md).
 
