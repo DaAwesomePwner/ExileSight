@@ -21,7 +21,7 @@ public static class StatText
         return line;
     }
 
-    /// <summary>Precompile once at pack load; manually constructed entries are cached lazily.</summary>
+    /// <summary>Optional eager pattern preparation; matching otherwise caches patterns lazily.</summary>
     public static void Prepare(IEnumerable<StatTranslation> entries)
     {
         foreach (var entry in entries.Where(e => !e.Hidden))
@@ -29,7 +29,7 @@ public static class StatText
             _ = StatPattern.For(variant);
     }
 
-    /// <summary>Host awaits this after loading, before publishing a pack to interactive consumers.</summary>
+    /// <summary>Optional background pattern preparation for callers that need eager warmup.</summary>
     public static Task PrepareAsync(IEnumerable<StatTranslation> entries, CancellationToken cancellationToken = default) =>
         Task.Run(() =>
         {
@@ -66,7 +66,7 @@ public static class StatText
         if (line.Length > 4096) return [];
         var result = new List<StatMatch>();
         foreach (var entry in entries.Where(e => !e.Hidden))
-        foreach (var variant in entry.English.Where(v => Valid(v, entry.StatIds.Length)))
+        foreach (var variant in entry.English.Where(v => StatCandidates.MayMatch(line, v) && Valid(v, entry.StatIds.Length)))
         {
             try
             {

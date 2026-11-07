@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using ExileSight.Platform.Abstractions.Window;
+using ExileSight.Platform.Windows.Diagnostics;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 
@@ -19,9 +20,32 @@ internal sealed class WindowSource : IWindowSource
 {
     public IReadOnlySet<uint> StreamingPids()
     {
+        // A streaming match requires this visible title. Avoid a system process snapshot
+        // (native buffer + managed metadata) on every missing-game retry when none can match.
+        if (!HasStreamingTitle()) { WindowProbeMetrics.Skip(); return new HashSet<uint>(); }
+        var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
         var processes = Process.GetProcessesByName("GeForceNOW");
         try { return processes.Select(process => (uint)process.Id).ToHashSet(); }
-        finally { foreach (var process in processes) process.Dispose(); }
+        finally
+        {
+            foreach (var process in processes) process.Dispose();
+            WindowProbeMetrics.Record(GC.GetAllocatedBytesForCurrentThread() - allocatedBefore);
+        }
+    }
+
+    private static unsafe bool HasStreamingTitle()
+    {
+        var found = false;
+        PInvoke.EnumWindows((hwnd, _) =>
+        {
+            if (!PInvoke.IsWindowVisible(hwnd)) return true;
+            char* buffer = stackalloc char[1024];
+            var length = PInvoke.GetWindowText(hwnd, buffer, 1024);
+            if (!new ReadOnlySpan<char>(buffer, Math.Max(0, length)).Contains("Path of Exile", StringComparison.OrdinalIgnoreCase)) return true;
+            found = true;
+            return false;
+        }, default);
+        return found;
     }
 
     public unsafe IReadOnlyList<WindowCandidate> Enumerate(IReadOnlySet<uint> streamingPids)

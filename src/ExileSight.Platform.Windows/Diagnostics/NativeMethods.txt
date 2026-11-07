@@ -1,0 +1,4 @@
+GetCurrentProcess
+GetProcessMemoryInfo
+
+PROCESS_MEMORY_COUNTERS_EX

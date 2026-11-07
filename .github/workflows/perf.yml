@@ -1,0 +1,161 @@
+name: Idle performance
+on:
+  push:
+    branches: [integration/1.0]
+  pull_request:
+    branches: ['integration/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  idle:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Generate the same verified packs as shipping CI
+        shell: pwsh
+        run: |
+          $sha = (Get-Content tools/ExileSight.DataGen/repoe.json | ConvertFrom-Json).sourceSha
+          if ($sha -notmatch '^[0-9a-f]{40}$') { throw 'Invalid pinned SHA' }
+          python tools/ExileSight.DataGen/fetch-inputs.py artifacts/export $sha
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet run --project tools/ExileSight.DataGen -c Release -- poe1 --repoe-sha $sha --source-dir artifacts/export --out artifacts/packs/poe1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/ExileSight.DataGen/verify-packs.py artifacts/packs/poe1 artifacts/export $sha artifacts/fallback/packs/poe1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - run: dotnet publish src/ExileSight.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/publish
+      - name: Bundle packs
+        shell: pwsh
+        run: Copy-Item artifacts/fallback/packs artifacts/publish/packs -Recurse -Force
+      - name: Measure current app (required budget gate)
+        shell: pwsh
+        run: |
+          $env:EXILESIGHT_PERF_APP = "$pwd/artifacts/publish/ExileSight.App.exe"
+          $env:EXILESIGHT_PERF_REPORT = "$pwd/artifacts/perf/current.json"
+          $env:PERF_REVISION = '${{ github.sha }}'
+          $env:EXILESIGHT_PERF_REQUEST_REPORT = '1'
+          dotnet test tests/ExileSight.Perf.Tests -c Release --logger "trx;LogFileName=current.trx" --results-directory artifacts/perf
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Enforce item-use memory and latency separately from WPF
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item artifacts/perf -ItemType Directory -Force | Out-Null
+          $env:EXILESIGHT_REAL_PACKS = "$pwd/artifacts/fallback/packs/poe1"
+          $env:EXILESIGHT_MEMORY_REPORT = "$pwd/artifacts/perf/pack-memory.json"
+          $env:DOTNET_GCConserveMemory = '9' # Match the published app runtime policy.
+          dotnet test tests/ExileSight.Features.ItemInfo.Tests -c Release --filter FullyQualifiedName~RealPackMemoryTests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Compare real-pack matching with the exhaustive reference
+        if: always()
+        shell: pwsh
+        run: |
+          $env:EXILESIGHT_REAL_PACKS = "$pwd/artifacts/fallback/packs/poe1"
+          dotnet test tests/ExileSight.Core.Tests -c Release --filter FullyQualifiedName~RealPackEquivalenceTests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Compare complete item path with the pre-compaction reference
+        if: always()
+        shell: pwsh
+        run: |
+          $env:EXILESIGHT_REAL_PACKS = "$pwd/artifacts/fallback/packs/poe1"
+          dotnet test tests/ExileSight.Features.ItemInfo.Tests -c Release --filter FullyQualifiedName~RealPackItemEquivalenceTests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      # BEGIN temporary baseline comparison: remove after recording reviewed Windows numbers.
+      - uses: actions/checkout@v4
+        if: always()
+        with:
+          ref: 8ee74d4893ce4b46518bed2f8c98f65e848ce291
+          path: baseline
+      - name: Publish pre-hardening baseline
+        if: always()
+        shell: pwsh
+        run: |
+          # checkout requires a workspace path; move the entire tree before MSBuild discovery.
+          $baselineRoot = Join-Path $env:RUNNER_TEMP 'exilesight-perf-baseline'
+          if (Test-Path $baselineRoot) { throw 'Baseline destination already exists' }
+          Move-Item baseline $baselineRoot
+          dotnet publish "$baselineRoot/src/ExileSight.App" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/baseline
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item artifacts/fallback/packs artifacts/baseline/packs -Recurse -Force
+      - name: Measure baseline (comparison only)
+        if: always()
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $env:EXILESIGHT_PERF_APP = "$pwd/artifacts/baseline/ExileSight.App.exe"
+          $env:EXILESIGHT_PERF_REPORT = "$pwd/artifacts/perf/baseline.json"
+          $env:PERF_REVISION = '8ee74d4893ce4b46518bed2f8c98f65e848ce291'
+          dotnet test tests/ExileSight.Perf.Tests -c Release --no-build --logger "trx;LogFileName=baseline.trx" --results-directory artifacts/perf
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      # END temporary baseline comparison
+      - name: Summarize performance reports
+        if: always()
+        shell: pwsh
+        run: |
+          $summary = @(
+            '## Idle performance',
+            '',
+            'Budget: average CPU < 1% of one core; peak sampled private memory < 200 decimal MB.',
+            '',
+            '| Run | Result | CPU % | CPU margin (percentage points) | Private MB | Memory margin MB |',
+            '| --- | --- | ---: | ---: | ---: | ---: |'
+          )
+          foreach ($name in @('current', 'baseline')) {
+            $path = "artifacts/perf/$name.json"
+            if (!(Test-Path $path)) {
+              $summary += "| $name | Report unavailable | — | — | — | — |"
+              continue
+            }
+            $report = Get-Content $path -Raw | ConvertFrom-Json
+            $cpu = '—'; $cpuMargin = '—'; $memory = '—'; $memoryMargin = '—'
+            if ($null -ne $report.cpuPercent) {
+              $cpu = '{0:F3}' -f $report.cpuPercent
+              $cpuMargin = '{0:F3}' -f $report.cpuMarginPercentagePoints
+            }
+            if ($report.samples.Count -gt 0) {
+              $memory = '{0:F2}' -f ($report.peakPrivateBytes / 1000000)
+              $memoryMargin = '{0:F2}' -f ($report.memoryMarginBytes / 1000000)
+            }
+            $result = if ($report.failure) { 'FAIL' } elseif ($null -eq $report.cpuPercent) { 'Incomplete' } else { 'PASS' }
+            $summary += "| $name | $result | $cpu | $cpuMargin | $memory | $memoryMargin |"
+          }
+          $summary += '', 'Positive margins are headroom; zero or negative margins fail the strict budget. Baseline is informational. See the uploaded JSON/TRX files for samples and failure details.'
+          if (Test-Path artifacts/perf/pack-memory.json) {
+            $pack = Get-Content artifacts/perf/pack-memory.json -Raw | ConvertFrom-Json
+            $summary += '', '### Production item-path probe (managed heap, not Windows private bytes)', '', '| Stage | Managed MB | GC committed MB | Fragmented MB | Elapsed ms |', '| --- | ---: | ---: | ---: | ---: |'
+            foreach ($sample in $pack) {
+              if ($sample.stage -notin @('tray idle', 'first item latency', 'idle after first item', 'idle after fixture session', 'idle after item session (natural)', 'idle after refresh session (natural)', 'bulk-load reclamation', 'refresh reclamation')) { continue }
+              $mb = if ($null -ne $sample.retained) { '{0:F2}' -f ($sample.retained / 1000000) } else { '—' }
+              $ms = if ($null -ne $sample.milliseconds) { '{0:F1}' -f $sample.milliseconds } else { '—' }
+              $committedBytes = if ($null -ne $sample.TotalCommittedBytes) { $sample.TotalCommittedBytes } else { $sample.committedAfterLoad }
+              $committed = if ($null -ne $committedBytes) { '{0:F2}' -f ($committedBytes / 1000000) } else { '—' }
+              $fragmented = if ($null -ne $sample.FragmentedBytes) { '{0:F2}' -f ($sample.FragmentedBytes / 1000000) } else { '—' }
+              $summary += "| $($sample.stage) | $mb | $committed | $fragmented | $ms |"
+            }
+            $summary += '', 'Counter sampling is disabled during the Windows CPU interval; its one-shot report is requested afterward.', 'Enforced limits: natural GC committed < 110 MB after items and refresh (200 MB private minus 90 MB native allowance); final full-GC retained pack heap increase < 50 MB; first item < 500 ms. The published Windows gate still requires total private bytes < 200 MB.'
+          }
+          $summary | Add-Content $env:GITHUB_STEP_SUMMARY
+      - name: Measure distribution sizes
+        if: always()
+        shell: pwsh
+        run: |
+          dotnet publish src/ExileSight.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:Version=0.1.0 -o artifacts/velopack
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item artifacts/fallback/packs artifacts/velopack/packs -Recurse -Force
+          dotnet tool install --global vpk --version 1.2.161
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          vpk pack --packId ExileSight --packVersion 0.1.0 --packDir artifacts/velopack --mainExe ExileSight.App.exe --packTitle ExileSight --outputDir Releases
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item artifacts/perf -ItemType Directory -Force | Out-Null
+          Get-ChildItem Releases -File | Select-Object Name, Length | ConvertTo-Json | Set-Content artifacts/perf/distribution-sizes.json
+          Get-ChildItem artifacts/publish -File -Recurse | Select-Object Name, Length | ConvertTo-Json | Set-Content artifacts/perf/publish-sizes.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ExileSight-idle-performance
+          path: artifacts/perf/
+          if-no-files-found: error

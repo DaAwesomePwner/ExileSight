@@ -1,0 +1,102 @@
+[
+  {
+    "stage": "before",
+    "retained": 3048480,
+    "TotalCommittedBytes": 9011200,
+    "HeapSizeBytes": 1587848,
+    "allocated": 10694032,
+    "WorkingSet64": 105103360,
+    "seconds": 0.0030114,
+    "IsServerGC": false
+  },
+  {
+    "stage": "read poe1/bases",
+    "retained": 12478224,
+    "TotalCommittedBytes": 10944512,
+    "HeapSizeBytes": 6303024,
+    "allocated": 32846456,
+    "WorkingSet64": 109740032,
+    "seconds": 0.0934875,
+    "IsServerGC": false
+  },
+  {
+    "stage": "read poe1/mods",
+    "retained": 323441944,
+    "TotalCommittedBytes": 282083328,
+    "HeapSizeBytes": 240423960,
+    "allocated": 328148592,
+    "WorkingSet64": 384270336,
+    "seconds": 0.7220734,
+    "IsServerGC": false
+  },
+  {
+    "stage": "read poe1/stats",
+    "retained": 315341216,
+    "TotalCommittedBytes": 370999296,
+    "HeapSizeBytes": 328402896,
+    "allocated": 478416232,
+    "WorkingSet64": 470794240,
+    "seconds": 0.9233627,
+    "IsServerGC": false
+  },
+  {
+    "stage": "read poe1/guide",
+    "retained": 363006992,
+    "TotalCommittedBytes": 352452608,
+    "HeapSizeBytes": 338654440,
+    "allocated": 541599936,
+    "WorkingSet64": 452575232,
+    "seconds": 1.0688254,
+    "IsServerGC": false
+  },
+  {
+    "stage": "read poe1/mapmods",
+    "retained": 331943800,
+    "TotalCommittedBytes": 341344256,
+    "HeapSizeBytes": 327409576,
+    "allocated": 548401832,
+    "WorkingSet64": 441548800,
+    "seconds": 1.1352457,
+    "IsServerGC": false
+  },
+  {
+    "stage": "read poe1/events",
+    "retained": 331840464,
+    "TotalCommittedBytes": 337444864,
+    "HeapSizeBytes": 327357472,
+    "allocated": 548526216,
+    "WorkingSet64": 437665792,
+    "seconds": 1.1798872,
+    "IsServerGC": false
+  },
+  {
+    "stage": "read poe1/leagues",
+    "retained": 331851840,
+    "TotalCommittedBytes": 336986112,
+    "HeapSizeBytes": 327363160,
+    "allocated": 548555264,
+    "WorkingSet64": 437207040,
+    "seconds": 1.2236195,
+    "IsServerGC": false
+  },
+  {
+    "stage": "startup prepared",
+    "retained": 426706840,
+    "TotalCommittedBytes": 384942080,
+    "HeapSizeBytes": 374166256,
+    "allocated": 905113816,
+    "WorkingSet64": 487473152,
+    "seconds": 1.7333822,
+    "IsServerGC": false
+  },
+  {
+    "stage": "passive feature views",
+    "retained": 451998696,
+    "TotalCommittedBytes": 402669568,
+    "HeapSizeBytes": 387025656,
+    "allocated": 933175736,
+    "WorkingSet64": 505282560,
+    "seconds": 1.8658886,
+    "IsServerGC": false
+  }
+]

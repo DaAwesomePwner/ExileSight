@@ -18,7 +18,7 @@ public sealed class EventsView
     private readonly HostedOverlayWindow toast;
     private readonly TextBlock name = new() { Foreground = Brushes.White, FontSize = 20, TextWrapping = TextWrapping.Wrap };
     private readonly TextBlock category = new() { Foreground = Brushes.LightGray, FontSize = 13 };
-    private readonly DispatcherTimer ticker = new() { Interval = TimeSpan.FromMilliseconds(100) };
+    private readonly DispatcherTimer ticker = new() { Interval = TimeSpan.FromSeconds(1) };
     private Window? settings;
     private StackPanel? choices;
     private string? optionsSignature;
@@ -45,6 +45,9 @@ public sealed class EventsView
     private void Tick()
     {
         var current = model.Current;
+        // Poll slowly when empty; retain smooth expiry while a toast is active.
+        ticker.Interval = current is null ? TimeSpan.FromSeconds(1) : TimeSpan.FromMilliseconds(100);
+        if (current is null && !visible && settings is null) return;
         name.Text = current?.DisplayName ?? "";
         category.Text = current?.Category ?? "";
         if (visible != (current is not null))

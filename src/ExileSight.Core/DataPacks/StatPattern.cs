@@ -12,8 +12,33 @@ internal sealed record StatPattern(Regex Regex, HashSet<int> Seen, bool Partial)
     internal static readonly Regex Placeholder = new(@"\{(\d+)\}", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
     private static readonly ConditionalWeakTable<StatVariant, Lazy<StatPattern[]>> Cache = new();
 
-    // Variants belong to an immutable loaded pack. Weak keys allow old packs and compiled code to be collected.
-    internal static StatPattern[] For(StatVariant variant) => Cache.GetValue(variant, v => new(() => Build(v))).Value;
+    private static readonly object CacheGate = new();
+    private static readonly Queue<WeakReference<StatVariant>> Recent = new();
+    internal const int Capacity = 512;
+
+    internal static void Clear()
+    {
+        lock (CacheGate) { Cache.Clear(); Recent.Clear(); }
+    }
+
+    // At most 512 cached variants, with weak keys AND weak eviction entries. Refresh
+    // clears both; late old-version callers cannot root obsolete pack data.
+    // Eviction may rebuild a pattern, but never changes pack parsing or matching results.
+    internal static StatPattern[] For(StatVariant variant)
+    {
+        Lazy<StatPattern[]> value;
+        lock (CacheGate)
+        {
+            if (!Cache.TryGetValue(variant, out value!))
+            {
+                value = new(() => Build(variant));
+                Cache.Add(variant, value);
+                Recent.Enqueue(new(variant));
+                if (Recent.Count > Capacity && Recent.Dequeue().TryGetTarget(out var oldest)) Cache.Remove(oldest);
+            }
+        }
+        return value.Value;
+    }
     private static StatPattern[] Build(StatVariant variant)
     {
         var lines = variant.Text.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n');
@@ -30,7 +55,7 @@ internal sealed record StatPattern(Regex Regex, HashSet<int> Seen, bool Partial)
                 position = slot.Index + slot.Length;
             }
             pattern.Append(Regex.Escape(line[position..])).Append(@"\z");
-            return new StatPattern(new(pattern.ToString(), RegexOptions.Compiled | RegexOptions.CultureInvariant,
+            return new StatPattern(new(pattern.ToString(), RegexOptions.CultureInvariant,
                 TimeSpan.FromMilliseconds(100)), seen, lines.Length > 1);
         }).ToArray();
     }

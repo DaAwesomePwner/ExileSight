@@ -58,7 +58,14 @@ public sealed class TrackerWindow : Window
         var statusTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         statusTimer.Tick += (_, _) => { storageStatus.Text = model.Status; RefreshCandidates(); };
         Closed += (_, _) => statusTimer.Stop();
-        storageStatus.Text = model.Status; statusTimer.Start();
+        storageStatus.Text = model.Status;
+        void UpdateStatusTimer()
+        {
+            if (IsVisible && WindowState != WindowState.Minimized) statusTimer.Start();
+            else statusTimer.Stop();
+        }
+        IsVisibleChanged += (_, _) => UpdateStatusTimer();
+        StateChanged += (_, _) => UpdateStatusTimer();
         DockPanel.SetDock(summary, Dock.Bottom); root.Children.Add(summary);
         var edit = new StackPanel { Orientation = Orientation.Horizontal }; DockPanel.SetDock(edit, Dock.Bottom);
         edit.Children.Add(notes); Button(edit, "Save notes", () =>

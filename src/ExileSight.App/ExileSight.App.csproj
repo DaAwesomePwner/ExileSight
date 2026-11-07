@@ -19,4 +19,9 @@
   <ItemGroup><ProjectReference Include="../ExileSight.Features.Guide/ExileSight.Features.Guide.csproj" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../ExileSight.Features.MapInfo/ExileSight.Features.MapInfo.csproj" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../ExileSight.Features.MapTracker/ExileSight.Features.MapTracker.csproj" /></ItemGroup>
+  <ItemGroup>
+    <!-- ConserveMemory reduces normal GC slack; PackStartup separately decommits after bulk loads.
+         No heap hard limit. Windows private-memory measurement remains authoritative. -->
+    <RuntimeHostConfigurationOption Include="System.GC.ConserveMemory" Value="9" />
+  </ItemGroup>
 </Project>

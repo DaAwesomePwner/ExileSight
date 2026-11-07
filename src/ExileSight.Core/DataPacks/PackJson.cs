@@ -15,7 +15,8 @@ namespace ExileSight.Core.DataPacks;
 public partial class PackJson : JsonSerializerContext;
 
 // Base64 retains the exact content bytes across cache serialization and operating systems.
-public sealed record CachedPack(PackManifest Manifest, byte[] ContentBytes, string? ReleaseTag = null,
+public sealed record CachedPack(PackManifest Manifest,
+    [property: JsonConverter(typeof(PackBytesConverter))] byte[] ContentBytes, string? ReleaseTag = null,
     DateTimeOffset CheckedAt = default, string? ETag = null);
 
 public static class PackCodec

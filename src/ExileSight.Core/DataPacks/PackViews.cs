@@ -27,7 +27,7 @@ internal static class PackViews
         "poe1/bases" or "poe1/mods" or "poe1/stats" => typeof(PackDocument), _ => null
     };
     private static IReadOnlyList<T> List<T>(IEnumerable<T> values) => Array.AsReadOnly(values.ToArray());
-    internal static object Parse(byte[] bytes, string id)
+    internal static object Parse(Stream bytes, string id)
     {
         if (TypeFor(id) == typeof(PackDocument))
         {
@@ -37,20 +37,11 @@ internal static class PackViews
         var c = JsonSerializer.Deserialize(bytes, PackJson.Default.PackContent)!;
         return id switch
         {
-            "poe1/guide" => Guide(c.Guide!),
+            "poe1/guide" => GuideViewBuilder.Build(c.Guide!),
             "poe1/mapmods" => new MapModsData(List(c.MapMods!.Entries.Select(e => new MapModData(e.Id, e.Type, e.Text, List(e.Patterns))))),
             "poe1/events" => new EventsData(List(c.Events!.Entries)),
             "poe1/leagues" => new LeaguesData(List(c.Leagues!.Entries)),
             _ => throw new ArgumentException("Unknown pack ID")
         };
     }
-    private static GuideData Guide(GuideContent c) => new(
-        List(c.Pages.Select(p => new GuidePageData(p.Act, p.Page,
-            p.Condition is { } condition ? new(condition.Kind, List(condition.Values)) : null,
-            List(p.Lines.Select(l => new GuideLineData(l.Text, List(l.AreaIds), List(l.QuestIds), List(l.LevelHints))))))),
-        List(c.Areas.Select(a => new GuideAreaData(a.Id, a.Name, a.Act, a.Level, a.IsTown, a.HasWaypoint, List(a.Connections)))),
-        List(c.Gems.Select(g => new GuideGemData(g.Id, g.Name,
-            List(g.Levels.Select(l => new GemLevelData(l.Level, l.RequiredLevel,
-                new System.Collections.ObjectModel.ReadOnlyDictionary<string, int>(new Dictionary<string, int>(l.Requirements))))),
-            g.QuestReward is { } r ? new(r.Act, r.QuestId, r.Quest, List(r.Classes)) : null))));
 }
