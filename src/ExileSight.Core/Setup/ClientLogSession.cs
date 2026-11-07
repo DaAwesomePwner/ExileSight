@@ -1,4 +1,6 @@
 using ExileSight.Core.Diagnostics;
+using ExileSight.Platform.Abstractions.Files;
+using ExileSight.Platform.Abstractions.Install;
 using ExileSight.Core.Logs;
 using ExileSight.Core.Logs.Tail;
 using ExileSight.Core.Settings;
@@ -6,7 +8,7 @@ using ExileSight.Platform.Abstractions.Storage;
 
 namespace ExileSight.Core.Setup;
 
-public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, ExileSight.Platform.Abstractions.Files.IFileTail? fileTail = null) : IDebugSection, IAsyncDisposable
+public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, ExileSight.Platform.Abstractions.Files.IFileTail? fileTail = null, ILocalPathResolver? pathResolver = null) : IDebugSection, IAsyncDisposable
 {
     private readonly object sync = new();
     private readonly SemaphoreSlim transition = new(1);
@@ -31,7 +33,7 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
             cancellation?.Dispose();
             path = next;
             lock (sync) { recent.Clear(); area = "Unknown"; level = "None"; }
-            if (!ClientLogDiscovery.IsLocalAbsolutePath(path))
+            if (!ClientLogDiscovery.IsLocalPath(path, pathResolver))
             { lock (sync) status = "Choose a fully-qualified local log path in setup."; return; }
             cancellation = new();
             running = ReadAsync(path!, cancellation.Token);
@@ -41,7 +43,10 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
 
     private async Task ReadAsync(string selected, CancellationToken token)
     {
-        var tail = fileTail ?? new PollingFileTail(warning: warning => { lock (sync) status = warning; });
+        var tail = fileTail ?? new PollingFileTail();
+        var diagnostics = tail as IFileTailDiagnostics;
+        void Report(FileTailDiagnostic warning) { lock (sync) status = warning.Message; }
+        if (diagnostics is not null) diagnostics.Diagnostic += Report;
         var parser = new LogParser();
         try
         {
@@ -66,6 +71,7 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception) { lock (sync) status = "Log reader stopped; run setup again to select a readable log."; }
+        finally { if (diagnostics is not null) diagnostics.Diagnostic -= Report; }
     }
 
     public IReadOnlyList<KeyValuePair<string, string>> Snapshot()

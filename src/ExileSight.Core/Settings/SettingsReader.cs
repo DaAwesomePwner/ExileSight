@@ -4,7 +4,7 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace ExileSight.Core.Settings;
 
-internal sealed record SettingsLoad<T>(T Value, bool ReadOnly, bool Dirty, bool RotateBackup);
+internal sealed record SettingsLoad<T>(T Value, bool ReadOnly, bool Dirty, bool RotateBackup, bool Defaults = false);
 
 internal sealed class SettingsReader<T>(RootedFiles files, string path, JsonTypeInfo<T> typeInfo,
     MigrationPipeline migrations, List<string> warnings, Games.Game? expectedGame = null) where T : VersionedDocument
@@ -32,7 +32,7 @@ internal sealed class SettingsReader<T>(RootedFiles files, string path, JsonType
                 if (source == path) files.Quarantine(path);
             }
         }
-        return new(Fresh(defaults), false, failed, !failed);
+        return new(Fresh(defaults), false, failed, !failed, true);
     }
 
     private SettingsLoad<T> Read(string source, Func<T> defaults)
@@ -49,7 +49,7 @@ internal sealed class SettingsReader<T>(RootedFiles files, string path, JsonType
             catch (JsonException e)
             {
                 warnings.Add("Newer settings cannot be displayed; showing defaults: " + e.Message);
-                return new(Fresh(defaults), true, false, false);
+                return new(Fresh(defaults), true, false, false, true);
             }
         }
         if (expectedGame is not null &&

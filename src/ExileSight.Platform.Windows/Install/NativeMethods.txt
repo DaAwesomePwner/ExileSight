@@ -1,0 +1,4 @@
+GetDriveType
+GetFinalPathNameByHandle
+CreateFile
+CloseHandle

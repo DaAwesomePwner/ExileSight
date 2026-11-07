@@ -54,6 +54,7 @@ public sealed class DiscoveryTests
     [InlineData(@"\\server\logs\Client.txt")]
     [InlineData("//server/logs/Client.txt")]
     [InlineData(@"\\?\UNC\server\logs\Client.txt")]
+    [InlineData(@"\\.\C:\logs\Client.txt")]
     [InlineData("logs/Client.txt")]
     [InlineData(@"C:logs\Client.txt")]
     public void RejectsNetworkAndRelativePathsBeforeOpening(string path)

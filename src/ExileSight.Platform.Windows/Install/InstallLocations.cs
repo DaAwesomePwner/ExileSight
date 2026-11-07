@@ -43,7 +43,7 @@ public sealed class InstallLocations : IInstallLocations
 
     public string? ReadLibraryFolders(string steamRoot)
     {
-        if (!ClientLogDiscovery.IsLocalAbsolutePath(steamRoot)) return null;
+        if (!ClientLogDiscovery.IsLocalPath(Path.Combine(steamRoot, "steamapps", "libraryfolders.vdf"), new LocalPathResolver())) return null;
         try { return File.ReadAllText(Path.Combine(steamRoot, "steamapps", "libraryfolders.vdf")); }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException) { return null; }
     }

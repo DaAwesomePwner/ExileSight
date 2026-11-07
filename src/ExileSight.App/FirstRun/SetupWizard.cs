@@ -16,6 +16,7 @@ public sealed class SetupWizard : Window
     private readonly ComboBox path = new() { IsEditable = true, MinWidth = 470 };
     private readonly TextBlock message = new() { TextWrapping = TextWrapping.Wrap };
     private int page;
+    private readonly ILocalPathResolver resolver = new ExileSight.Platform.Windows.Install.LocalPathResolver();
 
     public SetupWizard(ITransactionalSettingsStore<SettingsDocument> settings, IInstallLocations locations)
     {
@@ -23,7 +24,7 @@ public sealed class SetupWizard : Window
         Title = "Welcome to ExileSight";
         Width = 640; Height = 500;
         Content = new ScrollViewer { Content = body };
-        path.ItemsSource = ClientLogDiscovery.Candidates(locations).Where(p => ClientLogDiscovery.Validate(p) is null).ToArray();
+        path.ItemsSource = ClientLogDiscovery.Candidates(locations, resolver).Where(p => ClientLogDiscovery.Validate(p, resolver) is null).ToArray();
         path.Text = settings.Snapshot.General.ClientTxtPath ?? path.Items.Cast<string>().FirstOrDefault() ?? "";
         Render();
     }
@@ -56,7 +57,7 @@ public sealed class SetupWizard : Window
                 {
                     var picker = new OpenFileDialog { Filter = "Client logs|Client.txt;KakaoClient.txt;LatestClient.txt", CheckFileExists = true };
                     if (picker.ShowDialog(this) == true) path.Text = picker.FileName;
-                    message.Text = ClientLogDiscovery.Validate(path.Text) ?? "Log is readable.";
+                    message.Text = ClientLogDiscovery.Validate(path.Text, resolver) ?? "Log is readable.";
                 });
                 break;
             case 2:
@@ -75,12 +76,12 @@ public sealed class SetupWizard : Window
 
     private void Next()
     {
-        if (page is 1 or 3 && ClientLogDiscovery.Validate(path.Text) is { } error)
+        if (page is 1 or 3 && ClientLogDiscovery.Validate(path.Text, resolver) is { } error)
         { message.Text = error; return; }
         if (page < 3) { page++; Render(); return; }
         try
         {
-            SetupCommit.Finish(settings, path.Text);
+            SetupCommit.Finish(settings, path.Text, resolver);
             DialogResult = true;
         }
         catch (Exception saveError) when (saveError is IOException or UnauthorizedAccessException or InvalidOperationException)

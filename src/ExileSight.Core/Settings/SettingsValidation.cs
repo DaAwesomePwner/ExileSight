@@ -36,7 +36,7 @@ internal static class SettingsValidation
         {
             var reasons = BindingProblems(binding).ToArray();
             if (reasons.Length == 0) continue;
-            binding.Enabled = false;
+            binding.DisableForRuntime();
             foreach (var reason in reasons)
             {
                 var warning = $"Binding '{binding.Id}' disabled: {reason}.";
@@ -57,9 +57,8 @@ internal static class SettingsValidation
         if (binding.Action is { } action && !Enum.IsDefined(action)) yield return $"unknown action kind {action}";
     }
 
-    /// <summary>Unknown bindings cannot be edited safely by this version. Preserve their stored
-    /// enabled flag and action kind by ID even when a runtime snapshot is written back wholesale.
-    /// Remove the old ID to replace such a binding; unrelated binding edits remain available.</summary>
+    /// <summary>Preserve unresolved bindings when a runtime snapshot is written back wholesale.
+    /// Once a binding is repaired, honor all of the caller's values, including Enabled.</summary>
     public static void PreserveUnknownBindings(VersionedDocument stored, VersionedDocument candidate)
     {
         if (stored is not SettingsDocument original || candidate is not SettingsDocument updated ||
@@ -69,6 +68,7 @@ internal static class SettingsValidation
         foreach (var binding in updated.Hotkeys)
         {
             if (binding is null || binding.Id is null || !unknown.TryGetValue(binding.Id, out var previous)) continue;
+            if (!binding.RuntimeDisabled && !BindingProblems(binding).Any()) continue;
             binding.Enabled = previous.Enabled;
             if (previous.Action is { } action && !Enum.IsDefined(action)) binding.Action = previous.Action;
         }

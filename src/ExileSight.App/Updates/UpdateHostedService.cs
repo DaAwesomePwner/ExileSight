@@ -1,10 +1,11 @@
 using ExileSight.Core.Updates;
+using ExileSight.Core.Setup;
 using ExileSight.Platform.Abstractions.Updates;
 using Microsoft.Extensions.Hosting;
 
 namespace ExileSight.App.Updates;
 
-public sealed class UpdateHostedService(VelopackUpdateService updates) : BackgroundService
+public sealed class UpdateHostedService(VelopackUpdateService updates, ExitPolicy exitPolicy) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -27,6 +28,6 @@ public sealed class UpdateHostedService(VelopackUpdateService updates) : Backgro
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
         await base.StopAsync(cancellationToken);
-        updates.ApplyAfterExit();
+        if (exitPolicy.ApplyUpdateOnExit) updates.ApplyAfterExit();
     }
 }
