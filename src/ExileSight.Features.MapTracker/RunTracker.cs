@@ -14,10 +14,27 @@ public sealed class RunTracker
     private bool active, naming;
     private long? baseline;
     private CopiedItem? nextMap;
-    private string? character, clientSource;
-    public bool CharacterConfirmed => character is not null;
+    private string? clientSource;
+    private readonly CharacterIdentity identity = new();
+    public bool CharacterConfirmed => identity.Confirmed is not null;
+    public string? Character => identity.Confirmed;
+    public string[] Candidates => identity.Candidates;
     public long Revision { get; private set; }
-    public void ConfirmCharacter(string? name) => character = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
+    public bool ConfirmCharacter(string? name)
+    {
+        var previous = identity.Confirmed;
+        if (!identity.Confirm(name)) return false;
+        if (run is not null && previous != name)
+        { run = run with { DeathsKnown = false }; Revision++; }
+        return true;
+    }
+    public MapRun? FinalCheckpoint(double elapsedSeconds)
+    {
+        if (run is null) return null;
+        if (active) run = run with { Seconds = run.Seconds + elapsedSeconds };
+        lastTime = lastTime.AddSeconds(elapsedSeconds);
+        return Close(true);
+    }
     public MapRun? Current => run;
     public void Notes(Guid id, string notes) { if (run?.Id == id) run = run with { Notes = notes }; }
     public void Copied(CopiedItem item)
@@ -29,21 +46,25 @@ public sealed class RunTracker
         if (entry.DroppedBefore > 0 || entry.Event is LogSourceChanged || RunAreas.SessionEnded(entry.Event))
         {
             var incomplete = Close(true);
-            nextMap = null; character = null; clientSource = null;
+            nextMap = null; identity.Clear(); clientSource = null;
             // The event after a gap can establish a fresh instance, but never extends the old one.
             if (entry.Event is AreaGenerated) Accept(entry with { DroppedBefore = 0 }, league);
             return incomplete;
         }
-        if (entry.Event.Envelope is not { } envelope) return null;
+        if (entry.Event.Envelope is not { } envelope)
+        {
+            if (entry.Event is CharacterLevelUp level) identity.Observe(level.Name);
+            return null;
+        }
         var time = envelope.Timestamp;
         var uptime = envelope.UptimeMilliseconds;
         var sourceChanged = envelope.Source.StartsWith("Client ", StringComparison.Ordinal)
             && clientSource is not null && clientSource != envelope.Source;
         if (envelope.Source.StartsWith("Client ", StringComparison.Ordinal)) clientSource = envelope.Source;
-        if (run is not null && (sourceChanged || uptime < lastUptime || time < lastTime))
+        if (sourceChanged || (run is not null && (uptime < lastUptime || time < lastTime)))
         {
-            var interrupted = Close(true); character = null; nextMap = null;
-            if (entry.Event is AreaGenerated) Accept(entry, league);
+            var interrupted = Close(true); identity.Clear(); nextMap = null;
+            if (entry.Event is AreaGenerated or CharacterLevelUp) Accept(entry, league);
             return interrupted;
         }
         if (run is not null && active)
@@ -52,6 +73,8 @@ public sealed class RunTracker
         MapRun? finished = null;
         switch (entry.Event)
         {
+            case CharacterLevelUp level:
+                identity.Observe(level.Name); break;
             case AreaGenerated g:
                 var wasActive = active;
                 location = g.AreaId;
@@ -62,7 +85,7 @@ public sealed class RunTracker
                         finished = Close(false);
                         areaId = g.AreaId; seed = g.Seed; baseline = null;
                         run = new(1, Guid.NewGuid(), league, g.AreaId, g.Level - 67, time, time,
-                            0, 1, 0, null, [], nextMap?.Mods.Take(64).Select(m => m[..Math.Min(m.Length, 512)]).ToArray() ?? [], "", false);
+                            0, 1, 0, null, [], nextMap?.Mods.Take(64).Select(m => m[..Math.Min(m.Length, 512)]).ToArray() ?? [], "", false) { DeathsKnown = CharacterConfirmed };
                         nextMap = null; naming = true; Revision++;
                     }
                     else if (!active) { run = run with { Portals = run.Portals + 1 }; Revision++; }
@@ -76,7 +99,7 @@ public sealed class RunTracker
                 if (run is not null && naming && location == areaId)
                 { run = run with { Map = e.Name }; naming = false; Revision++; }
                 break;
-            case PlayerDied death when run is not null && active && character is not null && death.Name == character:
+            case PlayerDied death when run is not null && active && identity.Confirmed is { } own && death.Name == own:
                 run = run with { Deaths = run.Deaths + 1 }; Revision++; break;
             case KillCountReported k when run is not null && active:
                 if (baseline is { } b && k.Count >= b) run = run with { Kills = k.Count - b };

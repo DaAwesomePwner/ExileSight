@@ -1,14 +1,14 @@
 namespace ExileSight.Features.MapTracker;
 
 /// <summary>One off-feed writer. Coalesce pending snapshots by run, without an unbounded task chain.</summary>
-public sealed class RunWriter(IRunStore store)
+public sealed class RunWriter(IRunStore store, Action<string>? reportFailure = null)
 {
     private readonly object sync = new(), io = new();
     private readonly Dictionary<Guid, MapRun> pending = [];
     private readonly HashSet<string> blocked = [];
     private Task worker = Task.CompletedTask;
-    private string? failure;
-    public string? Failure => Volatile.Read(ref failure);
+    private readonly Dictionary<string, string> failures = [];
+    public string? Failure(string league) { lock (sync) return failures.GetValueOrDefault(league); }
     public void Enqueue(MapRun run)
     {
         lock (sync)
@@ -17,7 +17,7 @@ public sealed class RunWriter(IRunStore store)
             if (pending.Count >= 256 && !pending.ContainsKey(run.Id))
             {
                 blocked.Add(run.League);
-                Volatile.Write(ref failure, "Recording read-only: persistence queue full. New changes were not saved.");
+                failures[run.League] = "Recording read-only: persistence queue full. New changes were not saved.";
                 return;
             }
             pending[run.Id] = run;
@@ -36,11 +36,17 @@ public sealed class RunWriter(IRunStore store)
                 if (blocked.Contains(run.League)) continue;
             }
             try { lock (io) store.Save(run); }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException or NotSupportedException)
+            catch (Exception e)
             {
-                lock (sync) blocked.Add(run.League);
-                Volatile.Write(ref failure, "Recording read-only; new changes were not saved. " +
-                    (e is IOException ? "Storage unavailable or history size cap reached." : e.GetType().Name));
+                lock (sync)
+                {
+                    blocked.Add(run.League);
+                    failures[run.League] = "Recording read-only; new changes were not saved. " +
+                        (e is IOException ? "Storage unavailable or history size cap reached." : e.GetType().Name);
+                }
+                // Exception messages may contain private data. A broken logger must not fault shutdown.
+                try { reportFailure?.Invoke(e.GetType().Name); }
+                catch (Exception) { /* Storage failure remains visible even if diagnostics fail. */ }
             }
         }
     }

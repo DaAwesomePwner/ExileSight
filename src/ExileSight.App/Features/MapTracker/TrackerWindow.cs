@@ -28,14 +28,25 @@ public sealed class TrackerWindow : Window
         Button(filters, "Record in league", () => { model.SelectLeague(league.Text.Trim()); Refresh(); });
         Button(filters, "Apply / Refresh", Refresh);
         Button(filters, "Export filtered CSV", Export);
-        var identity = new TextBox { Width = 150, MaxLength = 64, ToolTip = "Own character name (memory only)" };
-        filters.Children.Add(new TextBlock { Text = " Own character " }); filters.Children.Add(identity);
-        Button(filters, "Confirm character", () => { model.ConfirmCharacter(identity.Text); identity.Clear(); });
+        var identities = new WrapPanel();
+        DockPanel.SetDock(identities, Dock.Top); root.Children.Add(identities);
+        string[]? displayedCandidates = null;
+        void RefreshCandidates()
+        {
+            var candidates = model.Candidates;
+            if (displayedCandidates?.SequenceEqual(candidates) == true) return;
+            displayedCandidates = candidates; identities.Children.Clear();
+            identities.Children.Add(new TextBlock { Text = candidates.Length == 0
+                ? "Character candidates appear after a level-up log event." : "Confirm your character from the log: " });
+            foreach (var candidate in candidates)
+                Button(identities, candidate, () => model.ConfirmCharacter(candidate));
+        }
+        RefreshCandidates();
         var storageStatus = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new(8) };
         DockPanel.SetDock(storageStatus, Dock.Bottom); root.Children.Add(storageStatus);
         // Local status only: this timer never sends input or reads/writes history.
         var statusTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-        statusTimer.Tick += (_, _) => storageStatus.Text = model.Status;
+        statusTimer.Tick += (_, _) => { storageStatus.Text = model.Status; RefreshCandidates(); };
         Closed += (_, _) => statusTimer.Stop();
         storageStatus.Text = model.Status; statusTimer.Start();
         DockPanel.SetDock(summary, Dock.Bottom); root.Children.Add(summary);
@@ -44,7 +55,7 @@ public sealed class TrackerWindow : Window
         { if (grid.SelectedItem is MapRun run) { model.Notes(run, notes.Text); Refresh(); } });
         root.Children.Add(edit); root.Children.Add(grid);
         grid.SelectionChanged += (_, _) => notes.Text = (grid.SelectedItem as MapRun)?.Notes ?? "";
-        foreach (var column in new[] { "Map", "Tier", "Started", "Seconds", "Portals", "Deaths", "Kills",
+        foreach (var column in new[] { "Map", "Tier", "Started", "Seconds", "Portals", "DeathsText", "Kills",
             "MechanicsText", "ModsText", "Notes", "Incomplete" })
             grid.Columns.Add(new DataGridTextColumn { Header = column.Replace("Text", ""), Binding = new System.Windows.Data.Binding(column) });
         Refresh();
@@ -71,7 +82,7 @@ public sealed class TrackerWindow : Window
         { rows = []; grid.ItemsSource = rows; summary.Text = "History is read-only/unavailable: " + e.GetType().Name; return; }
         grid.ItemsSource = rows;
         summary.Text = $"{rows.Length} runs · {TimeSpan.FromSeconds(rows.Sum(r => r.Seconds))} · " +
-            $"{rows.Sum(r => r.Deaths)} deaths · {rows.Sum(r => r.Portals)} portals · " +
+            $"{TrackerModel.DeathTotals(rows)} · {rows.Sum(r => r.Portals)} portals · " +
             $"{rows.Sum(r => r.Kills ?? 0)} sampled kills ({rows.Count(r => r.Kills is null)} unknown)";
     }
     private void Export()

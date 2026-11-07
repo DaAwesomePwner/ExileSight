@@ -10,7 +10,9 @@ public sealed class TransitionTests
     internal static ClientLogEvent Area(int second, string id, long seed = 1) => E(new AreaGenerated("", At(second), 80, id, seed));
     private static RunTracker Start()
     {
-        var tracker = new RunTracker(); tracker.ConfirmCharacter("Self");
+        var tracker = new RunTracker();
+        tracker.Accept(E(new CharacterLevelUp("", At(0), "Self", "Witch", 90)), "L");
+        Assert.True(tracker.ConfirmCharacter("Self"));
         tracker.Accept(Area(0, "MapWorldsBeach"), "L"); return tracker;
     }
     [Theory]

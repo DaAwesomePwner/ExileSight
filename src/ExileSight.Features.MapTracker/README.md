@@ -31,13 +31,27 @@ history moves to a single `.corrupt` file; newer schemas remain untouched.
 State changes enqueue snapshots on a dedicated, coalescing writer (at most 256
 pending runs). Ordinary log/chat events do not write; active duration checkpoints
 occur at most once per 60 seconds of observed map time. No disk I/O holds the
-tracker/omni lock or runs on log delivery. Exit drains pending writes. A crash
+tracker/omni lock or runs on log delivery. Normal exit freezes log delivery, drains pending writes, then saves and drains a
+final incomplete checkpoint at the exit cutoff, including elapsed active time
+since the latest live log event. It does not add time while paused or extrapolate
+replay-only events. A crash
 may lose the last minute of timer progress; recovered active rows are incomplete.
-Write failure/queue saturation visibly disables recording rather than dropping
-saved rows. The viewer reuses its existing window and updates storage status.
+Write failure/queue saturation visibly disables recording for the affected league
+rather than dropping saved rows. Other leagues remain usable. All persistence
+exceptions are contained; diagnostics receive exception types only, even when the
+logging sink itself fails. The viewer reuses its existing window and updates storage status.
 
-Confirm your own character in the viewer each session. Identity exists in memory
-only; unknown identity means no deaths are counted (the viewer says untracked).
+Level-up events supply up to five character candidates, like GearCmp (D-078).
+Click the exact logged name in the viewer to confirm it; there is no free-text
+entry. Candidates and identity exist in memory only. The viewer shows
+"Deaths: counting for <name>" or "Deaths: not counted — confirm character" and
+refreshes that state when a session boundary clears the identity and candidates.
+
+Runs begun before confirmation have unknown deaths. Confirming partway through
+cannot recover missed deaths, and changing identity mid-run also marks the count
+unknown. History and totals say "unknown"; CSV leaves the death field empty.
+Schema-1 uses a DeathsKnown flag defaulting to true, so older rows retain their
+known numeric counts. Names never appear in stored runs or CSV.
 Other players' deaths and deaths outside the map/associated side areas are ignored.
 Source changes, gaps, detected restarts and recognized logout/login diagnostics
 clear identity and close the run incomplete at its last known timestamp. A new

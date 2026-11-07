@@ -19,7 +19,9 @@ public sealed class PersistenceTests
     [Fact]
     public async Task StateChangesWriteWithoutWaitingForCheckpoint()
     {
-        var store = new MemoryStore(); var model = new TrackerModel(store); model.SelectLeague("L"); model.ConfirmCharacter("Self");
+        var store = new MemoryStore(); var model = new TrackerModel(store); model.SelectLeague("L");
+        model.Accept(TransitionTests.E(new CharacterLevelUp("", TransitionTests.At(0), "Self", "Witch", 90)));
+        Assert.True(model.ConfirmCharacter("Self"));
         var events = new[] {
             TransitionTests.Area(0, "MapWorldsBeach"),
             TransitionTests.E(new PlayerSlain("", TransitionTests.At(1), "Self")),

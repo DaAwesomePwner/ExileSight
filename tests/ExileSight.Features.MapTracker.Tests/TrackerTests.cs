@@ -11,7 +11,7 @@ public sealed class TrackerTests
     [Fact]
     public void SyntheticSessionReplaysWithPausePortalKillsAndMechanic()
     {
-        var tracker = new RunTracker(); tracker.ConfirmCharacter("SyntheticExile"); var completed = new List<MapRun>(); var parser = new LogParser();
+        var tracker = new RunTracker(); tracker.Accept(Event(new CharacterLevelUp("", At(0), "SyntheticExile", "Witch", 90)), "Fixture league"); Assert.True(tracker.ConfirmCharacter("SyntheticExile")); var completed = new List<MapRun>(); var parser = new LogParser();
         tracker.Copied(new CopiedItem("Maps", "Beach", "Beach Map", 16, ["Synthetic mod"]));
         foreach (var line in File.ReadAllLines(Path.Combine(AppContext.BaseDirectory, "session.txt")))
             if (tracker.Accept(Event(parser.Parse(line)), "Fixture league") is { } run) completed.Add(run);
@@ -25,7 +25,7 @@ public sealed class TrackerTests
     [Fact]
     public void SideAreaDeathsAndGapNeverExtendAcrossMissingTime()
     {
-        var tracker = new RunTracker(); tracker.ConfirmCharacter("Private name");
+        var tracker = new RunTracker(); tracker.Accept(Event(new CharacterLevelUp("", At(0), "Private name", "Witch", 90)), "L"); Assert.True(tracker.ConfirmCharacter("Private name"));
         tracker.Accept(Event(new AreaGenerated("", At(0), 70, "MapWorldsBeach", 1)), "L");
         tracker.Accept(Event(new AreaGenerated("", At(5), 70, "Incursion", 2)), "L");
         tracker.Accept(Event(new PlayerSlain("secret", At(7), "Private name")), "L");
