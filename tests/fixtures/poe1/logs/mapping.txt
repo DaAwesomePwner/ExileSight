@@ -1,0 +1,10 @@
+# Synthetic made-up data; real owner recordings override this fixture.
+2026/11/06 12:00:00 1000 abc [DEBUG Client 42] Generating level 83 area "MapWorldsBeach" with seed 4294967295
+2026/11/06 12:00:01 1001 abc [INFO Client 42] : You have entered Beach.
+2026/11/06 12:00:02 1002 abc [INFO Client 42] : Ember_Vale has been slain.
+2026/11/06 12:00:03 1003 abc [INFO Client 42] : Ember_Vale has committed suicide.
+2026/11/06 12:00:04 1004 abc [INFO Client 42] Einhar, Beastmaster: That was a juicy one, exile!
+2026/11/06 12:00:05 1005 abc [INFO Client 42] Sister Cassia: And the unrighteous were turned to ash!
+2026/11/06 12:00:06 1006 abc [INFO Client 42] Aven, the Cyaxan: Hire me or move on. I charge by the minute.
+2026/11/06 12:00:07 1007 abc [INFO Client 42] Spawning discoverable Hideout
+2026/11/06 12:00:08 1008 abc [INFO Client 42] : You have entered Coastal Hideout.

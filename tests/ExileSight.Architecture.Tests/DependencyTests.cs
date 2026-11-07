@@ -65,7 +65,7 @@ public sealed class DependencyTests
         if (target == "exilesight.platform.abstractions")
             return true;
         if (target == "exilesight.core")
-            return source is "exilesight.app" or "exilesight.platform.windows" or "exilesight.datagen"
+            return source is "exilesight.app" or "exilesight.platform.windows" or "exilesight.datagen" or "exilesight.redactlog"
                 || source.StartsWith("exilesight.features.", StringComparison.Ordinal);
         return source == "exilesight.app" && target.StartsWith("exilesight.features.", StringComparison.Ordinal);
     }
@@ -73,6 +73,11 @@ public sealed class DependencyTests
     [Theory]
     [InlineData("ExileSight.Core", "ExileSight.Features.Test")]
     [InlineData("ExileSight.DataGen", "ExileSight.Platform.Windows")]
+    [InlineData("ExileSight.RedactLog", "ExileSight.Platform.Windows")]
+    [InlineData("ExileSight.RedactLog", "PresentationFramework")]
+    [InlineData("ExileSight.RedactLog", "PresentationCore")]
+    [InlineData("ExileSight.RedactLog", "WindowsBase")]
+    [InlineData("ExileSight.RedactLog", "System.Xaml")]
     [InlineData("EXILESIGHT.CORE", "WINDOWSBASE")]
     [InlineData("ExileSight.Platform.Abstractions", "ExileSight.Core")]
     [InlineData("ExileSight.Features.One", "ExileSight.Features.Two")]
