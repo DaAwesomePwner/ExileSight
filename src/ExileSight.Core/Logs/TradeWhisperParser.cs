@@ -17,9 +17,14 @@ internal static class TradeWhisperParser
             stash = body[(stashStart + 2)..close];
             body = body[..stashStart];
         }
-        var leagueStart = body.LastIndexOf(" in ", StringComparison.Ordinal);
+        var priceStart = body.IndexOf(" listed for ", StringComparison.Ordinal);
+        if (priceStart < 0) priceStart = body.IndexOf(" for my ", StringComparison.Ordinal);
+        var leagueStart = body.IndexOf(" in ", Math.Max(0, priceStart), StringComparison.Ordinal);
         if (leagueStart < 0) return null;
-        var league = body[(leagueStart + 4)..].TrimEnd('.');
+        var league = body[(leagueStart + 4)..];
+        var terminator = league.IndexOfAny(['.', '(']);
+        if (terminator >= 0) league = league[..terminator];
+        league = league.Trim();
         var item = body[..leagueStart];
         string? price = null;
         foreach (var separator in new[] { " listed for ", " for my " })

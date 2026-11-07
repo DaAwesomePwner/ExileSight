@@ -7,6 +7,9 @@ namespace ExileSight.Core.Logs;
 /// Character identity is a level-up inference, not an authenticated identity. Party level-ups may be ambiguous.</summary>
 public sealed class LogEventStream(IFileTail tail, LogParser parser)
 {
+    public event Action<FileTailDiagnostic>? Diagnostic;
+    private void OnDiagnostic(FileTailDiagnostic diagnostic) => Diagnostic?.Invoke(diagnostic);
+
     private string? area;
     private string? character;
     private int reading;
@@ -17,6 +20,8 @@ public sealed class LogEventStream(IFileTail tail, LogParser parser)
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         if (Interlocked.Exchange(ref reading, 1) != 0) throw new InvalidOperationException("Already reading this stream.");
+        var diagnostics = tail as IFileTailDiagnostics;
+        if (diagnostics is not null) diagnostics.Diagnostic += OnDiagnostic;
         try
         {
             await foreach (var line in tail.ReadLinesAsync(path, position, cancellationToken).ConfigureAwait(false))
@@ -27,6 +32,10 @@ public sealed class LogEventStream(IFileTail tail, LogParser parser)
                 yield return e;
             }
         }
-        finally { Volatile.Write(ref reading, 0); }
+        finally
+        {
+            if (diagnostics is not null) diagnostics.Diagnostic -= OnDiagnostic;
+            Volatile.Write(ref reading, 0);
+        }
     }
 }

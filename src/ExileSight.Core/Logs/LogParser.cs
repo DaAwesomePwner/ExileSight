@@ -28,6 +28,11 @@ public sealed class LogParser
             text = m.Groups[6].Value;
             envelope = new(timestamp, uptime, m.Groups[3].Value, m.Groups[4].Value, m.Groups[5].Value, text);
         }
+        // Network endpoints contain colons, but are not speaker delimiters. Keep diagnostic
+        // recognition narrow and source-qualified so player text cannot suppress real chat.
+        if (envelope?.Source.StartsWith("Client ", StringComparison.Ordinal) == true
+            && Match(text, @"^(?:Connecting to (?:instance|login) server at \S+|Connected to \S+ in \d+ms\.?)$").Success)
+            return new Unknown(raw, envelope);
         var system = text.StartsWith(": ", StringComparison.Ordinal);
         if (!system)
         {

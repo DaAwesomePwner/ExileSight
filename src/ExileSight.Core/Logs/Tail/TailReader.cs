@@ -1,9 +1,11 @@
 using System.Text;
+using System.Runtime.CompilerServices;
+using ExileSight.Platform.Abstractions.Files;
 
 namespace ExileSight.Core.Logs.Tail;
 
 /// <summary>Enumeration-local state. All identity reads come from the open file handle.</summary>
-internal sealed class TailReader(long? position, Action<string> warning)
+internal sealed class TailReader(long? position, Action<FileTailCondition> warning, IFileTailIdentityProvider identityProvider)
 {
     private const int MaxLineCharacters = 64 * 1024;
     private readonly Decoder decoder = Encoding.UTF8.GetDecoder();
@@ -11,17 +13,23 @@ internal sealed class TailReader(long? position, Action<string> warning)
     private readonly byte[] bytes = new byte[8192];
     private readonly char[] chars = new char[Encoding.UTF8.GetMaxCharCount(8192)];
     private byte[] checkpoint = [];
-    private DateTime created;
+    private FileTailIdentity identity;
+    private byte[] prefix = [];
     private long offset;
     private bool initialized;
     private bool discardPartial;
 
-    internal async Task<(IReadOnlyList<string> Lines, bool CaughtUp)> ReadAsync(string path, CancellationToken token)
+    internal async IAsyncEnumerable<string> ReadAsync(string path, [EnumeratorCancellation] CancellationToken token)
     {
         await using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete,
             bytes.Length, FileOptions.Asynchronous | FileOptions.SequentialScan);
-        var creation = File.GetCreationTimeUtc(file.SafeFileHandle);
-        var reset = initialized && (creation != created || file.Length < offset);
+        var currentIdentity = identityProvider.Read(file);
+        var stableCreation = identity.HasStableCreationTime && currentIdentity.HasStableCreationTime;
+        var reset = initialized && (file.Length < offset || stableCreation && currentIdentity.CreationUtc != identity.CreationUtc);
+        var currentPrefix = new byte[(int)Math.Min(file.Length, 256)];
+        await file.ReadExactlyAsync(currentPrefix, token).ConfigureAwait(false);
+        if (initialized && (currentPrefix.Length < prefix.Length
+            || !currentPrefix.AsSpan(0, Math.Min(prefix.Length, currentPrefix.Length)).SequenceEqual(prefix))) reset = true;
         if (initialized && !reset && checkpoint.Length > 0)
         {
             file.Position = offset - checkpoint.Length;
@@ -43,13 +51,21 @@ internal sealed class TailReader(long? position, Action<string> warning)
             pending.Clear();
             initialized = true;
         }
-        created = creation;
+        identity = currentIdentity;
+        prefix = currentPrefix;
         file.Position = offset;
-        var end = file.Length;
-        var count = await file.ReadAsync(bytes.AsMemory(0, (int)Math.Min(bytes.Length, Math.Max(0, end - offset))), token).ConfigureAwait(false);
-        // No further file operations after advancing state: retries cannot lose a completed batch.
-        var caughtUp = offset + count >= end || count == 0;
-        if (count == 0) return ([], caughtUp);
+        while (true)
+        {
+            token.ThrowIfCancellationRequested();
+            var count = await file.ReadAsync(bytes, token).ConfigureAwait(false);
+            if (count == 0) yield break;
+            // Advance and yield each bounded batch before another file operation can fail.
+            foreach (var line in Decode(count)) yield return line;
+        }
+    }
+
+    private IReadOnlyList<string> Decode(int count)
+    {
         offset += count;
         checkpoint = checkpoint.Concat(bytes.Take(count)).TakeLast(256).ToArray();
         var length = decoder.GetChars(bytes, 0, count, chars, 0, false);
@@ -70,10 +86,10 @@ internal sealed class TailReader(long? position, Action<string> warning)
             {
                 pending.Clear();
                 discardPartial = true;
-                warning("Discarded log line exceeding 65536 characters.");
+                warning(FileTailCondition.OversizedLine);
             }
             else pending.Append(chars[i]);
         }
-        return (lines, caughtUp);
+        return lines;
     }
 }
