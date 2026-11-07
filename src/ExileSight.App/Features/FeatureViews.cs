@@ -1,4 +1,5 @@
 using System.Windows;
+using Microsoft.Extensions.Logging;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -13,7 +14,7 @@ using ExileSight.Platform.Windows.Input;
 namespace ExileSight.App.Features;
 
 /// <summary>App-owned view factories and button wiring; feature assemblies never reference WPF.</summary>
-public sealed class FeatureViews(FeatureHost features, OverlayHost overlays, HookHost hooks, InputDiagnostics diagnostics)
+public sealed class FeatureViews(FeatureHost features, OverlayHost overlays, HookHost hooks, InputDiagnostics diagnostics, ILogger<FeatureViews>? logger = null)
 {
     private readonly Dictionary<Type, Func<object, FrameworkElement>> factories = [];
     private readonly Dictionary<Type, Action<object>> managedViews = [];
@@ -26,6 +27,9 @@ public sealed class FeatureViews(FeatureHost features, OverlayHost overlays, Hoo
         factories.Add(typeof(T), model => factory((T)model));
     public void Start()
     {
+        // StartFeatureViews runs before StartProductionInput in App startup.
+        if (logger is not null) features.ReportWorkFailure = type =>
+            logger.LogWarning("Feature handler failed: {ExceptionType}", type);
         foreach (var (featureId, model) in features.Overlays)
         {
             if (model is ExileSight.Features.Omni.OmniMenu) continue;

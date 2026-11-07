@@ -49,7 +49,9 @@ public sealed class PassiveInputChannel
         {
             // An Esc observation closes every interested overlay without creating input or tokens.
             Publish(overflow, current);
-            Interlocked.CompareExchange(ref interest, null, current);
+            // Keep observing for overlays opened after the overflow timestamp.
+            // A subscriber that closed/reopened the lease during Publish wins the exchange.
+            Interlocked.CompareExchange(ref interest, new(current.OpenedAt), current);
             return;
         }
         while (current.Discrete.TryDequeue(out var input))

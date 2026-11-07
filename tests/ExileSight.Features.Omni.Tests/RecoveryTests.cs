@@ -1,4 +1,5 @@
 using ExileSight.App.Features;
+using ExileSight.Core.Features;
 using ExileSight.Core.Games;
 using ExileSight.Core.Items;
 using ExileSight.Core.Pricing;
@@ -23,9 +24,18 @@ public sealed class RecoveryTests
     {
         var errors = new List<string>();
         var menu = new OmniMenu { League = () => league, ReportFailure = errors.Add };
-        menu.Presented += _ => Assert.Fail("Invalid trade URL must not be presented");
+        menu.Providers = () => [new Contribution()];
+        OmniMenuPresentation? shown = null;
+        menu.Presented += presentation => shown = presentation;
         menu.Show(ItemTextParser.Parse("Item Class: Rings\nRarity: Normal\nIron Ring", Game.PoE1).Item!);
         Assert.Equal(["ArgumentException"], errors);
+        Assert.NotNull(shown);
+        Assert.Equal(["PoE Wiki", "PoEDB", "Craft of Exile"], shown.Links.Select(link => link.Label));
+        Assert.Equal("Set as equipped", Assert.Single(shown.Entries).Label);
+    }
+    private sealed class Contribution : IItemMenuProvider
+    {
+        public IReadOnlyList<ItemMenuEntry> BuildMenu(ParsedItem item) => [new("Set as equipped", () => { })];
     }
     [Theory]
     [InlineData(true)]

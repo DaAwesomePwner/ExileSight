@@ -30,7 +30,13 @@ public sealed class OmniMenu
     {
         if (!IsCurrent(origin)) return;
         IReadOnlyList<OmniLink> links;
-        try { links = OmniLinks.Build(item, League()); }
+        try
+        {
+            var league = League();
+            var validLeague = league is not ("." or "..");
+            if (!validLeague) ReportFailure?.Invoke(nameof(ArgumentException));
+            links = OmniLinks.Build(item, league, includeTrade: validLeague);
+        }
         catch (Exception error)
         {
             ReportFailure?.Invoke(error.GetType().Name);
