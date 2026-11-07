@@ -27,6 +27,7 @@ public static class FeatureRegistration
         {
             MatchLine = line => services.GetRequiredService<DataPacks.PackStartup>().Data?.MatchLine(line) ?? []
         },
+        new ExileSight.Features.Macros.MacrosFeature(),
         Vaalasync.ShopRegistration.Create(services),
         Stashninja.StashRegistration.Create(services),
         new ExileSight.Features.SearchStrings.SearchStringsFeature()];
@@ -63,8 +64,10 @@ public static class FeatureRegistration
         Stashninja.StashRegistration.Register(services, views);
         views.RegisterManaged<ExileSight.Features.ItemInfo.ItemInfoViewModel>(services.GetRequiredService<ItemInfo.ItemInfoTooltip>().Start);
         SearchStrings.SearchStringsRegistration.Register(services, views);
+        Macros.MacrosRegistration.Register(services, views);
         views.Start();
         SearchStrings.SearchStringsRegistration.Initialize();
+        Macros.MacrosRegistration.Initialize();
         Vaalasync.ShopRegistration.Initialize(services);
         Stashninja.StashRegistration.Initialize(services);
         var model = services.GetRequiredService<FeatureHost>().Overlays

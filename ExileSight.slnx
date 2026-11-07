@@ -22,4 +22,6 @@
   <Project Path="tests/ExileSight.Features.Stashninja.Tests/ExileSight.Features.Stashninja.Tests.csproj" />
   <Project Path="src/ExileSight.Features.SearchStrings/ExileSight.Features.SearchStrings.csproj" />
   <Project Path="tests/ExileSight.Features.SearchStrings.Tests/ExileSight.Features.SearchStrings.Tests.csproj" />
+  <Project Path="src/ExileSight.Features.Macros/ExileSight.Features.Macros.csproj" />
+  <Project Path="tests/ExileSight.Features.Macros.Tests/ExileSight.Features.Macros.Tests.csproj" />
 </Solution>
