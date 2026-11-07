@@ -9,7 +9,6 @@ public static class DefaultOverlayLayout
     public static OverlayRect CompactTimers => Timers with { Height = 220 };
     public static OverlayRect TimersToast => new(440, 80, 300, 100);
 
-    // Inventory of literals in views outside the layout-edit scope of P5-T2.
     public static OverlayRect GenericPanel => new(20, 20, 400, 300);
     public static OverlayRect EventsToast => new(500, 340, 340, 110);
     public static OverlayRect StashRegistration => new(0, 0, 1, 1);

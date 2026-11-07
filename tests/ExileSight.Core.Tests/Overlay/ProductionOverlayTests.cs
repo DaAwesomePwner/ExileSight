@@ -49,30 +49,33 @@ public sealed class ProductionOverlayTests
         var client = new PixelRect(-50, 0, 1920, 1080);
         var design = new OverlayRect(8, 8, 160, 32);
         var bounds = placement.Calculate(client, design, null);
-        Assert.True(placement.NeedsPosition(bounds, default, false));
+        Assert.True(OverlayRefresh.Decide(bounds, default, 1, 1, 1, 1, 1, false).Reposition);
         foreach (uint dpi in new uint[] { 96, 144, 96, 192, 144 })
         {
             // Content DIPs change, but physical placement must not depend on overlay DPI.
-            var dips = OverlayRules.ToDips(0, 0, bounds.Width, bounds.Height, dpi);
-            Assert.True(dips.Width > 0);
-            Assert.False(placement.NeedsPosition(placement.Calculate(client, design, null), bounds, false));
+            var refresh = OverlayRefresh.Decide(placement.Calculate(client, design, null), bounds,
+                1, dpi / 96d, dpi / 96d, 1, 1, false);
+            Assert.Equal(160, 160 * refresh.ScaleX * dpi / 96d, 8);
+            Assert.False(refresh.Reposition);
         }
-        Assert.True(placement.NeedsPosition(placement.Calculate(client with { X = 100 }, design, null), bounds, false));
-        Assert.True(placement.NeedsPosition(placement.Calculate(client, design, 2), bounds, false));
-        Assert.True(placement.NeedsPosition(placement.Calculate(client with { Height = 1440 }, design, null), bounds, false));
+        Assert.True(OverlayRefresh.Decide(placement.Calculate(client with { X = 100 }, design, null),
+            bounds, 1, 1, 1, 1, 1, false).Reposition);
+        Assert.True(OverlayRefresh.Decide(placement.Calculate(client, design, 2),
+            bounds, 2, 1, 1, 1, 1, false).Reposition);
+        Assert.True(OverlayRefresh.Decide(placement.Calculate(client with { Height = 1440 }, design, null),
+            bounds, 1440d / 1080, 1, 1, 1, 1, false).Reposition);
     }
 
     [Fact]
     public void CorrectsWpfDpiSuggestedBoundsAndReassertsTopmostAfterShow()
     {
-        var placement = new OverlayPlacement();
         var computed = new PixelRect(1928, 8, 160, 32);
         var wpfSuggested = computed with { Width = 240, Height = 48 };
-        Assert.True(placement.NeedsPosition(computed, wpfSuggested, false));
-        Assert.True(placement.NeedsPosition(computed, computed with { X = 1900 }, false));
-        Assert.False(placement.NeedsPosition(computed, computed, false));
-        Assert.True(placement.NeedsPosition(computed, computed, true));
-        Assert.True(placement.NeedsPosition(computed, wpfSuggested, true));
+        Assert.True(OverlayRefresh.Decide(computed, wpfSuggested, 1, 1.5, 1.5, 1, 1, false).Reposition);
+        Assert.True(OverlayRefresh.Decide(computed, computed with { X = 1900 }, 1, 1, 1, 1, 1, false).Reposition);
+        Assert.False(OverlayRefresh.Decide(computed, computed, 1, 1, 1, 1, 1, false).Reposition);
+        Assert.True(OverlayRefresh.Decide(computed, computed, 1, 1, 1, 1, 1, true).Reposition);
+        Assert.True(OverlayRefresh.Decide(computed, wpfSuggested, 1, 1.5, 1.5, 1, 1, true).Reposition);
     }
 
     [Fact]

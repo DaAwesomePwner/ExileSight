@@ -15,6 +15,8 @@ public readonly record struct OverlayRefresh(bool Reposition, bool Rescale, doub
         return physicalScale / dpiScale;
     }
 
+    // Compare actual native bounds: WPF may have applied a DPI-suggested rectangle.
+    // Showing again also reasserts topmost, even when geometry already matches.
     public static OverlayRefresh Decide(PixelRect desired, PixelRect actual, double physicalScale,
         double dpiX, double dpiY, double currentScaleX, double currentScaleY, bool justShown)
     {
