@@ -1,11 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><TargetFramework>net10.0-windows10.0.19041.0</TargetFramework><ApplicationManifest>app.manifest</ApplicationManifest><UseWPF>true</UseWPF><UseWindowsForms>true</UseWindowsForms><StartupObject>ExileSight.App.Program</StartupObject><OutputType>WinExe</OutputType><TargetPlatformVersion>10.0.19041.0</TargetPlatformVersion><SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion></PropertyGroup>
-  <!-- WPF owns DPI through the existing PerMonitorV2 manifest; WinForms supplies only NotifyIcon.
-       The WinForms-only recommendation to remove manifest DPI does not apply to this WPF host. -->
-  <PropertyGroup><NoWarn>$(NoWarn);WFO0003</NoWarn></PropertyGroup>
+  <PropertyGroup><TargetFramework>net10.0-windows10.0.19041.0</TargetFramework><ApplicationManifest>app.manifest</ApplicationManifest><UseWPF>true</UseWPF><StartupObject>ExileSight.App.Program</StartupObject><OutputType>WinExe</OutputType><TargetPlatformVersion>10.0.19041.0</TargetPlatformVersion><SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion></PropertyGroup>
   <ItemGroup>
-    <Using Remove="System.Windows.Forms" />
-    <Using Remove="System.Drawing" />
     <ProjectReference Include="../../src/ExileSight.Core/ExileSight.Core.csproj" />
     <ProjectReference Include="../../src/ExileSight.Platform.Abstractions/ExileSight.Platform.Abstractions.csproj" />
     <ProjectReference Include="../../src/ExileSight.Platform.Windows/ExileSight.Platform.Windows.csproj" />
