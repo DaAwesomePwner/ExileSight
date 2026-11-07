@@ -3,7 +3,7 @@ using ExileSight.Core.Items;
 namespace ExileSight.Core.Features;
 
 /// <summary>Local app actions only; contributions receive no intent token or game-action authority.</summary>
-public sealed record ItemMenuEntry(string Label, Action Execute);
+public sealed record ItemMenuEntry(string Label, Action Execute, string? FeatureId = null);
 public interface IItemMenuProvider
 {
     IReadOnlyList<ItemMenuEntry> BuildMenu(ParsedItem item);
@@ -21,4 +21,11 @@ public static class ItemMenuEntries
         }
         return entries.ToArray();
     }
+}
+
+// Ownership is stamped by FeatureHost, never trusted from a provider.
+internal sealed class OwnedItemMenuProvider(string owner, IItemMenuProvider provider) : IItemMenuProvider
+{
+    public IReadOnlyList<ItemMenuEntry> BuildMenu(ParsedItem item) =>
+        provider.BuildMenu(item).Select(entry => entry with { FeatureId = owner }).ToArray();
 }

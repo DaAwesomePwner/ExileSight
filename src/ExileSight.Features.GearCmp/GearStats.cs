@@ -10,8 +10,15 @@ namespace ExileSight.Features.GearCmp;
 public sealed record EquippedGear(string ItemClass, Dictionary<string, decimal> Stats, string[]? UnknownStats = null);
 public static class GearStats
 {
+    // Verified against generated poe1/stats at RePoE d0bc438357d849bb93ad22f3db0b12938aaf6da1.
     private static readonly Dictionary<string, string[]> Known = new()
     {
+        ["fire_and_cold_damage_resistance_%"] = ["Fire resistance", "Cold resistance"],
+        ["fire_and_lightning_damage_resistance_%"] = ["Fire resistance", "Lightning resistance"],
+        ["cold_and_lightning_damage_resistance_%"] = ["Cold resistance", "Lightning resistance"],
+        ["additional_strength_and_dexterity"] = ["Strength", "Dexterity"],
+        ["additional_strength_and_intelligence"] = ["Strength", "Intelligence"],
+        ["additional_dexterity_and_intelligence"] = ["Dexterity", "Intelligence"],
         ["base_maximum_life"] = ["Life"], ["base_maximum_mana"] = ["Mana"],
         ["base_maximum_energy_shield"] = ["Global energy shield"],
         ["additional_strength"] = ["Strength"], ["additional_dexterity"] = ["Dexterity"],
@@ -38,12 +45,13 @@ public static class GearStats
             if (signatures.Length != 1)
             {
                 foreach (var value in candidates.SelectMany(c => c.Values))
-                    if (Known.TryGetValue(value.StatId, out var names)) uncertain.UnionWith(names);
+                    uncertain.UnionWith(Affected(value.StatId));
                 continue;
             }
             foreach (var value in signatures[0])
             {
-                if (!Known.TryGetValue(value.StatId, out var names)) continue;
+                if (!Known.TryGetValue(value.StatId, out var names))
+                { uncertain.UnionWith(Affected(value.StatId)); continue; }
                 if (value.Min != value.Max) { uncertain.UnionWith(names); continue; }
                 foreach (var name in names) stats[name] = stats.GetValueOrDefault(name) + value.Min;
             }
@@ -56,7 +64,7 @@ public static class GearStats
         }
         if (Property(item, "Attacks per Second") is { Length: 1 } speed)
         {
-            foreach (var (property, label) in new[] { ("Physical Damage", "Physical DPS"), ("Elemental Damage", "Elemental DPS") })
+            foreach (var (property, label) in new[] { ("Physical Damage", "Physical DPS"), ("Elemental Damage", "Elemental DPS"), ("Chaos Damage", "Chaos DPS") })
             {
                 var values = Property(item, property);
                 if (values is null || values.Length == 0 || values.Length % 2 != 0)
@@ -67,9 +75,32 @@ public static class GearStats
                 stats[label] = values.Sum() / 2 * speed[0];
             }
         }
-        else if (item.Properties.ContainsKey("Physical Damage") || item.Properties.ContainsKey("Elemental Damage"))
-            uncertain.UnionWith(["Physical DPS", "Elemental DPS"]);
+        else if (item.Properties.ContainsKey("Physical Damage") || item.Properties.ContainsKey("Elemental Damage") || item.Properties.ContainsKey("Chaos Damage"))
+            uncertain.UnionWith(["Physical DPS", "Elemental DPS", "Chaos DPS"]);
         return new(item.ItemClass, stats, uncertain.ToArray());
+    }
+    private static IEnumerable<string> Affected(string id)
+    {
+        if (Known.TryGetValue(id, out var names)) return names;
+        var result = new List<string>();
+        foreach (var (word, label) in new[] { ("life", "Life"), ("mana", "Mana"), ("strength", "Strength"),
+            ("dexterity", "Dexterity"), ("intelligence", "Intelligence"), ("energy_shield", "Global energy shield") })
+            if (id.Contains(word, StringComparison.Ordinal)) result.Add(label);
+        if (id.Contains("attribute", StringComparison.Ordinal)) result.AddRange(["Strength", "Dexterity", "Intelligence"]);
+        if (id.Contains("resist", StringComparison.Ordinal))
+        {
+            foreach (var element in new[] { "Fire", "Cold", "Lightning", "Chaos" })
+                if (id.Contains(element.ToLowerInvariant(), StringComparison.Ordinal) ||
+                    element != "Chaos" && id.Contains("element", StringComparison.Ordinal))
+                    result.Add(element + " resistance");
+            if (!result.Any(label => label.EndsWith(" resistance", StringComparison.Ordinal)))
+                result.AddRange(["Fire resistance", "Cold resistance", "Lightning resistance", "Chaos resistance"]);
+        }
+        // Local defence modifiers are already represented in the copied properties.
+        if (!id.StartsWith("local_", StringComparison.Ordinal))
+            foreach (var (word, label) in new[] { ("armour", "Armour"), ("evasion", "Evasion Rating"), ("ward", "Ward") })
+                if (id.Contains(word, StringComparison.Ordinal)) result.Add(label);
+        return result;
     }
     private static decimal[]? Property(ParsedItem item, string name)
     {

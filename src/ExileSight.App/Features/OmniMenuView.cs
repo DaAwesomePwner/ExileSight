@@ -45,6 +45,7 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
         styler.SetClickThrough(handle, false);
         window.DpiChanged += DpiChanged;
         menu.League = ReadLeague;
+        menu.ReportFailure = type => logger.LogWarning("Item menu provider failed: {ExceptionType}", type);
         menu.EntriesOpened += Open;
         window.IsVisibleChanged += VisibilityChanged;
         if (prices is not null) _ = DiscoverLeagueAsync();
@@ -96,7 +97,11 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
         }
         foreach (var entry in entries)
         {
-            var button = new Button { Content = entry.Label, Margin = new Thickness(2), Padding = new Thickness(6) };
+            var button = new Button
+            {
+                Content = new TextBlock { Text = "[" + entry.FeatureId + "] " + entry.Label, TextWrapping = TextWrapping.Wrap },
+                Margin = new Thickness(2), Padding = new Thickness(6)
+            };
             button.Click += (_, _) =>
             {
                 window.Hide();

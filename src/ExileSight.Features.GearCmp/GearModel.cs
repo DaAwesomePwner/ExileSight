@@ -45,8 +45,10 @@ public sealed class GearModel
     {
         lock (sync)
         {
-            if (GearSlots.TwoHanded(candidate.ItemClass)) return slots
+            if (GearSlots.TwoHanded(candidate.ItemClass) && candidate.ItemClass != "Bows") return slots
                 .Where(p => p.Key is GearSlot.MainHand or GearSlot.OffHand).Select(p => p.Value).ToArray();
+            if (candidate.ItemClass == "Quivers")
+                return slots.TryGetValue(GearSlot.OffHand, out var quiver) && quiver.ItemClass == "Quivers" ? [quiver] : [];
             if (slot == GearSlot.OffHand && slots.TryGetValue(GearSlot.MainHand, out var main) &&
                 GearSlots.TwoHanded(main.ItemClass)) return [main];
             return slots.TryGetValue(slot, out var gear) ? [gear] : [];
@@ -58,9 +60,17 @@ public sealed class GearModel
         {
             CheckCharacter(expectedCharacter);
             var next = new Dictionary<GearSlot, EquippedGear>(slots);
-            if (GearSlots.TwoHanded(gear.ItemClass)) next.Remove(GearSlot.OffHand);
-            if (slot == GearSlot.OffHand && next.TryGetValue(GearSlot.MainHand, out var main) &&
-                GearSlots.TwoHanded(main.ItemClass)) next.Remove(GearSlot.MainHand);
+            if (slot == GearSlot.MainHand && next.TryGetValue(GearSlot.OffHand, out var off))
+            {
+                if (gear.ItemClass == "Bows" ? off.ItemClass != "Quivers" :
+                    GearSlots.TwoHanded(gear.ItemClass) || off.ItemClass == "Quivers")
+                    next.Remove(GearSlot.OffHand);
+            }
+            if (slot == GearSlot.OffHand && next.TryGetValue(GearSlot.MainHand, out var main))
+            {
+                if (gear.ItemClass == "Quivers" ? main.ItemClass != "Bows" : GearSlots.TwoHanded(main.ItemClass))
+                    next.Remove(GearSlot.MainHand);
+            }
             next[slot] = gear;
             store.Save(character, next);
             slots = next;

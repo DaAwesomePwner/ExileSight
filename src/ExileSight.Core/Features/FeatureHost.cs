@@ -114,6 +114,7 @@ public sealed class FeatureHost
         }
         public IReadOnlyList<IOmniHandler> OmniHandlers =>
             host.omni.Where(o => o.Owner == manifest.Id).Select(o => o.Handler).ToArray();
+        public void DispatchFeature(Action work) => host.post(work);
         public void DispatchOmni(ParsedItem item, OmniContext context, OmniPressKind press) =>
             host.post(() => host.Route(item, context, press));
         public void RegisterOmniHandler(IOmniHandler handler) { Registering(); host.omni.Add((manifest.Id, handler)); }
@@ -124,7 +125,7 @@ public sealed class FeatureHost
         { Registering(); host.tooltipSections.Add(provider); }
         public IReadOnlyList<IItemMenuProvider> ItemMenus => host.itemMenus.AsReadOnly();
         public void RegisterItemMenu(IItemMenuProvider provider)
-        { Registering(); ArgumentNullException.ThrowIfNull(provider); host.itemMenus.Add(provider); }
+        { Registering(); ArgumentNullException.ThrowIfNull(provider); host.itemMenus.Add(new OwnedItemMenuProvider(manifest.Id, provider)); }
         public void RegisterOverlay(object viewModel) { Registering(); host.overlays.Add((manifest.Id, viewModel)); }
         public JsonElement? ReadSetting(string key) => read(manifest.Id, key)?.Clone();
         public void WriteSetting(string key, JsonElement value) => write(manifest.Id, key, value.Clone());

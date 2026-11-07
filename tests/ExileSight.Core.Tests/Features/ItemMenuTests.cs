@@ -19,6 +19,7 @@ public sealed class ItemMenuTests
         var entry = Assert.Single(ItemMenuEntries.Build(item, feature.Context.ItemMenus, _ => errors++));
         Assert.Equal(1, errors);
         Assert.Equal("Local action", entry.Label);
+        Assert.Equal("menu-test", entry.FeatureId);
         entry.Execute();
         Assert.Equal(1, feature.Good.Executions);
     }
@@ -38,6 +39,6 @@ public sealed class ItemMenuTests
     {
         public int Executions { get; private set; }
         public IReadOnlyList<ItemMenuEntry> BuildMenu(ParsedItem item) => fail
-            ? throw new InvalidOperationException() : [new("Local action", () => Executions++)];
+            ? throw new InvalidOperationException() : [new("Local action", () => Executions++, "spoofed-owner")];
     }
 }

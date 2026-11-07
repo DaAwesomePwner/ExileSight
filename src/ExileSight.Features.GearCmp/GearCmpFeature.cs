@@ -32,7 +32,7 @@ public sealed class GearCmpFeature(GearModel? suppliedModel) : IFeature, IToolti
         var entries = new List<ItemMenuEntry>();
         foreach (var name in Model.Candidates)
             entries.Add(new("Use character: " + name, () => Model.Confirm(name)));
-        entries.Add(new("Use default profile", () => Model.Confirm(null)));
+        if (character is not null) entries.Add(new("Use default profile", () => Model.Confirm(null)));
         var gear = GearStats.Read(item, MatchLine);
         foreach (var slot in slots)
         {
@@ -56,7 +56,7 @@ public sealed class GearCmpFeature(GearModel? suppliedModel) : IFeature, IToolti
         foreach (var slot in slots)
         {
             var replaced = Model.Replaced(slot, candidate);
-            var label = GearSlots.TwoHanded(item.ItemClass) ? "both hands" : GearSlots.Label(slot);
+            var label = GearSlots.TwoHanded(item.ItemClass) && item.ItemClass != "Bows" ? "both hands" : GearSlots.Label(slot);
             rows.Add(new([new("Compared with " + label)]));
             if (replaced.Length == 0) { rows.Add(new([new("No equipped item", TooltipTone.Unknown)])); continue; }
             foreach (var (stat, delta) in GearStats.Delta(candidate, replaced).OrderBy(p => p.Key))

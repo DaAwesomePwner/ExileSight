@@ -7,8 +7,13 @@ namespace ExileSight.Features.GearCmp;
 
 public sealed record GearDocument(int SchemaVersion, Dictionary<GearSlot, EquippedGear> Slots);
 public sealed record ActiveCharacter(int SchemaVersion, string? Name);
-public sealed class GearStore(string directory)
+public sealed class GearStore
 {
+    private readonly string directory;
+    private readonly Func<string, string> readText;
+    public GearStore(string directory) : this(directory, File.ReadAllText) { }
+    internal GearStore(string directory, Func<string, string> readText)
+    { this.directory = directory; this.readText = readText; }
     public string? Notice { get; private set; }
     private readonly HashSet<string> blocked = [];
     public string? ReadActive() => Read<ActiveCharacter>("active.json", d => d.SchemaVersion == 1 &&
@@ -35,12 +40,28 @@ public sealed class GearStore(string directory)
         try
         {
             if (!File.Exists(path)) return null;
-            if (new FileInfo(path).Length > 1024 * 1024) throw new JsonException("Oversized gear file");
-            var document = JsonSerializer.Deserialize<T>(File.ReadAllText(path));
+            if (new FileInfo(path).Length > 1024 * 1024) throw new IOException("Oversized gear file");
+            var text = readText(path);
+            using var json = JsonDocument.Parse(text);
+            if (json.RootElement.ValueKind != JsonValueKind.Object) throw new JsonException("Invalid gear file");
+            if (json.RootElement.TryGetProperty("SchemaVersion", out var version) &&
+                version.ValueKind == JsonValueKind.Number && version.TryGetDecimal(out var number) && number > 1)
+            {
+                blocked.Add(file);
+                Notice = "Equipped data uses a newer schema; this file is read-only.";
+                return null;
+            }
+            var document = JsonSerializer.Deserialize<T>(text);
             if (document is null || !validate(document)) throw new JsonException("Invalid gear file");
             return document;
         }
-        catch (Exception error) when (error is JsonException or IOException or UnauthorizedAccessException)
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+        {
+            blocked.Add(file);
+            Notice = "Equipped data could not be read; writes disabled for this session. Restart to retry.";
+            return null;
+        }
+        catch (JsonException)
         {
             try { File.Move(path, path + "." + Guid.NewGuid().ToString("N") + ".corrupt"); }
             catch (Exception move) when (move is IOException or UnauthorizedAccessException) { blocked.Add(file); }
@@ -50,7 +71,7 @@ public sealed class GearStore(string directory)
     }
     private void Write<T>(string file, T value)
     {
-        if (blocked.Contains(file)) throw new IOException("Previous gear file could not be preserved");
+        if (blocked.Contains(file) || blocked.Contains("active.json")) throw new IOException("Previous gear file could not be preserved");
         Directory.CreateDirectory(directory);
         var path = Path.Combine(directory, file);
         var temp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";

@@ -33,7 +33,7 @@ public sealed class OmniPress(IFeatureContext context, OmniMenu menu)
         pending = null;
         item = null;
         if (captured is null || release.UpTimestamp < down.Timestamp) return;
-        if (release.UpTimestamp - down.Timestamp > LongPressMilliseconds) menu.Show(captured);
+        if (release.UpTimestamp - down.Timestamp > LongPressMilliseconds) context.DispatchFeature(() => menu.Show(captured));
         else context.DispatchOmni(captured, new(Game.PoE1), OmniPressKind.Short);
     }
 }
