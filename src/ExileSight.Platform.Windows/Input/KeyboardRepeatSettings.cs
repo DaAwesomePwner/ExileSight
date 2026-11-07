@@ -18,7 +18,7 @@ public sealed class KeyboardRepeatSettings
         var success = PInvoke.SystemParametersInfo(SYSTEM_PARAMETERS_INFO_ACTION.SPI_GETFILTERKEYS,
             settings.cbSize, &settings, 0);
         Volatile.Write(ref silenceMilliseconds, success
-            ? Calculate(((uint)settings.dwFlags & 1) != 0, settings.iWaitMSec, settings.iDelayMSec, settings.iRepeatMSec)
+            ? Calculate((settings.dwFlags & PInvoke.FKF_FILTERKEYSON) != 0, settings.iWaitMSec, settings.iDelayMSec, settings.iRepeatMSec)
             : long.MaxValue);
     }
 

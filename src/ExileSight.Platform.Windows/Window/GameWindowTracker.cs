@@ -26,7 +26,7 @@ public sealed class GameWindowTracker : IGameWindow
     {
         callback = OnEvent;
         hooks = new GameWindowHooks(callback);
-        detection = new(new WindowSource(), TimeProvider.System);
+        detection = GameWindowDetection.Shared;
     }
 
     internal GameWindowTracker(IGameWindowHooks hooks, GameWindowDetection detection)

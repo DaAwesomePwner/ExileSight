@@ -9,7 +9,9 @@ public sealed class IntentRegistry(IClock clock)
     public const long LifetimeMilliseconds = 1500;
     public sealed record Press(long Timestamp, string HotkeyId, ActionKind Action);
     // Owned by the physical-input dispatcher, never registered as a feature service.
-    internal IntentToken Issue(long timestamp, string hotkey, ActionKind action)
+    // Capability retained by the physical-input dispatcher; no assembly-wide timestamp mint API.
+    internal Func<long, string, ActionKind, IntentToken> CreateHookIssuer() => Issue;
+    private IntentToken Issue(long timestamp, string hotkey, ActionKind action)
     {
         lock (pending)
         {

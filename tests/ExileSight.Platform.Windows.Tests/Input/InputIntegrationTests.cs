@@ -38,7 +38,7 @@ public sealed class InputIntegrationTests
         var repeatSettings = new KeyboardRepeatSettings();
         using var hooks = new HookHost(new HotkeyDispatcher(new IntentRegistry(clock), [],
             () => repeatSettings.SilenceMilliseconds), clock,
-            (_, _) => throw new InvalidOperationException("No binding should execute"), repeatSettings);
+            (_, _) => throw new InvalidOperationException("No binding should execute"), repeatSettings, gameWindow: new FakeGameWindow());
         hooks.Start();
         Assert.True(hooks.IsAlive);
         hooks.Dispose();
@@ -58,12 +58,23 @@ public sealed class InputIntegrationTests
         Assert.Equal(ActionOutcome.UsedOrUnknownToken, gate.TryExecute(token, new GameAction.CopyItem()).Outcome);
         Assert.Equal(0, gate.ActionsSent);
     }
+    private sealed class FakeGameWindow : ExileSight.Platform.Abstractions.Window.IGameWindow
+    {
+        public ExileSight.Platform.Abstractions.Window.GameWindowState Current => ExileSight.Platform.Abstractions.Window.GameWindowState.Missing;
+        public string? LastError => null;
+        public event EventHandler? Changed { add { } remove { } }
+        public void Start() { }
+        public void Dispose() { }
+    }
     private sealed class UntouchableClipboard : IClipboard
     {
+        public bool PasteConsumed => throw new InvalidOperationException();
+        public void OfferText(string text) => throw new InvalidOperationException();
+        public void Pump() => throw new InvalidOperationException();
         public uint SequenceNumber => throw new InvalidOperationException("Clipboard accessed");
         public string? GetText() => throw new InvalidOperationException("Clipboard accessed");
         public void SetText(string? text) => throw new InvalidOperationException("Clipboard accessed");
-        public string? Save() => throw new InvalidOperationException("Clipboard accessed");
-        public void Restore(string? saved) => throw new InvalidOperationException("Clipboard accessed");
+        public ClipboardSnapshot Save() => throw new InvalidOperationException("Clipboard accessed");
+        public void Restore(ClipboardSnapshot? saved) => throw new InvalidOperationException("Clipboard accessed");
     }
 }

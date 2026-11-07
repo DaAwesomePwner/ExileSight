@@ -6,11 +6,27 @@ namespace ExileSight.Platform.Windows.Window;
 /// <summary>UI-thread detection with a bounded, invalidatable GFN process snapshot.</summary>
 internal sealed class GameWindowDetection(IWindowSource source, TimeProvider clock)
 {
+    internal static GameWindowDetection Shared { get; } = new(new WindowSource(), TimeProvider.System);
+    private readonly object sync = new();
     private IReadOnlySet<uint>? streamingPids;
     private long snapshotTime;
     private bool streaming;
 
-    internal void InvalidateSnapshot() => streamingPids = null;
+    internal void InvalidateSnapshot() { lock (sync) streamingPids = null; }
+
+    internal bool Matches(nint handle)
+    {
+        lock (sync)
+        {
+            var native = source.Read(handle, new HashSet<uint>());
+            if (native is null) return false;
+            if (OverlayRules.Matches(native.Class, false, null)) return true;
+            var snapshot = Snapshot();
+            var candidate = source.Read(handle, snapshot);
+            return candidate is not null && OverlayRules.Matches(candidate.Class,
+                snapshot.Contains(candidate.Pid), candidate.Title);
+        }
+    }
 
     private IReadOnlySet<uint> Snapshot()
     {
@@ -26,6 +42,11 @@ internal sealed class GameWindowDetection(IWindowSource source, TimeProvider clo
         OverlayRules.MatchesStreaming(candidate.Pid, Snapshot(), candidate.Title);
 
     internal GameWindowState Refresh(GameWindowState previous, out uint pid)
+    {
+        lock (sync) return RefreshLocked(previous, out pid);
+    }
+
+    private GameWindowState RefreshLocked(GameWindowState previous, out uint pid)
     {
         if (!previous.Found) InvalidateSnapshot();
         var snapshot = Snapshot();

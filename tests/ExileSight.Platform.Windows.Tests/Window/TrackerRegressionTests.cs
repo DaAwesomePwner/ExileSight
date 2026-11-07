@@ -79,6 +79,23 @@ public sealed class TrackerRegressionTests
         finally { SynchronizationContext.SetSynchronizationContext(previous); }
     }
 
+    [Fact]
+    public void SendTimeDetectionSharesTheTrackersBoundedSnapshot()
+    {
+        var source = new Source();
+        var clock = new Clock();
+        var detection = new GameWindowDetection(source, clock);
+        detection.Refresh(GameWindowState.Missing, out _);
+        Assert.True(detection.Matches(123));
+        Assert.Equal(1, source.Snapshots);
+        source.Pids.Clear();
+        Assert.True(detection.Matches(123));
+        clock.Advance();
+        Assert.False(detection.Matches(123));
+        Assert.Equal(2, source.Snapshots);
+        Assert.False(detection.Matches(999));
+    }
+
     private sealed class Clock : TimeProvider
     {
         private long ticks;

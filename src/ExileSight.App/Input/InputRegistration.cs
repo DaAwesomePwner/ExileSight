@@ -3,6 +3,7 @@ using ExileSight.Core.Games;
 using ExileSight.Core.Input;
 using ExileSight.Core.Settings;
 using ExileSight.Platform.Abstractions.Input;
+using ExileSight.Platform.Abstractions.Window;
 using ExileSight.Platform.Abstractions.Storage;
 using ExileSight.Platform.Abstractions.Time;
 using ExileSight.Platform.Windows.Input;
@@ -37,7 +38,8 @@ public static class InputRegistration
         services.AddSingleton<IDebugSection>(sp => sp.GetRequiredService<InputDiagnostics>());
         services.AddSingleton<IHotkeys>(sp => new HookHost(sp.GetRequiredService<InputPipeline>().Dispatcher,
             sp.GetRequiredService<IClock>(), sp.GetRequiredService<HotkeyExecution>().Execute,
-            sp.GetRequiredService<InputPipeline>().RepeatSettings, sp.GetRequiredService<InputDiagnostics>().Report));
+            sp.GetRequiredService<InputPipeline>().RepeatSettings, sp.GetRequiredService<InputDiagnostics>().Report,
+            sp.GetRequiredService<IGameWindow>()));
         return services;
     }
     public static void StartProductionInput(IServiceProvider services)
@@ -55,7 +57,7 @@ public static class InputRegistration
         {
             var registry = new IntentRegistry(clock);
             Dispatcher = new(registry, configuration, () => RepeatSettings.SilenceMilliseconds);
-            Gate = new ActionGate(new GatePolicy(registry, [ActionKind.CopyItem, ActionKind.SendChatCommand]),
+            Gate = new ActionGate(new GatePolicy(registry, [ActionKind.CopyItem, ActionKind.SendChatCommand, ActionKind.PasteSearch, ActionKind.SetPriceNote]),
                 clipboard, clock);
         }
     }

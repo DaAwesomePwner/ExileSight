@@ -31,6 +31,8 @@ public static class BindingMapper
             {
                 ActionKind.CopyItem => new GameAction.CopyItem(b.Advanced),
                 ActionKind.SendChatCommand => new GameAction.SendChatCommand(b.Text!),
+                ActionKind.PasteSearch => new GameAction.PasteSearch(b.Text!),
+                ActionKind.SetPriceNote => new GameAction.SetPriceNote(b.Text!),
                 _ => null
             };
             bindings.Add(new(b.Id, b.Key, b.Modifiers, b.Block, action, b.Context, b.FeatureCommand));
@@ -58,10 +60,10 @@ public static class BindingMapper
         if (b.Action is null)
             return commands.Contains(b.FeatureCommand!) ? null : "Unknown feature command";
         if (!Enum.IsDefined(b.Action.Value)) return "Unknown action";
-        if (b.Action == ActionKind.SendChatCommand &&
+        if (b.Action is ActionKind.SendChatCommand or ActionKind.PasteSearch or ActionKind.SetPriceNote &&
             (string.IsNullOrWhiteSpace(b.Text) || b.Text.Any(c => char.IsControl(c) || c is '\u2028' or '\u2029')))
             return "Chat text must be nonempty and single line";
-        if (b.Action == ActionKind.SendChatCommand && b.Text!.Length > MaximumChatLength)
+        if (b.Action is ActionKind.SendChatCommand or ActionKind.PasteSearch or ActionKind.SetPriceNote && b.Text!.Length > MaximumChatLength)
             return $"Chat text exceeds {MaximumChatLength} characters";
         return null;
     }

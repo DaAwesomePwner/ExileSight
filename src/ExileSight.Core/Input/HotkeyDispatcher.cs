@@ -25,8 +25,9 @@ public sealed class HotkeyDispatcher
     // Hook-blocked downs do not update GetAsyncKeyState. Recover a missing release only
     // after hook-observed silence beyond the platform's repeat/acceptance timing plus margin.
     internal const long BlockedReleaseSilenceMilliseconds = 1200;
-    private readonly Func<long> releaseSilenceThreshold;
-    private readonly IntentRegistry registry;
+    private Func<long> releaseSilenceThreshold;
+    internal void SetRepeatProvider(Func<long> provider) => releaseSilenceThreshold = provider;
+    private readonly Func<long, string, ActionKind, IntentToken> issue;
     private int generation;
     internal HotkeyConfiguration Configuration => configuration;
     // Run between message dispatches, never in a low-level callback. Async state is
@@ -42,7 +43,7 @@ public sealed class HotkeyDispatcher
     public HotkeyDispatcher(IntentRegistry registry, IEnumerable<HotkeyBinding> bindings,
         Func<long>? releaseSilenceThreshold = null)
     {
-        this.registry = registry;
+        issue = registry.CreateHookIssuer();
         this.releaseSilenceThreshold = releaseSilenceThreshold ?? (() => BlockedReleaseSilenceMilliseconds);
         configuration = new HotkeyConfiguration();
         configuration.Replace(bindings, []);
@@ -51,7 +52,7 @@ public sealed class HotkeyDispatcher
     public HotkeyDispatcher(IntentRegistry registry, HotkeyConfiguration configuration,
         Func<long>? releaseSilenceThreshold = null)
     {
-        this.registry = registry;
+        issue = registry.CreateHookIssuer();
         this.releaseSilenceThreshold = releaseSilenceThreshold ?? (() => BlockedReleaseSilenceMilliseconds);
         this.configuration = configuration;
     }
@@ -89,6 +90,6 @@ public sealed class HotkeyDispatcher
     internal IntentToken Issue(PhysicalPress press)
     {
         if (Interlocked.Exchange(ref press.Redeemed, 1) != 0) throw new InvalidOperationException("Press already issued");
-        return registry.Issue(press.Timestamp, press.Binding.Id, (press.Binding.Action ?? throw new InvalidOperationException("Feature commands cannot issue game tokens")).Kind);
+        return issue(press.Timestamp, press.Binding.Id, (press.Binding.Action ?? throw new InvalidOperationException("Feature commands cannot issue game tokens")).Kind);
     }
 }

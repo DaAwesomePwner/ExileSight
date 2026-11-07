@@ -6,14 +6,21 @@ namespace ExileSight.Core.Input;
 /// <summary>One token-authorized transaction. Timing and native effects are injected for portable tests.</summary>
 internal sealed class ActionTransaction(IClipboard clipboard, IKeySender sender, IClock clock)
 {
-    internal const int PasteRetentionMilliseconds = 750;
+    internal const int PasteTimeoutMilliseconds = 1500;
     private int actionsSent;
     public int ActionsSent => Volatile.Read(ref actionsSent);
     public ActionResult Execute(GameAction action, IntentRegistry.Press press)
     {
-        if (action is GameAction.SendChatCommand chat &&
-            (string.IsNullOrWhiteSpace(chat.Text) || chat.Text.Any(char.IsControl)))
-            return new(ActionOutcome.Failed, "Chat must be a single nonempty line");
+        var payload = action switch
+        {
+            GameAction.SendChatCommand command => command.Text,
+            GameAction.PasteSearch search => search.Text,
+            GameAction.SetPriceNote note => note.Text,
+            _ => null
+        };
+        if (action is not GameAction.CopyItem &&
+            (string.IsNullOrWhiteSpace(payload) || payload.Any(c => char.IsControl(c) || c is '\u2028' or '\u2029')))
+            return new(ActionOutcome.Failed, "Paste text must be a single nonempty line");
         // Release-aware: never synthesize a release for modifiers the user is physically holding.
         while (sender.Modifiers != KeyModifiers.None && clock.Milliseconds - press.Timestamp < 1400)
             clock.Delay(5);
@@ -23,10 +30,12 @@ internal sealed class ActionTransaction(IClipboard clipboard, IKeySender sender,
         ActionResult result;
         try
         {
-            clipboard.SetText(action is GameAction.SendChatCommand command ? command.Text : null);
+            if (payload is null) clipboard.SetText(null);
+            else clipboard.OfferText(payload);
             result = SendAndWait(action, press);
         }
         catch (Exception) { result = new(ActionOutcome.Failed, "Input or clipboard operation failed"); }
+        result = result with { FormatsPreserved = saved.Formats.Count, FormatsSkipped = saved.Skipped.Count };
         var recovery = Restore(saved);
         return recovery is null ? result : result with
         {
@@ -43,11 +52,25 @@ internal sealed class ActionTransaction(IClipboard clipboard, IKeySender sender,
         if (sender.Modifiers != KeyModifiers.None) return new(ActionOutcome.Failed, "Modifier changed");
         var sent = sender.Send(ActionData.Sequence(action));
         if (sent.Inserted > 0) Interlocked.Increment(ref actionsSent);
-        // Bounded spike compromise, NOT proof of a paste read. Also retain after partial chat insertion.
-        if (action is GameAction.SendChatCommand && sent.Inserted > 0)
-            clock.Delay(PasteRetentionMilliseconds);
+        if (action is not GameAction.CopyItem)
+        {
+            var consumed = false;
+            if (sent.Inserted > 0)
+            {
+                var pasteDeadline = clock.Milliseconds + PasteTimeoutMilliseconds;
+                do
+                {
+                    clipboard.Pump();
+                    consumed = clipboard.PasteConsumed;
+                    if (consumed || clock.Milliseconds >= pasteDeadline) break;
+                    clock.Delay(5);
+                } while (true);
+            }
+            var status = consumed ? "Consumed" : sent.Inserted == 0 ? "Not sent" : "Timed out";
+            return new(sent.Success && consumed ? ActionOutcome.Success : ActionOutcome.Failed,
+                sent.Success ? consumed ? "" : "Paste timed out" : sent.Reason, PasteStatus: status);
+        }
         if (!sent.Success) return new(ActionOutcome.Failed, sent.Reason);
-        if (action is GameAction.SendChatCommand) return new(ActionOutcome.Success);
         var deadline = clock.Milliseconds + 500;
         while (clipboard.SequenceNumber == sequence && clock.Milliseconds < deadline) clock.Delay(5);
         if (clipboard.SequenceNumber == sequence) return new(ActionOutcome.Failed, "Copy timed out");
@@ -55,19 +78,14 @@ internal sealed class ActionTransaction(IClipboard clipboard, IKeySender sender,
         return string.IsNullOrEmpty(text)
             ? new(ActionOutcome.Failed, "No item text") : new(ActionOutcome.Success, CopiedText: text);
     }
-    private string? Restore(string? saved)
+    private string? Restore(ClipboardSnapshot saved)
     {
         for (var attempt = 0; attempt < 3; attempt++)
         {
             try { clipboard.Restore(saved); return null; }
             catch (Exception) { if (attempt < 2) clock.Delay(25); }
         }
-        // Never deliberately leave the chat payload behind when restoration is impossible.
-        for (var attempt = 0; attempt < 3; attempt++)
-        {
-            try { clipboard.SetText(null); return "Clipboard restore failed; clipboard cleared"; }
-            catch (Exception) { if (attempt < 2) clock.Delay(25); }
-        }
-        return "Clipboard restore and clear failed; clipboard may still contain action text";
+        // A restore can partially succeed. Never clear formats that were successfully recovered.
+        return "Clipboard restore failed; preserved formats were not cleared";
     }
 }
