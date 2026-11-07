@@ -1,7 +1,5 @@
 namespace ExileSight.Core.Overlay;
 
-public readonly record struct OverlayRect(double X, double Y, double Width, double Height);
-
 public static class OverlayRules
 {
     // Physical screen coordinates divided by target DPI are useful for layout math,
@@ -26,7 +24,10 @@ public static class OverlayRules
         found && foreground && !minimized;
 
     // Detection behaviour reference: Exile-UI, Exile UI.ahk (client detection).
-    public static bool Matches(string? windowClass, string? processName) =>
+    public static bool Matches(string? windowClass, bool isGeForceNow, string? title) =>
         string.Equals(windowClass, "POEWindowClass", StringComparison.Ordinal) ||
-        string.Equals(processName, "GeForceNOW", StringComparison.OrdinalIgnoreCase);
+        (isGeForceNow && title?.Contains("Path of Exile", StringComparison.OrdinalIgnoreCase) == true);
+
+    public static bool MatchesProcess(uint windowPid, IReadOnlySet<uint> geForceNowPids) =>
+        windowPid != 0 && geForceNowPids.Contains(windowPid);
 }

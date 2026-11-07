@@ -14,6 +14,7 @@ public sealed class SpikeOverlayWindow : System.Windows.Window
     private PixelRect rect;
     private nint handle;
     private bool positioning;
+    public event EventHandler? RefreshRequested;
 
     public SpikeOverlayWindow(IOverlayWindowStyler styler)
     {
@@ -45,8 +46,7 @@ public sealed class SpikeOverlayWindow : System.Windows.Window
             Dispatcher.BeginInvoke(() =>
             {
                 if (!IsVisible) return;
-                Position();
-                UpdateLabel();
+                RefreshRequested?.Invoke(this, EventArgs.Empty);
             });
         };
     }
@@ -71,7 +71,9 @@ public sealed class SpikeOverlayWindow : System.Windows.Window
     {
         var content = OverlayRules.Content(0, 0, rect.Width, rect.Height);
         var dpi = VisualTreeHelper.GetDpi(this);
-        label.Margin = new Thickness(content.X / dpi.DpiScaleX + 8, 8, 0, 0);
+        var dips = OverlayRules.ToDips(content.X, content.Y, content.Width, content.Height,
+            (uint)Math.Round(dpi.PixelsPerInchX));
+        label.Margin = new Thickness(dips.X + 8, dips.Y + 8, 0, 0);
         label.Text = $"ExileSight overlay spike · {OverlayRules.Scale(rect.Height):F2}×";
     }
 

@@ -7,9 +7,3 @@ public interface IOverlayWindowStyler
     void SetClickThrough(nint handle, bool enabled);
     void Position(nint handle, PixelRect rect);
 }
-
-public readonly record struct ProcessStats(long WorkingSetBytes, long PrivateBytes, double CpuPercent);
-public interface IProcessStats
-{
-    ProcessStats Sample();
-}

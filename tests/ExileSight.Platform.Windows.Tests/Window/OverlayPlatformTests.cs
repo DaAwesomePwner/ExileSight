@@ -27,9 +27,11 @@ public sealed class OverlayPlatformTests
         {
             using var tracker = new GameWindowTracker();
             int changes = 0;
+            tracker.Changed += (_, _) => throw new InvalidOperationException("subscriber failed");
             tracker.Changed += (_, _) => changes++;
             tracker.Start();
             Assert.Equal(1, changes);
+            Assert.Equal("subscriber failed", tracker.LastError);
             Assert.NotEqual(default, tracker.Current.LastEventTime);
             tracker.Dispose();
             tracker.Dispose();

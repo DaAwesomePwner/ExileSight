@@ -56,13 +56,41 @@ public sealed class OverlayRulesTests
         Assert.Equal(expected, OverlayRules.IsVisible(found, foreground, minimized));
 
     [Theory]
-    [InlineData("POEWindowClass", null, true)]
-    [InlineData("Other", "GeForceNOW", true)]
-    [InlineData(null, "geforcenow", true)]
-    [InlineData("poewindowclass", null, false)]
-    [InlineData("Other", "PathOfExile", false)]
-    [InlineData(null, "GeForceNOW.exe", false)]
-    [InlineData(null, null, false)]
-    public void MatchesOnlySupportedClassOrProcess(string? windowClass, string? process, bool expected) =>
-        Assert.Equal(expected, OverlayRules.Matches(windowClass, process));
+    [InlineData("POEWindowClass", false, null, true)]
+    [InlineData("Other", true, "Path of Exile - GeForce NOW", true)]
+    [InlineData(null, true, "path of exile", true)]
+    [InlineData("poewindowclass", false, null, false)]
+    [InlineData("Other", false, "Path of Exile", false)]
+    [InlineData(null, true, "GeForce NOW", false)]
+    [InlineData(null, true, null, false)]
+    [InlineData(null, true, "", false)]
+    [InlineData(null, false, null, false)]
+    public void MatchesOnlySupportedClassOrStreamingGameTitle(
+        string? windowClass, bool streaming, string? title, bool expected) =>
+        Assert.Equal(expected, OverlayRules.Matches(windowClass, streaming, title));
+
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(42, true)]
+    [InlineData(84, true)]
+    [InlineData(21, false)]
+    public void MatchesOnlyNonzeroPidsInTheStreamingSnapshot(uint pid, bool expected) =>
+        Assert.Equal(expected, OverlayRules.MatchesProcess(pid, new HashSet<uint> { 0, 42, 84 }));
+
+    [Fact]
+    public void EmptyStreamingSnapshotDoesNotMatch() =>
+        Assert.False(OverlayRules.MatchesProcess(42, new HashSet<uint>()));
+
+    [Theory]
+    [InlineData(96, 880)]
+    [InlineData(120, 704)]
+    [InlineData(144, 586.6666666666666)]
+    [InlineData(192, 440)]
+    public void ConvertsBlackBarLabelOffsetToDips(uint dpi, double expected)
+    {
+        var content = OverlayRules.Content(0, 0, 5120, 1440);
+        var dips = OverlayRules.ToDips(content.X, content.Y, content.Width, content.Height, dpi);
+        Assert.Equal(expected, dips.X, 8);
+        Assert.Equal(0, dips.Y);
+    }
 }

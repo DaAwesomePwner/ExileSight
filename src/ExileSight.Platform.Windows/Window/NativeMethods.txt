@@ -15,3 +15,5 @@ GetWindowLong
 SetWindowLong
 SetWindowPos
 WINEVENT_OUTOFCONTEXT
+GetWindowText
+WINEVENT_SKIPOWNPROCESS
