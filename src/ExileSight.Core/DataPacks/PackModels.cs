@@ -18,5 +18,5 @@ public sealed record ModEntry(string Id, string Name, string AffixType, string D
     int RequiredLevel, string[] Groups, ModStat[] Stats, SpawnWeight[] SpawnWeights,
     string[] TextTemplateIds, string Family = "");
 public sealed record PackContent(string PackId, Game Game, int SchemaVersion, string PackVersion,
-    BaseEntry[] Bases, ModEntry[] Mods, TierLadder[]? TierLadders = null, TierContext[]? TierContexts = null);
+    BaseEntry[] Bases, ModEntry[] Mods, TierLadder[]? TierLadders = null, TierContext[]? TierContexts = null, StatTranslation[]? Translations = null);
 public sealed record DataPack(PackManifest Manifest, PackContent Content);

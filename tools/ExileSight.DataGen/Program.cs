@@ -28,7 +28,7 @@ public static class Program
                 // Constructed exclusively from a validated SHA and fixed filenames: no arbitrary hosts or branches.
                 return await client.GetByteArrayAsync($"https://raw.githubusercontent.com/{RepoeConverter.Repository}/{sha}/data/{file}");
             }
-            var packs = RepoeConverter.Convert(await Read("base_items.json"), await Read("mods.json"), sha);
+            var packs = RepoeConverter.Convert(await Read("base_items.json"), await Read("mods.json"), sha, await Read("stat_translations.json"));
             await PackWriter.WriteAsync(options["--out"], packs);
             Console.WriteLine(RepoeConverter.Attribution(sha));
             return 0;

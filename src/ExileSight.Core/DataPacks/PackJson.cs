@@ -18,12 +18,12 @@ public sealed record CachedPack(PackManifest Manifest, byte[] ContentBytes, stri
 
 public static class PackCodec
 {
-    public const int SchemaVersion = 2;
+    public const int SchemaVersion = 3;
     public static string Hash(byte[] bytes) => Convert.ToHexStringLower(SHA256.HashData(bytes));
     public static byte[] ContentBytes(PackContent content) => JsonSerializer.SerializeToUtf8Bytes(content, PackJson.Default.PackContent);
     public static DataPack? Validate(PackManifest m, byte[] bytes, string packId)
     {
-        if (m is null || bytes is null || m.ContentSha256 != Hash(bytes)) return null;
+        if (m is null || bytes is null || m.SchemaVersion != SchemaVersion || m.ContentSha256 != Hash(bytes)) return null;
         var c = JsonSerializer.Deserialize(bytes, PackJson.Default.PackContent);
         return c is not null && m.PackId == packId && c.PackId == packId &&
             m.SchemaVersion == SchemaVersion && c.SchemaVersion == SchemaVersion &&

@@ -74,7 +74,7 @@ jobs:
       - name: Fetch pinned export and generate packs
         run: |
           mkdir -p export bundle/packs
-          for file in base_items.json mods.json; do
+          for file in base_items.json mods.json stat_translations.json; do
             curl --proto '=https' --fail --silent --show-error \
               "https://raw.githubusercontent.com/repoe-fork/repoe-fork.github.io/$REPOE_SHA/data/$file" \
               --output "export/$file"
@@ -83,7 +83,7 @@ jobs:
             poe1 --repoe-sha "$REPOE_SHA" --source-dir export --out bundle/packs
       - name: Verify manifests, provenance and exact content bytes
         run: |
-          (cd bundle/packs && sha256sum --check --strict SHA256SUMS)
+          python3 tools/ExileSight.DataGen/verify-packs.py bundle/packs export "$REPOE_SHA"
           python3 - <<'PY'
           import base64, hashlib, json, os
           from pathlib import Path
@@ -94,7 +94,7 @@ jobs:
                   raise SystemExit(message)
           inputs = {f'data/{p.name}': hashlib.sha256(p.read_bytes()).hexdigest()
                     for p in Path('export').glob('*.json')}
-          for kind in ('bases', 'mods'):
+          for kind in ('bases', 'mods', 'stats'):
               name = f'poe1-{kind}'
               raw = (root / f'{name}.json').read_bytes()
               content = json.loads(raw)
@@ -105,7 +105,7 @@ jobs:
               require(manifest['contentSha256'] == hashlib.sha256(raw).hexdigest(), 'Content hash mismatch')
               for document in (manifest, content):
                   require(document['packId'] == f'poe1/{kind}' and document['game'] == 1
-                          and document['schemaVersion'] == 2 and document['packVersion'] == sha,
+                          and document['schemaVersion'] == 3 and document['packVersion'] == sha,
                           'Pack identity/version mismatch')
               require(cache['manifest'] == manifest and base64.b64decode(cache['contentBytes'], validate=True) == raw,
                       'Invalid cache envelope')
@@ -120,7 +120,7 @@ jobs:
                    f'Source SHA: {sha}\n\n' + manifest['attribution'] + '\n\n'
                    "This product isn't affiliated with or endorsed by Grinding Gear Games in any way.\n"
                    'Manifests record per-input SHA-256, schema and source-SHA pack versions. '
-                   'SHA256SUMS covers all six generated JSON assets. No game data is committed to git.\n')
+                   'SHA256SUMS covers all nine generated JSON assets. No game data is committed to git.\n')
           Path('bundle/RELEASE-NOTES.md').write_text(notes, encoding='utf-8')
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

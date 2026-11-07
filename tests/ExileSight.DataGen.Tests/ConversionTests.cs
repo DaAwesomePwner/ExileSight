@@ -16,6 +16,8 @@ public sealed class ConversionTests
         var hat = Assert.Single(packs[0].Content.Bases);
         Assert.Null(hat.UniqueDropTier);
         Assert.Equal(new NumericRange(4, 9), hat.Defences["armour"]);
+        Assert.Equal(new NumericRange(3, 8), hat.Defences["ward"]);
+        Assert.False(hat.Defences.ContainsKey("energy_shield"));
         Assert.Equal(7, hat.Requirements["strength"]);
         var entries = Assert.Single(packs[1].Content.TierLadders!).Ranks.ToDictionary(r => r.ModId);
         Assert.Equal(1, entries["Invented1"].Tier);
