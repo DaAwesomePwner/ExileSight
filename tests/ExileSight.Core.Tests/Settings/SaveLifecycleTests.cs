@@ -36,41 +36,48 @@ public sealed class SaveLifecycleTests : IDisposable
     }
 
     [Fact]
-    public async Task SustainedUpdatesCannotPostponeSavePastMaximumWait()
+    public void SustainedUpdatesCannotPostponeSavePastMaximumWait()
     {
+        var time = new ManualSaveTime();
         using var store = new JsonSettingsStore<SettingsDocument>(new AppPaths(root), Main,
-            SettingsJsonContext.Default.SettingsDocument, () => new(), debounce: TimeSpan.FromHours(1));
-        var deadline = DateTime.UtcNow.AddSeconds(5);
+            SettingsJsonContext.Default.SettingsDocument, () => new(), debounce: TimeSpan.FromHours(1), timeProvider: time);
         var updates = 0;
-        while (!File.Exists(Main) && DateTime.UtcNow < deadline)
+        for (var i = 0; i < 100; i++)
         {
             store.Update("general", x => x.General.Language = (++updates).ToString());
-            await Task.Delay(20);
+            Assert.False(File.Exists(Main));
+            time.Advance(TimeSpan.FromMilliseconds(20));
         }
         Assert.True(File.Exists(Main)); // Without maximum wait this would wait an hour.
-        Assert.True(updates > 1);
+        Assert.Equal(100, updates);
+        using var saved = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Main));
+        Assert.Equal("100", saved.RootElement.GetProperty("general").GetProperty("language").GetString());
     }
 
     [Fact]
-    public async Task TimerExceptionsAreWarningsAndDisposeRetriesPendingSave()
+    public void TimerExceptionsAreWarningsAndDisposeRetriesPendingSave()
     {
         Seed("""{"schemaVersion":1}""");
         var attempts = 0;
+        var time = new ManualSaveTime();
         var store = new JsonSettingsStore<SettingsDocument>(new AppPaths(root), Main,
             SettingsJsonContext.Default.SettingsDocument, () => new(), debounce: TimeSpan.FromMilliseconds(10),
             replaceOperation: (source, destination, backup) =>
             {
                 if (Interlocked.Increment(ref attempts) == 1) throw new InvalidOperationException("injected failure");
                 File.Replace(source, destination, backup);
-            });
+            }, timeProvider: time);
         try
         {
             store.Update("general", x => x.General.Language = "saved-on-dispose");
-            var deadline = DateTime.UtcNow.AddSeconds(5);
-            while (store.Warnings.Count == 0 && DateTime.UtcNow < deadline) await Task.Delay(10);
+            time.Advance(TimeSpan.FromMilliseconds(9));
+            Assert.Equal(0, attempts);
+            time.Advance(TimeSpan.FromMilliseconds(1));
+            Assert.Equal(1, attempts);
             Assert.Contains(store.Warnings, x => x.Contains("injected failure"));
         }
         finally { store.Dispose(); }
+        Assert.Equal(2, attempts);
         Assert.Contains("saved-on-dispose", File.ReadAllText(Main));
     }
 

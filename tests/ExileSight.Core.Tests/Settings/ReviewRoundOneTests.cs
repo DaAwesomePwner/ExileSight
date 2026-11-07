@@ -39,23 +39,24 @@ public sealed class ReviewRoundOneTests : IDisposable
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task FailedSetupSaveDoesNotPublishOrScheduleRetry(bool completed)
+    public void FailedSetupSaveDoesNotPublishOrScheduleRetry(bool completed)
     {
         var original = $$$"""{"schemaVersion":1,"general":{"firstRunCompleted":{{{completed.ToString().ToLowerInvariant()}}},"clientTxtPath":null}}""";
         var path = Seed(original);
         var log = Path.Combine(root, "Client.txt");
         File.WriteAllText(log, "synthetic fixture");
         int changed = 0, replaces = 0;
+        var time = new ManualSaveTime();
         using (var store = new JsonSettingsStore<SettingsDocument>(new AppPaths(root), path,
                    SettingsJsonContext.Default.SettingsDocument, () => new(),
-                   replaceOperation: (_, _, _) => { replaces++; throw new IOException("Injected failure"); }))
+                   replaceOperation: (_, _, _) => { replaces++; throw new IOException("Injected failure"); }, timeProvider: time))
         {
             store.Changed += (_, _) => changed++;
             Assert.Throws<IOException>(() => SetupCommit.Finish(store, log));
             Assert.Equal(completed, store.Snapshot.General.FirstRunCompleted);
             Assert.Null(store.Snapshot.General.ClientTxtPath);
             Assert.Equal(0, changed);
-            await Task.Delay(400); // Longer than the store's save debounce.
+            time.Advance(TimeSpan.FromSeconds(3)); // Beyond both debounce and maximum wait.
             store.Flush();
         }
         Assert.Equal(1, replaces); // Neither timer, Flush nor Dispose retries the failed candidate.

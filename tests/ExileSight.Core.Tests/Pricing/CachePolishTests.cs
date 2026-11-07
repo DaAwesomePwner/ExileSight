@@ -59,9 +59,9 @@ public sealed class CachePolishTests : IDisposable
     public async Task UnlockedReadFailureOrLateSnapshotCannotDisplaceWriter(bool failRead)
     {
         var old = Seed();
-        using var writerEntered = new ManualResetEventSlim();
+        var writerEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         using var releaseWriter = new ManualResetEventSlim();
-        using var readerEntered = new ManualResetEventSlim();
+        var readerEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         using var releaseReader = new ManualResetEventSlim();
         var reads = 0;
         var reader = new Reader(_ =>
@@ -69,16 +69,16 @@ public sealed class CachePolishTests : IDisposable
             var call = Interlocked.Increment(ref reads);
             if (call == 1)
             {
-                writerEntered.Set();
-                Assert.True(releaseWriter.Wait(TimeSpan.FromSeconds(10)));
+                writerEntered.SetResult();
+                Assert.True(releaseWriter.Wait(TimeSpan.FromSeconds(30)));
                 // The writer now observes a newer record than the concurrent unlocked read.
                 return Newer();
             }
             if (call == 2)
             {
-                readerEntered.Set();
+                readerEntered.SetResult();
                 if (failRead) throw new IOException("Sharing violation");
-                Assert.True(releaseReader.Wait(TimeSpan.FromSeconds(10)));
+                Assert.True(releaseReader.Wait(TimeSpan.FromSeconds(30)));
                 return old;
             }
             return Newer();
@@ -91,16 +91,18 @@ public sealed class CachePolishTests : IDisposable
         using var transport = new PriceTransport("1.0", () => new CacheReviewTests.Handler(_ =>
             throw new InvalidOperationException("Fresh cache must not fetch")));
         var cache = new PriceDocumentCache(new AppPaths(root), clock, transport, reader);
-        var writer = Task.Run(() => cache.GetAsync(Uri, _ => { }, TimeSpan.FromHours(1)));
+        var writer = Task.Factory.StartNew(() => cache.GetAsync(Uri, _ => { }, TimeSpan.FromHours(1)),
+            CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         Task<CachedPriceDocument>? concurrent = null;
         try
         {
-            Assert.True(writerEntered.Wait(TimeSpan.FromSeconds(10)));
-            concurrent = Task.Run(() => cache.GetAsync(Uri, _ => { }, TimeSpan.FromHours(1)));
-            Assert.True(readerEntered.Wait(TimeSpan.FromSeconds(10)));
+            await writerEntered.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            concurrent = Task.Factory.StartNew(() => cache.GetAsync(Uri, _ => { }, TimeSpan.FromHours(1)),
+                CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
+            await readerEntered.Task.WaitAsync(TimeSpan.FromSeconds(30));
             if (failRead)
             {
-                var unavailable = await concurrent.WaitAsync(TimeSpan.FromSeconds(10));
+                var unavailable = await concurrent.WaitAsync(TimeSpan.FromSeconds(30));
                 Assert.True(unavailable.IsStale);
                 Assert.Null(unavailable.Json);
                 Assert.NotNull(unavailable.Diagnostic);
@@ -108,9 +110,9 @@ public sealed class CachePolishTests : IDisposable
                 Assert.Equal(0, reader.TimestampReads);
             }
             releaseWriter.Set();
-            var published = await writer.WaitAsync(TimeSpan.FromSeconds(10));
+            var published = await writer.WaitAsync(TimeSpan.FromSeconds(30));
             releaseReader.Set();
-            var concurrentResult = await concurrent.WaitAsync(TimeSpan.FromSeconds(10));
+            var concurrentResult = await concurrent.WaitAsync(TimeSpan.FromSeconds(30));
             if (!failRead) Assert.Equal(published.Json, concurrentResult.Json);
             var next = await cache.GetAsync(Uri, _ => { }, TimeSpan.FromHours(1));
             Assert.Equal(published.Json, next.Json);
@@ -121,8 +123,8 @@ public sealed class CachePolishTests : IDisposable
         {
             releaseWriter.Set();
             releaseReader.Set();
-            await writer;
-            if (concurrent is not null) await concurrent;
+            await writer.WaitAsync(TimeSpan.FromSeconds(30));
+            if (concurrent is not null) await concurrent.WaitAsync(TimeSpan.FromSeconds(30));
         }
     }
 
