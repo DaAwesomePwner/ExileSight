@@ -66,7 +66,7 @@ public static class StatText
         if (line.Length > 4096) return [];
         var result = new List<StatMatch>();
         foreach (var entry in entries.Where(e => !e.Hidden))
-        foreach (var variant in entry.English.Where(v => Valid(v, entry.StatIds.Length)))
+        foreach (var variant in entry.English.Where(v => StatCandidates.MayMatch(line, v) && Valid(v, entry.StatIds.Length)))
         {
             try
             {

@@ -27,14 +27,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tools/ExileSight.DataGen/verify-packs.py artifacts/packs/poe1 artifacts/export $sha artifacts/fallback/packs/poe1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Measure retained pack data separately from WPF
-        shell: pwsh
-        run: |
-          New-Item artifacts/perf -ItemType Directory -Force | Out-Null
-          $env:EXILESIGHT_REAL_PACKS = "$pwd/artifacts/fallback/packs/poe1"
-          $env:EXILESIGHT_MEMORY_REPORT = "$pwd/artifacts/perf/pack-memory.json"
-          dotnet test tests/ExileSight.Features.ItemInfo.Tests -c Release --filter FullyQualifiedName~RealPackMemoryTests
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - run: dotnet publish src/ExileSight.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/publish
       - name: Bundle packs
         shell: pwsh
@@ -46,6 +38,22 @@ jobs:
           $env:EXILESIGHT_PERF_REPORT = "$pwd/artifacts/perf/current.json"
           $env:PERF_REVISION = '${{ github.sha }}'
           dotnet test tests/ExileSight.Perf.Tests -c Release --logger "trx;LogFileName=current.trx" --results-directory artifacts/perf
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Enforce item-use memory and latency separately from WPF
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item artifacts/perf -ItemType Directory -Force | Out-Null
+          $env:EXILESIGHT_REAL_PACKS = "$pwd/artifacts/fallback/packs/poe1"
+          $env:EXILESIGHT_MEMORY_REPORT = "$pwd/artifacts/perf/pack-memory.json"
+          dotnet test tests/ExileSight.Features.ItemInfo.Tests -c Release --filter FullyQualifiedName~RealPackMemoryTests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Compare real-pack matching with the exhaustive reference
+        if: always()
+        shell: pwsh
+        run: |
+          $env:EXILESIGHT_REAL_PACKS = "$pwd/artifacts/fallback/packs/poe1"
+          dotnet test tests/ExileSight.Core.Tests -c Release --filter FullyQualifiedName~RealPackEquivalenceTests
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       # BEGIN temporary baseline comparison: remove after recording reviewed Windows numbers.
       - uses: actions/checkout@v4
@@ -107,6 +115,17 @@ jobs:
             $summary += "| $name | $result | $cpu | $cpuMargin | $memory | $memoryMargin |"
           }
           $summary += '', 'Positive margins are headroom; zero or negative margins fail the strict budget. Baseline is informational. See the uploaded JSON/TRX files for samples and failure details.'
+          if (Test-Path artifacts/perf/pack-memory.json) {
+            $pack = Get-Content artifacts/perf/pack-memory.json -Raw | ConvertFrom-Json
+            $summary += '', '### Production item-path probe (managed heap, not Windows private bytes)', '', '| Stage | Managed MB | First-use ms |', '| --- | ---: | ---: |'
+            foreach ($sample in $pack) {
+              if ($sample.stage -notin @('tray idle', 'first item latency', 'idle after first item', 'idle after fixture session')) { continue }
+              $mb = if ($null -ne $sample.retained) { '{0:F2}' -f ($sample.retained / 1000000) } else { '—' }
+              $ms = if ($null -ne $sample.milliseconds) { '{0:F1}' -f $sample.milliseconds } else { '—' }
+              $summary += "| $($sample.stage) | $mb | $ms |"
+            }
+            $summary += '', 'Enforced limits: retained pack heap increase < 50 MB after item use; first item < 500 ms. The published Windows gate still requires total private bytes < 200 MB.'
+          }
           $summary | Add-Content $env:GITHUB_STEP_SUMMARY
       - name: Measure distribution sizes
         if: always()

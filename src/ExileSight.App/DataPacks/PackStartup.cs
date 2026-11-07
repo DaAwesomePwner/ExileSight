@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Runtime;
 using ExileSight.Core.DataPacks;
 using ExileSight.Core.Diagnostics;
 using ExileSight.Features.ItemInfo;
@@ -33,9 +35,30 @@ public sealed class PackStartup(
                 new KeyValuePair<string, string>("Last error", $"{operation}: {error.GetType().Name}")).ToArray()
         });
     }
+    public double LastLoadReclaimMilliseconds { get; private set; }
     public async Task LoadAsync(string refreshResult, CancellationToken token)
     {
+        var allocatedBefore = GC.GetTotalAllocatedBytes();
+        try { await PrepareAsync(refreshResult, token).ConfigureAwait(false); }
+        finally
+        {
+            // Shipping pack decoding creates hundreds of MB of temporary wire graphs/LOH
+            // arrays. Reclaim them once at the bulk-load boundary, never on an idle tick or
+            // item check. Small loads (<32 MB allocated) do not warrant a blocking collection.
+            LastLoadReclaimMilliseconds = 0;
+            if (GC.GetTotalAllocatedBytes() - allocatedBefore >= 32_000_000)
+            {
+                var clock = Stopwatch.StartNew();
+                GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+                GC.Collect(2, GCCollectionMode.Forced, blocking: true, compacting: true);
+                LastLoadReclaimMilliseconds = clock.Elapsed.TotalMilliseconds;
+            }
+        }
+    }
+    private async Task PrepareAsync(string refreshResult, CancellationToken token)
+    {
         var manifests = new List<PackManifest?>();
+        var itemContent = new PackContent?[3];
         var rows = new List<KeyValuePair<string, string>>();
         var errors = new List<(string Id, Exception Error)>();
         foreach (var id in PackIds)
@@ -47,6 +70,7 @@ public sealed class PackStartup(
                 publisher.Publish(id, loaded.Pack, loaded.Source);
                 result = (loaded.Pack?.Manifest, loaded.Source);
                 retained[id] = result;
+                if (manifests.Count < 3) itemContent[manifests.Count] = loaded.Pack?.Content;
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
             catch (Exception error)
@@ -63,10 +87,11 @@ public sealed class PackStartup(
         var data = Data;
         if (data is null || identity != nextIdentity)
         {
-            // Capture this publication's immutable snapshots, not the mutable publisher.
-            // Item data is not needed by a tray-idle app; construct it on first item use.
-            data = new DeferredItemData(Packs.TryGet<PackDocument>("poe1/bases"),
-                Packs.TryGet<PackDocument>("poe1/mods"), Packs.TryGet<PackDocument>("poe1/stats"));
+            // Compact once on the background pack-loading path, while validated DTOs are
+            // already available. Do not deserialize three complete copies at first item use.
+            PackContent? Content(int index) => itemContent[index] ??
+                (manifests[index] is null ? null : Packs.TryGet<PackDocument>(PackIds[index])?.CreateCopy());
+            data = new PackItemInfoData(Content(0), Content(1), Content(2));
         }
         token.ThrowIfCancellationRequested();
         identity = nextIdentity;
@@ -75,15 +100,6 @@ public sealed class PackStartup(
         Volatile.Write(ref state, new(data, manifests.Take(3).All(p => p is not null) ? "Packs ready" : manifests.Take(3).Any(p => p is not null) ? "Packs unavailable (partial data)" : "Packs unavailable", rows.ToArray()));
         foreach (var (id, error) in errors) ReportFailure(id, error);
     }
-    private sealed class DeferredItemData(PackSnapshot<PackDocument>? bases,
-        PackSnapshot<PackDocument>? mods, PackSnapshot<PackDocument>? stats) : IItemInfoData
-    {
-        private readonly Lazy<PackItemInfoData> data = new(() => new(bases?.CreateCopy(), mods?.CreateCopy(), stats?.CreateCopy()));
-        public BaseEntry? FindBase(ExileSight.Core.Items.ParsedItem item) => data.Value.FindBase(item);
-        public ModEntry? FindMod(ExileSight.Core.Items.ParsedItem item, IReadOnlyList<ExileSight.Core.Items.ModLine> group) => data.Value.FindMod(item, group);
-        public StatMatch[] MatchLine(ExileSight.Core.Items.ModLine line) => data.Value.MatchLine(line);
-    }
-
     public async Task RefreshAsync(CancellationToken token)
     {
         var failures = new List<string>();

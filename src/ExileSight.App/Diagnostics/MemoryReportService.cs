@@ -21,6 +21,7 @@ public sealed class MemoryReportService(IAppPaths paths, ILogger<MemoryReportSer
             {
                 try
                 {
+                    var diagnosticStart = GC.GetAllocatedBytesForCurrentThread();
                     var resources = OwnProcessResources.Read();
                     var gc = GC.GetGCMemoryInfo();
                     var json = JsonSerializer.Serialize(new
@@ -28,7 +29,12 @@ public sealed class MemoryReportService(IAppPaths paths, ILogger<MemoryReportSer
                         utc = DateTimeOffset.UtcNow, resources.PrivateBytes,
                         managedBytes = GC.GetTotalMemory(false), gc.HeapSizeBytes,
                         gc.TotalCommittedBytes, gc.FragmentedBytes, GCSettings.IsServerGC,
-                        gen0 = GC.CollectionCount(0), gen1 = GC.CollectionCount(1), gen2 = GC.CollectionCount(2)
+                        gen0 = GC.CollectionCount(0), gen1 = GC.CollectionCount(1), gen2 = GC.CollectionCount(2),
+                        totalAllocatedBytes = GC.GetTotalAllocatedBytes(),
+                        processSnapshotQueries = WindowProbeMetrics.Queries,
+                        processSnapshotSkips = WindowProbeMetrics.Skipped,
+                        processSnapshotManagedBytes = WindowProbeMetrics.ManagedAllocatedBytes,
+                        counterReadAllocatedBytes = GC.GetAllocatedBytesForCurrentThread() - diagnosticStart
                     });
                     Directory.CreateDirectory(paths.RootDirectory);
                     await File.WriteAllTextAsync(path + ".tmp", json, stoppingToken).ConfigureAwait(false);
@@ -36,7 +42,7 @@ public sealed class MemoryReportService(IAppPaths paths, ILogger<MemoryReportSer
                 }
                 catch (Exception error) when (error is IOException or UnauthorizedAccessException)
                 { logger.LogWarning("Memory report unavailable: {ExceptionType}", error.GetType().Name); }
-                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken).ConfigureAwait(false);
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }

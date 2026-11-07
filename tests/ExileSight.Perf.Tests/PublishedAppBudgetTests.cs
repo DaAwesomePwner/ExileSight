@@ -24,6 +24,7 @@ public sealed class PublishedAppBudgetTests(ITestOutputHelper output)
         double? cpuPercent = null;
         long peakPrivateBytes = 0;
         string? failure = null;
+        JsonElement? ownProcessMemoryAtStart = null;
         try
         {
             Directory.CreateDirectory(paths.RootDirectory);
@@ -48,6 +49,9 @@ public sealed class PublishedAppBudgetTests(ITestOutputHelper output)
             // Allow JIT, initial network refresh and pack preparation to settle.
             await Task.Delay(TimeSpan.FromSeconds(60));
             EnsureTrayOnly(process);
+            var initialMemoryPath = Path.Combine(paths.RootDirectory, "perf-memory.json");
+            if (File.Exists(initialMemoryPath))
+                ownProcessMemoryAtStart = JsonSerializer.Deserialize<JsonElement>(await File.ReadAllTextAsync(initialMemoryPath));
             process.Refresh();
             var initialCpu = process.TotalProcessorTime;
             var clock = Stopwatch.StartNew();
@@ -81,6 +85,18 @@ public sealed class PublishedAppBudgetTests(ITestOutputHelper output)
             var memoryPath = Path.Combine(paths.RootDirectory, "perf-memory.json");
             JsonElement? ownProcessMemory = File.Exists(memoryPath)
                 ? JsonSerializer.Deserialize<JsonElement>(await File.ReadAllTextAsync(memoryPath)) : null;
+            object? observedIdleGc = null;
+            if (ownProcessMemoryAtStart is { } before && ownProcessMemory is { } after &&
+                before.TryGetProperty("totalAllocatedBytes", out var allocatedBefore) &&
+                after.TryGetProperty("totalAllocatedBytes", out var allocatedAfter))
+                observedIdleGc = new
+                {
+                    seconds = (after.GetProperty("utc").GetDateTimeOffset() - before.GetProperty("utc").GetDateTimeOffset()).TotalSeconds,
+                    allocatedBytes = allocatedAfter.GetInt64() - allocatedBefore.GetInt64(),
+                    gen0 = after.GetProperty("gen0").GetInt32() - before.GetProperty("gen0").GetInt32(),
+                    gen1 = after.GetProperty("gen1").GetInt32() - before.GetProperty("gen1").GetInt32(),
+                    gen2 = after.GetProperty("gen2").GetInt32() - before.GetProperty("gen2").GetInt32()
+                };
             Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
             await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(new
             {
@@ -89,7 +105,7 @@ public sealed class PublishedAppBudgetTests(ITestOutputHelper output)
                 settleSeconds = 60, cpuPercent, peakPrivateBytes,
                 cpuMarginPercentagePoints = 1 - cpuPercent,
                 memoryMarginBytes = 200_000_000 - peakPrivateBytes,
-                failure, ownProcessMemory, samples
+                failure, ownProcessMemoryAtStart, ownProcessMemory, observedIdleGc, samples
             }, new JsonSerializerOptions { WriteIndented = true }));
             await DeleteTestDataAsync(paths.RootDirectory);
         }

@@ -12,8 +12,27 @@ internal sealed record StatPattern(Regex Regex, HashSet<int> Seen, bool Partial)
     internal static readonly Regex Placeholder = new(@"\{(\d+)\}", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
     private static readonly ConditionalWeakTable<StatVariant, Lazy<StatPattern[]>> Cache = new();
 
-    // Variants belong to an immutable loaded pack. Weak keys allow old packs and cached patterns to be collected.
-    internal static StatPattern[] For(StatVariant variant) => Cache.GetValue(variant, v => new(() => Build(v))).Value;
+    private static readonly object CacheGate = new();
+    private static readonly Queue<StatVariant> Recent = new();
+    internal const int Capacity = 512;
+
+    // Bound session-wide regex retention even after checking many unrelated item types.
+    // Eviction may rebuild a pattern, but never changes pack parsing or matching results.
+    internal static StatPattern[] For(StatVariant variant)
+    {
+        Lazy<StatPattern[]> value;
+        lock (CacheGate)
+        {
+            if (!Cache.TryGetValue(variant, out value!))
+            {
+                value = new(() => Build(variant));
+                Cache.Add(variant, value);
+                Recent.Enqueue(variant);
+                if (Recent.Count > Capacity) Cache.Remove(Recent.Dequeue());
+            }
+        }
+        return value.Value;
+    }
     private static StatPattern[] Build(StatVariant variant)
     {
         var lines = variant.Text.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n');
