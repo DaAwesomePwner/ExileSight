@@ -1,5 +1,4 @@
-using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
+using System.Reflection;
 using System.Xml.Linq;
 using Xunit;
 
@@ -7,72 +6,88 @@ namespace ExileSight.Architecture.Tests;
 
 public sealed class DependencyTests
 {
-    private static IEnumerable<string> Projects => Repository.Files("*.csproj")
-        .Where(p => Repository.Relative(p).StartsWith("src/", StringComparison.Ordinal));
-
     [Fact]
-    public void PortableAssembliesHaveNoWindowsDependencies()
+    public void ProductionAssembliesRespectBoundaries()
     {
-        foreach (var project in Projects.Where(IsPortable))
+        foreach (var project in AssemblyInventory.Projects.Where(Repository.IsProduction))
         {
             var name = Path.GetFileNameWithoutExtension(project);
-            var configuration = new DirectoryInfo(AppContext.BaseDirectory).Parent!.Name;
-            var outputs = Directory.GetFiles(Path.Combine(Path.GetDirectoryName(project)!, "bin", configuration),
-                name + ".dll", SearchOption.AllDirectories);
-            Assert.NotEmpty(outputs);
-            foreach (var output in outputs)
+            var xml = XDocument.Load(project);
+            if (AssemblyInventory.Portable(name))
+                Assert.Equal("net10.0", xml.Descendants("TargetFramework").Single().Value);
+            Assert.DoesNotContain(xml.Descendants(), e => e.Name.LocalName == "UseWindowsForms" && e.Value.Equals("true", StringComparison.OrdinalIgnoreCase));
+            AssemblyInventory.Read(AssemblyInventory.Output(project), reader =>
             {
-                using var stream = File.OpenRead(output);
-                using var pe = new PEReader(stream);
-                var metadata = pe.GetMetadataReader();
-                foreach (var handle in metadata.AssemblyReferences)
+                foreach (var handle in reader.AssemblyReferences)
                 {
-                    var reference = metadata.GetString(metadata.GetAssemblyReference(handle).Name);
-                    Assert.DoesNotContain(reference, new[] { "PresentationFramework", "PresentationCore",
-                        "WindowsBase", "System.Xaml", "ExileSight.Platform.Windows" });
+                    var reference = reader.GetString(reader.GetAssemblyReference(handle).Name);
+                    Assert.True(AllowedEdge(name, reference), $"Forbidden assembly edge {name} -> {reference}");
                 }
-            }
+                if (!name.Equals("ExileSight.Platform.Windows", StringComparison.OrdinalIgnoreCase))
+                    foreach (var handle in reader.MethodDefinitions)
+                        Assert.False((reader.GetMethodDefinition(handle).Attributes & MethodAttributes.PinvokeImpl) != 0,
+                            $"P/Invoke in {name}: {reader.GetString(reader.GetMethodDefinition(handle).Name)}");
+            });
         }
     }
 
     [Fact]
-    public void OnlyAppReferencesWindowsPlatform()
+    public void ProjectReferencesRespectBoundaries()
     {
-        foreach (var project in Projects)
+        foreach (var project in AssemblyInventory.Projects)
         {
+            var name = Path.GetFileNameWithoutExtension(project);
             var xml = XDocument.Load(project);
-            var references = xml.Descendants().Where(e => e.Name.LocalName is "ProjectReference" or "Reference")
-                .Select(e => e.Attribute("Include")?.Value ?? "");
-            if (Path.GetFileNameWithoutExtension(project) != "ExileSight.App")
-                Assert.DoesNotContain(references, r => r.Contains("ExileSight.Platform.Windows", StringComparison.Ordinal));
-            if (IsPortable(project))
+            foreach (var reference in xml.Descendants().Where(e => e.Name.LocalName is "ProjectReference" or "Reference"))
             {
-                Assert.DoesNotContain(xml.Descendants(), e => e.Name.LocalName == "UseWPF" && e.Value == "true");
-                Assert.DoesNotContain(references, r => new[] { "PresentationFramework", "PresentationCore", "WindowsBase", "System.Xaml" }
-                    .Any(forbidden => r.Contains(forbidden, StringComparison.Ordinal)));
+                var target = (reference.Attribute("Include")?.Value ?? "").Replace('\\', '/').Split('/').Last().Split(',')[0];
+                if (target.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) || target.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                    target = Path.GetFileNameWithoutExtension(target);
+                Assert.True(AllowedEdge(name, target), $"Forbidden project edge {name} -> {target}");
             }
+            if (AssemblyInventory.Portable(name))
+                Assert.DoesNotContain(xml.Descendants(), e => e.Name.LocalName == "UseWPF" && e.Value.Equals("true", StringComparison.OrdinalIgnoreCase));
         }
     }
+
+    internal static bool AllowedEdge(string source, string target)
+    {
+        source = source.ToLowerInvariant();
+        target = target.ToLowerInvariant();
+        if (target == "exilesight.platform.windows")
+            return source is "exilesight.app" or "exilesight.platform.windows.tests";
+        if (new[] { "presentationframework", "presentationcore", "windowsbase", "system.xaml" }.Contains(target))
+            return source == "exilesight.app";
+        if (!target.StartsWith("exilesight.", StringComparison.Ordinal))
+            return true;
+        if (source.EndsWith(".tests", StringComparison.Ordinal))
+            return true;
+        if (target == "exilesight.platform.abstractions")
+            return true;
+        if (target == "exilesight.core")
+            return source is "exilesight.app" or "exilesight.platform.windows" or "exilesight.datagen"
+                || source.StartsWith("exilesight.features.", StringComparison.Ordinal);
+        return source == "exilesight.app" && target.StartsWith("exilesight.features.", StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("ExileSight.Core", "ExileSight.Features.Test")]
+    [InlineData("ExileSight.DataGen", "ExileSight.Platform.Windows")]
+    [InlineData("EXILESIGHT.CORE", "WINDOWSBASE")]
+    [InlineData("ExileSight.Platform.Abstractions", "ExileSight.Core")]
+    [InlineData("ExileSight.Features.One", "ExileSight.Features.Two")]
+    public void RejectsInvalidEdges(string source, string target) => Assert.False(AllowedEdge(source, target));
 
     [Fact]
     public void EveryFeatureDeclaresAManifest()
     {
-        // Phase 0 has no IFeature contract yet. Future feature projects must supply it and a manifest.
-        foreach (var project in Projects.Where(p => Path.GetFileName(p).StartsWith("ExileSight.Features.", StringComparison.Ordinal)))
+        foreach (var project in AssemblyInventory.Projects.Where(p => AssemblyInventory.Portable(Path.GetFileNameWithoutExtension(p))
+            && Path.GetFileName(p).StartsWith("ExileSight.Features.", StringComparison.OrdinalIgnoreCase)))
         {
-            var sources = Directory.GetFiles(Path.GetDirectoryName(project)!, "*.cs", SearchOption.AllDirectories)
-                .Where(p => !p.Split(Path.DirectorySeparatorChar).Contains("obj"))
+            var sources = Repository.Files("*.cs").Where(p => p.StartsWith(Path.GetDirectoryName(project)! + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
                 .Select(File.ReadAllText).ToArray();
             Assert.Contains(sources, text => text.Contains("IFeature", StringComparison.Ordinal));
-            Assert.Contains(sources, text => text.Contains("FeatureManifest", StringComparison.Ordinal)
-                && text.Contains("Manifest", StringComparison.Ordinal));
+            Assert.Contains(sources, text => text.Contains("FeatureManifest", StringComparison.Ordinal));
         }
-    }
-
-    private static bool IsPortable(string path)
-    {
-        var name = Path.GetFileNameWithoutExtension(path);
-        return name is "ExileSight.Core" or "ExileSight.Platform.Abstractions"
-            || name.StartsWith("ExileSight.Features.", StringComparison.Ordinal);
     }
 }

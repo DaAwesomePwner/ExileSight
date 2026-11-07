@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows;
 using ExileSight.App.Spikes;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,28 +9,58 @@ namespace ExileSight.App;
 public partial class App : Application
 {
     private IHost? host;
+    private bool stopping;
 
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        var builder = Host.CreateApplicationBuilder();
-        builder.Services.AddSingleton<DebugPanel>();
-        builder.Services.AddOverlaySpike().AddInputSpike();
-        host = builder.Build();
-        host.StartAsync().GetAwaiter().GetResult();
-        MainWindow = host.Services.GetRequiredService<DebugPanel>();
-        MainWindow.Show();
-        OverlaySpike.StartOverlaySpike(host.Services);
-        InputSpike.StartInputSpike(host.Services);
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        try
+        {
+            var builder = Host.CreateApplicationBuilder();
+            builder.Services.AddSingleton<DebugPanel>();
+            builder.Services.AddOverlaySpike().AddInputSpike();
+            host = builder.Build();
+            await Task.Run(() => host.StartAsync());
+            MainWindow = host.Services.GetRequiredService<DebugPanel>();
+            MainWindow.Closing += CloseAsync;
+            MainWindow.Show();
+            OverlaySpike.StartOverlaySpike(host.Services);
+            InputSpike.StartInputSpike(host.Services);
+        }
+        catch (Exception error)
+        {
+            MessageBox.Show(error.Message, "ExileSight startup failed");
+            await StopAndShutdownAsync();
+        }
     }
 
-    protected override void OnExit(ExitEventArgs e)
+    private async void CloseAsync(object? sender, CancelEventArgs e)
     {
-        if (host is not null)
+        e.Cancel = true;
+        if (stopping)
+            return;
+        stopping = true;
+        await StopAndShutdownAsync();
+    }
+
+    private async Task StopAndShutdownAsync()
+    {
+        try
         {
-            host.StopAsync().GetAwaiter().GetResult();
-            host.Dispose();
+            if (host is not null)
+                await Task.Run(() => host.StopAsync());
         }
-        base.OnExit(e);
+        catch (Exception error)
+        {
+            MessageBox.Show(error.Message, "ExileSight shutdown failed");
+        }
+        finally
+        {
+            host?.Dispose();
+            if (MainWindow is not null)
+                MainWindow.Closing -= CloseAsync;
+            Shutdown();
+        }
     }
 }

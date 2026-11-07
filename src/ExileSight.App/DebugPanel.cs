@@ -35,8 +35,9 @@ public sealed class DebugPanel : Window
         });
         foreach (var section in sections)
         {
-            body.Children.Add(new TextBlock { Text = section.Title, FontWeight = FontWeights.Bold });
-            foreach (var pair in section.Snapshot())
+            var snapshot = DebugSnapshot.Capture(section);
+            body.Children.Add(new TextBlock { Text = snapshot.Title, FontWeight = FontWeights.Bold });
+            foreach (var pair in snapshot.Rows)
                 body.Children.Add(new TextBlock { Text = $"{pair.Key}: {pair.Value}", TextWrapping = TextWrapping.Wrap });
         }
     }
