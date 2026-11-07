@@ -31,7 +31,7 @@ public static class Phase3Converter
         string Version(string kind) => kind switch
         {
             "guide" => PackCodec.Hash(System.Text.Encoding.UTF8.GetBytes(repoeSha + exileSha)),
-            "mapmods" => exileSha,
+            "mapmods" => PackCodec.Hash(System.Text.Encoding.UTF8.GetBytes(exileSha + ":mapmods-v2")),
             "events" => PackCodec.Hash(events),
             "leagues" => PackCodec.Hash(leagues),
             _ => throw new ArgumentException("Unknown pack kind.")

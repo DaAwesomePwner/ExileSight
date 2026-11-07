@@ -13,6 +13,15 @@ public sealed class Phase3RegressionTests
         Input("world_areas.json"), Input("gems.json"), Input("map-info.txt"), new('a', 40), new('b', 40), read);
 
     [Fact]
+    public void MapModsRevisionChangesVersionButRetainsSourceProvenance()
+    {
+        var pack = Assert.Single(Convert(Phase3Converter.Authored), p => p.Content.PackId == "poe1/mapmods");
+        Assert.Equal(PackCodec.Hash(Encoding.UTF8.GetBytes(new string('b', 40) + ":mapmods-v2")),
+            pack.Manifest.PackVersion);
+        Assert.Equal(new string('b', 40), pack.Manifest.Source.Sha);
+    }
+
+    [Fact]
     public async Task CrLfAuthoredSourcesProduceByteIdenticalOutputs()
     {
         var lf = Convert(Phase3Converter.Authored);
