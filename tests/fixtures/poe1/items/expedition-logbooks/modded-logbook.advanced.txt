@@ -6,5 +6,5 @@ Expedition Logbook
 Item Level: 83
 --------
 { Prefix Modifier "Expansive" (Tier: 1) }
-20(15-20)% increased number of Remnants
+Area contains 20(15-20)% increased number of Remnants
 30(25-30)% increased Explosive Radius

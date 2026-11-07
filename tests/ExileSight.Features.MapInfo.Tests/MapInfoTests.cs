@@ -1,0 +1,100 @@
+using System.Text.Json;
+using ExileSight.Core.DataPacks;
+using ExileSight.Core.Games;
+using ExileSight.Core.Items;
+using Xunit;
+
+namespace ExileSight.Features.MapInfo.Tests;
+
+// Pack test snapshot: Lailloken/Exile-UI data/english/map-info.txt (MIT), D-082 pin.
+// synthetic-* item fixtures are authored examples, not recordings (D-044).
+public sealed class MapInfoTests
+{
+    private static MapMatcher Matcher() => new(JsonSerializer.Deserialize<MapModsData>(
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "mapmods.json")))!);
+    [Fact]
+    public void EveryMapAndLogbookFixtureHasKnownMods()
+    {
+        foreach (var path in new[] { "maps", "expedition-logbooks" }.SelectMany(folder =>
+            Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "fixtures", folder), "*.txt")))
+        {
+            var item = ItemTextParser.Parse(File.ReadAllText(path), Game.PoE1).Item!;
+            var result = Matcher().Match(item);
+            Assert.All(result.Mods, row => Assert.True(row.Id is not null, path + ": " + row.Text));
+            if (path.Contains("synthetic-delirious"))
+                Assert.Equal("084", Assert.Single(result.Mods).Id);
+            if (path.Contains("synthetic-influences"))
+                Assert.Equal("016", Assert.Single(result.Mods).Id);
+            if (path.Contains("modded-logbook"))
+            {
+                Assert.Equal(new[] { "305", "306" }, result.Mods.Select(row => row.Id));
+                Assert.All(result.Mods, row => Assert.Null(row.Area));
+            }
+            if (path.Contains("synthetic-critical"))
+            {
+                Assert.Equal("012", Assert.Single(result.Mods).Id);
+                Assert.Equal(80, result.Quantity); Assert.Equal(40, result.Rarity); Assert.Equal(25, result.PackSize);
+                Assert.Contains("300/40", result.Mods[0].Text);
+            }
+            if (path.Contains("synthetic-areas"))
+            {
+                Assert.Equal(4, result.Mods.Count);
+                Assert.Equal("305", result.Mods[0].Id);
+                Assert.Equal("311", result.Mods[1].Id);
+                Assert.Equal("306", result.Mods[2].Id);
+                Assert.Equal("307", result.Mods[3].Id);
+                Assert.All(result.Mods.Skip(2), row => Assert.Null(row.Area));
+                Assert.Equal("Desert Ruins (Tujen)", result.Mods[0].Area);
+                Assert.Equal("Forest Ruins (Dannig)", result.Mods[1].Area);
+            }
+        }
+    }
+    [Fact]
+    public void RepeatedModifiersCombineValuesWithinTheSameArea()
+    {
+        var item = ItemTextParser.Parse("Item Class: Maps\nRarity: Rare\nDoom Road\nDunes Map\n--------\n20% increased Monster Damage\n30% increased Monster Damage", Game.PoE1).Item!;
+        var row = Assert.Single(Matcher().Match(item).Mods);
+        Assert.Equal("014", row.Id); Assert.Contains("50%", row.Text);
+    }
+    [Fact]
+    public void DifferentAdvancedGroupsCannotBecomeOneMultilineMod()
+    {
+        var item = ItemTextParser.Parse("Item Class: Maps\nRarity: Rare\nDoom Road\nDunes Map\n--------\n{ Prefix Modifier \"One\" }\nMonsters have 300% increased Critical Strike Chance\n{ Suffix Modifier \"Two\" }\n+40% to Monster Critical Strike Multiplier", Game.PoE1).Item!;
+        Assert.All(Matcher().Match(item).Mods, row => Assert.Null(row.Id));
+    }
+    [Fact]
+    public void UnknownIsNeverGuessed()
+    {
+        var item = ItemTextParser.Parse("Item Class: Maps\nRarity: Rare\nDunes Map\n--------\nMonsters have novel powers", Game.PoE1).Item!;
+        Assert.Null(Assert.Single(Matcher().Match(item).Mods).Id);
+    }
+    [Fact]
+    public void NonPackRemnantsSpellingRemainsUnknown()
+    {
+        var item = ItemTextParser.Parse("Item Class: Expedition Logbooks\nRarity: Rare\nExpedition Logbook\n--------\n20% increased number of Remnants", Game.PoE1).Item!;
+        Assert.Null(Assert.Single(Matcher().Match(item).Mods).Id);
+    }
+    [Theory]
+    [InlineData("Normal")]
+    [InlineData("Unique")]
+    public void MapsWithoutRollableAffixesHaveNoDangerRows(string rarity)
+    {
+        var item = ItemTextParser.Parse($"Item Class: Maps\nRarity: {rarity}\nDunes Map\n--------\nSome special map property", Game.PoE1).Item!;
+        Assert.Empty(Matcher().Match(item).Mods);
+    }
+    [Fact]
+    public void RatingsPersistAndCycleAndKeepUnknownIds()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        try
+        {
+            var store = new RatingStore(dir);
+            Assert.Equal(0, store.Get("future-id"));
+            Assert.Equal(1, store.Cycle("future-id"));
+            store = new(dir); Assert.Equal(1, store.Get("future-id"));
+            Assert.Equal(2, store.Cycle("future-id")); Assert.Equal(3, store.Cycle("future-id"));
+            Assert.Equal(0, store.Cycle("future-id"));
+        }
+        finally { Directory.Delete(dir, true); }
+    }
+}

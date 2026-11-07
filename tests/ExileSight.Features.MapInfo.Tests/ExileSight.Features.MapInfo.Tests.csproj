@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/ExileSight.Features.MapInfo/ExileSight.Features.MapInfo.csproj" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+  <ItemGroup><None Include="mapmods.json" CopyToOutputDirectory="PreserveNewest" /><None Include="../fixtures/poe1/items/maps/*.txt" Link="fixtures/maps/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" /><None Include="../fixtures/poe1/items/expedition-logbooks/*.txt" Link="fixtures/expedition-logbooks/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+</Project>

@@ -30,4 +30,6 @@
   <Project Path="tests/ExileSight.Features.Events.Tests/ExileSight.Features.Events.Tests.csproj" />
   <Project Path="src/ExileSight.Features.Guide/ExileSight.Features.Guide.csproj" />
   <Project Path="tests/ExileSight.Features.Guide.Tests/ExileSight.Features.Guide.Tests.csproj" />
+  <Project Path="src/ExileSight.Features.MapInfo/ExileSight.Features.MapInfo.csproj" />
+  <Project Path="tests/ExileSight.Features.MapInfo.Tests/ExileSight.Features.MapInfo.Tests.csproj" />
 </Solution>

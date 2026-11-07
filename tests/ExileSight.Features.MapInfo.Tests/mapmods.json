@@ -1,0 +1,68 @@
+{
+  "Entries": [
+    {
+      "Id": "012",
+      "Type": "monsters",
+      "Text": "crit/multi: +%",
+      "Patterns": [
+        "monsters have # increased critical strike chance|# to monster critical strike multiplier"
+      ]
+    },
+    {
+      "Id": "014",
+      "Type": "monsters",
+      "Text": "damage: +%",
+      "Patterns": [
+        "# increased monster damage"
+      ]
+    },
+    {
+      "Id": "016",
+      "Type": "monsters",
+      "Text": "phys as fire: %",
+      "Patterns": [
+        "monsters deal # extra physical damage as fire"
+      ]
+    },
+    {
+      "Id": "307",
+      "Type": "expedition",
+      "Text": "explosives count: +%",
+      "Patterns": [
+        "# increased number of explosives"
+      ]
+    },
+    {
+      "Id": "305",
+      "Type": "expedition",
+      "Text": "increased remnants: %",
+      "Patterns": [
+        "area contains # increased number of remnants"
+      ]
+    },
+    {
+      "Id": "306",
+      "Type": "expedition",
+      "Text": "explosives radius: +%",
+      "Patterns": [
+        "# increased explosive radius"
+      ]
+    },
+    {
+      "Id": "311",
+      "Type": "expedition",
+      "Text": "monster markers: +%",
+      "Patterns": [
+        "area contains # increased number of monster markers"
+      ]
+    },
+    {
+      "Id": "084",
+      "Type": "player",
+      "Text": "delirious: %",
+      "Patterns": [
+        "players in area are delirious"
+      ]
+    }
+  ]
+}

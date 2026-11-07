@@ -9,7 +9,7 @@
   "plain": {
     "Mods": [
       {
-        "Text": "20% increased number of Remnants",
+        "Text": "Area contains 20% increased number of Remnants",
         "Values": [
           {
             "Value": 20,
@@ -41,7 +41,8 @@
             "Minimum": 15,
             "Maximum": 20
           }
-        ]
+        ],
+        "Text": "Area contains 20(15-20)% increased number of Remnants"
       },
       {
         "Group": 1,
