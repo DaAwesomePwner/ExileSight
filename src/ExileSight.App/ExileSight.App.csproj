@@ -12,4 +12,5 @@
   <ItemGroup><ProjectReference Include="../ExileSight.Features.ItemInfo/ExileSight.Features.ItemInfo.csproj" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../ExileSight.Features.GearCmp/ExileSight.Features.GearCmp.csproj" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../ExileSight.Features.Stashninja/ExileSight.Features.Stashninja.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.Macros/ExileSight.Features.Macros.csproj" /></ItemGroup>
 </Project>

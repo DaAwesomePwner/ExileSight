@@ -20,4 +20,6 @@
   <Project Path="tests/ExileSight.Features.GearCmp.Tests/ExileSight.Features.GearCmp.Tests.csproj" />
   <Project Path="src/ExileSight.Features.Stashninja/ExileSight.Features.Stashninja.csproj" />
   <Project Path="tests/ExileSight.Features.Stashninja.Tests/ExileSight.Features.Stashninja.Tests.csproj" />
+  <Project Path="src/ExileSight.Features.Macros/ExileSight.Features.Macros.csproj" />
+  <Project Path="tests/ExileSight.Features.Macros.Tests/ExileSight.Features.Macros.Tests.csproj" />
 </Solution>
