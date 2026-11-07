@@ -19,6 +19,7 @@ public interface IFeature
 }
 public interface IFeatureContext
 {
+    IPackReader Packs => EmptyPackReader.Instance;
     ActionResult Execute(IntentToken? token, GameAction action);
     void RegisterCommand(string command, ActionKind? action, Func<IntentToken?, ActionResult> execute);
     void RegisterCommand(string command, ActionKind? action, Func<IntentToken?, ActionResult> execute,

@@ -49,7 +49,7 @@ public static class FeatureRegistration
                     if (!document.Features.Sections.TryGetValue(id, out var section))
                         document.Features.Sections[id] = section = [];
                     section[key] = value.Clone();
-                }), (id, token, action) => sp.GetRequiredService<IActionGate>().TryExecute(token, action, id));
+                }), (id, token, action) => sp.GetRequiredService<IActionGate>().TryExecute(token, action, id), packs: sp.GetRequiredService<IPackReader>());
         });
         services.AddSingleton<FeatureViews>();
         services.AddSingleton<OmniMenuView>();

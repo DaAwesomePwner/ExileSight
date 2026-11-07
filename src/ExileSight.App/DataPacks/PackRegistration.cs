@@ -44,6 +44,7 @@ public static class PackRegistration
             }, (id, error) => sp.GetRequiredService<ILogger<PackStartup>>().LogWarning(
                 "Pack {PackId} refresh failed: {ExceptionType}", id, error.GetType().Name));
         });
+        services.AddSingleton<ExileSight.Core.Features.IPackReader>(sp => sp.GetRequiredService<PackStartup>().Packs);
         services.AddSingleton<IDebugSection>(sp => sp.GetRequiredService<PackStartup>());
         services.AddHostedService<PackRefreshService>();
         return services;

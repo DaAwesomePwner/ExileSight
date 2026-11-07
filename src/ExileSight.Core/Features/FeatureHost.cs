@@ -15,12 +15,14 @@ public sealed partial class FeatureHost
     private readonly List<FeatureDefaultBinding> defaults = [];
     private readonly List<(string Owner, IOmniHandler Handler)> omni = [];
     private readonly Action<Action> post;
+    private readonly IPackReader packs;
     private readonly List<(string FeatureId, Action<LogEvent> Handler)> subscriptions = [];
     private readonly List<(string FeatureId, object ViewModel)> overlays = [];
     public FeatureHost(IEnumerable<IFeature> features,
         Func<string, string, JsonElement?> readSetting, Action<string, string, JsonElement> writeSetting,
-        Func<string, IntentToken?, GameAction, ActionResult>? execute = null, Action<Action>? dispatch = null)
+        Func<string, IntentToken?, GameAction, ActionResult>? execute = null, Action<Action>? dispatch = null, IPackReader? packs = null)
     {
+        this.packs = packs ?? EmptyPackReader.Instance;
         post = dispatch ?? new FeatureWorkQueue { ReportFailure = type => ReportWorkFailure(type) }.Post;
         this.execute = execute ?? ((_, _, _) => new(ActionOutcome.Failed, "No gate configured"));
         var modules = features.ToArray();
@@ -81,6 +83,7 @@ public sealed partial class FeatureHost
     private sealed class Context(FeatureHost host, FeatureManifest manifest,
         Func<string, string, JsonElement?> read, Action<string, string, JsonElement> write) : IFeatureContext
     {
+        public IPackReader Packs { get; } = new FeaturePacks(host, manifest);
         private bool closed;
         internal void Close() => closed = true;
         private void Registering() { if (closed) throw new InvalidOperationException("Registration has completed"); }
