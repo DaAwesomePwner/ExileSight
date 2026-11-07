@@ -21,7 +21,7 @@ public sealed class CompilerGuardTests
                   <Import Project="Mutation.targets" />
                 </Project>
                 """);
-            await File.WriteAllTextAsync(Path.Combine(directory, "Probe.cs"), "namespace GuardProbe; public sealed class Probe { public void Inspect(System.Diagnostics.Process p) { p.Refresh(); _ = p.Id; _ = p.ProcessName; } }");
+            await File.WriteAllTextAsync(Path.Combine(directory, "Probe.cs"), "namespace GuardProbe; public sealed class Probe { public void Inspect(System.Diagnostics.Process p) { p.Refresh(); _ = p.Id; } }");
             await File.WriteAllTextAsync(Path.Combine(directory, "policy.txt"), "is_global = true\ndotnet_diagnostic.RS0030.severity = none\n");
             await File.WriteAllTextAsync(Path.Combine(directory, "compiler.rsp"), "/skipanalyzers+\n/nowarn:RS0030\n");
             File.Copy(typeof(CompilerGuardTests).Assembly.Location, Path.Combine(directory, "ExtraAnalyzer.dll"));
@@ -57,6 +57,8 @@ public sealed class CompilerGuardTests
                         p.PriorityClass = ProcessPriorityClass.Normal;
                         p.ProcessorAffinity = (nint)1;
                         _ = p.HasExited;
+                        _ = p.ProcessName;
+                        _ = Process.GetProcessById(1);
                         p.WaitForExit();
                         _ = p.WaitForExitAsync();
                         _ = new DynamicMethod("x", typeof(void), Type.EmptyTypes);
@@ -68,7 +70,7 @@ public sealed class CompilerGuardTests
                 """);
             var banned = await Run(directory, "build", project, "--no-restore", "-nr:false");
             Assert.NotEqual(0, banned.ExitCode);
-            foreach (var symbol in new[] { "PriorityClass", "ProcessorAffinity", "HasExited", "WaitForExit()", "WaitForExitAsync(", "DynamicMethod", "EmitCalli", "DefinePInvokeMethod" })
+            foreach (var symbol in new[] { "PriorityClass", "ProcessorAffinity", "HasExited", "ProcessName", "GetProcessById", "WaitForExit()", "WaitForExitAsync(", "DynamicMethod", "EmitCalli", "DefinePInvokeMethod" })
                 Assert.Contains(banned.Output.Split('\n'), line => line.Contains("error RS0030:", StringComparison.Ordinal) && line.Contains(symbol, StringComparison.Ordinal));
 
         }
