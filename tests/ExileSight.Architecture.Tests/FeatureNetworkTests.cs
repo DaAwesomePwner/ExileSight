@@ -7,8 +7,10 @@ public sealed class FeatureNetworkTests
     [Fact]
     public void FeaturesUseHostServicesInsteadOfDirectNetworkAccess()
     {
-        foreach (var project in AssemblyInventory.Projects.Where(Repository.IsProduction)
-            .Where(p => Path.GetFileName(p).StartsWith("ExileSight.Features.", StringComparison.OrdinalIgnoreCase)))
+        var projects = AssemblyInventory.Projects.Where(Repository.IsProduction)
+            .Where(p => Path.GetFileName(p).StartsWith("ExileSight.Features.", StringComparison.OrdinalIgnoreCase)).ToArray();
+        Assert.NotEmpty(projects);
+        foreach (var project in projects)
             AssemblyInventory.Read(AssemblyInventory.Output(project), reader =>
             {
                 foreach (var handle in reader.TypeReferences)

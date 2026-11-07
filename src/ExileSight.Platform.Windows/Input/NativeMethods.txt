@@ -41,3 +41,4 @@ RegisterClipboardFormat
 
 IsClipboardFormatAvailable
 GetClipboardOwner
+GetCursorPos

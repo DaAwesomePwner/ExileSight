@@ -31,15 +31,20 @@ public sealed partial class HookHost : IHotkeys
     private readonly HotkeyConfiguration configuration;
     internal HookHost(HotkeyDispatcher dispatcher, IClock clock,
         Func<IntentToken?, HotkeyBinding, ActionResult> execute, KeyboardRepeatSettings repeatSettings,
-        Action<HotkeyBinding, ActionResult>? report = null, IGameWindow? gameWindow = null)
+        Action<HotkeyBinding, ActionResult>? report = null, IGameWindow? gameWindow = null,
+        IEnumerable<IFeatureCommandHandler>? commands = null, Func<bool>? gameFocused = null)
     {
         this.repeatSettings = repeatSettings;
+        featureCommands = (commands ?? []).ToDictionary(c => c.Command, StringComparer.Ordinal);
         ArgumentNullException.ThrowIfNull(gameWindow);
         foreground = new(gameWindow, dispatcher.Configuration, clock);
         dispatcher.SetRepeatProvider(() => repeatSettings.SilenceMilliseconds);
         configuration = dispatcher.Configuration;
         this.dispatcher = dispatcher; this.clock = clock;
-        router = new(dispatcher, clock, GameForeground.IsGame, execute);
+        router = new(dispatcher, clock, gameFocused ?? GameForeground.IsGame, execute,
+            (token, press) => FindPressCommand(press.Binding) is { } command
+                ? command.Press(token, new(press.Id, press.Timestamp)) : execute(token, press.Binding),
+            (binding, released) => FindPressCommand(binding)?.Release(released));
         this.report = report ?? ((_, _) => { });
         keyboard = Keyboard; mouse = Mouse;
     }
@@ -84,7 +89,7 @@ public sealed partial class HookHost : IHotkeys
             while (queue.TryDequeue(out var press))
             {
                 if (stop.WaitOne(0)) return;
-                report(press!.Binding, router.Route(press));
+                RouteAndReport(press!);
             }
             ready.WaitOne();
         }
@@ -125,48 +130,6 @@ public sealed partial class HookHost : IHotkeys
             stop.Set();
             ready.Set();
         }
-    }
-    private unsafe LRESULT Keyboard(int code, WPARAM message, LPARAM data)
-    {
-        if (code >= 0)
-        {
-            var key = *(KBDLLHOOKSTRUCT*)data.Value;
-            if (!NativeHookEvent.KeyboardAllowed((uint)message.Value, (uint)key.flags))
-                return PInvoke.CallNextHookEx(default, code, message, data);
-            // Hook timestamps share the system tick epoch; unsigned subtraction handles 32-bit wrap.
-            var now = clock.Milliseconds;
-            var timestamp = now - unchecked((uint)now - key.time);
-            var physical = new PhysicalKey((int)key.vkCode,
-                message.Value is 0x100 or 0x104, false, Modifiers(), timestamp);
-            var decision = ObserveWithFocus(physical);
-            // Overflow fails closed: the key stays blocked, but no intent/action is issued.
-            if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
-            if (decision.Block) return new LRESULT(1);
-        }
-        return PInvoke.CallNextHookEx(default, code, message, data);
-    }
-    private unsafe LRESULT Mouse(int code, WPARAM message, LPARAM data)
-    {
-        if (code >= 0 && NativeHookEvent.IsMouseButton((uint)message.Value))
-        {
-            var mouse = *(MSLLHOOKSTRUCT*)data.Value;
-            if (message.Value is 0x201 or 0x202)
-                OverlayClicks.Observe(message.Value == 0x201, ((uint)mouse.flags & 3) != 0,
-                    mouse.pt.X, mouse.pt.Y, clock.Milliseconds - unchecked((uint)clock.Milliseconds - mouse.time));
-            if (!NativeHookEvent.MouseAllowed((uint)message.Value, (uint)mouse.flags))
-                return PInvoke.CallNextHookEx(default, code, message, data);
-            var now = clock.Milliseconds;
-            var key = MouseButtonEvent.Decode((uint)message.Value, mouse.mouseData,
-                false, KeyModifiers.None,
-                now - unchecked((uint)now - mouse.time));
-            if (key is { } physical)
-            {
-                var decision = ObserveWithFocus(physical with { Modifiers = Modifiers() });
-                if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
-                if (decision.Block) return new LRESULT(1);
-            }
-        }
-        return PInvoke.CallNextHookEx(default, code, message, data);
     }
     public static KeyModifiers Modifiers()
     {
