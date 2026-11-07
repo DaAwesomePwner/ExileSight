@@ -4,7 +4,7 @@ namespace ExileSight.Core.Settings;
 
 internal static class SettingsValidation
 {
-    public static void Validate(VersionedDocument document, Games.Game? expectedGame = null)
+    public static void Validate(VersionedDocument document, Games.Game? expectedGame = null, List<string>? warnings = null)
     {
         if (expectedGame is not null && document.Game != expectedGame)
             throw new JsonException("Missing, null, or mismatched game for the requested settings.");
@@ -16,6 +16,7 @@ internal static class SettingsValidation
                 s.Features.Sections.Values.Any(x => x is null) || string.IsNullOrWhiteSpace(s.General.Language) ||
                 s.Overlay.ScaleOverride is double scale && (!double.IsFinite(scale) || scale <= 0))
                 throw new JsonException("Invalid settings sections.");
+            NormalizeUpdateChannel(s.General, warnings);
             if (s.Hotkeys.Any(x => x is null || string.IsNullOrWhiteSpace(x.Id) ||
                 x.Key is < 1 or > 255 || ((int)x.Modifiers & ~15) != 0 ||
                 string.IsNullOrWhiteSpace(x.Context) ||
@@ -58,6 +59,18 @@ internal static class SettingsValidation
             binding.Enabled = previous.Enabled;
             binding.Action = previous.Action;
         }
+    }
+
+    internal static void NormalizeUpdateChannel(GeneralSettings settings, List<string>? warnings)
+    {
+        var channel = settings.UpdateChannel?.ToLowerInvariant();
+        if (channel is not ("stable" or "prerelease"))
+        {
+            const string warning = "Unknown update channel; using stable.";
+            if (warnings is not null && !warnings.Contains(warning)) warnings.Add(warning);
+            channel = "stable";
+        }
+        settings.UpdateChannel = channel;
     }
 
     internal static bool ValidId(string id) => string.Equals(id, "default", StringComparison.OrdinalIgnoreCase) || Guid.TryParseExact(id, "N", out _);

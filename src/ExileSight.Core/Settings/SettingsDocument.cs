@@ -33,6 +33,8 @@ public sealed class GeneralSettings : ExtensibleSettings
 {
     public string? ClientTxtPath { get; set; }
     public bool FirstRunCompleted { get; set; }
+    public bool CheckForUpdates { get; set; } = true;
+    public string UpdateChannel { get; set; } = "stable";
     public string Language { get; set; } = "en";
 }
 

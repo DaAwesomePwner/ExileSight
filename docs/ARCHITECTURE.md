@@ -41,7 +41,7 @@ tests/
 | Data packs | Versioned JSON packs per game (`poe1/bases`, `poe1/mods`, `poe1/guide` …), downloaded from GitHub releases and cached. League data updates without an app release. | System.Text.Json |
 | Price service | poe.ninja overview per league and category. Cache at least 1 h. Identifiable User-Agent. | `HttpClient` |
 | Settings | JSON per profile, under `%APPDATA%\ExileSight\<game>\`. Schema-versioned with migrations. | System.Text.Json |
-| Updater | Delta updates and the installer. | Velopack |
+| Updater | GitHub updates after a 5 s startup delay, at most every 6 h; background download, apply on normal exit without restart. Stable/prerelease settings; dev installs are inert. Explicit Program Main selected via StartupObject; App.xaml stays an ApplicationDefinition. CI packages unsigned installers without publishing releases. | Velopack |
 | Logging | Rolling file logs. No personal data apart from local paths. | Serilog |
 
 ## Feature module contract

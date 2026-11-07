@@ -82,7 +82,7 @@ public sealed class JsonSettingsStore<T> : ISettingsStore<T> where T : Versioned
             update(candidate);
             candidate.SchemaVersion = migrations.CurrentVersion;
             SettingsValidation.PreserveUnknownBindings(document, candidate);
-            SettingsValidation.Validate(candidate, expectedGame);
+            SettingsValidation.Validate(candidate, expectedGame, warnings);
             SettingsValidation.DisableUnknownBindings(Clone(candidate), warnings);
             document = Clone(candidate); // Caller cannot retain a live mutable reference.
             dirty = true;
