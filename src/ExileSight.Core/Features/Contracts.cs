@@ -19,6 +19,7 @@ public interface IFeature
 }
 public interface IFeatureContext
 {
+    void ObserveCopiedItems(Action<CopiedItem> observer) => throw new NotSupportedException();
     IPackReader Packs => EmptyPackReader.Instance;
     ActionResult Execute(IntentToken? token, GameAction action);
     void RegisterCommand(string command, ActionKind? action, Func<IntentToken?, ActionResult> execute);

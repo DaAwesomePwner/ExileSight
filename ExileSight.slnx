@@ -32,4 +32,6 @@
   <Project Path="tests/ExileSight.Features.Guide.Tests/ExileSight.Features.Guide.Tests.csproj" />
   <Project Path="src/ExileSight.Features.MapInfo/ExileSight.Features.MapInfo.csproj" />
   <Project Path="tests/ExileSight.Features.MapInfo.Tests/ExileSight.Features.MapInfo.Tests.csproj" />
+  <Project Path="src/ExileSight.Features.MapTracker/ExileSight.Features.MapTracker.csproj" />
+  <Project Path="tests/ExileSight.Features.MapTracker.Tests/ExileSight.Features.MapTracker.Tests.csproj" />
 </Solution>

@@ -32,6 +32,7 @@ public static class FeatureRegistration
         Stashninja.StashRegistration.Create(services),
         new ExileSight.Features.SearchStrings.SearchStringsFeature(),
         MapInfo.MapInfoRegistration.Create(services),
+        MapTracker.TrackerRegistration.Create(services),
         Timers.TimersRegistration.Create(services),
         new ExileSight.Features.Events.EventsFeature(),
         Guide.GuideRegistration.Create(services)];
@@ -70,6 +71,7 @@ public static class FeatureRegistration
         Events.EventsRegistration.Register(services, views);
         Guide.GuideRegistration.Register(services, views);
         MapInfo.MapInfoRegistration.Register(services, views);
+        MapTracker.TrackerRegistration.Register(services, views);
         views.RegisterManaged<ExileSight.Features.ItemInfo.ItemInfoViewModel>(services.GetRequiredService<ItemInfo.ItemInfoTooltip>().Start);
         SearchStrings.SearchStringsRegistration.Register(services, views);
         Macros.MacrosRegistration.Register(services, views);

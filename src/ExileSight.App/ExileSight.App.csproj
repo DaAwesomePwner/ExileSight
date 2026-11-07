@@ -18,4 +18,5 @@
   <ItemGroup><ProjectReference Include="../ExileSight.Features.Events/ExileSight.Features.Events.csproj" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../ExileSight.Features.Guide/ExileSight.Features.Guide.csproj" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../ExileSight.Features.MapInfo/ExileSight.Features.MapInfo.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.MapTracker/ExileSight.Features.MapTracker.csproj" /></ItemGroup>
 </Project>

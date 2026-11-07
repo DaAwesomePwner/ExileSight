@@ -56,8 +56,13 @@ public sealed partial class FeatureHost
             catch (Exception error) { report?.Invoke(featureId, error); }
         }
     }
-    public bool Route(ParsedItem item, OmniContext context, OmniPressKind press) =>
-        new OmniRouter(omni.Select(o => o.Handler)).Route(item, context, press);
+    public bool Route(ParsedItem item, OmniContext context, OmniPressKind press)
+    {
+        var copy = CopiedItem.From(item);
+        foreach (var observer in copiedObservers)
+            try { observer.Handler(copy); } catch (Exception error) { ReportWorkFailure(observer.Owner + ":" + error.GetType().Name); }
+        return new OmniRouter(omni.Select(o => o.Handler)).Route(item, context, press);
+    }
     private sealed class RegisteredCommand(string owner, string name, ActionKind? action,
         Func<IntentToken?, ActionResult> execute, CommandKind kind) : IFeatureCommandHandler, IFeatureCommandPolicy
     {
@@ -83,6 +88,8 @@ public sealed partial class FeatureHost
     private sealed class Context(FeatureHost host, FeatureManifest manifest,
         Func<string, string, JsonElement?> read, Action<string, string, JsonElement> write) : IFeatureContext
     {
+        public void ObserveCopiedItems(Action<CopiedItem> observer)
+        { Registering(); ArgumentNullException.ThrowIfNull(observer); host.copiedObservers.Add((manifest.Id, observer)); }
         public IPackReader Packs { get; } = new FeaturePacks(host, manifest);
         private bool closed;
         internal void Close() => closed = true;
