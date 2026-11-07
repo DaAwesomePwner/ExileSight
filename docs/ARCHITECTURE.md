@@ -18,6 +18,7 @@ src/
   ExileSight.Features.<Name>/         net10.0       one per feature: logic + view models, no WPF references
   ExileSight.App/                     net10.0-windows10.0.19041.0  WPF views, overlay host, tray, settings, first-run wizard
 tools/
+  ExileSight.RedactLog/               net10.0       redacts Client.txt excerpts for fixtures
   ExileSight.DataGen/                 net10.0       builds versioned data packs (bases, mods, tiers, guides)
 tests/
   ExileSight.Core.Tests/              xUnit, fixture-driven (tests/fixtures)

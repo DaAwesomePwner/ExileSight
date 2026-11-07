@@ -8,7 +8,7 @@ namespace ExileSight.Architecture.Tests;
 internal static class AssemblyInventory
 {
     internal static IEnumerable<string> Projects => Repository.Files("*.csproj");
-    internal static bool Portable(string name) => name.ToLowerInvariant() is "exilesight.core" or "exilesight.platform.abstractions" or "exilesight.datagen"
+    internal static bool Portable(string name) => name.ToLowerInvariant() is "exilesight.core" or "exilesight.platform.abstractions" or "exilesight.datagen" or "exilesight.redactlog"
         || name.StartsWith("ExileSight.Features.", StringComparison.OrdinalIgnoreCase) && !name.EndsWith(".Tests", StringComparison.OrdinalIgnoreCase);
 
     internal static string Output(string project)
