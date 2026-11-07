@@ -29,6 +29,13 @@ jobs:
           name: ExileSight-App-win-x64
           path: artifacts/publish/
           if-no-files-found: error
+      - name: Publish Client.txt redaction tool
+        run: dotnet publish tools/ExileSight.RedactLog -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.APP_VERSION }} -o artifacts/redactlog
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ExileSight-RedactLog-win-x64
+          path: artifacts/redactlog/
+          if-no-files-found: error
       - name: Install pinned Velopack CLI
         run: dotnet tool install --global vpk --version 1.2.161
       - name: Publish folder for Velopack
