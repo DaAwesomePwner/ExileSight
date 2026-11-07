@@ -57,10 +57,13 @@ public sealed class SendOutcomeTests : IDisposable
     public void ExecutorExceptionDisarmsAndRecordsUncertainty()
     {
         var model = Create(() => throw new IOException("Could throw after inserting input"));
+        var errors = new List<string>();
+        model.ReportFailure = errors.Add;
         Assert.Equal(ActionOutcome.Failed, model.Apply("plus1", new()).Outcome);
         Assert.False(model.CanApply);
         Assert.Contains("press omni again", model.Status);
         Assert.Equal("Possibly set", new HistoryStore(directory).Snapshot()[0].Prices.Last().Kind);
+        Assert.Equal(["IOException"], errors);
         model.Apply("plus1", new());
         Assert.Equal(1, calls);
     }

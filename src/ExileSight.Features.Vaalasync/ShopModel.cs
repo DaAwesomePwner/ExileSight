@@ -16,6 +16,7 @@ public sealed class ShopModel(HistoryStore history, Func<string> league) : IOmni
     private string custom = "";
     private bool armed, sending;
     private string status = "Open the game's note box yourself, then click one price.";
+    public Action<string> ReportFailure { get; set; } = type => System.Diagnostics.Trace.TraceWarning("Shop executor failed: {0}", type);
     public HistoryStore History => history;
     public string League => league();
     public string Status { get { lock (sync) return history.RecoveryNotice is { } notice ? notice + "\n" + status : status; } }
@@ -78,8 +79,10 @@ public sealed class ShopModel(HistoryStore history, Func<string> league) : IOmni
         Changed?.Invoke();
         ActionResult result;
         try { result = context!.Execute(token, new GameAction.SetPriceNote(next.ToString())); }
-        catch (Exception)
+        catch (Exception error)
         {
+            try { ReportFailure(error.GetType().Name); }
+            catch (Exception) { /* Preserve the uncertain outcome even if logging fails. */ }
             // An exception cannot establish whether native input was already inserted.
             result = new(ActionOutcome.Failed, "Send interrupted; input may already have been sent.");
         }

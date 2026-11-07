@@ -26,6 +26,7 @@ public partial class App : Application
 {
     private IHost? host;
     private bool stopping;
+    private bool startupComplete;
     private bool setupOpen;
     private readonly AppPaths paths = new();
     private ProfileStore? profiles;
@@ -52,7 +53,8 @@ public partial class App : Application
     }
     private void HandleDispatcherException(object sender, DispatcherUnhandledExceptionEventArgs args)
     {
-        args.Handled = true;
+        args.Handled = OverlayFailureGuard.CanHandleDispatcherException(startupComplete,
+            stopping || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished);
         LogUnhandled(args.Exception);
     }
     private void HandleTaskException(object? sender, UnobservedTaskExceptionEventArgs args)
@@ -114,6 +116,7 @@ public partial class App : Application
             settingsDiagnostics.OverlayAttached = true;
             InputRegistration.StartProductionInput(host.Services);
             settingsDiagnostics.InputAttached = true;
+            startupComplete = true;
         }
         catch (Exception error)
         {

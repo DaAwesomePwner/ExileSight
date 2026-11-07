@@ -64,6 +64,27 @@ public sealed class MenuOriginTests
         menu.Show(ItemTextParser.Parse(Copy, Game.PoE1).Item!, origin);
         Assert.False(opened);
     }
+    [Fact]
+    public void CursorFailureDropsReleaseAndReportsOnlyType()
+    {
+        var omni = new OmniFeature();
+        var errors = new List<string>();
+        var copies = 0;
+        omni.Menu.CursorPosition = () => throw new InvalidOperationException("private path");
+        omni.Menu.ReportFailure = errors.Add;
+        omni.Menu.Presented += _ => Assert.Fail("Unavailable cursor must drop menu");
+        var host = new FeatureHost([omni], (_, _) => null, (_, _, _) => { },
+            (_, _, _) => { copies++; return new(ActionOutcome.Success, CopiedText: Copy); }, dispatch: action => action());
+        var press = Assert.IsAssignableFrom<IPressCommandHandler>(Assert.Single(host.Commands));
+        press.Press(new(), new(1, 10));
+        press.Release(new(1, 10, 500));
+        press.Release(new(1, 10, 500));
+        Assert.Equal(["InvalidOperationException"], errors);
+        Assert.Equal(1, copies);
+        omni.Menu.ReportFailure = _ => throw new IOException();
+        press.Press(new(), new(2, 600));
+        press.Release(new(2, 600, 900));
+    }
     private sealed class Provider(Action build) : IItemMenuProvider
     {
         public IReadOnlyList<ItemMenuEntry> BuildMenu(ParsedItem item) { build(); return []; }
