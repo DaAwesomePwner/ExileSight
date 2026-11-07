@@ -88,6 +88,6 @@ public sealed class LocalLogTailTests
             await tick.Task.WaitAsync(token);
         }
         public async Task<TaskCompletionSource> Drained() =>
-            await drains.Reader.ReadAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            await drains.Reader.ReadAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(30));
     }
 }

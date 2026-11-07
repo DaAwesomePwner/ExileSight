@@ -10,8 +10,8 @@ public sealed class PersistenceSafetyTests : IDisposable
     private readonly string root = Path.Combine(Path.GetTempPath(), "ExileSight-safety-" + Guid.NewGuid());
     private AppPaths Paths => new(root);
     private string FilePath => Path.Combine(root, "poe1", "test.json");
-    private JsonSettingsStore<SettingsDocument> Open(TimeSpan? delay = null, MigrationPipeline? migrations = null) =>
-        new(Paths, FilePath, SettingsJsonContext.Default.SettingsDocument, () => new(), migrations, delay);
+    private JsonSettingsStore<SettingsDocument> Open(TimeSpan? delay = null, MigrationPipeline? migrations = null, TimeProvider? timeProvider = null) =>
+        new(Paths, FilePath, SettingsJsonContext.Default.SettingsDocument, () => new(), migrations, delay, timeProvider: timeProvider);
 
     private void Seed(string json)
     {
@@ -95,13 +95,19 @@ public sealed class PersistenceSafetyTests : IDisposable
     }
 
     [Fact]
-    public async Task DebounceEventuallyPersistsLastUpdate()
+    public void DebounceEventuallyPersistsLastUpdate()
     {
-        using var store = Open(TimeSpan.FromMilliseconds(30));
+        var time = new ManualSaveTime();
+        using var store = Open(TimeSpan.FromMilliseconds(30), timeProvider: time);
         for (var i = 0; i < 30; i++)
+        {
+            time.Advance(TimeSpan.FromMilliseconds(10));
             store.Update("general", x => x.General.Language = i.ToString());
-        var deadline = DateTime.UtcNow.AddSeconds(5);
-        while (!File.Exists(FilePath) && DateTime.UtcNow < deadline) await Task.Delay(10);
+            Assert.False(File.Exists(FilePath));
+        }
+        time.Advance(TimeSpan.FromMilliseconds(29));
+        Assert.False(File.Exists(FilePath));
+        time.Advance(TimeSpan.FromMilliseconds(1));
         Assert.True(File.Exists(FilePath));
         using var loaded = Open();
         Assert.Equal("29", loaded.Snapshot.General.Language);

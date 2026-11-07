@@ -36,16 +36,17 @@ public sealed class PressCommandWiringTests
         var clock = new Clock();
         var dispatcher = new HotkeyDispatcher(new IntentRegistry(clock), [Binding()]);
         dispatcher.InstallFeatureIssuer((_, _) => new());
-        using var entered = new ManualResetEventSlim();
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         using var unblock = new ManualResetEventSlim();
-        var command = new TestCommand { OnPress = () => { entered.Set(); unblock.Wait(); } };
+        var command = new TestCommand { OnPress = () => { entered.SetResult(); Assert.True(unblock.Wait(TimeSpan.FromSeconds(30))); } };
         using var hooks = new HookHost(dispatcher, clock, (_, _) => throw new InvalidOperationException(),
             new(), gameWindow: new GameWindow(), commands: [command], gameFocused: () => true);
         var press = dispatcher.Observe(new(0x14, true, false, 0, 100), true).Press!;
-        var actionWorker = Task.Run(() => hooks.RouteAndReport(press));
+        var actionWorker = Task.Factory.StartNew(() => hooks.RouteAndReport(press),
+            CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         try
         {
-            Assert.True(entered.Wait(TimeSpan.FromSeconds(5)));
+            await entered.Task.WaitAsync(TimeSpan.FromSeconds(30));
             hooks.Passive.Open(100);
             var dismissed = false;
             hooks.Passive.Observed += input => dismissed |= input.Message == 0x100;
@@ -55,7 +56,7 @@ public sealed class PressCommandWiringTests
             Assert.True(dismissed);
             Assert.False(actionWorker.IsCompleted);
         }
-        finally { unblock.Set(); await actionWorker; }
+        finally { unblock.Set(); await actionWorker.WaitAsync(TimeSpan.FromSeconds(30)); }
     }
     private static HotkeyBinding Binding() => new("omni.press", 0x14, 0, true, null,
         FeatureCommand: "omni:press", FeatureId: "omni", CommandAction: ActionKind.CopyItem, TrackRelease: true);

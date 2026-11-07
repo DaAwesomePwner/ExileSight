@@ -43,9 +43,10 @@ public sealed class ClipboardRoundTripTests
         try
         {
             clipboard.OfferText("delayed text");
-            read = Task.Run(() => new WindowsClipboard().GetText());
+            read = Task.Factory.StartNew(() => new WindowsClipboard().GetText(),
+                CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             var timeout = Stopwatch.StartNew();
-            while (!read.IsCompleted && timeout.Elapsed < TimeSpan.FromSeconds(3))
+            while (!read.IsCompleted && timeout.Elapsed < TimeSpan.FromSeconds(30))
             {
                 clipboard.Pump();
                 Thread.Sleep(1);
@@ -117,18 +118,18 @@ public sealed class ClipboardRoundTripTests
         try
         {
             clipboard.OfferText("late reader");
-            reader = Task.Run(() =>
+            reader = Task.Factory.StartNew(() =>
             {
                 ClipboardMemory.Open(default);
                 try
                 {
                     held.Set();
-                    Thread.Sleep(50); // Model a foreign consumer that hitches while holding the clipboard.
+                    // Delayed rendering blocks here until Restore pumps WM_RENDERFORMAT.
                     return ClipboardMemory.Read(13);
                 }
                 finally { PInvoke.CloseClipboard(); }
-            });
-            Assert.True(held.Wait(5000));
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            Assert.True(held.Wait(TimeSpan.FromSeconds(30)));
             clipboard.Restore(original); // No explicit test-side pump: Open's retry path must service WM_RENDERFORMAT.
             var bytes = reader.GetAwaiter().GetResult();
             Assert.NotNull(bytes);

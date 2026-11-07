@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using ExileSight.Core.Games;
@@ -18,7 +17,8 @@ public sealed class JsonSettingsStore<T> : ITransactionalSettingsStore<T> where 
     private readonly MigrationPipeline migrations;
     private readonly Game? expectedGame;
     private readonly TimeSpan debounce;
-    private readonly Timer timer;
+    private readonly TimeProvider timeProvider;
+    private readonly ITimer timer;
     private readonly List<string> warnings = [];
     private T document;
     private bool dirty;
@@ -29,8 +29,9 @@ public sealed class JsonSettingsStore<T> : ITransactionalSettingsStore<T> where 
 
     public JsonSettingsStore(IAppPaths paths, string path, JsonTypeInfo<T> typeInfo, Func<T> defaults,
         MigrationPipeline? migrations = null, TimeSpan? debounce = null, Action<string, string, string?>? replaceOperation = null,
-        Game? expectedGame = null, Action<Stream, byte[]>? temporaryWriteOperation = null)
+        Game? expectedGame = null, Action<Stream, byte[]>? temporaryWriteOperation = null, TimeProvider? timeProvider = null)
     {
+        this.timeProvider = timeProvider ?? TimeProvider.System;
         files = new(paths.RootDirectory, replaceOperation, temporaryWriteOperation);
         this.expectedGame = expectedGame;
         this.path = files.Check(path);
@@ -48,7 +49,7 @@ public sealed class JsonSettingsStore<T> : ITransactionalSettingsStore<T> where 
         dirty = loaded.Dirty;
         rotateBackup = loaded.RotateBackup;
         files.CleanTemporaryFiles(this.path);
-        timer = new Timer(_ => SaveFromTimer(), null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        timer = this.timeProvider.CreateTimer(_ => SaveFromTimer(), null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         if (dirty) ScheduleSave();
     }
 
@@ -162,8 +163,8 @@ public sealed class JsonSettingsStore<T> : ITransactionalSettingsStore<T> where 
 
     private void ScheduleSave()
     {
-        firstPending ??= Stopwatch.GetTimestamp();
-        var remaining = MaximumWait - Stopwatch.GetElapsedTime(firstPending.Value);
+        firstPending ??= timeProvider.GetTimestamp();
+        var remaining = MaximumWait - timeProvider.GetElapsedTime(firstPending.Value);
         var delay = remaining <= TimeSpan.Zero ? TimeSpan.Zero : remaining < debounce ? remaining : debounce;
         timer.Change(delay, Timeout.InfiniteTimeSpan);
     }

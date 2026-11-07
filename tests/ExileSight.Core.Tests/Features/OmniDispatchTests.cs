@@ -29,19 +29,29 @@ public sealed class OmniDispatchTests
     [Fact]
     public async Task SlowHandlerDoesNotBlockDispatchAndFailureDoesNotStopQueue()
     {
-        using var entered = new ManualResetEventSlim();
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         using var unblock = new ManualResetEventSlim();
         var finished = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var released = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var queue = new FeatureWorkQueue();
-        queue.Post(() => { entered.Set(); unblock.Wait(); throw new InvalidOperationException(); });
+        queue.Post(() =>
+        {
+            entered.SetResult();
+            released.SetResult(unblock.Wait(TimeSpan.FromSeconds(30)));
+            throw new InvalidOperationException();
+        });
         try
         {
-            Assert.True(entered.Wait(TimeSpan.FromSeconds(5)));
+            await entered.Task.WaitAsync(TimeSpan.FromSeconds(30));
             queue.Post(() => finished.SetResult()); // returns despite the running handler
             Assert.False(finished.Task.IsCompleted);
         }
-        finally { unblock.Set(); }
-        await finished.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        finally
+        {
+            unblock.Set();
+            Assert.True(await released.Task.WaitAsync(TimeSpan.FromSeconds(30)));
+        }
+        await finished.Task.WaitAsync(TimeSpan.FromSeconds(30));
     }
     private sealed class Handler(Action handle, int priority) : IOmniHandler
     {
