@@ -13,6 +13,7 @@ using ExileSight.Core.Settings;
 using ExileSight.Core.Setup;
 using ExileSight.Platform.Abstractions.Storage;
 using ExileSight.Platform.Windows.Install;
+using ExileSight.Platform.Windows.Tray;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -47,7 +48,7 @@ public partial class App : Application
             await Task.Run(() => host.StartAsync());
             MainWindow = host.Services.GetRequiredService<DebugPanel>();
             MainWindow.Closing += CloseAsync;
-            tray = new TrayHome(() => { MainWindow.Show(); MainWindow.Activate(); },
+            tray = new TrayHome(new ShellTrayIconFactory(), () => { MainWindow.Show(); MainWindow.Activate(); },
                 () => ShowSetup(), OpenSettingsFolder, async () => await StopAndShutdownAsync());
             var general = settings.Snapshot.General;
             if (!general.FirstRunCompleted || ClientLogDiscovery.Validate(general.ClientTxtPath) is not null)

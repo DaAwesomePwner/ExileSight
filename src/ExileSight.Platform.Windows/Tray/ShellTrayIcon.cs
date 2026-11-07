@@ -107,11 +107,11 @@ public sealed class ShellTrayIcon : ITrayIcon
         return true;
     }
 
-    public void ActivateMenuOwner()
+    public void ActivateMenuOwner(nint menuWindow)
     {
         VerifyAccess();
-        RequireOwned(broadcastWindow);
-        PInvoke.SetForegroundWindow(new HWND(broadcastWindow));
+        RequireOwned(menuWindow);
+        PInvoke.SetForegroundWindow(new HWND(menuWindow));
     }
 
     private unsafe NOTIFYICONDATAW Data()

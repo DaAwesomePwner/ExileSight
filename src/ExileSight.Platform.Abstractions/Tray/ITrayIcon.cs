@@ -14,7 +14,8 @@ public interface ITrayIcon : IDisposable
     void Show();
     void Hide();
     bool ProcessMessage(nint window, uint message, nint wParam, nint lParam);
-    void ActivateMenuOwner();
+    /// <summary>Activate only a menu window owned by this process and calling thread.</summary>
+    void ActivateMenuOwner(nint menuWindow);
 }
 
 public interface ITrayIconFactory
