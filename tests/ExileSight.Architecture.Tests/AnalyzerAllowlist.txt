@@ -26,3 +26,9 @@ sdk/Sdks/Microsoft.NET.Sdk/codestyle/cs/Microsoft.CodeAnalysis.CSharp.CodeStyle.
 sdk/Sdks/Microsoft.NET.Sdk/codestyle/cs/Microsoft.CodeAnalysis.CSharp.CodeStyle.dll
 sdk/Sdks/Microsoft.NET.Sdk/codestyle/cs/Microsoft.CodeAnalysis.CodeStyle.Fixes.dll
 sdk/Sdks/Microsoft.NET.Sdk/codestyle/cs/Microsoft.CodeAnalysis.CodeStyle.dll
+nuget/microsoft.windowsdesktop.app.ref/10.0.14/analyzers/dotnet/System.Windows.Forms.Analyzers.dll
+nuget/microsoft.windowsdesktop.app.ref/10.0.14/analyzers/dotnet/cs/System.Windows.Forms.Analyzers.CSharp.dll
+nuget/microsoft.windowsdesktop.app.ref/10.0.14/analyzers/dotnet/cs/System.Windows.Forms.Analyzers.CodeFixes.CSharp.dll
+packs/Microsoft.WindowsDesktop.App.Ref/10.0.14/analyzers/dotnet/System.Windows.Forms.Analyzers.dll
+packs/Microsoft.WindowsDesktop.App.Ref/10.0.14/analyzers/dotnet/cs/System.Windows.Forms.Analyzers.CSharp.dll
+packs/Microsoft.WindowsDesktop.App.Ref/10.0.14/analyzers/dotnet/cs/System.Windows.Forms.Analyzers.CodeFixes.CSharp.dll

@@ -17,6 +17,7 @@ public sealed record UpdateSettingsSnapshot(GeneralSettings Settings, IReadOnlyL
         if (File.Exists(catalogPath))
         {
             using var catalog = JsonDocument.Parse(File.ReadAllBytes(catalogPath));
+            ValidateHeader(catalog.RootElement);
             if (catalog.RootElement.TryGetProperty("activeProfileId", out var active))
                 id = active.GetString() ?? throw new JsonException("Null active profile.");
         }
@@ -27,6 +28,7 @@ public sealed record UpdateSettingsSnapshot(GeneralSettings Settings, IReadOnlyL
         if (File.Exists(path))
         {
             using var document = JsonDocument.Parse(File.ReadAllBytes(path));
+            ValidateHeader(document.RootElement);
             if (document.RootElement.TryGetProperty("general", out var general))
             {
                 if (general.TryGetProperty("checkForUpdates", out var enabled))
@@ -38,4 +40,11 @@ public sealed record UpdateSettingsSnapshot(GeneralSettings Settings, IReadOnlyL
         SettingsValidation.NormalizeUpdateChannel(settings, warnings);
         return new(settings, warnings);
     }
+    private static void ValidateHeader(JsonElement root)
+    {
+        if (!root.TryGetProperty("schemaVersion", out var version) || !version.TryGetInt32(out var number) || number != 1 ||
+            !root.TryGetProperty("game", out var game) || !game.TryGetInt32(out var gameId) || gameId != 1)
+            throw new JsonException("Updater requires supported schemaVersion and PoE1 game settings.");
+    }
+
 }

@@ -66,3 +66,9 @@ M:System.Reflection.Emit.TypeBuilder.DefinePInvokeMethod(System.String,System.St
 M:System.Reflection.Emit.TypeBuilder.DefinePInvokeMethod(System.String,System.String,System.String,System.Reflection.MethodAttributes,System.Reflection.CallingConventions,System.Type,System.Type[],System.Type[],System.Type[],System.Type[][],System.Type[][],System.Runtime.InteropServices.CallingConvention,System.Runtime.InteropServices.CharSet); Native emission or process access is forbidden.
 M:System.Reflection.Emit.TypeBuilder.DefinePInvokeMethodCore(System.String,System.String,System.String,System.Reflection.MethodAttributes,System.Reflection.CallingConventions,System.Type,System.Type[],System.Type[],System.Type[],System.Type[][],System.Type[][],System.Runtime.InteropServices.CallingConvention,System.Runtime.InteropServices.CharSet); Native emission or process access is forbidden.
 T:System.Reflection.Emit.DynamicMethod; Native emission or process access is forbidden.
+
+// SPECULATIVE: WinForms UI APIs, not loaded by portable metadata inventory.
+P:System.Windows.Forms.Cursor.Position; SPECULATIVE: WinForms cursor mutation is input synthesis.
+M:System.Windows.Forms.Cursor.set_Position(System.Drawing.Point); SPECULATIVE: WinForms cursor mutation is input synthesis.
+P:System.Windows.Forms.Cursor.Clip; SPECULATIVE: WinForms cursor confinement affects game input.
+M:System.Windows.Forms.Control.InvokeOnClick(System.Windows.Forms.Control,System.EventArgs); SPECULATIVE: WinForms synthetic clicks are forbidden.

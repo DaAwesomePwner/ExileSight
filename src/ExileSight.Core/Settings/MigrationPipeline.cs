@@ -5,7 +5,9 @@ namespace ExileSight.Core.Settings;
 
 /// <summary>An expected data problem in an older document. The store preserves that file and
 /// tries its backup. JsonException has the same recovery behavior. Other exceptions indicate bugs:
-/// they propagate before any file mutation, leaving the original main and backup untouched.</summary>
+/// they propagate without modifying the migration source. An invalid main may already have been
+/// quarantined before migration of the backup begins. Invalid migration output follows recovery:
+/// try the backup, then defaults, retaining original main bytes in .corrupt-* files.</summary>
 public sealed class MigrationValidationException(string message) : Exception(message);
 
 /// <summary>Signal invalid source data with JsonException or MigrationValidationException only.

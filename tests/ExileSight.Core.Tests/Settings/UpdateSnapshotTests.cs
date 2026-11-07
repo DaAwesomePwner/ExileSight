@@ -23,9 +23,9 @@ public sealed class UpdateSnapshotTests : IDisposable
         Directory.CreateDirectory(directory);
         const string id = "12345678901234567890123456789012";
         File.WriteAllText(Path.Combine(directory, "profiles.json"),
-            $$"""{"activeProfileId":"{{id}}"}""");
+            $$"""{"schemaVersion":1,"game":1,"activeProfileId":"{{id}}"}""");
         File.WriteAllText(Path.Combine(directory, id + ".json"), corrupt ? "broken" :
-            """{"schemaVersion":0,"general":{"checkForUpdates":false,"updateChannel":"PRERELEASE"}}""");
+            """{"schemaVersion":1,"game":1,"general":{"checkForUpdates":false,"updateChannel":"PRERELEASE"}}""");
         File.WriteAllText(Path.Combine(directory, id + ".json.bak"), "backup");
         File.WriteAllText(Path.Combine(directory, id + ".json." + Guid.NewGuid().ToString("N") + ".tmp"), "temporary");
         var before = Directory.GetFiles(directory).ToDictionary(p => p, File.ReadAllText);
@@ -51,7 +51,7 @@ public sealed class UpdateSnapshotTests : IDisposable
     {
         Directory.CreateDirectory(Path.Combine(root, "poe1"));
         File.WriteAllText(Path.Combine(root, "poe1", "default.json"),
-            """{"general":{"checkForUpdates":false,"updateChannel":"nightly"}}""");
+            """{"schemaVersion":1,"game":1,"general":{"checkForUpdates":false,"updateChannel":"nightly"}}""");
         var snapshot = UpdateSettingsSnapshot.Read(new AppPaths(root));
         Assert.False(snapshot.Settings.CheckForUpdates);
         Assert.Equal("stable", snapshot.Settings.UpdateChannel);

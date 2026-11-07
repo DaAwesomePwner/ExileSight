@@ -17,11 +17,7 @@ internal static class SettingsValidation
                 s.Overlay.ScaleOverride is double scale && (!double.IsFinite(scale) || scale <= 0))
                 throw new JsonException("Invalid settings sections.");
             NormalizeUpdateChannel(s.General, warnings);
-            if (s.Hotkeys.Any(x => x is null || string.IsNullOrWhiteSpace(x.Id) ||
-                x.Key is < 1 or > 255 || ((int)x.Modifiers & ~15) != 0 ||
-                string.IsNullOrWhiteSpace(x.Context) ||
-                (x.Action is null) == string.IsNullOrWhiteSpace(x.FeatureCommand) ||
-                x.Action == Platform.Abstractions.Input.ActionKind.SendChatCommand && string.IsNullOrWhiteSpace(x.Text)) ||
+            if (s.Hotkeys.Any(x => x is null || string.IsNullOrWhiteSpace(x.Id)) ||
                 s.Hotkeys.Select(x => x.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count() != s.Hotkeys.Count)
                 throw new JsonException("Invalid hotkey binding.");
         }
@@ -36,12 +32,29 @@ internal static class SettingsValidation
     public static void DisableUnknownBindings(VersionedDocument document, List<string> warnings)
     {
         if (document is not SettingsDocument settings) return;
-        foreach (var binding in settings.Hotkeys.Where(x => x.Action is { } action && !Enum.IsDefined(action)))
+        foreach (var binding in settings.Hotkeys)
         {
+            var reasons = BindingProblems(binding).ToArray();
+            if (reasons.Length == 0) continue;
             binding.Enabled = false;
-            var warning = $"Binding '{binding.Id}' disabled: unknown action kind {binding.Action}.";
-            if (!warnings.Contains(warning)) warnings.Add(warning);
+            foreach (var reason in reasons)
+            {
+                var warning = $"Binding '{binding.Id}' disabled: {reason}.";
+                if (!warnings.Contains(warning)) warnings.Add(warning);
+            }
         }
+    }
+
+    private static IEnumerable<string> BindingProblems(PersistedBinding binding)
+    {
+        if (binding.Key is < 1 or > 255) yield return "key must be in 1..255";
+        if (((int)binding.Modifiers & ~15) != 0) yield return "unknown modifier bits";
+        if (string.IsNullOrWhiteSpace(binding.Context)) yield return "blank context";
+        if ((binding.Action is null) == string.IsNullOrWhiteSpace(binding.FeatureCommand))
+            yield return "exactly one Action or FeatureCommand is required";
+        if (binding.Action == Platform.Abstractions.Input.ActionKind.SendChatCommand && string.IsNullOrWhiteSpace(binding.Text))
+            yield return "SendChatCommand requires text";
+        if (binding.Action is { } action && !Enum.IsDefined(action)) yield return $"unknown action kind {action}";
     }
 
     /// <summary>Unknown bindings cannot be edited safely by this version. Preserve their stored
@@ -51,13 +64,13 @@ internal static class SettingsValidation
     {
         if (stored is not SettingsDocument original || candidate is not SettingsDocument updated ||
             updated.Hotkeys is null) return;
-        var unknown = original.Hotkeys.Where(x => x.Action is { } action && !Enum.IsDefined(action))
+        var unknown = original.Hotkeys.Where(x => BindingProblems(x).Any())
             .ToDictionary(x => x.Id, StringComparer.OrdinalIgnoreCase);
         foreach (var binding in updated.Hotkeys)
         {
             if (binding is null || binding.Id is null || !unknown.TryGetValue(binding.Id, out var previous)) continue;
-            binding.Enabled = previous.Enabled;
-            binding.Action = previous.Action;
+            if (BindingProblems(binding).Any()) binding.Enabled = previous.Enabled;
+            if (previous.Action is { } action && !Enum.IsDefined(action)) binding.Action = previous.Action;
         }
     }
 

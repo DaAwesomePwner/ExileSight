@@ -1,7 +1,7 @@
-using System.Text.Json;
-using ExileSight.Core.Games;
 using System.Diagnostics;
+using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
+using ExileSight.Core.Games;
 using ExileSight.Platform.Abstractions.Storage;
 
 namespace ExileSight.Core.Settings;
