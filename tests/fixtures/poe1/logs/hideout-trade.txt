@@ -1,0 +1,8 @@
+# Synthetic made-up data; real owner recordings override this fixture.
+2026/11/06 12:00:00 1000 abc [INFO Client 42] : You have entered Coastal Hideout.
+2026/11/06 12:00:01 1001 abc [INFO Client 42] @From <TEST> Moon雪: Hi, I would like to buy your Doom Nail listed for 2 divine in Synthetic (stash tab "Sales"; position: left 3, top 4)
+2026/11/06 12:00:02 1002 abc [INFO Client 42] @To Moon雪: thanks for trading
+2026/11/06 12:00:03 1003 abc [INFO Client 42] Finished reloading online filter SyntheticFilter
+2026/11/06 12:00:04 1004 abc [INFO Client 42] #<TEST> Moon雪: hello
+2026/11/06 12:00:05 1005 abc [INFO Client 42] : AFK mode is now ON. Autoreply message "away"
+2026/11/06 12:00:06 1006 abc [INFO Client 42] : DND mode is now OFF.

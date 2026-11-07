@@ -29,4 +29,4 @@ tests/fixtures/
 
 ## Privacy
 
-`Client.txt` contains whispers, character names and account names. Before committing a log, run the redaction script (`tools/redact-log`, added in Phase 1). Until it exists, replace other players' names with `PlayerA`, `PlayerB` and so on, and remove whisper text. Item texts are fine to commit as-is.
+`Client.txt` contains whispers, character names and account names. Run `dotnet run --project tools/ExileSight.RedactLog -- EXCERPT.txt --output REDACTED.txt` on a copied excerpt (never the live game file). Output must be a new file; omit `--output` for stdout. Add `--keep "YourCharacter"` to preserve your own name. Names are consistently pseudonymized per invocation; whisper/chat bodies, filter names, dialogue text and unrecognized lines are removed conservatively. Review the result before committing. Item texts are fine to commit as-is.
