@@ -43,7 +43,9 @@ public sealed class DiscoveryTests
             File.WriteAllText(path, "synthetic log fixture");
             using var writer = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete);
             Assert.Null(ClientLogDiscovery.Validate(path));
-            Assert.Equal("synthetic log fixture", File.ReadAllText(path));
+            // Read with the same sharing the game allows; File.ReadAllText denies writers and fails on Windows.
+            using (var reader = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete)))
+                Assert.Equal("synthetic log fixture", reader.ReadToEnd());
             Assert.NotNull(ClientLogDiscovery.Validate(Path.Combine(root, "production_Config.ini")));
             Assert.NotNull(ClientLogDiscovery.Validate(null));
         }
