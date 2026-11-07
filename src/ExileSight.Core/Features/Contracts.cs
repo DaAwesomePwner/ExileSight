@@ -20,6 +20,7 @@ public interface IFeatureContext
         throw new NotSupportedException();
     void RegisterDefaultBinding(FeatureDefaultBinding binding) => throw new NotSupportedException();
     IReadOnlyList<IOmniHandler> OmniHandlers => [];
+    void DispatchFeature(Action work) => work();
     void DispatchOmni(ParsedItem item, OmniContext context, OmniPressKind press) =>
         throw new NotSupportedException();
     void RegisterOmniHandler(IOmniHandler handler);
@@ -27,6 +28,8 @@ public interface IFeatureContext
     void RegisterOverlay(object viewModel);
     void RegisterTooltipSection(ITooltipSectionProvider provider) => throw new NotSupportedException();
     IReadOnlyList<ITooltipSectionProvider> TooltipSections => [];
+    void RegisterItemMenu(IItemMenuProvider provider) => throw new NotSupportedException();
+    IReadOnlyList<IItemMenuProvider> ItemMenus => [];
     JsonElement? ReadSetting(string key);
     void WriteSetting(string key, JsonElement value);
 }

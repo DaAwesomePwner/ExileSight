@@ -17,6 +17,7 @@ public sealed class OmniPress(IFeatureContext context, OmniMenu menu)
     {
         if (press.Id <= lastId) return new(ActionOutcome.UsedOrUnknownToken);
         lastId = press.Id;
+        menu.BeginPress(press.Id);
         pending = null;
         item = null;
         var result = context.Execute(token, new GameAction.CopyItem());
@@ -33,7 +34,11 @@ public sealed class OmniPress(IFeatureContext context, OmniMenu menu)
         pending = null;
         item = null;
         if (captured is null || release.UpTimestamp < down.Timestamp) return;
-        if (release.UpTimestamp - down.Timestamp > LongPressMilliseconds) menu.Show(captured);
+        if (release.UpTimestamp - down.Timestamp > LongPressMilliseconds)
+        {
+            var origin = menu.Capture(release.Id);
+            context.DispatchFeature(() => menu.Show(captured, origin));
+        }
         else context.DispatchOmni(captured, new(Game.PoE1), OmniPressKind.Short);
     }
 }

@@ -1,4 +1,5 @@
 using System.Windows;
+using ExileSight.Core.Features;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -38,13 +39,15 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
     public void Start(OmniMenu menu)
     {
         model = menu;
-        window.Content = new Border { Background = Brushes.Black, Padding = new Thickness(8), Child = panel };
+        window.Content = new Border { Background = Brushes.Black, Padding = new Thickness(8), Child = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } };
         handle = new WindowInteropHelper(window).EnsureHandle();
         styler.Apply(handle);
         styler.SetClickThrough(handle, false);
         window.DpiChanged += DpiChanged;
         menu.League = ReadLeague;
-        menu.Opened += Open;
+        menu.CursorPosition = () => { var point = HookHost.CursorPosition(); return (point.X, point.Y); };
+        menu.ReportFailure = type => logger.LogWarning("Item menu provider failed: {ExceptionType}", type);
+        menu.Presented += Open;
         window.IsVisibleChanged += VisibilityChanged;
         if (prices is not null) _ = DiscoverLeagueAsync();
         game.Changed += GameChanged;
@@ -61,9 +64,10 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
         if (window.IsVisible) passive.Open(this, Observed);
         else passive.Close(this);
     }
-    private void Open(IReadOnlyList<OmniLink> links) => window.Dispatcher.BeginInvoke(() =>
+    private void Open(OmniMenuPresentation presentation) => window.Dispatcher.BeginInvoke(() =>
     {
-        Guard(() => OpenCore(links));
+        if (model?.IsCurrent(presentation.Origin) != true) return;
+        Guard(() => OpenCore(presentation));
     });
     private void Guard(Action action) => OverlayFailureGuard.Run(action,
         () => { passive.Close(this); window.Hide(); },
@@ -78,11 +82,11 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
             if (!disposed && window.IsVisible) Guard(Position);
         });
     }
-    private void OpenCore(IReadOnlyList<OmniLink> links)
+    private void OpenCore(OmniMenuPresentation presentation)
     {
         if (disposed || !game.Current.Found || game.Current.IsMinimized || !game.Current.IsForeground || !settings.Snapshot.Overlay.Enabled) return;
         panel.Children.Clear();
-        foreach (var link in links)
+        foreach (var link in presentation.Links)
         {
             var button = new Button { Content = link.Label, Margin = new Thickness(2), Padding = new Thickness(6) };
             button.Click += (_, _) =>
@@ -93,8 +97,22 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
             };
             panel.Children.Add(button);
         }
-        var cursor = HookHost.CursorPosition();
-        originX = cursor.X; originY = cursor.Y;
+        foreach (var entry in presentation.Entries)
+        {
+            var button = new Button
+            {
+                Content = new TextBlock { Text = "[" + entry.FeatureId + "] " + entry.Label, TextWrapping = TextWrapping.Wrap },
+                Margin = new Thickness(2), Padding = new Thickness(6)
+            };
+            button.Click += (_, _) =>
+            {
+                window.Hide();
+                try { entry.Execute(); }
+                catch (Exception error) { logger.LogWarning("Item menu action failed: {ExceptionType}", error.GetType().Name); }
+            };
+            panel.Children.Add(button);
+        }
+        originX = presentation.Origin.X; originY = presentation.Origin.Y;
         Position();
         window.Show();
         Position();
@@ -106,7 +124,7 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
         if (client.Width <= 0 || client.Height <= 0) throw new InvalidOperationException("Game client has no drawable area");
         var scale = OverlayRules.Scale(client.Height, settings.Snapshot.Overlay.ScaleOverride);
         var width = Math.Min((int)(260 * scale), client.Width);
-        var height = Math.Min((int)(180 * scale), client.Height);
+        var height = Math.Min((int)(Math.Max(180, panel.Children.Count * 38 + 16) * scale), client.Height);
         var x = Math.Clamp(originX + 8, client.X, (client.X + client.Width) - width);
         var y = Math.Clamp(originY + 8, client.Y, (client.Y + client.Height) - height);
         bounds = new(x, y, width, height);
@@ -145,7 +163,7 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
 
         game.Changed -= GameChanged;
         settings.Changed -= SettingsChanged;
-        if (model is not null) model.Opened -= Open;
+        if (model is not null) model.Presented -= Open;
         void Close()
         {
             passive.Close(this);

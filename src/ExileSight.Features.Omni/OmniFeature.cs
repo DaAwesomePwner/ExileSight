@@ -13,6 +13,7 @@ public sealed class OmniFeature : IFeature
     public OmniMenu Menu { get; } = new();
     public void Register(IFeatureContext context)
     {
+        Menu.Providers = () => context.ItemMenus;
         var press = new OmniPress(context, Menu);
         context.RegisterPressCommand("press", ActionKind.CopyItem, press.Start, press.Release);
         context.RegisterDefaultBinding(new("omni.press", 0x14, KeyModifiers.None, true, "omni:press"));
