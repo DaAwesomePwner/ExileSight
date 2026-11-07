@@ -17,3 +17,6 @@ SetWindowPos
 WINEVENT_OUTOFCONTEXT
 GetWindowText
 WINEVENT_SKIPOWNPROCESS
+
+MonitorFromRect
+GetMonitorInfo

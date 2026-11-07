@@ -127,11 +127,8 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
         var client = game.Current.ClientRect;
         if (client.Width <= 0 || client.Height <= 0) throw new InvalidOperationException("Game client has no drawable area");
         var scale = OverlayRules.Scale(client.Height, settings.Snapshot.Overlay.ScaleOverride);
-        var width = Math.Min((int)(260 * scale), client.Width);
-        var height = Math.Min((int)(Math.Max(180, panel.Children.Count * 38 + 16) * scale), client.Height);
-        var x = Math.Clamp(originX + 8, client.X, (client.X + client.Width) - width);
-        var y = Math.Clamp(originY + 8, client.Y, (client.Y + client.Height) - height);
-        bounds = new(x, y, width, height);
+        bounds = PopupPlacement.Place(client, styler.GetWorkArea(client), originX, originY,
+            260, Math.Max(180, panel.Children.Count * 38 + 16), scale, 8);
         styler.Position(handle, bounds);
         var dpi = VisualTreeHelper.GetDpi(window);
         ((FrameworkElement)window.Content).LayoutTransform = new ScaleTransform(scale / dpi.DpiScaleX, scale / dpi.DpiScaleY);

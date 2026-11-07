@@ -85,11 +85,9 @@ public sealed class ItemInfoTooltip(PassiveOverlayInput passive, IGameWindow gam
         if (client.Width <= 0 || client.Height <= 0) throw new InvalidOperationException("Game client has no drawable area");
         scale = OverlayRules.Scale(client.Height, settings.Snapshot.Overlay.ScaleOverride);
         panel.Measure(new Size(410, double.PositiveInfinity));
-        var width = Math.Min((int)Math.Ceiling(430 * scale), client.Width);
-        var height = Math.Min((int)Math.Ceiling((panel.DesiredSize.Height + 20) * scale), client.Height);
-        var x = Math.Clamp(originX + (int)(12 * scale), client.X, client.X + client.Width - width);
-        var y = Math.Clamp(originY + (int)(12 * scale), client.Y, client.Y + client.Height - height);
-        styler.Position(handle, new(x, y, width, height));
+        var bounds = PopupPlacement.Place(client, styler.GetWorkArea(client), originX, originY,
+            430, panel.DesiredSize.Height + 20, scale, 12);
+        styler.Position(handle, bounds);
         var dpi = VisualTreeHelper.GetDpi(window);
         ((FrameworkElement)window.Content).LayoutTransform = new ScaleTransform(scale / dpi.DpiScaleX, scale / dpi.DpiScaleY);
     }

@@ -18,6 +18,7 @@ public sealed class HostedOverlayWindow : System.Windows.Window
     private bool dpiRefreshPending;
     private nint handle;
     private bool clickThrough;
+    internal Func<PixelRect, double, PixelRect>? PhysicalPlacement { get; set; }
     internal bool RequestedVisible { get; set; } = true;
     internal event EventHandler? RefreshRequested;
 
@@ -80,7 +81,8 @@ public sealed class HostedOverlayWindow : System.Windows.Window
             Hide();
             return;
         }
-        var physical = placement.Calculate(client, design, scaleOverride);
+        var physical = PhysicalPlacement?.Invoke(client, OverlayRules.Scale(client.Height, scaleOverride))
+            ?? placement.Calculate(client, design, scaleOverride);
         bool justShown = !IsVisible;
         if (justShown) Show();
         if (placement.NeedsPosition(physical, styler.GetBounds(handle), justShown))

@@ -41,7 +41,7 @@ public sealed class GuideView
         Button("Reset run", () => model.Reset());
         Button("League start (resets)", () => model.Reset(changeLeague: true));
         Button("Bandit (resets)", () => model.Reset(changeBandit: true)); Button("Close", model.Hide);
-        panel = host.Register(content, new OverlayRect(20, 320, 460, 440), clickThrough: false);
+        panel = host.Register(content, DefaultOverlayLayout.Guide, clickThrough: false);
         host.SetVisible(panel, false);
         host.Changed += FocusChanged;
         timer.Tick += (_, _) => Refresh(); timer.Start();
