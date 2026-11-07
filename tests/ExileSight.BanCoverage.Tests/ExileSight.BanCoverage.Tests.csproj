@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Windows.CsWin32" PrivateAssets="all" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+  <Target Name="RecordWindowsProjection" AfterTargets="ResolveReferences">
+    <ItemGroup>
+      <_WindowsProjection Include="@(ReferencePath)" Condition="'%(Filename)' == 'Microsoft.Windows.SDK.NET'" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(OutputPath)WindowsProjection.path" Lines="@(_WindowsProjection->'%(FullPath)')" Overwrite="true" />
+  </Target>
+</Project>

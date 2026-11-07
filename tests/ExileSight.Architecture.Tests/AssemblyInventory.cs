@@ -38,12 +38,13 @@ internal static class AssemblyInventory
                 var name = reader.GetString(type.Namespace) + "." + reader.GetString(type.Name);
                 result.Add("T:" + name);
                 // Only these types contribute method bans; avoid unrelated function-pointer signatures.
-                if (name is not ("Windows.Win32.PInvoke" or "System.Runtime.InteropServices.Marshal" or "System.Diagnostics.Process"))
+                if (name is not ("Windows.Win32.PInvoke" or "System.Runtime.InteropServices.Marshal" or "System.Diagnostics.Process" or "System.Reflection.Emit.TypeBuilder" or "System.Reflection.Emit.ILGenerator"))
                     continue;
                 foreach (var methodHandle in type.GetMethods())
                 {
                     var method = reader.GetMethodDefinition(methodHandle);
-                    if (name != "Windows.Win32.PInvoke" && (method.Attributes & System.Reflection.MethodAttributes.MemberAccessMask) != System.Reflection.MethodAttributes.Public)
+                    if (name != "Windows.Win32.PInvoke" && (method.Attributes & System.Reflection.MethodAttributes.MemberAccessMask)
+                        is not (System.Reflection.MethodAttributes.Public or System.Reflection.MethodAttributes.Family or System.Reflection.MethodAttributes.FamORAssem))
                         continue;
                     result.Add(MetadataSignatures.MethodId(reader, type, method));
                 }

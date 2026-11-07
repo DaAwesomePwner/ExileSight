@@ -27,7 +27,7 @@ public sealed class ScaffoldConfigurationTests
         var props = XDocument.Load(Path.Combine(Repository.Root, "Directory.Build.props"));
         Assert.Equal("true", props.Descendants("EnforceCodeStyleInBuild").Single().Value);
         var targets = XDocument.Load(Path.Combine(Repository.Root, "Directory.Build.targets"));
-        Assert.Contains("RS0030", targets.Descendants("WarningsAsErrors").Single().Value.Split(';'));
-        Assert.Equal("", targets.Descendants("WarningsNotAsErrors").Single().Value);
+        Assert.Contains("RS0030", targets.Root!.Element("PropertyGroup")!.Element("WarningsAsErrors")!.Value.Split(';'));
+        Assert.Equal("", targets.Root!.Element("PropertyGroup")!.Element("WarningsNotAsErrors")!.Value);
     }
 }

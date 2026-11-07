@@ -4,10 +4,17 @@ internal static class Repository
 {
     internal static readonly string Root = FindRoot();
 
-    internal static IEnumerable<string> Files(string pattern) =>
-        Directory.EnumerateFiles(Root, pattern, SearchOption.AllDirectories)
-            .Where(p => !Path.GetRelativePath(Root, p).Split(Path.DirectorySeparatorChar)
-                .Any(part => new[] { "obj", "bin", ".git" }.Contains(part, StringComparer.OrdinalIgnoreCase)));
+    internal static IEnumerable<string> Files(string pattern) => Walk(Root, pattern);
+
+    private static IEnumerable<string> Walk(string directory, string pattern)
+    {
+        foreach (var file in Directory.EnumerateFiles(directory, pattern))
+            yield return file;
+        foreach (var child in Directory.EnumerateDirectories(directory).Where(p =>
+                     !new[] { "obj", "bin", ".git" }.Contains(Path.GetFileName(p), StringComparer.OrdinalIgnoreCase)))
+            foreach (var file in Walk(child, pattern))
+                yield return file;
+    }
 
     internal static bool IsProduction(string path) => new[] { "src/", "tools/" }
         .Any(prefix => Relative(path).StartsWith(prefix, StringComparison.OrdinalIgnoreCase));

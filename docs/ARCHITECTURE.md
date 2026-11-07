@@ -81,11 +81,11 @@ The omni-key is a router feature. Other features register `IOmniHandler`s with a
 
 A future `Platform.Mac` would implement the same abstractions (CGEventTap, ScreenCaptureKit, Vision OCR), and a new UI project would reuse `Features.*` view models. Nothing in Core or Features may assume Windows.
 
-## Scaffold enforcement decisions (D-015, D-018–D-022)
+## Scaffold enforcement decisions (D-015, D-018–D-025)
 
 The App targets Windows 10 build 19041 to reference Platform.Windows (the shorthand `net10.0-windows` defaults to Windows 7). Its application manifest declares PerMonitorV2 DPI awareness. WPF supplies HwndSource and WindowInteropHelper without additional package or project changes.
 
-CsWin32 is the only native-import path: hand-written imports, extern methods and unmanaged function pointers are forbidden throughout src/ and tools/, including Platform.Windows. Its generated members are internal; marshaling is enabled for typed callback delegates, while friendly overloads and SafeHandle wrappers are disabled. Window/NativeMethods.txt and Input/NativeMethods.txt are separate generator inputs. The Input list deliberately generates restricted APIs so assembly metadata tests can check every exact banned signature; generation does not authorize calling them. Only Input/ActionGate.cs may suppress RS0030.
+CsWin32 is the only native-import path: hand-written imports, extern methods and unmanaged function pointers are forbidden throughout src/ and tools/, including Platform.Windows. Its generated members are internal; marshaling is enabled for typed callback delegates, while friendly overloads and SafeHandle wrappers are disabled. Window/NativeMethods.txt and Input/NativeMethods.txt are separate generator inputs. Only SendInput among restricted APIs may be generated in production. A separate test-only ExileSight.BanCoverage.Tests inventory generates the other restricted APIs for exact metadata/ban coverage; production cannot reference it. Only Input/ActionGate.cs may suppress RS0030. Evaluated compiler guards before and after CoreCompile reject removed analyzers/bans, warning downgrades and unapproved analyzer configs, including mutations registered late in the build.
 
 Architecture tests inspect exact current-configuration assembly paths, fail clearly when an assembly is missing, enforce project and compiled dependency edges, and reject P/Invoke metadata everywhere except Platform.Windows. DataGen is portable net10.0 and may reference Core and Abstractions. Core and Abstractions cannot reference features; features cannot reference each other. Only App and Platform.Windows.Tests may reference Platform.Windows. Build the entire solution before running architecture tests independently.
 

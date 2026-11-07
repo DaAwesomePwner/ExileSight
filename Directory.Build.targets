@@ -3,4 +3,73 @@
     <WarningsAsErrors>$(WarningsAsErrors);RS0030</WarningsAsErrors>
     <WarningsNotAsErrors />
   </PropertyGroup>
+  <UsingTask TaskName="ExileSightValidateCompilerInputs" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)/Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <NoWarn ParameterType="System.String" />
+      <WarningsNotAsErrors ParameterType="System.String" />
+      <WarningsAsErrors ParameterType="System.String" />
+      <TreatWarningsAsErrors ParameterType="System.String" />
+      <RunAnalyzers ParameterType="System.String" />
+      <RunAnalyzersDuringBuild ParameterType="System.String" />
+      <Analyzers ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
+      <AdditionalFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
+      <Configs ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
+      <BannedFile ParameterType="System.String" Required="true" />
+      <RepoConfig ParameterType="System.String" Required="true" />
+      <GeneratedConfig ParameterType="System.String" />
+      <SdkDirectory ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        Action<string> fail = message => Log.LogError("ExileSight compiler boundary: " + message);
+        Func<string, bool> containsBan = value => Regex.IsMatch(value ?? "", @"(?i)\bRS0030\b");
+        if (containsBan(NoWarn)) fail("NoWarn contains RS0030.");
+        if (containsBan(WarningsNotAsErrors)) fail("WarningsNotAsErrors contains RS0030.");
+        if (!string.Equals(TreatWarningsAsErrors, "true", StringComparison.OrdinalIgnoreCase) && !containsBan(WarningsAsErrors))
+            fail("WarningsAsErrors must contain RS0030.");
+        if (string.Equals(RunAnalyzers, "false", StringComparison.OrdinalIgnoreCase) || string.Equals(RunAnalyzersDuringBuild, "false", StringComparison.OrdinalIgnoreCase))
+            fail("Analyzers must run during compilation.");
+        var analyzers = Analyzers ?? new Microsoft.Build.Framework.ITaskItem[0];
+        foreach (var required in new[] { "Microsoft.CodeAnalysis.BannedApiAnalyzers.dll", "Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.dll" })
+            if (!analyzers.Any(a => string.Equals(Path.GetFileName(a.ItemSpec), required, StringComparison.OrdinalIgnoreCase) && File.Exists(a.ItemSpec)))
+                fail("Missing BannedApiAnalyzers compiler assembly: " + required);
+        var additional = AdditionalFiles ?? new Microsoft.Build.Framework.ITaskItem[0];
+        if (!File.Exists(BannedFile) || !additional.Any(a => string.Equals(Path.GetFullPath(a.ItemSpec), Path.GetFullPath(BannedFile), StringComparison.OrdinalIgnoreCase)))
+            fail("Missing repository BannedSymbols.txt compiler input.");
+        foreach (var config in Configs ?? new Microsoft.Build.Framework.ITaskItem[0])
+        {
+            var path = Path.GetFullPath(config.ItemSpec);
+            // The SDK includes nonexistent ancestor .globalconfig search candidates.
+            if (!File.Exists(path)) continue;
+            var repo = string.Equals(path, Path.GetFullPath(RepoConfig), StringComparison.OrdinalIgnoreCase);
+            var generated = !string.IsNullOrEmpty(GeneratedConfig) && string.Equals(path, Path.GetFullPath(GeneratedConfig), StringComparison.OrdinalIgnoreCase);
+            var sdk = new[] { "analyzers/build/config", "codestyle/cs/build/config" }.Any(folder =>
+                path.StartsWith(Path.GetFullPath(Path.Combine(SdkDirectory, "Sdks/Microsoft.NET.Sdk", folder)) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase));
+            if (!repo && !generated && !sdk) fail("Unapproved analyzer config: " + path);
+            // SDK-generated per-project settings are allowed only if they do not change analyzer policy.
+            if (generated && File.Exists(path) && Regex.IsMatch(File.ReadAllText(path), @"(?i)RS0030|ApiDesign|dotnet_analyzer_diagnostic"))
+                fail("Generated analyzer config changes diagnostic policy: " + path);
+        }
+      ]]></Code>
+    </Task>
+  </UsingTask>
+  <!-- The second guard catches targets registered later that mutate inputs immediately before Csc. -->
+  <Target Name="ExileSightGuardBeforeCompile" BeforeTargets="CoreCompile">
+    <ExileSightValidateCompilerInputs NoWarn="$(NoWarn)" WarningsNotAsErrors="$(WarningsNotAsErrors)" WarningsAsErrors="$(WarningsAsErrors)"
+      TreatWarningsAsErrors="$(TreatWarningsAsErrors)" RunAnalyzers="$(RunAnalyzers)" RunAnalyzersDuringBuild="$(RunAnalyzersDuringBuild)"
+      Analyzers="@(Analyzer)" AdditionalFiles="@(AdditionalFiles)" Configs="@(GlobalAnalyzerConfigFiles);@(EditorConfigFiles)"
+      BannedFile="$(MSBuildThisFileDirectory)BannedSymbols.txt" RepoConfig="$(MSBuildThisFileDirectory).editorconfig"
+      GeneratedConfig="$(GeneratedMSBuildEditorConfigFile)" SdkDirectory="$(MSBuildToolsPath)" />
+  </Target>
+  <Target Name="ExileSightGuardAfterCompile" AfterTargets="CoreCompile">
+    <ExileSightValidateCompilerInputs NoWarn="$(NoWarn)" WarningsNotAsErrors="$(WarningsNotAsErrors)" WarningsAsErrors="$(WarningsAsErrors)"
+      TreatWarningsAsErrors="$(TreatWarningsAsErrors)" RunAnalyzers="$(RunAnalyzers)" RunAnalyzersDuringBuild="$(RunAnalyzersDuringBuild)"
+      Analyzers="@(Analyzer)" AdditionalFiles="@(AdditionalFiles)" Configs="@(GlobalAnalyzerConfigFiles);@(EditorConfigFiles)"
+      BannedFile="$(MSBuildThisFileDirectory)BannedSymbols.txt" RepoConfig="$(MSBuildThisFileDirectory).editorconfig"
+      GeneratedConfig="$(GeneratedMSBuildEditorConfigFile)" SdkDirectory="$(MSBuildToolsPath)" />
+  </Target>
 </Project>

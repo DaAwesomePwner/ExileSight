@@ -25,6 +25,13 @@ public sealed class BoundaryScannerTests
     [InlineData("/nowarn:RS0030", ".rsp")]
     [InlineData("<Rule Id=\"RS0030\" Action=\"None\" />", ".ruleset")]
     [InlineData("<NoWarn Condition=\"1 > 0\">$(NoWarn);RS0030</NoWarn>", ".props")]
+    [InlineData("#  pragma warning disable RS0030\r\n", ".cs")]
+    [InlineData("#\tpragma warning disable\r\n", ".cs")]
+    [InlineData("using X = System.Diagnostics.CodeAnalysis.SuppressMessageAttribute;", ".cs")]
+    [InlineData("using X = System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute;", ".cs")]
+    [InlineData("<AdditionalFiles Remove=\"@(AdditionalFiles)\" />", ".targets")]
+    [InlineData("<AdditionalFiles Remove=\"@(AdditionalFiles->'%(Identity)')\" />", ".targets")]
+    [InlineData("<Target Name=\"Mutate\"><ItemGroup><Analyzer Remove=\"@(Analyzer)\" /></ItemGroup></Target>", ".targets")]
     public void DetectsSuppression(string text, string extension) => Assert.True(BoundaryScanner.Suppression(text, extension));
 
     [Theory]
@@ -48,11 +55,21 @@ public sealed class BoundaryScannerTests
     [InlineData("SetWinEventHook(1, 2, module, callback, 0, 0, flags);")]
     [InlineData("var hook = SetWinEventHook;")]
     [InlineData("SetWinEventHook(1, 2, module, callback, 0, 0, WINEVENT_OUTOFCONTEXT | flags);")]
+    [InlineData("const int WH_KEYBOARD_LL = 2;")]
+    [InlineData("static int WH_MOUSE_LL;")]
+    [InlineData("const uint WINEVENT_OUTOFCONTEXT = 4;")]
+    [InlineData("int first, WH_MOUSE_LL = 2;")]
+    [InlineData("using PInvoke = Evil.Native;")]
+    [InlineData("SetWindowsHookEx(Fake.WH_KEYBOARD_LL, callback, module, 0);")]
+    [InlineData("SetWinEventHook(1, 2, module, callback, 0, 0, Fake.WINEVENT_OUTOFCONTEXT);")]
     public void DetectsUnsafeHooks(string text) => Assert.True(BoundaryScanner.UnsafeHooks(text));
 
     [Theory]
     [InlineData("SetWindowsHookEx(WINDOWS_HOOK_ID.WH_KEYBOARD_LL, callback, module, 0);")]
-    [InlineData("SetWindowsHookExW(WH_MOUSE_LL, callback, module, 0);")]
-    [InlineData("SetWinEventHook(1, 2, module, callback, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);")]
+    [InlineData("SetWindowsHookExW(WINDOWS_HOOK_ID.WH_MOUSE_LL, callback, module, 0);")]
+    [InlineData("SetWinEventHook(1, 2, module, callback, 0, 0, PInvoke.WINEVENT_OUTOFCONTEXT | PInvoke.WINEVENT_SKIPOWNPROCESS);")]
+    [InlineData("SetWindowsHookEx((WINDOWS_HOOK_ID)13, callback, module, 0);")]
+    [InlineData("SetWindowsHookEx(global::Windows.Win32.UI.WindowsAndMessaging.WINDOWS_HOOK_ID.WH_MOUSE_LL, callback, module, 0);")]
+    [InlineData("SetWinEventHook(1, 2, module, callback, 0, 0, 0U);")]
     public void AcceptsSafeHooks(string text) => Assert.False(BoundaryScanner.UnsafeHooks(text));
 }

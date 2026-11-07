@@ -21,8 +21,8 @@ internal static class BoundaryScanner
         if (extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
         {
             var code = Code(text);
-            return Regex.IsMatch(code, @"^\s*#pragma\s+warning\s+disable(?:[ \t]*\r?$|[^\r\n]*\bRS0030\b)", Options)
-                || Regex.IsMatch(code, @"\b(?:UnconditionalSuppressMessage|SuppressMessage)(?:Attribute)?\s*\(");
+            return Regex.IsMatch(code, @"^\s*#[ \t]*pragma\s+warning\s+disable(?:[ \t]*\r?$|[^\r\n]*\bRS0030\b)", Options)
+                || Regex.IsMatch(code, @"\b(?:UnconditionalSuppressMessage|SuppressMessage)(?:Attribute)?\b");
         }
         return XmlSuppression(text) || Regex.IsMatch(text, @"<(?:NoWarn|WarningsNotAsErrors)\b[^>]*>[^<]*RS0030", Options)
             || Regex.IsMatch(text, @"<(?:CodeAnalysisTreatWarningsAsErrors|RunAnalyzers|RunAnalyzersDuringBuild|EnableNETAnalyzers)\b[^>]*>\s*false", Options)
@@ -49,8 +49,7 @@ internal static class BoundaryScanner
                 if (name == "PackageReference" && element.Attributes().Any(a => (a.Name.LocalName is "Remove" or "Update")
                     && (a.Value.Contains("BannedApiAnalyzers", StringComparison.OrdinalIgnoreCase) || a.Value.Contains('*'))))
                     return true;
-                if (name == "AdditionalFiles" && element.Attribute("Remove") is { } remove
-                    && (remove.Value.Contains("BannedSymbols", StringComparison.OrdinalIgnoreCase) || remove.Value.Contains('*')))
+                if ((name is "AdditionalFiles" or "Analyzer") && element.Attribute("Remove") is not null)
                     return true;
                 if (name == "Rule" && (string?)element.Attribute("Id") == "RS0030" && (string?)element.Attribute("Action") != "Error")
                     return true;
@@ -69,10 +68,17 @@ internal static class BoundaryScanner
     internal static bool UnsafeHooks(string text)
     {
         var code = Code(text);
+        // Unqualified safe-looking names may be shadow fields, parameters or local constants.
+        if (Regex.IsMatch(code, @"(?<![\w.])(?:WH_KEYBOARD_LL|WH_MOUSE_LL|WINEVENT_OUTOFCONTEXT)\b")
+            || Regex.IsMatch(code, @"\busing\s+(?:PInvoke|WINDOWS_HOOK_ID)\s*=")
+            || Regex.IsMatch(code, @"\b(?:class|struct|enum|interface)\s+(?:PInvoke|WINDOWS_HOOK_ID)\b"))
+            return true;
+        const string hookType = @"(?:global::Windows\.Win32\.UI\.WindowsAndMessaging\.)?WINDOWS_HOOK_ID";
+        var hookId = @"(?:" + hookType + @"\.WH_(?:KEYBOARD|MOUSE)_LL|\(\s*" + hookType + @"\s*\)\s*(?:13|14))";
         foreach (Match reference in Regex.Matches(code, @"\bSetWindowsHookEx(?:A|W)?\b"))
         {
             var tail = code[(reference.Index + reference.Length)..];
-            if (!Regex.IsMatch(tail, @"^\s*\(\s*(?:idHook\s*:\s*)?(?:\w+\.)*WH_(?:KEYBOARD|MOUSE)_LL\s*,"))
+            if (!Regex.IsMatch(tail, @"^\s*\(\s*(?:idHook\s*:\s*)?" + hookId + @"\s*,"))
                 return true;
         }
         foreach (Match reference in Regex.Matches(code, @"\bSetWinEventHook\b"))
@@ -83,8 +89,9 @@ internal static class BoundaryScanner
             if (!call.Success)
                 return true;
             var args = call.Groups[1].Value.Split(',');
-            if (args.Length != 7 || !Regex.IsMatch(args[6], @"\bWINEVENT_OUTOFCONTEXT\b")
-                || !Regex.IsMatch(args[6], @"^\s*(?:dwFlags\s*:\s*)?(?:\w+\.)*WINEVENT_(?:OUTOFCONTEXT|SKIPOWNPROCESS|SKIPOWNTHREAD)(?:\s*\|\s*(?:\w+\.)*WINEVENT_(?:OUTOFCONTEXT|SKIPOWNPROCESS|SKIPOWNTHREAD))*\s*$"))
+            const string flag = @"(?:(?:global::Windows\.Win32\.)?PInvoke\.WINEVENT_(?:OUTOFCONTEXT|SKIPOWNPROCESS|SKIPOWNTHREAD)|0[Uu]?)";
+            if (args.Length != 7 || !Regex.IsMatch(args[6], @"\bWINEVENT_OUTOFCONTEXT\b|\b0[Uu]?\b")
+                || !Regex.IsMatch(args[6], @"^\s*(?:dwFlags\s*:\s*)?" + flag + @"(?:\s*\|\s*" + flag + @")*\s*$"))
                 return true;
         }
         return false;
