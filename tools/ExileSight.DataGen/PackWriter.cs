@@ -25,6 +25,10 @@ public static class PackWriter
                 sums.Add($"{PackCodec.Hash(bytes)}  {file}");
             }
         }
+        var notice = System.Text.Encoding.UTF8.GetBytes(string.Join("\n",
+            packs.Select(p => p.Manifest.Attribution).Distinct()) + "\n");
+        await File.WriteAllBytesAsync(Path.Combine(directory, "ATTRIBUTION.txt"), notice);
+        sums.Add($"{PackCodec.Hash(notice)}  ATTRIBUTION.txt");
         await File.WriteAllTextAsync(Path.Combine(directory, "SHA256SUMS"), string.Join("\n", sums) + "\n");
     }
 }

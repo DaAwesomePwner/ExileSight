@@ -23,7 +23,28 @@ jobs:
       - run: dotnet restore ExileSight.slnx
       - run: dotnet build ExileSight.slnx -c Release -warnaserror
       - run: dotnet test ExileSight.slnx -c Release --no-build
+      - name: Generate pinned PoE1 packs
+        shell: pwsh
+        run: |
+          $sha = (Get-Content tools/ExileSight.DataGen/repoe.json | ConvertFrom-Json).sourceSha
+          if ($sha -notmatch '^[0-9a-f]{40}$') { throw "Invalid pinned SHA" }
+          New-Item -ItemType Directory -Force artifacts/export | Out-Null
+          foreach ($file in @("base_items.json", "mods.json", "stat_translations.json")) {
+            Invoke-WebRequest -MaximumRedirection 0 "https://raw.githubusercontent.com/repoe-fork/repoe-fork.github.io/$sha/data/$file" -OutFile "artifacts/export/$file"
+          }
+          dotnet run --project tools/ExileSight.DataGen -c Release -- poe1 --repoe-sha $sha --source-dir artifacts/export --out artifacts/packs/poe1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/ExileSight.DataGen/verify-packs.py artifacts/packs/poe1 artifacts/export $sha artifacts/fallback/packs/poe1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ExileSight-Packs-poe1
+          path: artifacts/packs/poe1/
+          if-no-files-found: error
       - run: dotnet publish src/ExileSight.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.APP_VERSION }} -o artifacts/publish
+      - name: Bundle verified packs in portable app
+        shell: pwsh
+        run: Copy-Item artifacts/fallback/packs artifacts/publish/packs -Recurse -Force
       - uses: actions/upload-artifact@v4
         with:
           name: ExileSight-App-win-x64
@@ -40,6 +61,9 @@ jobs:
         run: dotnet tool install --global vpk --version 1.2.161
       - name: Publish folder for Velopack
         run: dotnet publish src/ExileSight.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:Version=${{ env.APP_VERSION }} -o artifacts/velopack
+      - name: Bundle verified packs in installer input
+        shell: pwsh
+        run: Copy-Item artifacts/fallback/packs artifacts/velopack/packs -Recurse -Force
       - name: Pack installer and updates (no publishing)
         run: vpk pack --packId ExileSight --packVersion ${{ env.APP_VERSION }} --packDir artifacts/velopack --mainExe ExileSight.App.exe --packTitle ExileSight --outputDir Releases
       - uses: actions/upload-artifact@v4

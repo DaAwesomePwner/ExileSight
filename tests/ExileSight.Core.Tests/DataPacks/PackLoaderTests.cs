@@ -122,6 +122,24 @@ public sealed class PackLoaderTests : IDisposable
         Assert.NotNull((await Loader(fallback).ReadLocalAsync("poe1/bases")).Pack);
     }
 
+    [Fact]
+    public async Task OldSchemaCacheFallsBackToCurrentPack()
+    {
+        var old = Pack();
+        var content = old.Content with { SchemaVersion = 2 };
+        await Cache(new(old.Manifest with { SchemaVersion = 2,
+            ContentSha256 = PackCodec.Hash(PackCodec.ContentBytes(content)) }, content));
+        var fallback = Path.Combine(directory, "fallback");
+        Directory.CreateDirectory(fallback);
+        var current = Pack();
+        await File.WriteAllBytesAsync(Path.Combine(fallback, "poe1-bases.pack.json"),
+            JsonSerializer.SerializeToUtf8Bytes(new CachedPack(current.Manifest, PackCodec.ContentBytes(current.Content)),
+                PackJson.Default.CachedPack));
+        Assert.Equal(PackCodec.SchemaVersion, (await Loader(fallback).ReadLocalAsync("poe1/bases")).Pack!.Content.SchemaVersion);
+        Assert.Equal(0, handler.Calls);
+        Assert.Equal("poe1-stats", PackLoader.AssetName("poe1/stats"));
+    }
+
     [Theory]
     [InlineData("https://pathofexile.com/no")]
     [InlineData("http://github.com/no")]

@@ -11,6 +11,7 @@ internal static class SettingsValidation
         if (document.Game is { } game && !Enum.IsDefined(game)) throw new JsonException("Invalid game value.");
         if (document is SettingsDocument s)
         {
+            s.Prices ??= new();
             if (s.General is null || s.Overlay is null || s.Features is null || s.Hotkeys is null ||
                 s.Features.Enabled is null || s.Features.Sections is null ||
                 s.Features.Sections.Values.Any(x => x is null) || string.IsNullOrWhiteSpace(s.General.Language) ||
