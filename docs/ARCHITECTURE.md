@@ -38,34 +38,40 @@ tests/
 | Action Gate | The only input synthesizer. See [FAIR-PLAY.md](FAIR-PLAY.md). | `SendInput`, clipboard APIs |
 | Client.txt tailer | Tail the log by polling or file-change events (reading is passive). Parse lines into typed events: `AreaEntered`, `CharacterLevelUp`, `PlayerDied`, `NpcDialogue`, `FilterReloaded` … | `FileStream` with `FileShare.ReadWrite` |
 | Item parser | Copied item text → `ParsedItem` (class, rarity, base, mods with tiers and ranges, sockets, quality, ilvl). Handles plain and advanced (Alt) copy. | pure .NET |
-| Data packs | Versioned JSON packs per game (`poe1/bases`, `poe1/mods`, `poe1/guide` …), downloaded from GitHub releases and cached. League data updates without an app release. | System.Text.Json |
-| Price service | poe.ninja overview per league and category. Cache at least 1 h. Identifiable User-Agent. | `HttpClient` |
+| Data packs | Schema-3 `poe1/bases`, `poe1/mods` and `poe1/stats` from pinned RePoE. CI bundles verified packs and ATTRIBUTION.txt under `packs/poe1`; startup loads cache/local fallback, prepares translations in the background, then refreshes from GitHub after setup at most hourly with persisted per-pack/tag attempts. Manual release workflow defaults to dry-run; publication requires main and the release environment. | System.Text.Json |
+| Price service | poe.ninja exchange/stash overview per league/type and index-state leagues. Persist attempts before HTTP; throttle across restarts for at least 1 h, including failures. ETag/304, stale fallback, 8 MB response limit and identifiable User-Agent. Prefer the current softcore challenge league excluding SSF/Ruthless, else Standard. | `HttpClient` |
 | Settings | JSON per profile, under `%APPDATA%\ExileSight\<game>\`. Schema-versioned with migrations. | System.Text.Json |
 | Updater | GitHub updates after a 5 s startup delay, at most every 6 h; background download, apply on normal exit without restart. Stable/prerelease settings; dev installs are inert. Explicit Program Main selected via StartupObject; App.xaml stays an ApplicationDefinition. CI packages unsigned installers without publishing releases. | Velopack |
-| Logging | Rolling file logs. No personal data apart from local paths. | Serilog |
+| Logging | Rolling file logs exclude item/chat text. Global dispatcher and unobserved-task handlers record exception types only. | Serilog |
 
 ## Feature module contract
 
-Each feature project exposes one `IFeature`:
+Features are compiled in and registered explicitly in App; runtime plugin loading and assembly discovery are forbidden. Each feature project exposes one `IFeature`:
 
 ```csharp
 public interface IFeature
 {
-    FeatureManifest Manifest { get; }        // id, games, services, GameActions used, data packs
-    void Register(IFeatureContext context);  // hotkeys, log subscriptions, overlay view models
+    FeatureManifest Manifest { get; }        // immutable identity, games, actions and resources
+    void Register(IFeatureContext context);  // commands, defaults, subscriptions and contributions
 }
 ```
 
-`FeatureManifest.GameActions` is enforced at runtime: the gate refuses an action that isn't declared. A build step generates the README's "what it sends" table from the manifests.
+Registration finishes before input starts. Manifests declare actions, packs, services, HTTP hosts and browser hosts separately. Features cannot use `System.Net`; App supplies shared services. Architecture tests validate manifests, declared actions and network boundaries. README transparency-table generation remains a Phase 5 deliverable.
 
-The omni-key is a router feature. Other features register `IOmniHandler`s with a priority and a predicate on `(ParsedItem, context)`. The first match handles the key press.
+The hook pipeline attaches feature identity when issuing an intent token; features cannot claim another owner. The issuer can be installed only once. `GatePolicy` combines built-in CopyItem/SendChatCommand permissions with per-feature manifest declarations and validates the token's owner and action. PasteSearch and SetPriceNote are available only through declaring features.
+
+Features may declare default bindings for their own commands. A persisted binding with the same ID wins, including an explicitly disabled binding. Omni declares blocked CapsLock by default, spends its token on CopyItem once at key-down and classifies the token-free release as long only after 200 ms. A missing release does not dispatch a handler. One host-owned router selects the first matching handler by descending priority, with registration order breaking ties. Routing and long-press menus run on a serial token-free queue off the input worker.
+
+Features contribute WPF-free tooltip sections and local item-menu entries for a `ParsedItem`. Tooltip sections sort by ascending priority; menu providers retain registration order. Provider failures are isolated, and the host stamps menu-entry ownership. Menu contributions receive no intent token. GearCmp contributes comparisons to the tooltip and Set as equipped/character selection to the omni long-press menu.
 
 ## Overlays
 
-- Overlays are positioned in **game-client coordinates** and scaled by client height. 1080p is the design baseline, the same convention Exile-UI uses.
-- Tooltips and panels are small layered windows created once and shown or hidden. They are never created while the user is pressing a key.
-- One `OverlayTheme` resource dictionary covers colors and fonts. Use bundled open fonts; don't ship GGG's Fontin.
-- Multi-monitor and per-monitor DPI v2 are supported from day one. For aspect ratios wider than 21:9, compensate for the black bars.
+- Overlays use **game-client coordinates** and client-height scaling, with 1080p as the baseline and an optional user scale override. Per-monitor DPI v2 and multi-monitor positioning are supported.
+- Feature logic and view models stay WPF-free; App creates and styles the overlay windows. Item-info and omni windows are prepared before presentation, then shown or hidden as needed.
+- Item-info uses the shared `OverlayTheme` dictionary. Its tooltip is click-through and closes on movement beyond the scaled threshold or Esc; it has no interactive equipped button.
+- A shared passive hook-to-UI channel is interested only while an observing overlay is visible. It coalesces mouse moves, queues clicks/Esc separately and uses visibility epochs to reject old observations after reopening. Its dispatcher drain cannot issue game input.
+- Interactive overlay buttons redeem tokens only by pairing WPF mouse-up with a hook-observed, non-injected left click on the same owned HWND, within 4 px and 500 ms of physical mouse-up. The gesture also requires matching down/up within 4 px and 1.5 s. A UI-built z-order snapshot chooses the topmost matching overlay; redemption is single-use and resolves a host-registered feature command.
+- Overlay open/close paths use failure guards and cleanup; diagnostics record exception types without copied item or chat text.
 
 ## Threading
 
