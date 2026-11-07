@@ -19,6 +19,7 @@ public class VersionedDocument : ExtensibleSettings
 
 public sealed class SettingsDocument : VersionedDocument
 {
+    public PricesSettings Prices { get; set; } = new();
     public GeneralSettings General { get; set; } = new();
     public List<PersistedBinding> Hotkeys { get; set; } =
     [
