@@ -15,8 +15,16 @@ One click-through, no-activate toast is visible for five seconds. Up to four ent
 may wait; pending entries older than fifteen seconds expire. New area instances,
 log gaps and source changes clear presentation. A gap or source change requires a
 fresh live AreaGenerated before accepting more notifications; replay never alerts.
-Dedupe keys are area ID, seed and event kind, retained in memory for the current log
-source, including revisits and gap recovery. Source changes discard those keys.
+Dedupe keys are area ID, seed and event kind. The latest 256 newly encountered
+instances are retained in memory, including revisits and gap recovery. New instance
+arrivals evict the oldest; source changes discard all keys. An evicted instance can
+notify again if revisited.
+
+Hideout attribution assumes `Spawning discoverable Hideout` follows the matching
+`Generating level` line. The diagnostic contains no instance key; before generation
+it is suppressed if no area is known, otherwise it is attributed to the current
+area. An out-of-order diagnostic can therefore be missed or attributed to the prior
+instance. Hideout notifications remain off by default.
 Neither player names nor raw log/chat text enter presentation or persistence.
 
 Behaviour reference: Exile-UI (MIT), `modules/client log.ahk` 578–592 and

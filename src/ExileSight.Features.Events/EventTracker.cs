@@ -9,7 +9,8 @@ public sealed class EventTracker
 {
     private (string Id, long Seed)? area;
     private long? generation;
-    private readonly HashSet<(string Area, long Seed, string Kind)> seen = [];
+    private readonly Dictionary<(string Id, long Seed), HashSet<string>> seen = [];
+    private readonly Queue<(string Id, long Seed)> instances = [];
     public long Epoch { get; private set; }
 
     public static bool IsSupported(string id) => id is "MercenaryEncounter" or "Seer" or "ReflectingMist" or "Hideout";
@@ -26,7 +27,7 @@ public sealed class EventTracker
         if (delivery.IsReplay) return null;
         var sourceChanged = delivery.Event is LogSourceChanged ||
             generation is { } previous && previous != delivery.Generation;
-        if (sourceChanged) seen.Clear();
+        if (sourceChanged) { seen.Clear(); instances.Clear(); }
         if (delivery.DroppedBefore > 0 || sourceChanged)
         {
             area = null; Epoch++;
@@ -36,9 +37,18 @@ public sealed class EventTracker
         {
             var next = (generated.AreaId, generated.Seed);
             if (area != next) { area = next; Epoch++; }
+            if (!seen.ContainsKey(next))
+            {
+                seen.Add(next, new(StringComparer.Ordinal));
+                instances.Enqueue(next);
+                if (instances.Count > 256) seen.Remove(instances.Dequeue());
+            }
             return null;
         }
+        // Hideout attribution assumes its diagnostic follows AreaGenerated for that instance.
+        // The diagnostic has no instance key: if logged early, it can be attributed to the prior
+        // area. Before any generation (or after a gap) it is suppressed. Hideouts default off.
         var id = Map(delivery.Event);
-        return area is { } instance && id is not null && seen.Add((instance.Id, instance.Seed, id)) ? id : null;
+        return area is { } instance && id is not null && seen[instance].Add(id) ? id : null;
     }
 }
