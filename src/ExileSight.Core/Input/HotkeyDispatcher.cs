@@ -29,8 +29,17 @@ public sealed class HotkeyDispatcher
     internal void SetRepeatProvider(Func<long> provider) => releaseSilenceThreshold = provider;
     private Func<long, string, ActionKind, IntentToken>? issue;
     internal IntentRegistry Registry { get; }
-    internal void InstallIssuer(Func<long, string, ActionKind, IntentToken> capability) =>
-        Interlocked.CompareExchange(ref issue, capability, null);
+    private int issuerInstalled;
+    private void ClaimIssuer()
+    {
+        if (Interlocked.CompareExchange(ref issuerInstalled, 1, 0) != 0)
+            throw new InvalidOperationException("Issuer already installed");
+    }
+    internal void InstallIssuer(Func<long, string, ActionKind, IntentToken> capability)
+    { ArgumentNullException.ThrowIfNull(capability); ClaimIssuer(); issue = capability; }
+    private Func<long, HotkeyBinding, IntentToken>? featureIssue;
+    internal void InstallFeatureIssuer(Func<long, HotkeyBinding, IntentToken> capability)
+    { ArgumentNullException.ThrowIfNull(capability); ClaimIssuer(); featureIssue = capability; }
     private int generation;
     internal HotkeyConfiguration Configuration => configuration;
     // Run between message dispatches, never in a low-level callback. Async state is
@@ -94,6 +103,7 @@ public sealed class HotkeyDispatcher
     internal IntentToken Issue(PhysicalPress press)
     {
         if (Interlocked.Exchange(ref press.Redeemed, 1) != 0) throw new InvalidOperationException("Press already issued");
+        if (featureIssue is not null) return featureIssue(press.Timestamp, press.Binding);
         return (issue ?? throw new InvalidOperationException("Hook issuer not installed"))(press.Timestamp, press.Binding.Id, (press.Binding.Action ?? throw new InvalidOperationException("Feature commands cannot issue game tokens")).Kind);
     }
 }

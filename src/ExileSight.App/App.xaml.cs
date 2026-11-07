@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using ExileSight.App.FirstRun;
+using ExileSight.App.Features;
 using ExileSight.App.Input;
 using ExileSight.App.Overlay;
 using ExileSight.App.Tray;
@@ -58,7 +59,7 @@ public partial class App : Application
             builder.Services.AddSingleton<IDebugSection>(trayDiagnostics);
             builder.Services.AddUpdates();
             builder.Services.AddSingleton<IDebugSection>(logs);
-            builder.Services.AddOverlays().AddProductionInput();
+            builder.Services.AddOverlays().AddFeatureModules().AddProductionInput();
             host = builder.Build();
             if (!ReferenceEquals(profiles, host.Services.GetRequiredService<ProfileStore>()) ||
                 !ReferenceEquals(profiles, host.Services.GetRequiredService<IProfileStore>()) ||
@@ -77,6 +78,7 @@ public partial class App : Application
             }
             settings.Changed += SettingsChanged;
             await logs.RefreshAsync();
+            host.Services.StartFeatureViews();
             host.Services.StartOverlays();
             settingsDiagnostics.OverlayAttached = true;
             InputRegistration.StartProductionInput(host.Services);

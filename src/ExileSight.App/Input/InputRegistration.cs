@@ -1,4 +1,5 @@
 using ExileSight.Core.Diagnostics;
+using ExileSight.Core.Features;
 using ExileSight.Core.Games;
 using ExileSight.Core.Input;
 using ExileSight.Core.Settings;
@@ -29,15 +30,16 @@ public static class InputRegistration
         services.AddSingleton<IHotkeyContexts>(sp => sp.GetRequiredService<HotkeyConfiguration>());
         services.AddSingleton<HotkeySettings>(sp => new(
             () => sp.GetRequiredService<ISettingsStore<SettingsDocument>>(),
-            sp.GetRequiredService<HotkeyConfiguration>(), sp.GetServices<IFeatureCommandHandler>()));
+            sp.GetRequiredService<HotkeyConfiguration>(), sp.GetRequiredService<FeatureHost>().Commands));
         services.AddSingleton<IClipboard, WindowsClipboard>();
         services.AddSingleton<HookHost>(sp => HookHost.Create(sp.GetRequiredService<IClock>(),
             sp.GetRequiredService<HotkeyConfiguration>(), sp.GetRequiredService<IClipboard>(),
             sp.GetRequiredService<IGameWindow>(),
             (token, binding) => sp.GetRequiredService<HotkeyExecution>().Execute(token, binding),
-            (binding, result) => sp.GetRequiredService<InputDiagnostics>().Report(binding, result)));
+            (binding, result) => sp.GetRequiredService<InputDiagnostics>().Report(binding, result),
+            sp.GetRequiredService<FeatureHost>().Manifests, sp.GetRequiredService<FeatureHost>().Commands));
         services.AddSingleton<IActionGate>(sp => sp.GetRequiredService<HookHost>().Gate);
-        services.AddSingleton<HotkeyExecution>();
+        services.AddSingleton<HotkeyExecution>(sp => new(sp.GetRequiredService<IActionGate>(), sp.GetRequiredService<FeatureHost>().Commands));
         services.AddSingleton<InputDiagnostics>();
         services.AddSingleton<IDebugSection>(sp => sp.GetRequiredService<InputDiagnostics>());
         services.AddSingleton<IHotkeys>(sp => sp.GetRequiredService<HookHost>());

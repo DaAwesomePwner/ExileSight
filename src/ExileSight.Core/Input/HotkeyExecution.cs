@@ -8,7 +8,7 @@ public sealed class HotkeyExecution(IActionGate gate, IEnumerable<IFeatureComman
     public ActionResult Execute(IntentToken? token, HotkeyBinding binding)
     {
         if (binding.Action is { } action) return gate.TryExecute(token, action);
-        var handler = handlers.FirstOrDefault(h => h.Command == binding.FeatureCommand);
-        return handler?.Execute() ?? new(ActionOutcome.Failed, "Feature command is no longer registered");
+        var handler = handlers.FirstOrDefault(h => h.Command == binding.FeatureCommand && h.FeatureId == binding.FeatureId);
+        return handler?.Execute(token) ?? new(ActionOutcome.Failed, "Feature command is no longer registered");
     }
 }

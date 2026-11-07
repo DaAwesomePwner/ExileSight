@@ -4,7 +4,7 @@ using ExileSight.Platform.Abstractions.Time;
 namespace ExileSight.Core.Input;
 
 /// <summary>Queue-consumer routing. Every dequeued physical press produces an observable outcome.
-/// Feature commands are local-only and deliberately receive no game-action token.</summary>
+/// Action-declaring commands receive one token; local commands receive none.</summary>
 public sealed class PressRouter(HotkeyDispatcher dispatcher, IClock clock, Func<bool> gameFocused,
     Func<IntentToken?, HotkeyBinding, ActionResult> execute)
 {
@@ -16,9 +16,9 @@ public sealed class PressRouter(HotkeyDispatcher dispatcher, IClock clock, Func<
             var age = clock.Milliseconds - press.Timestamp;
             if (age < 0 || age >= IntentRegistry.LifetimeMilliseconds)
                 return Refuse(press, ActionOutcome.Expired);
-            if ((press.Binding.Action is not null || press.Binding.Context == "gameFocused") && !gameFocused())
+            if (((press.Binding.Action is not null || press.Binding.CommandAction is not null) || press.Binding.Context == "gameFocused") && !gameFocused())
                 return Refuse(press, ActionOutcome.NotForeground);
-            if (press.Binding.Action is not null)
+            if ((press.Binding.Action is not null || press.Binding.CommandAction is not null))
                 return execute(dispatcher.Issue(press), press.Binding);
             if (Interlocked.Exchange(ref press.Redeemed, 1) != 0)
                 return new(ActionOutcome.UsedOrUnknownToken);

@@ -9,6 +9,7 @@ public sealed class ProductionHotkeyTests
 {
     private sealed class FakeCommand : IFeatureCommandHandler
     {
+        public string FeatureId => "builtin";
         public string Command => "overlay.toggle";
         public int Calls { get; private set; }
         public ActionResult Execute() { Calls++; return new(ActionOutcome.Success); }

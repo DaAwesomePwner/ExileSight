@@ -18,14 +18,16 @@ public sealed class ActionExecutor : IActionGate
     }
     public string AuditPath => audit.Path;
     public int ActionsSent => transaction.ActionsSent;
-    public ActionResult TryExecute(IntentToken? token, GameAction action)
+    public ActionResult TryExecute(IntentToken? token, GameAction action) => Execute(token, action, null);
+    public ActionResult TryExecute(IntentToken? token, GameAction action, string featureId) => Execute(token, action, featureId);
+    private ActionResult Execute(IntentToken? token, GameAction action, string? featureId)
     {
         lock (sync)
         {
             var foreground = false;
             try { foreground = sender.IsGameForeground; }
             catch (Exception) { /* Fail closed; still consume the token and audit the refusal. */ }
-            var verdict = policy.Validate(token, action, foreground, out var press);
+            var verdict = policy.Validate(token, action, foreground, out var press, featureId);
             ActionResult result = new(verdict, verdict == ActionOutcome.Success ? "" : verdict.ToString());
             if (verdict == ActionOutcome.Success && !sender.CanExecuteOnCurrentThread)
                 result = new(ActionOutcome.Failed, "Input requires a dedicated worker thread");
