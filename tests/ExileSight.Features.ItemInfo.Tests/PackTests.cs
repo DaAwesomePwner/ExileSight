@@ -34,10 +34,10 @@ public sealed class PackTests
     [InlineData("Armour", "armour", "local_base_physical_damage_reduction_rating", "local_physical_damage_reduction_rating_+%")]
     [InlineData("Evasion Rating", "evasion", "local_base_evasion_rating", "local_evasion_rating_+%")]
     [InlineData("Energy Shield", "energy_shield", "local_energy_shield", "local_energy_shield_+%")]
-    [InlineData("Ward", "ward", "local_base_ward", "local_ward_+%")]
+    [InlineData("Ward", "ward", "local_ward", "local_ward_+%")]
     public void ReversesQualityFlatAndIncreased(string property, string key, string flat, string inc)
     {
-        var item = ItemTextParser.Parse($"Item Class: Body Armours\nRarity: Rare\nSynthetic\nSynthetic Plate\n--------\nQuality: +20%\n{property}: 216\n--------\n+10 to Test\n20% increased Test", Game.PoE1).Item!;
+        var item = ItemTextParser.Parse($"Item Class: Body Armours\nRarity: Rare\nSynthetic\nSynthetic Plate\n--------\nQuality: +20%\n{property}: 210\n--------\n+10 to Test\n20% increased Test", Game.PoE1).Item!;
         var basis = new BaseEntry("test", "Synthetic Plate", "Body Armours", [], 1, [], [],
             new() { [key] = new(100, 180) });
         var data = new PackItemInfoData(Pack([basis]), null, Pack(stats:
@@ -48,7 +48,7 @@ public sealed class PackTests
         Assert.Equal(100, Assert.Single(new ItemInfoCalculator(equal).Calculate(item).Defences).Percentile);
         Assert.Null(Assert.Single(new ItemInfoCalculator().Calculate(item).Defences).Percentile);
         var unsupported = new PackItemInfoData(Pack([basis]), null, Pack(stats:
-            [Translation("unsupported_defence_stat", "+{0} to Test"), Translation(inc, "{0}% increased Test")]));
+            [Translation("local_unsupported_defence_stat", "+{0} to Test"), Translation(inc, "{0}% increased Test")]));
         Assert.Null(Assert.Single(new ItemInfoCalculator(unsupported).Calculate(item).Defences).Percentile);
     }
 }

@@ -8,24 +8,34 @@ namespace ExileSight.Core.Tests.DataPacks;
 public sealed class LazyPatternTests
 {
     [Fact]
-    public void ValidationDoesNotCompileAndReturnedTranslationCompilesOnlyOnce()
+    public async Task ValidationIsLazyAndBackgroundPreparationReusesPatterns()
     {
-        var counter = typeof(StatText).Assembly.GetType("ExileSight.Core.DataPacks.StatPattern")!
-            .GetField("CompilationCount", BindingFlags.NonPublic | BindingFlags.Static)!;
-        int Count() => (int)counter.GetValue(null)!;
+        var pattern = typeof(StatText).Assembly.GetType("ExileSight.Core.DataPacks.StatPattern")!;
+        var cache = pattern.GetField("Cache", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
+        object? Cached(StatVariant variant)
+        {
+            object?[] args = [variant, null];
+            return (bool)cache.GetType().GetMethod("TryGetValue")!.Invoke(cache, args)! ? args[1] : null;
+        }
         var content = new PackContent("poe1/stats", Game.PoE1, 3, "synthetic", [], [], Translations:
             [new("synthetic", ["test"], [new("{0} Test", [new()], ["#"], [[]])])]);
         var bytes = PackCodec.ContentBytes(content);
         var manifest = new PackManifest("poe1/stats", Game.PoE1, 3, "synthetic", "unknown",
             DateTimeOffset.UnixEpoch, new("synthetic", new string('a', 40), []), "synthetic", PackCodec.Hash(bytes));
-        var before = Count();
-        Assert.NotNull(PackCodec.Validate(manifest, bytes, "poe1/stats"));
+        var discarded = PackCodec.Validate(manifest, bytes, "poe1/stats")!;
+        Assert.Null(Cached(discarded.Content.Translations![0].English[0]));
         var returned = PackCodec.Validate(manifest, bytes, "poe1/stats")!;
-        Assert.Equal(before, Count());
+        var variant = returned.Content.Translations![0].English[0];
+        Assert.Null(Cached(variant));
+        await Task.WhenAll(Enumerable.Range(0, 4).Select(_ => StatText.PrepareAsync(returned.Content.Translations)));
+        var prepared = Cached(variant);
+        Assert.NotNull(prepared);
+        var compiled = prepared.GetType().GetProperty("Value")!.GetValue(prepared);
         Assert.Single(StatText.Match("3 Test", returned.Content.Translations!));
         Assert.Single(StatText.Match("4 Test", returned.Content.Translations!));
         StatText.Prepare(returned.Content.Translations!);
-        Assert.Equal(before + 1, Count());
+        Assert.Same(prepared, Cached(variant));
+        Assert.Same(compiled, Cached(variant)!.GetType().GetProperty("Value")!.GetValue(Cached(variant)));
     }
 
     [Theory]

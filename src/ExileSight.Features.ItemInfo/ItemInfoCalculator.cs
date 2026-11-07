@@ -12,10 +12,12 @@ public sealed class ItemInfoCalculator(IItemInfoData? data = null)
         {
             var group = line.Group is null ? [line] : item.Mods.Where(m => m.Group == line.Group).ToArray();
             var matched = data?.FindMod(item, group);
-            var roll = Roll(line, settings.InvertedLines?.Contains(line.Text, StringComparer.Ordinal) == true);
+            var roll = Roll(line, settings.InvertedLines?.Any(rule => ModRuleKey.Normalize(rule) == ModRuleKey.Normalize(line.Text)) == true);
             var crafted = line.Kind.HasFlag(ModKind.Crafted);
-            var unique = line.Kind.HasFlag(ModKind.Unique) || item.Rarity == ItemRarity.Unique;
-            var tier = crafted ? "Crafted" : unique ? "Unique" : line.Tier is int n ? $"T{n}" : "Unknown";
+            var implicitMod = line.Kind.HasFlag(ModKind.Implicit);
+            var enchant = line.Kind.HasFlag(ModKind.Enchant);
+            var unique = !implicitMod && !enchant && (line.Kind.HasFlag(ModKind.Unique) || item.Rarity == ItemRarity.Unique);
+            var tier = implicitMod ? (line.Tier is int t ? $"Implicit T{t}" : "Implicit") : enchant ? "Enchant" : crafted ? "Crafted" : unique ? "Unique" : line.Tier is int n ? $"T{n}" : "Unknown";
             var color = crafted ? InfoColor.Crafted : unique ? InfoColor.Unique :
                 line.Tier == 1 ? InfoColor.Best : line.Tier <= 3 ? InfoColor.High :
                 line.Tier is not null ? InfoColor.Medium : InfoColor.Unknown;

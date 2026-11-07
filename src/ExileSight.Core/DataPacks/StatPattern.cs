@@ -14,7 +14,6 @@ internal sealed record StatPattern(Regex Regex, HashSet<int> Seen, bool Partial)
 
     // Variants belong to an immutable loaded pack. Weak keys allow old packs and compiled code to be collected.
     internal static StatPattern[] For(StatVariant variant) => Cache.GetValue(variant, v => new(() => Build(v))).Value;
-    [ThreadStatic] internal static int CompilationCount;
     private static StatPattern[] Build(StatVariant variant)
     {
         var lines = variant.Text.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n');
@@ -31,7 +30,6 @@ internal sealed record StatPattern(Regex Regex, HashSet<int> Seen, bool Partial)
                 position = slot.Index + slot.Length;
             }
             pattern.Append(Regex.Escape(line[position..])).Append(@"\z");
-            CompilationCount++;
             return new StatPattern(new(pattern.ToString(), RegexOptions.Compiled | RegexOptions.CultureInvariant,
                 TimeSpan.FromMilliseconds(100)), seen, lines.Length > 1);
         }).ToArray();

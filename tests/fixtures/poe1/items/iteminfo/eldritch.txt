@@ -1,0 +1,17 @@
+Item Class: Helmets
+Rarity: Unique
+Synthetic Crown
+Synthetic Hat
+--------
+{ Eater of Worlds Implicit Modifier (Lesser) }
+10(5-15)% increased Test One (implicit)
+{ Searing Exarch Implicit Modifier (Greater) }
+10(5-15)% increased Test Two (implicit)
+{ Eater of Worlds Implicit Modifier (Grand) }
+10(5-15)% increased Test Three (implicit)
+{ Searing Exarch Implicit Modifier (Exceptional) }
+10(5-15)% increased Test Four (implicit)
+{ Eater of Worlds Implicit Modifier (Exquisite) }
+10(5-15)% increased Test Five (implicit)
+{ Searing Exarch Implicit Modifier (Perfect) }
+10(5-15)% increased Test Six (implicit)

@@ -6,7 +6,7 @@ using ExileSight.Core.DataPacks;
 namespace ExileSight.Features.ItemInfo;
 
 // Rule precedence ported from Exile-UI modules/item-checker.ahk:43–75,2102–2126,2177–2193 (MIT).
-public sealed record HighlightRule(string Text, Highlight Match, string? ItemClass = null, bool Implicit = false);
+public sealed record HighlightRule(string Text, Highlight Match, string? ItemClass = null, bool Implicit = false, bool Enchant = false);
 public sealed record HighlightProfile(string Name, HighlightRule[] Rules);
 public sealed record ItemInfoSettings(HighlightProfile[] Profiles, int ActiveProfile = 0, string[]? InvertedLines = null)
 {
@@ -23,10 +23,11 @@ public sealed record ItemInfoSettings(HighlightProfile[] Profiles, int ActivePro
     public Highlight Evaluate(ParsedItem item, ModLine line)
     {
         if (Profiles.Length == 0) return Highlight.None;
-        var rules = Profiles[ActiveProfile].Rules.Where(r => r.Implicit == line.Kind.HasFlag(ModKind.Implicit));
-        var text = StatText.StripCopySuffixes(line.Text);
+        var rules = Profiles[ActiveProfile].Rules.Where(r => r.Enchant == line.Kind.HasFlag(ModKind.Enchant) &&
+            r.Implicit == line.Kind.HasFlag(ModKind.Implicit));
+        var text = ModRuleKey.Normalize(line.Text);
         return rules.Where(r => r.ItemClass == item.ItemClass).Concat(rules.Where(r => r.ItemClass is null))
-            .FirstOrDefault(r => text.Contains(r.Text, StringComparison.OrdinalIgnoreCase))?.Match ?? Highlight.None;
+            .FirstOrDefault(r => text == ModRuleKey.Normalize(r.Text))?.Match ?? Highlight.None;
     }
     public static ItemInfoSettings Load(IFeatureContext context)
     {

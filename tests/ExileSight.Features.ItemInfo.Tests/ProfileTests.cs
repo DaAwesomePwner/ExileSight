@@ -15,8 +15,8 @@ public sealed class ProfileTests
     {
         var item = CalculatorTests.Hybrid();
         var settings = new ItemInfoSettings([new("Test", [
-            new("Armour", Highlight.Undesired), new("Armour", Highlight.Desired, "Body Armours"),
-            new("Resistance", Highlight.Desired, Implicit: true)])]);
+            new("+10 to Armour", Highlight.Undesired), new("+10 to Armour", Highlight.Desired, "Body Armours"),
+            new("+30% to Fire Resistance", Highlight.Desired, Implicit: true)])]);
         Assert.Equal(Highlight.Desired, settings.Evaluate(item, item.Mods[0]));
         Assert.Equal(Highlight.None, settings.Evaluate(item, item.Mods[2]));
         Assert.Equal(Highlight.Desired, settings.Evaluate(item, item.Mods[2] with { Kind = ModKind.Implicit }));
