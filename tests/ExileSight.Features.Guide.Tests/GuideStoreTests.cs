@@ -45,6 +45,45 @@ public sealed class GuideStoreTests : IDisposable
     }
 
     [Fact]
+    public void FailedImportSaveCannotRetryCleanupAgainstTheOldCustomId()
+    {
+        var failDelete = true; var attempts = 0;
+        var store = new GuideStore(directory, file =>
+        {
+            attempts++;
+            if (failDelete) throw new IOException("synthetic delete failure");
+            File.Delete(file);
+        });
+        store.WriteCustom("orphan"u8.ToArray());
+        var model = new GuideModel(store); model.Load(GuideTests.Data(), "v1");
+        model.Import(Encoding.UTF8.GetBytes("[[[\"First areaidSyntheticTown1\"]]]"));
+        var oldId = new GuideStore(directory).Load()!.CustomId!;
+        Assert.True(attempts > 0); // Earlier cleanup failed after a successful save.
+
+        // Block only progress writes; immutable custom files can still be written.
+        var blockedTemp = Path.Combine(directory, "progress.json.tmp");
+        Directory.CreateDirectory(blockedTemp);
+        var next = Encoding.UTF8.GetBytes("[[[\"Second areaidSyntheticTown1\"]]]");
+        var nextId = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(next));
+        model.Import(next);
+        failDelete = false;
+        var before = attempts;
+        model.Checkpoint();
+        Assert.Equal(before, attempts);
+        Assert.Equal(next, store.ReadCustom(nextId));
+        Assert.NotEmpty(store.ReadCustom(oldId));
+        Assert.Equal(oldId, new GuideStore(directory).Load()!.CustomId);
+
+        Directory.Delete(blockedTemp);
+        model.Checkpoint();
+        Assert.Equal(nextId, new GuideStore(directory).Load()!.CustomId);
+        Assert.Equal(next, store.ReadCustom(nextId));
+        Assert.False(File.Exists(Path.Combine(directory, oldId + ".json")));
+        var resumed = new GuideModel(new GuideStore(directory)); resumed.Load(GuideTests.Data(), "v1");
+        Assert.Contains("Second Lioneye's Watch", resumed.Snapshot().Text);
+    }
+
+    [Fact]
     public void RoundTripIsAtomicAndContainsNoCharacterName()
     {
         var store = new GuideStore(directory); store.Save(State);

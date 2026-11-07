@@ -60,9 +60,18 @@ public sealed class TimersView
         toast = host.Register(new Border { Background = Brushes.Black, Padding = new Thickness(10), Child = toastText },
             DefaultOverlayLayout.TimersToast);
         SetVisible(panel, false); SetVisible(passive, false); SetVisible(toast, false);
+        // Settings visibility changes bypass model notifications.
+        DependencyPropertyChangedEventHandler displayVisibilityChanged = (_, _) => ScheduleTick();
+        panel.IsVisibleChanged += displayVisibilityChanged;
+        passive.IsVisibleChanged += displayVisibilityChanged;
         host.Changed += VisibilityChanged;
         model.VisibilityChanged += Present;
-        panel.Closed += (_, _) => { ticker.Stop(); host.Changed -= VisibilityChanged; model.VisibilityChanged -= Present; };
+        panel.Closed += (_, _) =>
+        {
+            panel.IsVisibleChanged -= displayVisibilityChanged;
+            passive.IsVisibleChanged -= displayVisibilityChanged;
+            ticker.Stop(); host.Changed -= VisibilityChanged; model.VisibilityChanged -= Present;
+        };
         ticker.Tick += (_, _) => Tick();
         ScheduleTick();
         status.Text = model.Notice ?? "Choose a timer, or add a named countdown / stopwatch.";
@@ -116,14 +125,14 @@ public sealed class TimersView
                 toastUntil = Environment.TickCount64 + 6000;
                 SetVisible(toast, true);
             }
-            if (visibility.Visible) Refresh();
+            if (panel.IsVisible || passive.IsVisible) Refresh();
             if (Environment.TickCount64 >= toastUntil) SetVisible(toast, false);
         }
         catch (Exception error) when (error is System.IO.IOException or UnauthorizedAccessException or ArgumentException)
         { status.Text = "Timers unavailable: " + error.GetType().Name; }
         finally { ScheduleTick(); }
     }
-    // Hidden panels need only countdown deadlines and toast expiry, not display polling.
+    // Hidden panels recheck countdown deadlines within five seconds of a wall-clock jump.
     private void ScheduleTick()
     {
         ticker.Stop();
@@ -134,7 +143,7 @@ public sealed class TimersView
         if (toastUntil > Environment.TickCount64)
             delay = Math.Min(delay, toastUntil - Environment.TickCount64);
         if (double.IsPositiveInfinity(delay)) return;
-        ticker.Interval = TimeSpan.FromMilliseconds(Math.Clamp(delay, 250, int.MaxValue));
+        ticker.Interval = TimeSpan.FromMilliseconds(Math.Clamp(delay, 250, 5000));
         ticker.Start();
     }
     private void Refresh()
