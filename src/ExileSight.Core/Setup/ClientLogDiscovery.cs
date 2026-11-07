@@ -18,19 +18,19 @@ public static class ClientLogDiscovery
         }
     }
 
-    public static IReadOnlyList<string> Candidates(IInstallLocations locations)
+    public static IReadOnlyList<string> Candidates(IInstallLocations locations, ILocalPathResolver? resolver = null)
     {
         var roots = new List<string>(locations.StandaloneLocations());
-        foreach (var steam in locations.SteamLocations().Where(IsLocalAbsolutePath))
+        foreach (var steam in locations.SteamLocations().Where(p => IsLocalPath(p, resolver)))
         {
             roots.Add(Path.Combine(steam, "steamapps", "common", "Path of Exile"));
             foreach (var library in SteamLibraries(locations.ReadLibraryFolders(steam) ?? ""))
                 roots.Add(Path.Combine(library, "steamapps", "common", "Path of Exile"));
         }
         roots.AddRange(locations.DefaultLocations());
-        return roots.Where(IsLocalAbsolutePath)
+        return roots.Where(p => IsLocalPath(p, resolver))
             .SelectMany(root => Names.Select(name => Path.Combine(root, "logs", name)))
-            .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            .Where(p => IsLocalPath(p, resolver)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
     }
 
     public static bool IsLocalAbsolutePath(string? path)
@@ -43,10 +43,22 @@ public static class ClientLogDiscovery
             || !OperatingSystem.IsWindows() && Path.IsPathFullyQualified(path);
     }
 
-    public static string? Validate(string? path)
+    public static bool IsLocalPath(string? path, ILocalPathResolver? resolver = null) => PathRejection(path, resolver) is null;
+
+    public static string? PathRejection(string? path, ILocalPathResolver? resolver = null)
+    {
+        if (!IsLocalAbsolutePath(path)) return "Choose a fully-qualified local path; network paths are not allowed.";
+        if (resolver is null) return null;
+        try { return resolver.Rejection(path!); }
+        catch (UnauthorizedAccessException) { return "Access denied while checking the local path."; }
+        catch (Exception error) when (error is IOException or ArgumentException)
+        { return "Cannot inspect the local path."; }
+    }
+
+    public static string? Validate(string? path, ILocalPathResolver? resolver = null)
     {
         if (string.IsNullOrWhiteSpace(path)) return "Choose a Client.txt log file.";
-        if (!IsLocalAbsolutePath(path)) return "Choose a fully-qualified local path; network paths are not allowed.";
+        if (PathRejection(path, resolver) is { } rejection) return rejection;
         if (!Names.Contains(Path.GetFileName(path), StringComparer.OrdinalIgnoreCase))
             return "Choose Client.txt, KakaoClient.txt or LatestClient.txt.";
         try

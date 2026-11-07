@@ -4,9 +4,9 @@ namespace ExileSight.Core.Setup;
 
 public static class SetupCommit
 {
-    public static void Finish(ITransactionalSettingsStore<SettingsDocument> settings, string path)
+    public static void Finish(ITransactionalSettingsStore<SettingsDocument> settings, string path, ExileSight.Platform.Abstractions.Install.ILocalPathResolver? resolver = null)
     {
-        if (ClientLogDiscovery.Validate(path) is { } error) throw new InvalidOperationException(error);
+        if (ClientLogDiscovery.Validate(path, resolver) is { } error) throw new InvalidOperationException(error);
         settings.Commit("general", s =>
         {
             s.General.ClientTxtPath = path;

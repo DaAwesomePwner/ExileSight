@@ -1,4 +1,6 @@
 using ExileSight.Core.Diagnostics;
+using ExileSight.Platform.Abstractions.Files;
+using ExileSight.Platform.Abstractions.Install;
 using ExileSight.Core.Logs;
 using ExileSight.Core.Logs.Tail;
 using ExileSight.Core.Settings;
@@ -6,7 +8,7 @@ using ExileSight.Platform.Abstractions.Storage;
 
 namespace ExileSight.Core.Setup;
 
-public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, ExileSight.Platform.Abstractions.Files.IFileTail? fileTail = null) : IDebugSection, IAsyncDisposable
+public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, ExileSight.Platform.Abstractions.Files.IFileTail? fileTail = null, ILocalPathResolver? pathResolver = null, IFileTailTimer? pollingTimer = null) : IDebugSection, IAsyncDisposable
 {
     private readonly object sync = new();
     private readonly SemaphoreSlim transition = new(1);
@@ -41,7 +43,10 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
 
     private async Task ReadAsync(string selected, CancellationToken token)
     {
-        var tail = fileTail ?? new PollingFileTail(warning: warning => { lock (sync) status = warning; });
+        var tail = fileTail ?? new LocalLogTail(pathResolver, pollingTimer);
+        var diagnostics = tail as IFileTailDiagnostics;
+        void Report(FileTailDiagnostic warning) { lock (sync) status = warning.Message; }
+        if (diagnostics is not null) diagnostics.Diagnostic += Report;
         var parser = new LogParser();
         try
         {
@@ -66,6 +71,7 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception) { lock (sync) status = "Log reader stopped; run setup again to select a readable log."; }
+        finally { if (diagnostics is not null) diagnostics.Diagnostic -= Report; }
     }
 
     public IReadOnlyList<KeyValuePair<string, string>> Snapshot()

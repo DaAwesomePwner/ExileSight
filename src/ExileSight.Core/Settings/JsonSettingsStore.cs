@@ -41,6 +41,8 @@ public sealed class JsonSettingsStore<T> : ITransactionalSettingsStore<T> where 
             throw new ArgumentOutOfRangeException(nameof(debounce));
         var loaded = new SettingsReader<T>(files, this.path, typeInfo, this.migrations, warnings, expectedGame).Load(defaults);
         document = loaded.Value;
+        LoadedDefaults = loaded.Defaults;
+        DefaultsReason = loaded.Defaults ? (warnings.Count == 0 ? "no file yet" : "load failed: " + string.Join("; ", warnings)) : null;
         SettingsValidation.DisableUnknownBindings(Clone(document), warnings);
         IsReadOnly = loaded.ReadOnly;
         dirty = loaded.Dirty;
@@ -50,6 +52,8 @@ public sealed class JsonSettingsStore<T> : ITransactionalSettingsStore<T> where 
         if (dirty) ScheduleSave();
     }
 
+    public string? DefaultsReason { get; }
+    public bool LoadedDefaults { get; private set; }
     public bool IsReadOnly { get; private set; }
     public bool IsReadOnlyNewerSchema => IsReadOnly;
     public IReadOnlyList<string> Warnings { get { lock (sync) return warnings.ToArray(); } }
@@ -111,6 +115,7 @@ public sealed class JsonSettingsStore<T> : ITransactionalSettingsStore<T> where 
             SettingsValidation.DisableUnknownBindings(Clone(candidate), candidateWarnings);
             files.Write(path, JsonSerializer.SerializeToUtf8Bytes(candidate, typeInfo), rotateBackup);
             document = candidate;
+            LoadedDefaults = false;
             warnings.Clear();
             warnings.AddRange(candidateWarnings);
             dirty = false;
@@ -128,10 +133,21 @@ public sealed class JsonSettingsStore<T> : ITransactionalSettingsStore<T> where 
     private void Save()
     {
         if (!dirty || IsReadOnly) return;
-        files.Write(path, JsonSerializer.SerializeToUtf8Bytes(document, typeInfo), rotateBackup);
+        Write(document);
         dirty = false;
+        LoadedDefaults = false;
         firstPending = null;
         timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+    }
+
+    private void Write(T value)
+    {
+        try { files.Write(path, JsonSerializer.SerializeToUtf8Bytes(value, typeInfo), rotateBackup); }
+        catch (Exception error)
+        {
+            warnings.Add("Settings save failed: " + error.Message);
+            throw;
+        }
     }
 
     private void SaveFromTimer()
@@ -140,10 +156,7 @@ public sealed class JsonSettingsStore<T> : ITransactionalSettingsStore<T> where 
         {
             if (disposed) return;
             try { Save(); }
-            catch (Exception e)
-            {
-                warnings.Add("Settings save failed: " + e.Message);
-            }
+            catch (Exception) { /* Write records the warning; retain dirty state for retry. */ }
         }
     }
 

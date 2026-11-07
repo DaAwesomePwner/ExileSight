@@ -41,7 +41,15 @@ public sealed class GeneralSettings : ExtensibleSettings
 public sealed class PersistedBinding : ExtensibleSettings
 {
     public string Id { get; set; } = "";
-    public bool Enabled { get; set; } = true;
+    private bool enabled = true;
+    public bool Enabled
+    {
+        get => enabled;
+        set { enabled = value; RuntimeDisabled = false; }
+    }
+    // In-memory provenance distinguishes an automatic disable from an explicit user edit.
+    internal bool RuntimeDisabled { get; private set; }
+    internal void DisableForRuntime() { enabled = false; RuntimeDisabled = true; }
     public int Key { get; set; }
     public KeyModifiers Modifiers { get; set; }
     public bool Block { get; set; } = true;
