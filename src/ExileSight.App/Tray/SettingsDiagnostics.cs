@@ -13,8 +13,8 @@ public sealed class SettingsDiagnostics(ProfileStore profiles,
     public bool InputAttached { get; set; }
     public IReadOnlyList<KeyValuePair<string, string>> Snapshot() =>
     [
-        new("Source", settings is JsonSettingsStore<SettingsDocument> { LoadedDefaults: true }
-            ? "defaults" : profiles.ActiveProfileId + " — " +
+        new("Source", settings is JsonSettingsStore<SettingsDocument> { LoadedDefaults: true } store
+            ? "defaults (" + store.DefaultsReason + ")" : profiles.ActiveProfileId + " — " +
                 Path.Combine(paths.GetSettingsDirectory("poe1"), profiles.ActiveProfileId + ".json")),
         new("Load/save warnings", string.Join("\n", profiles.Warnings.Concat(settings.Warnings))),
         new("Overlay consumer attached", OverlayAttached.ToString()),

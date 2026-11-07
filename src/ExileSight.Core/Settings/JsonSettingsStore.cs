@@ -42,6 +42,7 @@ public sealed class JsonSettingsStore<T> : ITransactionalSettingsStore<T> where 
         var loaded = new SettingsReader<T>(files, this.path, typeInfo, this.migrations, warnings, expectedGame).Load(defaults);
         document = loaded.Value;
         LoadedDefaults = loaded.Defaults;
+        DefaultsReason = loaded.Defaults ? (warnings.Count == 0 ? "no file yet" : "load failed: " + string.Join("; ", warnings)) : null;
         SettingsValidation.DisableUnknownBindings(Clone(document), warnings);
         IsReadOnly = loaded.ReadOnly;
         dirty = loaded.Dirty;
@@ -51,6 +52,7 @@ public sealed class JsonSettingsStore<T> : ITransactionalSettingsStore<T> where 
         if (dirty) ScheduleSave();
     }
 
+    public string? DefaultsReason { get; }
     public bool LoadedDefaults { get; private set; }
     public bool IsReadOnly { get; private set; }
     public bool IsReadOnlyNewerSchema => IsReadOnly;
@@ -111,7 +113,7 @@ public sealed class JsonSettingsStore<T> : ITransactionalSettingsStore<T> where 
             SettingsValidation.Validate(candidate, expectedGame, candidateWarnings);
             candidate = Clone(candidate);
             SettingsValidation.DisableUnknownBindings(Clone(candidate), candidateWarnings);
-            Write(candidate);
+            files.Write(path, JsonSerializer.SerializeToUtf8Bytes(candidate, typeInfo), rotateBackup);
             document = candidate;
             LoadedDefaults = false;
             warnings.Clear();

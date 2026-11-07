@@ -1,4 +1,4 @@
 GetDriveType
-GetFinalPathNameByHandle
 CreateFile
 CloseHandle
+DeviceIoControl

@@ -68,7 +68,12 @@ internal static class SettingsValidation
         foreach (var binding in updated.Hotkeys)
         {
             if (binding is null || binding.Id is null || !unknown.TryGetValue(binding.Id, out var previous)) continue;
-            if (!binding.RuntimeDisabled && !BindingProblems(binding).Any()) continue;
+            var repaired = binding.Key != previous.Key || binding.Modifiers != previous.Modifiers ||
+                binding.Context != previous.Context || binding.Action != previous.Action ||
+                binding.FeatureCommand != previous.FeatureCommand || binding.Text != previous.Text;
+            // Rebuilt/JSON-cloned candidates carry their own Enabled value. RuntimeDisabled
+            // only preserves an untouched flag on this store's original runtime snapshot.
+            if (repaired && !binding.RuntimeDisabled) continue;
             binding.Enabled = previous.Enabled;
             if (previous.Action is { } action && !Enum.IsDefined(action)) binding.Action = previous.Action;
         }

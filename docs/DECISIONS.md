@@ -62,7 +62,7 @@
 | D-058 | 2026-11-07 | Feature commands receive no game-action authority; chat text is capped at 400 UTF-16 code units. | Keep feature dispatch separate from the Action Gate and bound chat payloads. |
 | D-059 | 2026-11-07 | Reconcile held state on context/foreground changes: pass-through keys use async state; blocked keys require hook-observed release or silence of at least max(1200 ms, Filter Keys wait + max(delay, repeat) + 200 ms). Failed reads disable silence recovery. | Recover missed releases without leaking blocked holds or repeats. |
 | D-060 | 2026-11-07 | Settings-open failure uses default input bindings with diagnostics. App registers shared paths, profile catalog and active store before input registration and asserts their identities. | Keep startup diagnostics useful and prevent competing settings writers. |
-| D-061 | 2026-11-07 | Reject mapped remote drives and resolved network targets during log discovery/setup. Session ending suppresses updater apply-on-exit and bounds the dispatcher cleanup wait to one second; normal exit retains update application. | Local-only log reads and prompt Windows shutdown; staged updates remain for a later normal exit. |
+| D-061 | 2026-11-07 | Reject mapped remote drives and resolved network targets during log discovery/setup. Session ending suppresses updater apply-on-exit and bounds the dispatcher cleanup wait to one second; normal exit retains update application. Settings writes flush a same-directory temporary file before replace/move. Dispose flushes edits made after the initial shutdown flush; if Windows ends the process at the deadline, later edits may be lost. | Local-only log reads and prompt Windows shutdown; staged updates remain for a later normal exit. |
 
 ### P1-T7 Windows owner check
 

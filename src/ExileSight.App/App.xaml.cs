@@ -71,7 +71,7 @@ public partial class App : Application
             tray = new TrayHome(new ShellTrayIconFactory(), trayDiagnostics, () => { MainWindow.Show(); MainWindow.Activate(); },
                 () => ShowSetup(), OpenSettingsFolder, async () => await StopAndShutdownAsync());
             var general = settings.Snapshot.General;
-            if (!general.FirstRunCompleted || ClientLogDiscovery.Validate(general.ClientTxtPath, localPaths) is not null)
+            if (!general.FirstRunCompleted || await Task.Run(() => ClientLogDiscovery.Validate(general.ClientTxtPath, localPaths)) is not null)
             {
                 if (!ShowSetup() && !general.FirstRunCompleted) { await StopAndShutdownAsync(); return; }
             }

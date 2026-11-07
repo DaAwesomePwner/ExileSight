@@ -16,6 +16,7 @@ public sealed class SetupWizard : Window
     private readonly ComboBox path = new() { IsEditable = true, MinWidth = 470 };
     private readonly TextBlock message = new() { TextWrapping = TextWrapping.Wrap };
     private int page;
+    private bool busy, closed;
     private readonly ILocalPathResolver resolver = new ExileSight.Platform.Windows.Install.LocalPathResolver();
 
     public SetupWizard(ITransactionalSettingsStore<SettingsDocument> settings, IInstallLocations locations)
@@ -24,8 +25,21 @@ public sealed class SetupWizard : Window
         Title = "Welcome to ExileSight";
         Width = 640; Height = 500;
         Content = new ScrollViewer { Content = body };
-        path.ItemsSource = ClientLogDiscovery.Candidates(locations, resolver).Where(p => ClientLogDiscovery.Validate(p, resolver) is null).ToArray();
-        path.Text = settings.Snapshot.General.ClientTxtPath ?? path.Items.Cast<string>().FirstOrDefault() ?? "";
+        path.Text = settings.Snapshot.General.ClientTxtPath ?? "";
+        Loaded += async (_, _) =>
+        {
+            try
+            {
+                var candidates = await Task.Run(() => ClientLogDiscovery.Candidates(locations, resolver)
+                    .Where(p => ClientLogDiscovery.Validate(p, resolver) is null).ToArray());
+                if (closed) return;
+                path.ItemsSource = candidates;
+                if (string.IsNullOrWhiteSpace(path.Text)) path.Text = candidates.FirstOrDefault() ?? "";
+            }
+            catch (Exception) { if (!closed) message.Text = "Discovery unavailable; enter a local log path."; }
+        };
+        Closing += (_, e) => { if (busy) e.Cancel = true; };
+        Closed += (_, _) => closed = true;
         Render();
     }
 
@@ -53,11 +67,13 @@ public sealed class SetupWizard : Window
             case 1:
                 Text("Choose your game's log. Detected readable candidates are listed below; Browse can locate another install.");
                 body.Children.Add(path);
-                Button("Browse…", () =>
+                Button("Browse…", async () =>
                 {
-                    var picker = new OpenFileDialog { Filter = "Client logs|Client.txt;KakaoClient.txt;LatestClient.txt", CheckFileExists = true };
+                    var picker = new OpenFileDialog { Filter = "Client logs|Client.txt;KakaoClient.txt;LatestClient.txt", CheckFileExists = false, ValidateNames = false };
                     if (picker.ShowDialog(this) == true) path.Text = picker.FileName;
-                    message.Text = ClientLogDiscovery.Validate(path.Text, resolver) ?? "Log is readable.";
+                    var selected = path.Text;
+                    var result = await Task.Run(() => ClientLogDiscovery.Validate(selected, resolver));
+                    if (!closed && path.Text == selected) message.Text = result ?? "Log is readable.";
                 });
                 break;
             case 2:
@@ -74,17 +90,26 @@ public sealed class SetupWizard : Window
         Button("Cancel", () => { DialogResult = false; });
     }
 
-    private void Next()
+    private async void Next()
     {
-        if (page is 1 or 3 && ClientLogDiscovery.Validate(path.Text, resolver) is { } error)
-        { message.Text = error; return; }
-        if (page < 3) { page++; Render(); return; }
+        if (busy) return;
+        busy = true;
+        body.IsEnabled = false;
+        var selected = path.Text;
         try
         {
-            SetupCommit.Finish(settings, path.Text, resolver);
+            if (page is 1 or 3)
+            {
+                var error = await Task.Run(() => ClientLogDiscovery.Validate(selected, resolver));
+                if (error is not null) { message.Text = error; return; }
+            }
+            if (page < 3) { page++; Render(); return; }
+            await Task.Run(() => SetupCommit.Finish(settings, selected, resolver));
+            busy = false;
             DialogResult = true;
         }
         catch (Exception saveError) when (saveError is IOException or UnauthorizedAccessException or InvalidOperationException)
         { message.Text = "Could not save setup: " + saveError.Message; }
+        finally { busy = false; body.IsEnabled = true; }
     }
 }

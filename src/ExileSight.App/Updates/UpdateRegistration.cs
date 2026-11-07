@@ -1,5 +1,7 @@
 using ExileSight.Core.Diagnostics;
 using ExileSight.Core.Settings;
+using ExileSight.Core.Setup;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using ExileSight.Platform.Abstractions.Updates;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,6 +11,7 @@ public static class UpdateRegistration
 {
     public static IServiceCollection AddUpdates(this IServiceCollection services)
     {
+        services.TryAddSingleton<ExitPolicy>();
         services.AddSingleton(_ => new VelopackUpdateService(
             () => UpdateSettingsSnapshot.Read(new AppPaths())));
         services.AddSingleton<IUpdateService>(sp => sp.GetRequiredService<VelopackUpdateService>());

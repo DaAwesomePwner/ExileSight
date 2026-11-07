@@ -3,6 +3,7 @@ using ExileSight.Core.Logs.Tail;
 using ExileSight.Core.Settings;
 using ExileSight.Core.Setup;
 using ExileSight.Platform.Abstractions.Files;
+using ExileSight.Platform.Abstractions.Install;
 using Xunit;
 
 namespace ExileSight.Core.Tests.Setup;
@@ -55,6 +56,42 @@ public sealed class ClientLogSessionTests
             Assert.Equal("NewSecond", Rows(session)["Current area"]);
         }
         finally { Directory.Delete(root, true); }
+    }
+
+    [Fact]
+    public async Task MissingLocalLogRetriesWithResolverAndStartsWhenCreated()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ExileSight-missing-" + Guid.NewGuid());
+        Directory.CreateDirectory(root);
+        try
+        {
+            var log = Path.Combine(root, "Client.txt");
+            var resolver = new LocalResolver();
+            Assert.Contains("does not exist", ClientLogDiscovery.Validate(log, resolver));
+            using var settings = new JsonSettingsStore<SettingsDocument>(new AppPaths(root),
+                Path.Combine(root, "settings.json"), SettingsJsonContext.Default.SettingsDocument, () => new());
+            settings.Update("general", s => { s.General.ClientTxtPath = log; s.General.FirstRunCompleted = true; });
+            var timer = new ControlledTimer();
+            await using var session = new ClientLogSession(settings, new PollingFileTail(timer), resolver);
+            await session.RefreshAsync();
+            var tick = await timer.Drained();
+            Assert.Contains("retrying", Rows(session)["Status"]);
+            await File.WriteAllTextAsync(log, "");
+            tick.SetResult();
+            tick = await timer.Drained();
+            Assert.Null(ClientLogDiscovery.Validate(log, resolver));
+            await File.AppendAllTextAsync(log, ": You have entered Recovered.\n");
+            tick.SetResult();
+            await timer.Drained();
+            Assert.Equal("Recovered", Rows(session)["Current area"]);
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
+    private sealed class LocalResolver : ILocalPathResolver
+    {
+        public bool IsRemoteDrive(string path) => false;
+        public string? FinalPath(string path) => path; // Missing descendants of the checked local ancestor.
     }
 
     private static Dictionary<string, string> Rows(ClientLogSession session) => session.Snapshot().ToDictionary();

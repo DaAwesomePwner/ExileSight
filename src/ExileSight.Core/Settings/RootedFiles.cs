@@ -68,7 +68,18 @@ internal sealed class RootedFiles
             {
                 try
                 {
-                    if (rotateBackup && File.Exists(Check(backup))) File.Copy(backup, path);
+                    if (rotateBackup && File.Exists(Check(backup)))
+                    {
+                        var recovery = Check(path + "." + Guid.NewGuid().ToString("N") + ".tmp");
+                        try
+                        {
+                            File.Copy(backup, recovery);
+                            using (var restored = new FileStream(recovery, FileMode.Open, FileAccess.Write, FileShare.None))
+                                restored.Flush(true);
+                            File.Move(recovery, path); // Publish recovery atomically too.
+                        }
+                        finally { if (File.Exists(recovery)) File.Delete(recovery); }
+                    }
                     else if (complete && File.Exists(Check(temporary)) &&
                         File.ReadAllBytes(temporary).AsSpan().SequenceEqual(bytes))
                         File.Move(temporary, path);
