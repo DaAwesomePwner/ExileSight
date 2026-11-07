@@ -92,6 +92,7 @@ public partial class App : Application
             builder.Services.AddUpdates();
             ExileSight.App.DataPacks.PackRegistration.AddItemPacks(builder.Services);
             builder.Services.AddSingleton<IDebugSection>(logs);
+            builder.Services.AddSingleton(logs);
             builder.Services.AddOverlays().AddFeatureModules().AddProductionInput();
             host = builder.Build();
             if (!ReferenceEquals(profiles, host.Services.GetRequiredService<ProfileStore>()) ||

@@ -26,6 +26,8 @@ public interface IFeatureContext
         throw new NotSupportedException();
     void RegisterOmniHandler(IOmniHandler handler);
     void Subscribe<T>(Action<T> handler) where T : LogEvent;
+    void SubscribeLog(Action<ClientLogEvent> handler, LogReplay? replay = null) =>
+        throw new NotSupportedException("This host does not provide envelope subscriptions.");
     void RegisterOverlay(object viewModel);
     void RegisterTooltipSection(ITooltipSectionProvider provider) => throw new NotSupportedException();
     IReadOnlyList<ITooltipSectionProvider> TooltipSections => [];
