@@ -38,3 +38,20 @@ RegisterDefaultBinding declares a portable default. HotkeySettings appends it on
 when no persisted binding has that ID, including disabled persisted bindings. The
 omni binding ID is omni.press; its command ID follows the existing omni:press convention.
 BrowserHosts describes external browser destinations separately from NetworkHosts.
+
+The host owns the sole OmniRouter. A feature's OmniHandlers view contains only that
+feature's registrations; DispatchOmni asks the host to route across all registrations.
+DispatchOmni posts token-free work to a separate serial feature queue. Slow or failing
+handlers cannot stall the action worker or UI dismissal. Handlers must marshal their
+own view changes to the UI dispatcher; never retain an intent for deferred actions.
+
+PassiveInputChannel is a separate hook-to-UI path with no action authority. The menu
+opens a timestamped visibility epoch and drains it at background dispatcher priority
+every 16 ms only while visible. Mouse moves share one latest-only slot; clicks and
+Esc use a separate lossless queue. No passive observation wakes the action worker.
+Closing clears interest; reopening discards the old epoch and rejects older hook
+timestamps. Observer exceptions are isolated per subscriber.
+
+Omni reads Prices.League directly. App composition shares a PriceService and passively
+requests its cached league discovery result, using DefaultLeague once available; until
+then (or when discovery is unavailable) it falls back to Standard. The feature performs no HTTP calls and does not duplicate league heuristics.

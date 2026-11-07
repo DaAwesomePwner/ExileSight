@@ -27,9 +27,14 @@ public static class OmniLinks
             new("PoEDB", "https://poedb.tw/us/" + Page(item.BaseType ?? item.ItemClass)),
             new("Craft of Exile", "https://www.craftofexile.com/?game=poe1"),
             new("Trade search", "https://www.pathofexile.com/trade/search/" +
-                Uri.EscapeDataString(string.IsNullOrWhiteSpace(league) ? "Standard" : league) +
+                Segment(OmniLeague.Select(league)) +
                 "?q=" + Uri.EscapeDataString(json))
         });
     }
-    private static string Page(string value) => Uri.EscapeDataString(value.Replace(' ', '_'));
+    private static string Page(string value) => Segment(value.Replace(' ', '_'));
+    private static string Segment(string value)
+    {
+        if (value is "." or "..") throw new ArgumentException("Dot path segments are not allowed", nameof(value));
+        return Uri.EscapeDataString(value);
+    }
 }

@@ -1,4 +1,6 @@
 using ExileSight.Core.Features;
+using ExileSight.Core.Pricing;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using ExileSight.Platform.Abstractions.Input;
 using ExileSight.Core.Settings;
 using ExileSight.Platform.Abstractions.Storage;
@@ -15,6 +17,9 @@ public static class FeatureRegistration
     public static IServiceCollection AddFeatureModules(this IServiceCollection services)
     {
         services.AddSingleton<IBrowser, WindowsBrowser>();
+        services.TryAddSingleton<PriceTransport>(_ => new(
+            typeof(FeatureRegistration).Assembly.GetName().Version?.ToString(3) ?? "1.0.0"));
+        services.TryAddSingleton<PriceService>();
         services.AddSingleton<FeatureHost>(sp =>
         {
             var settings = sp.GetRequiredService<ISettingsStore<SettingsDocument>>();

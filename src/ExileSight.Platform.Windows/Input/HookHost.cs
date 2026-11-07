@@ -31,15 +31,17 @@ public sealed partial class HookHost : IHotkeys
     private readonly HotkeyConfiguration configuration;
     internal HookHost(HotkeyDispatcher dispatcher, IClock clock,
         Func<IntentToken?, HotkeyBinding, ActionResult> execute, KeyboardRepeatSettings repeatSettings,
-        Action<HotkeyBinding, ActionResult>? report = null, IGameWindow? gameWindow = null)
+        Action<HotkeyBinding, ActionResult>? report = null, IGameWindow? gameWindow = null,
+        IEnumerable<IFeatureCommandHandler>? commands = null, Func<bool>? gameFocused = null)
     {
         this.repeatSettings = repeatSettings;
+        featureCommands = (commands ?? []).ToDictionary(c => c.Command, StringComparer.Ordinal);
         ArgumentNullException.ThrowIfNull(gameWindow);
         foreground = new(gameWindow, dispatcher.Configuration, clock);
         dispatcher.SetRepeatProvider(() => repeatSettings.SilenceMilliseconds);
         configuration = dispatcher.Configuration;
         this.dispatcher = dispatcher; this.clock = clock;
-        router = new(dispatcher, clock, GameForeground.IsGame, execute,
+        router = new(dispatcher, clock, gameFocused ?? GameForeground.IsGame, execute,
             (token, press) => FindPressCommand(press.Binding) is { } command
                 ? command.Press(token, new(press.Id, press.Timestamp)) : execute(token, press.Binding),
             (binding, released) => FindPressCommand(binding)?.Release(released));
@@ -83,12 +85,11 @@ public sealed partial class HookHost : IHotkeys
     {
         while (!stop.WaitOne(0))
         {
-            DrainPassive();
             ReportIgnoredHotkey();
             while (queue.TryDequeue(out var press))
             {
                 if (stop.WaitOne(0)) return;
-                report(press!.Binding, router.Route(press));
+                RouteAndReport(press!);
             }
             ready.WaitOne();
         }

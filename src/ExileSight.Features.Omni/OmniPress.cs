@@ -34,6 +34,6 @@ public sealed class OmniPress(IFeatureContext context, OmniMenu menu)
         item = null;
         if (captured is null || release.UpTimestamp < down.Timestamp) return;
         if (release.UpTimestamp - down.Timestamp > LongPressMilliseconds) menu.Show(captured);
-        else new OmniRouter(context.OmniHandlers).Route(captured, new(Game.PoE1));
+        else context.DispatchOmni(captured, new(Game.PoE1), OmniPressKind.Short);
     }
 }

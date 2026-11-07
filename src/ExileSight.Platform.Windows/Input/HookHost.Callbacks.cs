@@ -21,7 +21,7 @@ public sealed partial class HookHost
             var timestamp = now - unchecked((uint)now - key.time);
             var physical = new PhysicalKey((int)key.vkCode,
                 message.Value is 0x100 or 0x104, false, Modifiers(), timestamp);
-            if (physical.Key == 0x1b && physical.Down) EnqueuePassive(0x100);
+            if (physical.Key == 0x1b && physical.Down) Passive.Observe(0x100, 0, 0, timestamp);
             var decision = ObserveWithFocus(physical);
             // Overflow fails closed: the key stays blocked, but no intent/action is issued.
             if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
@@ -31,11 +31,12 @@ public sealed partial class HookHost
     }
     private unsafe LRESULT Mouse(int code, WPARAM message, LPARAM data)
     {
-        if (code >= 0)
+        if (code >= 0 && Passive.IsInterested)
         {
             var observed = *(MSLLHOOKSTRUCT*)data.Value;
             if (((uint)observed.flags & 3) == 0)
-                EnqueuePassive((uint)message.Value, observed.pt.X, observed.pt.Y);
+                Passive.Observe((uint)message.Value, observed.pt.X, observed.pt.Y,
+                    clock.Milliseconds - unchecked((uint)clock.Milliseconds - observed.time));
         }
         if (code >= 0 && NativeHookEvent.IsMouseButton((uint)message.Value))
         {

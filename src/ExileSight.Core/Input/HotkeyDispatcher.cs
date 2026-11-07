@@ -11,6 +11,7 @@ public sealed class PhysicalPress
     internal int Redeemed;
     internal bool Executed;
     internal PhysicalPress? Origin { get; init; }
+    public bool IsRelease => Origin is not null;
     public long Timestamp { get; }
     public HotkeyBinding Binding { get; }
 }

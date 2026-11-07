@@ -11,13 +11,15 @@ public sealed class FeatureHost
     private readonly Func<string, IntentToken?, GameAction, ActionResult> execute;
     private readonly List<IFeatureCommandHandler> commands = [];
     private readonly List<FeatureDefaultBinding> defaults = [];
-    private readonly List<IOmniHandler> omni = [];
+    private readonly List<(string Owner, IOmniHandler Handler)> omni = [];
+    private readonly Action<Action> post;
     private readonly List<(string FeatureId, Action<LogEvent> Handler)> subscriptions = [];
     private readonly List<(string FeatureId, object ViewModel)> overlays = [];
     public FeatureHost(IEnumerable<IFeature> features,
         Func<string, string, JsonElement?> readSetting, Action<string, string, JsonElement> writeSetting,
-        Func<string, IntentToken?, GameAction, ActionResult>? execute = null)
+        Func<string, IntentToken?, GameAction, ActionResult>? execute = null, Action<Action>? dispatch = null)
     {
+        post = dispatch ?? new FeatureWorkQueue().Post;
         this.execute = execute ?? ((_, _, _) => new(ActionOutcome.Failed, "No gate configured"));
         var modules = features.ToArray();
         Manifests = Array.AsReadOnly(modules.Select(f => f.Manifest).ToArray());
@@ -47,13 +49,8 @@ public sealed class FeatureHost
             catch (Exception error) { report?.Invoke(featureId, error); }
         }
     }
-    public bool Route(ParsedItem item, OmniContext context, OmniPressKind press)
-    {
-        var handler = omni.OrderByDescending(h => h.Priority).FirstOrDefault(h => h.Matches(item, context));
-        if (handler is null) return false;
-        handler.Handle(item, context, press);
-        return true;
-    }
+    public bool Route(ParsedItem item, OmniContext context, OmniPressKind press) =>
+        new OmniRouter(omni.Select(o => o.Handler)).Route(item, context, press);
     private sealed class RegisteredCommand(string owner, string name, ActionKind? action,
         Func<IntentToken?, ActionResult> execute) : IFeatureCommandHandler
     {
@@ -113,8 +110,11 @@ public sealed class FeatureHost
                 throw new ArgumentException("Duplicate default binding");
             host.defaults.Add(binding);
         }
-        public IReadOnlyList<IOmniHandler> OmniHandlers => host.omni.AsReadOnly();
-        public void RegisterOmniHandler(IOmniHandler handler) { Registering(); host.omni.Add(handler); }
+        public IReadOnlyList<IOmniHandler> OmniHandlers =>
+            host.omni.Where(o => o.Owner == manifest.Id).Select(o => o.Handler).ToArray();
+        public void DispatchOmni(ParsedItem item, OmniContext context, OmniPressKind press) =>
+            host.post(() => host.Route(item, context, press));
+        public void RegisterOmniHandler(IOmniHandler handler) { Registering(); host.omni.Add((manifest.Id, handler)); }
         public void Subscribe<T>(Action<T> handler) where T : LogEvent
         { Registering(); host.subscriptions.Add((manifest.Id, value => { if (value is T typed) handler(typed); })); }
         public void RegisterOverlay(object viewModel) { Registering(); host.overlays.Add((manifest.Id, viewModel)); }

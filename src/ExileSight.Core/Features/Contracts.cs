@@ -20,6 +20,8 @@ public interface IFeatureContext
         throw new NotSupportedException();
     void RegisterDefaultBinding(FeatureDefaultBinding binding) => throw new NotSupportedException();
     IReadOnlyList<IOmniHandler> OmniHandlers => [];
+    void DispatchOmni(ParsedItem item, OmniContext context, OmniPressKind press) =>
+        throw new NotSupportedException();
     void RegisterOmniHandler(IOmniHandler handler);
     void Subscribe<T>(Action<T> handler) where T : LogEvent;
     void RegisterOverlay(object viewModel);

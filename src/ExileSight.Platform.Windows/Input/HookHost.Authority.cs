@@ -18,10 +18,9 @@ public sealed partial class HookHost
         var repeat = new KeyboardRepeatSettings();
         var dispatcher = new HotkeyDispatcher(issuer.Registry, configuration);
         dispatcher.InstallFeatureIssuer(issuer.Issue);
-        return new HookHost(dispatcher, clock, execute, repeat, report, window)
+        return new HookHost(dispatcher, clock, execute, repeat, report, window, commands)
         {
             overlayIssuer = issuer,
-            featureCommands = (commands ?? []).ToDictionary(c => c.Command, StringComparer.Ordinal),
             Gate = new ActionGate(new GatePolicy(issuer.Registry,
                 [ActionKind.CopyItem, ActionKind.SendChatCommand], manifests), clipboard, clock)
         };
