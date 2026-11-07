@@ -28,7 +28,7 @@ public sealed class SearchStringsFeature : IFeature
         context.RegisterCommand("open", null, _ => { Load(); Menu.Open(); return new(ActionOutcome.Success); });
         // F7 = copy spike, F8 = hideout; F9 yields to persisted searchstr.open bindings.
         context.RegisterDefaultBinding(new("searchstr.open", 0x78, KeyModifiers.None, true, "searchstr:open"));
-        context.RegisterCommand("paste", ActionKind.PasteSearch, token => Menu.Paste(token, context.Execute));
+        context.RegisterCommand("paste", ActionKind.PasteSearch, token => Menu.Paste(token, context.Execute), CommandKind.OverlayOnly);
         context.RegisterOverlay(Menu);
     }
 }

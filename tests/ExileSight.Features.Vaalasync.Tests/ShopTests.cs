@@ -54,6 +54,8 @@ public sealed class ShopTests : IDisposable
             });
         var item = ItemTextParser.Parse("Item Class: Rings\nRarity: Rare\nTest Ring\nIron Ring\n--------\nItem Level: 80\n--------\nNote: ~price 2 divine", Game.PoE1).Item!;
         Assert.True(host.Route(item, new(Game.PoE1), OmniPressKind.Short));
+        Assert.Equal(5, host.Commands.Count);
+        Assert.All(host.Commands, c => Assert.Equal(CommandKind.OverlayOnly, Assert.IsAssignableFrom<IFeatureCommandPolicy>(c).Kind));
         var command = host.Commands.Single(c => c.Command == "vaalasync:plus1");
         Assert.Equal(ActionOutcome.MissingToken, command.Execute().Outcome);
         Assert.Equal(ActionOutcome.UsedOrUnknownToken, command.Execute(new()).Outcome);

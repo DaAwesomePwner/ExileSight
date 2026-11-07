@@ -42,7 +42,7 @@ public sealed class StashModel : IItemMenuProvider
             var text = Search.Text;
             if (string.IsNullOrEmpty(text) || text.Length > 250) return new(ActionOutcome.Failed, "No safe search available");
             return context.Execute(token, new GameAction.PasteSearch(text));
-        });
+        }, CommandKind.OverlayOnly);
         context.RegisterItemMenu(this);
         context.RegisterOverlay(this);
     }

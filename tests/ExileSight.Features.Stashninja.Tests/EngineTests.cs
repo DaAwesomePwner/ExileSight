@@ -66,6 +66,7 @@ public sealed class EngineTests
             (_, _, action) => { calls++; Assert.IsType<GameAction.PasteSearch>(action); return new(ActionOutcome.Success); });
         Assert.Equal([ActionKind.PasteSearch], host.Manifests.Single().GameActions);
         var command = host.Commands.Single(c => c.Command == "stashninja:highlight");
+        Assert.Equal(CommandKind.OverlayOnly, Assert.IsAssignableFrom<IFeatureCommandPolicy>(command).Kind);
         model.SetSearch(new("\"Chaos Orb\"", "ready"));
         Assert.Equal(ActionOutcome.MissingToken, command.Execute().Outcome);
         Assert.Equal(0, calls);

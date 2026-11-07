@@ -17,6 +17,7 @@ public sealed class SelectionTests
         var feature = new SearchStringsFeature(clock);
         var calls = 0;
         var host = Host(feature, _ => { calls++; return new(ActionOutcome.Success); });
+        Assert.Equal(CommandKind.OverlayOnly, Assert.IsAssignableFrom<IFeatureCommandPolicy>(Paste(host)).Kind);
         feature.Menu.ChooseVendor("Vendor"); feature.Menu.Prepare(0);
         clock.Milliseconds = elapsed;
         Paste(host).Execute(new IntentToken());
