@@ -86,7 +86,7 @@ jobs:
           try {
             $sign = @()
             if ($env:CERT_BASE64 -and $env:CERT_PASSWORD) {
-              if ($env:SIGNING_TIMESTAMP_URL -notmatch '\Ahttps?://[^\s"<>]+\z') {
+              if ($env:SIGNING_TIMESTAMP_URL -notmatch '\Ahttps?://[^\s"&|^%<>]+\z') {
                 throw 'Signing requires release environment variable SIGNING_TIMESTAMP_URL (HTTP(S) RFC 3161 TSA URL).'
               }
               [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:CERT_BASE64))

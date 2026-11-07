@@ -49,7 +49,7 @@ for kind in kinds:
         def authored_digest(path):
             return hashlib.sha256(path.read_text(encoding="utf-8").encode("utf-8")).hexdigest()
         version = (hashlib.sha256((sha + exile).encode()).hexdigest() if kind == "guide"
-                   else exile if kind == "mapmods" else authored_digest(authored / f"{kind}.json"))
+                   else hashlib.sha256((exile + ":mapmods-v2").encode()).hexdigest() if kind == "mapmods" else authored_digest(authored / f"{kind}.json"))
         if kind in ("guide", "mapmods"):
             files = {f"https://raw.githubusercontent.com/Lailloken/Exile-UI/{exile}/data/english/"
                      + quote("[leveltracker] default guide.json" if kind == "guide" else "map-info.txt"):

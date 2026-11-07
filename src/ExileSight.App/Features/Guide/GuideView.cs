@@ -44,7 +44,10 @@ public sealed class GuideView
         panel = host.Register(content, DefaultOverlayLayout.Guide, clickThrough: false);
         host.SetVisible(panel, false);
         host.Changed += FocusChanged;
-        timer.Tick += (_, _) => Refresh(); timer.Start();
+        // Settings can re-show the window without changing model.Visible.
+        panel.IsVisibleChanged += (_, _) => timer.IsEnabled = panel.IsVisible;
+        timer.Tick += (_, _) => Refresh();
+        model.VisibilityChanged += Present;
         checkpoint.Tick += async (_, _) =>
         {
             if (saving) return;
@@ -53,7 +56,12 @@ public sealed class GuideView
             finally { saving = false; }
         };
         checkpoint.Start();
-        panel.Closed += (_, _) => { timer.Stop(); checkpoint.Stop(); host.Changed -= FocusChanged; };
+        panel.Closed += (_, _) => { timer.Stop(); checkpoint.Stop(); host.Changed -= FocusChanged; model.VisibilityChanged -= Present; };
+    }
+    private void Present()
+    {
+        if (!panel.Dispatcher.CheckAccess()) { panel.Dispatcher.BeginInvoke(Present); return; }
+        Refresh();
     }
     private void FocusChanged(object? sender, EventArgs args)
     {
@@ -78,6 +86,7 @@ public sealed class GuideView
         }
         catch (Exception)
         { model.Hide(); try { host.SetVisible(panel, false); } catch (Exception) { panel.Hide(); } }
+        finally { timer.IsEnabled = panel.IsVisible; }
     }
     private void Import()
     {

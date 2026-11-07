@@ -73,8 +73,13 @@ public sealed class GuideModel(GuideStore? store = null, IClock? clock = null)
     {
         lock (sync) { progress?.Navigate(delta, clock.Milliseconds); Save(); }
     }
-    public void Toggle() { lock (sync) visible = !visible; }
-    public void Hide() { lock (sync) visible = false; }
+    public event Action? VisibilityChanged;
+    public void Toggle() { lock (sync) visible = !visible; VisibilityChanged?.Invoke(); }
+    public void Hide()
+    {
+        lock (sync) { if (!visible) return; visible = false; }
+        VisibilityChanged?.Invoke();
+    }
     public void Import(byte[] bytes)
     {
         lock (sync)
@@ -101,7 +106,7 @@ public sealed class GuideModel(GuideStore? store = null, IClock? clock = null)
         lock (sync)
         {
             if (progress?.HasPendingTime(clock.Milliseconds) == true) progress.Tick(clock.Milliseconds);
-            Save();
+            if (Save()) store?.RetryCleanup(customId);
         }
     }
     public void Reset(bool changeLeague = false, bool changeBandit = false)
@@ -140,14 +145,14 @@ public sealed class GuideModel(GuideStore? store = null, IClock? clock = null)
         }
     }
     public string Export() { lock (sync) { progress?.Tick(clock.Milliseconds); return progress?.Csv() ?? "act,seconds,uncertain\r\n"; } }
-    private void Save(bool forceTimers = false)
+    private bool Save(bool forceTimers = false)
     {
-        if (progress is null) return;
+        if (progress is null) return false;
         var state = new GuideSave(2, version, progress.Index, progress.ActMilliseconds.ToArray(), progress.Complete,
             progress.Uncertain, leagueStart, bandit, null, customId, customDisabled);
         if (lastSaved is not null && state with { Times = lastSaved.Times } == lastSaved &&
-            (state.Times.SequenceEqual(lastSaved.Times) || !forceTimers && clock.Milliseconds - savedAt < 60000)) return;
-        try { store?.Save(state); lastSaved = state; savedAt = clock.Milliseconds; }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { notice = "Could not save guide progress."; }
+            (state.Times.SequenceEqual(lastSaved.Times) || !forceTimers && clock.Milliseconds - savedAt < 60000)) return true;
+        try { store?.Save(state); lastSaved = state; savedAt = clock.Milliseconds; return true; }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { notice = "Could not save guide progress."; return false; }
     }
 }

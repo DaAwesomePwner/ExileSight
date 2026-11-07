@@ -29,9 +29,11 @@ public static class MapModsConverter
         {
             var line = raw.Trim();
             if (line.Length == 0 || line.StartsWith(';')) continue;
-            if (line.StartsWith('[') && line.EndsWith(']'))
+            var end = line.IndexOf(']');
+            if (line.StartsWith('[') && end > 0 &&
+                (end == line.Length - 1 || line[(end + 1)..].TrimStart().StartsWith(';')))
             {
-                Finish(); fields.Clear(); pattern = line[1..^1];
+                Finish(); fields.Clear(); pattern = line[1..end];
             }
             else
             {

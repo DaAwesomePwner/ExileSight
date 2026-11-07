@@ -73,7 +73,9 @@ public sealed class TrackerModel(IRunStore store, IClock? suppliedClock = null, 
             if (entry.Event.Envelope is not null)
             { lastReceipt = clock.Milliseconds; extrapolate = !entry.IsReplay; }
             var revision = tracker.Revision;
+            var previousRun = tracker.Current?.Id;
             if (tracker.Accept(entry, league) is { } completed) Save(completed);
+            if (tracker.Current?.Id != previousRun) checkpointSeconds = 0;
             if (tracker.Current is { } current &&
                 (revision != tracker.Revision || current.Seconds - checkpointSeconds >= RunTracker.CheckpointWindowSeconds))
             {

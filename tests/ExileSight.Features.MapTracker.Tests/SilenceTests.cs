@@ -4,6 +4,37 @@ namespace ExileSight.Features.MapTracker.Tests;
 
 public sealed class SilenceTests
 {
+    [Fact]
+    public async Task NewRunCheckpointsAfterSixtySeconds()
+    {
+        var store = new TestStore(); var model = new TrackerModel(store);
+        model.SelectLeague("L");
+        model.Accept(TransitionTests.Area(0, "MapWorldsBeach"));
+        model.Accept(TransitionTests.E(new Unknown("", TransitionTests.At(1800))));
+        model.Accept(TransitionTests.Area(1801, "MapWorldsDunes"));
+        await model.FlushAsync();
+        var next = Assert.Single(store.Read("L"), r => r.Map == "MapWorldsDunes");
+        Assert.Equal(0, next.Seconds);
+        model.Accept(TransitionTests.E(new Unknown("", TransitionTests.At(1861))));
+        await model.FlushAsync();
+        Assert.Equal(60, Assert.Single(store.Read("L"), r => r.Id == next.Id).Seconds);
+        await model.StopAsync();
+    }
+
+    [Fact]
+    public void SleepThenDisconnectDoesNotCreditSleep()
+    {
+        var tracker = new RunTracker();
+        tracker.Accept(TransitionTests.Area(0, "MapWorldsBeach"), "L");
+        tracker.Accept(TransitionTests.E(new Unknown("", TransitionTests.At(10))), "L");
+        var closed = tracker.Accept(TransitionTests.E(new Unknown("",
+            TransitionTests.At(1810, message: "Disconnected from server."))), "L");
+        Assert.Equal(10, closed!.Seconds);
+        Assert.Equal(TransitionTests.At(10).Timestamp, closed.Ended);
+        Assert.True(closed.Incomplete);
+        Assert.Null(tracker.Current);
+    }
+
     [Theory]
     [InlineData(240, false)]
     [InlineData(1800, false)]

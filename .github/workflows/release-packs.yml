@@ -25,7 +25,16 @@ concurrency:
   group: release-packs-${{ inputs.pack_version }}
   cancel-in-progress: false
 jobs:
+  reject-off-main:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject off-main dispatch
+        run: |
+          echo '::error::Release packs must be dispatched from main. Select main and run again.'
+          exit 1
   build:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

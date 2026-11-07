@@ -133,3 +133,7 @@ new release asset sizes remain unmeasured. Consider separately measuring bundled
 runtime, debug symbols and pack contributions before reducing size. Do not enable
 trimming for WPF without dedicated compatibility work; this pipeline makes no
 trimming or dependency changes.
+
+Timestamp URLs must exclude whitespace and cmd.exe metacharacters `&|^%<>"`.
+Velopack invokes signtool through `cmd.exe /S /C`; this restriction prevents command expansion.
+Both release workflows reject off-main dispatches with an error, including dry runs.

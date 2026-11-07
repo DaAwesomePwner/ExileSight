@@ -19,7 +19,7 @@ The workflow installs the exact SDK from `global.json`, runs DataGen tests, fetc
 
 With **dry_run** disabled and the workflow dispatched on **main** (`refs/heads/main`), a separate job uses only GITHUB_TOKEN with contents-write permission to create `poe1-packs-<version>` as a draft, upload assets, and publish it. It never marks a pack release as the repository's latest application release. The job checks for an existing release or draft before creation and fails clearly if one exists; choose a new version. Existing tags/releases are not overwritten. If upload fails, inspect the retained draft before retrying.
 
-Publishing uses the **release** GitHub environment. The owner should configure a required reviewer in repository **Settings → Environments → release**. The workflow also works with no environment protection rules; in that case publishing proceeds without a reviewer. Runs on other branches can build artifacts but cannot publish. Build and publish jobs have 20-minute and 10-minute timeouts respectively.
+Publishing uses the **release** GitHub environment. The owner should configure a required reviewer in repository **Settings → Environments → release**. The workflow also works with no environment protection rules; in that case publishing proceeds without a reviewer. Off-main dispatches fail explicitly, including dry runs. Build and publish jobs have 20-minute and 10-minute timeouts respectively.
 
 Release assets are `poe1-bases.json`, `poe1-mods.json`, `poe1-stats.json`, their `.manifest.json` and `.pack.json` counterparts, and `SHA256SUMS`. The workflow artifact also includes `RELEASE-NOTES.md`; its attribution and source SHA become the release body. The manifest pack version remains the full source SHA: the workflow's version labels the release only. Tier estimates are included in the mods pack. No separate tiers asset is emitted.
 
@@ -51,9 +51,12 @@ Non-gem placeholders (including vendor-only Fallen from Grace) remain display hi
 Map modifier IDs group alternative patterns with identical labels; differing labels retain separate entries with the same stable rating ID; `|` separates required lines and `#` marks numbers. Ratings are never packed.
 Events and historical leagues are ExileSight-authored JSON. The league list is deliberately incomplete; null end dates
 mean unknown, NOT ongoing (including Settlers); current league names come from poe.ninja index-state at runtime.
-Guide versions hash only the RePoE and Exile-UI pins; mapmods uses the Exile-UI pin, while events and leagues each use their own LF-normalised authored source hash. Mixed-source manifest file keys are pinned raw
+Guide versions hash only the RePoE and Exile-UI pins; mapmods hashes the Exile-UI pin plus `:mapmods-v2`, while events and leagues each use their own LF-normalised authored source hash. Mixed-source manifest file keys are pinned raw
 GitHub URLs; authored sources use repository-relative paths and content hashes. The four new optional content properties are omitted when null, preserving the exact pre-Phase-3 bases/mods/stats content bytes, hashes and versions for identical inputs.
 
 Authored JSON and notice text are normalised to LF before embedding or hashing, independently of checkout settings.
 Upstream provenance hashes retain the exact downloaded bytes. Chapter acts derive from the most frequently referenced RePoE area act;
 missing or tied act evidence fails validation. Cross-act travel references remain intact.
+
+The mapmods converter revision bumps its pack version for corrected commented section headers;
+source provenance still records the original upstream SHA. Publish under a new unused release tag.
