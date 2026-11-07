@@ -260,10 +260,11 @@ information. Review files before sharing them. The app never edits your game log
 - **Missing item details or notifications:** check data-pack diagnostics. Let packs
   load, then copy the item again. Unknown values are not guessed. Stash tags also
   require a supported measured layout, which is absent from this version.
-- **Antivirus or SmartScreen warning:** CI installers are unsigned. Check the build's
-  origin before running it. Keep protection enabled; if it blocks the build, include
-  the detection name and build version in a bug report instead of adding a blanket
-  exclusion.
+- **Antivirus or SmartScreen warning:** CI and 1.0 release installers are unsigned
+  (D-098), so Windows SmartScreen and “unknown publisher” prompts are expected.
+  Check the build's origin before running it. Keep protection enabled; if it blocks
+  the build, include the detection name and build version in a bug report instead
+  of adding a blanket exclusion.
 
 ## Reporting bugs safely
 
