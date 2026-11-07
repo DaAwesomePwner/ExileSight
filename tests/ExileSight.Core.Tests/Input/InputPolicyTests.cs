@@ -7,6 +7,7 @@ namespace ExileSight.Core.Tests.Input;
 
 public sealed class FakeClock : IClock
 {
+    public void Delay(int milliseconds) => Milliseconds += milliseconds;
     public long Milliseconds { get; set; } = 10000;
     public DateTimeOffset UtcNow => DateTimeOffset.UnixEpoch.AddMilliseconds(Milliseconds);
 }

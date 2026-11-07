@@ -24,3 +24,6 @@ CreateWindowEx
 DestroyWindow
 KBDLLHOOKSTRUCT
 GetModuleHandle
+GetWindowText
+MapVirtualKey
+GlobalSize

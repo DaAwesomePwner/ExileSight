@@ -11,8 +11,8 @@ public abstract record GameAction
 
 /// <summary>Identity alone confers no authority: only a registered physical press is accepted.</summary>
 public sealed class IntentToken;
-public enum ActionOutcome { Success, MissingToken, UsedOrUnknownToken, Expired, NotForeground, Undeclared, Failed }
-public sealed record ActionResult(ActionOutcome Outcome, string Reason = "", string? CopiedText = null);
+public enum ActionOutcome { Success, MissingToken, UsedOrUnknownToken, Expired, NotForeground, Undeclared, WrongAction, Failed }
+public sealed record ActionResult(ActionOutcome Outcome, string Reason = "", string? CopiedText = null, bool AuditFailed = false);
 public interface IActionGate
 {
     string AuditPath { get; }

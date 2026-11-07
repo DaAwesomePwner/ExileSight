@@ -3,7 +3,6 @@ using ExileSight.Platform.Abstractions.Input;
 
 namespace ExileSight.Core.Input;
 
-public readonly record struct KeyStroke(ushort Key, bool Down);
 // Behavior reference: Exile-UI modules/omni-key.ahk and modules/macros.ahk.
 // Only the single-action clipboard sequences are retained.
 public static class ActionData
@@ -15,10 +14,13 @@ public static class ActionData
         GameAction.SendChatCommand => [new(13,true),new(13,false),new(17,true),new(86,true),new(86,false),new(17,false),new(13,true),new(13,false)],
         _ => throw new ArgumentOutOfRangeException(nameof(action))
     };
-    public static string Audit(DateTimeOffset timestamp, string? hotkey, GameAction action, ActionOutcome outcome)
+    public static IReadOnlyList<KeyStroke> ReleaseSequence(IReadOnlyList<KeyStroke> sequence) =>
+        sequence.Where(k => k.Down).Select(k => k.Key).Distinct().Reverse()
+            .Select(key => new KeyStroke(key, false)).ToArray();
+    public static string Audit(DateTimeOffset timestamp, string? hotkey, GameAction action, ActionOutcome outcome, string reason = "")
     {
         var verb = action is GameAction.SendChatCommand chat ? CommandVerb(chat.Text) : null;
-        return JsonSerializer.Serialize(new { timestamp, hotkey, action = action.Kind.ToString(), outcome = outcome.ToString(), verb });
+        return JsonSerializer.Serialize(new { timestamp, hotkey, action = action.Kind.ToString(), outcome = outcome.ToString(), reason, verb });
     }
     private static string? CommandVerb(string text)
     {

@@ -7,16 +7,16 @@ public sealed class IntentRegistry(IClock clock)
 {
     private readonly Dictionary<IntentToken, Press> pending = [];
     public const long LifetimeMilliseconds = 1500;
-    public sealed record Press(long Timestamp, string HotkeyId);
+    public sealed record Press(long Timestamp, string HotkeyId, ActionKind Action);
     // Owned by the physical-input dispatcher, never registered as a feature service.
-    internal IntentToken Issue(long timestamp, string hotkey)
+    internal IntentToken Issue(long timestamp, string hotkey, ActionKind action)
     {
         lock (pending)
         {
             foreach (var old in pending.Where(p => clock.Milliseconds - p.Value.Timestamp >= LifetimeMilliseconds)
                          .Select(p => p.Key).ToArray()) pending.Remove(old);
             var token = new IntentToken();
-            pending.Add(token, new(timestamp, hotkey));
+            pending.Add(token, new(timestamp, hotkey, action));
             return token;
         }
     }
@@ -39,6 +39,7 @@ public sealed class GatePolicy(IntentRegistry registry, IEnumerable<ActionKind> 
     {
         var result = registry.Consume(token, out press);
         if (result != ActionOutcome.Success) return result;
+        if (press!.Action != action.Kind) return ActionOutcome.WrongAction;
         if (!foreground) return ActionOutcome.NotForeground;
         return allowed.Contains(action.Kind) ? ActionOutcome.Success : ActionOutcome.Undeclared;
     }

@@ -1,4 +1,5 @@
 using ExileSight.Platform.Abstractions.Input;
+using ExileSight.Core.Input;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.Memory;
@@ -28,9 +29,16 @@ public sealed class WindowsClipboard : IClipboard
         {
             var handle = PInvoke.GetClipboardData(13);
             if (handle.IsNull) return null;
+            var size = PInvoke.GlobalSize(new HGLOBAL(handle.Value));
+            if (size < 2 || size > 16 * 1024 * 1024 || size % 2 != 0)
+                throw new InvalidOperationException("Invalid clipboard text size");
             var memory = PInvoke.GlobalLock(new HGLOBAL(handle.Value));
             if (memory == null) throw new InvalidOperationException("Clipboard lock failed");
-            try { return new string((char*)memory); }
+            try
+            {
+                var text = new ReadOnlySpan<char>(memory, checked((int)(size / 2)));
+                return ClipboardText.Decode(text);
+            }
             finally { PInvoke.GlobalUnlock(new HGLOBAL(handle.Value)); }
         }
         finally { PInvoke.CloseClipboard(); }

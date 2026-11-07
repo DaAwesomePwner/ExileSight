@@ -28,12 +28,16 @@ public sealed class HotkeyDispatcher
         foreach (var b in bindings) this.bindings[b.Key, (int)b.Modifiers] = b;
     }
     /// <summary>Seed keys already down at hook installation; their repeats have no observed physical press.</summary>
-    public void SeedHeld(int key)
+    internal void SeedHeld(int key)
     {
         if ((uint)key >= 256) throw new ArgumentOutOfRangeException(nameof(key));
         held[key] = true;
     }
-    public DispatchDecision Observe(PhysicalKey key, bool active)
+    internal bool IsCandidate(PhysicalKey key) =>
+        !key.Injected && key.Down && (uint)key.Key < 256 && (uint)key.Modifiers < 16 &&
+        !held[key.Key] && bindings[key.Key, (int)key.Modifiers] is not null;
+
+    internal DispatchDecision Observe(PhysicalKey key, bool active)
     {
         if (key.Injected || (uint)key.Key >= 256 || (uint)key.Modifiers >= 16) return default;
         if (!key.Down)
@@ -49,9 +53,9 @@ public sealed class HotkeyDispatcher
         return new(blocked[key.Key], binding is null ? null : new PhysicalPress(key.Timestamp, binding));
     }
     // Called only by the hook queue consumer, for a decision produced by Observe.
-    public IntentToken Issue(PhysicalPress press)
+    internal IntentToken Issue(PhysicalPress press)
     {
         if (Interlocked.Exchange(ref press.Redeemed, 1) != 0) throw new InvalidOperationException("Press already issued");
-        return registry.Issue(press.Timestamp, press.Binding.Id);
+        return registry.Issue(press.Timestamp, press.Binding.Id, press.Binding.Action.Kind);
     }
 }

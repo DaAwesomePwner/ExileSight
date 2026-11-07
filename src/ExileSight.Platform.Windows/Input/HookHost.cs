@@ -22,8 +22,8 @@ public sealed class HookHost : IHotkeys
     private Thread? hookThread;
     private Thread? worker;
     private volatile Exception? startupError;
-    private nint activeWindow;
     private int disposed;
+    private int refreshForeground;
     public HookHost(HotkeyDispatcher dispatcher, IClock clock, Action<IntentToken, HotkeyBinding> execute)
     {
         this.dispatcher = dispatcher; this.clock = clock; this.execute = execute;
@@ -53,15 +53,13 @@ public sealed class HookHost : IHotkeys
     {
         while (!stop.WaitOne(0))
         {
-            var foreground = PInvoke.GetForegroundWindow();
-            Volatile.Write(ref activeWindow, GameForeground.IsGame() && PInvoke.GetForegroundWindow() == foreground
-                ? (nint)foreground.Value : 0);
+            if (Interlocked.Exchange(ref refreshForeground, 0) != 0) GameForeground.IsGame();
             while (queue.TryDequeue(out var press))
             {
                 if (stop.WaitOne(0)) return;
-                execute(dispatcher.Issue(press!), press!.Binding);
+                if (GameForeground.IsGame()) execute(dispatcher.Issue(press!), press!.Binding);
             }
-            ready.WaitOne(20); // passive foreground cache refresh, never creates intent
+            ready.WaitOne(); // wake only for physical input or shutdown
         }
     }
     private unsafe void Run()
@@ -69,6 +67,7 @@ public sealed class HookHost : IHotkeys
         HHOOK k = default, m = default;
         try
         {
+            GameForeground.IsGame(); // one startup snapshot; never poll
             for (var key = 0; key < 256; key++)
                 if (Down(key)) dispatcher.SeedHeld(key);
             var module = PInvoke.GetModuleHandle(null);
@@ -108,9 +107,15 @@ public sealed class HookHost : IHotkeys
             // Hook timestamps share the system tick epoch; unsigned subtraction handles 32-bit wrap.
             var now = clock.Milliseconds;
             var timestamp = now - unchecked((uint)now - key.time);
-            var decision = dispatcher.Observe(new((int)key.vkCode,
-                message.Value is 0x100 or 0x104, injected, Modifiers(), timestamp), Volatile.Read(ref activeWindow) != 0 &&
-                (nint)PInvoke.GetForegroundWindow().Value == Volatile.Read(ref activeWindow));
+            var physical = new PhysicalKey((int)key.vkCode,
+                message.Value is 0x100 or 0x104, injected, Modifiers(), timestamp);
+            var active = false;
+            if (dispatcher.IsCandidate(physical))
+            {
+                active = GameForeground.IsCandidate(out var refresh);
+                if (refresh) { Interlocked.Exchange(ref refreshForeground, 1); ready.Set(); }
+            }
+            var decision = dispatcher.Observe(physical, active);
             // Overflow fails closed: the key stays blocked, but no intent/action is issued.
             if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
             if (decision.Block) return new LRESULT(1);
