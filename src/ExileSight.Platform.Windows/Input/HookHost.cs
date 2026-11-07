@@ -12,7 +12,7 @@ public sealed class HookHost : IHotkeys
 {
     private readonly HotkeyDispatcher dispatcher;
     private readonly IClock clock;
-    private readonly Action<IntentToken, HotkeyBinding> execute;
+    private readonly Action<IntentToken?, HotkeyBinding> execute;
     private readonly PressQueue queue = new();
     private readonly EventWaitHandle stop = new(false, EventResetMode.ManualReset);
     private readonly AutoResetEvent ready = new(false);
@@ -23,9 +23,10 @@ public sealed class HookHost : IHotkeys
     private Thread? worker;
     private volatile Exception? startupError;
     private int disposed;
-    private int refreshForeground;
-    public HookHost(HotkeyDispatcher dispatcher, IClock clock, Action<IntentToken, HotkeyBinding> execute)
+    private readonly HotkeyConfiguration? configuration;
+    public HookHost(HotkeyDispatcher dispatcher, IClock clock, Action<IntentToken?, HotkeyBinding> execute, HotkeyConfiguration? configuration = null)
     {
+        this.configuration = configuration;
         this.dispatcher = dispatcher; this.clock = clock; this.execute = execute;
         keyboard = Keyboard; mouse = Mouse;
     }
@@ -53,11 +54,13 @@ public sealed class HookHost : IHotkeys
     {
         while (!stop.WaitOne(0))
         {
-            if (Interlocked.Exchange(ref refreshForeground, 0) != 0) GameForeground.IsGame();
             while (queue.TryDequeue(out var press))
             {
                 if (stop.WaitOne(0)) return;
-                if (GameForeground.IsGame()) execute(dispatcher.Issue(press!), press!.Binding);
+                var age = clock.Milliseconds - press!.Timestamp;
+                if (age < 0 || age >= IntentRegistry.LifetimeMilliseconds) continue;
+                if (press.Binding.Action is null) execute(null, press.Binding);
+                else if (GameForeground.IsGame()) execute(dispatcher.Issue(press), press.Binding);
             }
             ready.WaitOne(); // wake only for physical input or shutdown
         }
@@ -67,7 +70,7 @@ public sealed class HookHost : IHotkeys
         HHOOK k = default, m = default;
         try
         {
-            GameForeground.IsGame(); // one startup snapshot; never poll
+            configuration?.SetActive("gameFocused", GameForeground.IsGame());
             for (var key = 0; key < 256; key++)
                 if (Down(key)) dispatcher.SeedHeld(key);
             var module = PInvoke.GetModuleHandle(null);
@@ -78,6 +81,7 @@ public sealed class HookHost : IHotkeys
             HANDLE handle = new(stop.SafeWaitHandle.DangerousGetHandle());
             while (!stop.WaitOne(0))
             {
+                configuration?.SetActive("gameFocused", GameForeground.IsGame());
                 PInvoke.MsgWaitForMultipleObjectsEx(1, &handle, 100, QUEUE_STATUS_FLAGS.QS_ALLINPUT,
                     MSG_WAIT_FOR_MULTIPLE_OBJECTS_EX_FLAGS.MWMO_INPUTAVAILABLE);
                 MSG message;
@@ -109,21 +113,31 @@ public sealed class HookHost : IHotkeys
             var timestamp = now - unchecked((uint)now - key.time);
             var physical = new PhysicalKey((int)key.vkCode,
                 message.Value is 0x100 or 0x104, injected, Modifiers(), timestamp);
-            var active = false;
-            if (dispatcher.IsCandidate(physical))
-            {
-                active = GameForeground.IsCandidate(out var refresh);
-                if (refresh) { Interlocked.Exchange(ref refreshForeground, 1); ready.Set(); }
-            }
-            var decision = dispatcher.Observe(physical, active);
+            var decision = dispatcher.Observe(physical, true);
             // Overflow fails closed: the key stays blocked, but no intent/action is issued.
             if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
             if (decision.Block) return new LRESULT(1);
         }
         return PInvoke.CallNextHookEx(default, code, message, data);
     }
-    private static LRESULT Mouse(int code, WPARAM message, LPARAM data) =>
-        PInvoke.CallNextHookEx(default, code, message, data); // no mouse token issuance in Phase 0
+    private unsafe LRESULT Mouse(int code, WPARAM message, LPARAM data)
+    {
+        if (code >= 0)
+        {
+            var mouse = *(MSLLHOOKSTRUCT*)data.Value;
+            var now = clock.Milliseconds;
+            var key = MouseButtonEvent.Decode((uint)message.Value, mouse.mouseData,
+                ((uint)mouse.flags & 1) != 0, Modifiers(),
+                now - unchecked((uint)now - mouse.time));
+            if (key is { } physical)
+            {
+                var decision = dispatcher.Observe(physical, true);
+                if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
+                if (decision.Block) return new LRESULT(1);
+            }
+        }
+        return PInvoke.CallNextHookEx(default, code, message, data);
+    }
     public static KeyModifiers Modifiers()
     {
         var result = KeyModifiers.None;
