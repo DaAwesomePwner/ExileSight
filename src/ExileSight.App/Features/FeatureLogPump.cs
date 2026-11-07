@@ -9,16 +9,18 @@ namespace ExileSight.App.Features;
 public sealed class FeatureLogPump(FeatureHost features, ClientLogSession session,
     ILogger<FeatureLogPump> logger) : IHostedService
 {
-    private IDisposable? connection;
+    private LogConnections? connection;
     public Task StartAsync(CancellationToken cancellationToken)
     {
         connection = features.ConnectLogs(session.Events, (id, type) =>
             logger.LogError("Feature {FeatureId} log subscriber failed: {ExceptionType}", id, type));
         return Task.CompletedTask;
     }
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        connection?.Dispose();
-        return Task.CompletedTask;
+        if (connection is null) return;
+        try { await connection.StopAsync(TimeSpan.FromSeconds(1), cancellationToken).ConfigureAwait(false); }
+        catch (TimeoutException) { logger.LogWarning("Feature log handlers exceeded shutdown deadline"); }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
     }
 }

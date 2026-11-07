@@ -63,6 +63,49 @@ public sealed class LocalLogTailTests
         finally { Directory.Delete(root, true); }
     }
 
+    [Fact]
+    public async Task UnexpectedReaderFailureRetriesAndRechecksLocalityBeforeOpening()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ExileSight-retry-" + Guid.NewGuid());
+        Directory.CreateDirectory(root);
+        try
+        {
+            var log = Path.Combine(root, "Client.txt");
+            await File.WriteAllTextAsync(log, "");
+            using var settings = new JsonSettingsStore<SettingsDocument>(new AppPaths(root),
+                Path.Combine(root, "settings.json"), SettingsJsonContext.Default.SettingsDocument, () => new());
+            settings.Update("general", s => s.General.ClientTxtPath = log);
+            var resolver = new ChangingDrive { Type = 3 };
+            var timer = new ControlledTimer();
+            var identity = new FailOnce();
+            await using var session = new ClientLogSession(settings, new LocalLogTail(resolver, timer, identity),
+                pollingTimer: timer);
+            await session.RefreshAsync();
+            var tick = await timer.Drained();
+            Assert.Contains("InvalidOperationException", Rows(session)["Status"]);
+            Assert.DoesNotContain("private", Rows(session)["Status"]);
+            Assert.Equal(1, identity.Opens);
+            resolver.Type = 4; tick.SetResult(); tick = await timer.Drained();
+            Assert.Equal(1, identity.Opens); Assert.Contains("Network", Rows(session)["Status"]);
+            resolver.Type = 3; tick.SetResult(); tick = await timer.Drained();
+            Assert.Equal(2, identity.Opens);
+            await File.AppendAllTextAsync(log, ": You have entered Recovered.\n");
+            tick.SetResult(); await timer.Drained();
+            Assert.Equal("Recovered", Rows(session)["Current area"]);
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
+    private sealed class FailOnce : IFileTailIdentityProvider
+    {
+        public int Opens;
+        public FileTailIdentity Read(FileStream file)
+        {
+            if (++Opens == 1) throw new InvalidOperationException("private");
+            return new(default, false);
+        }
+    }
+
     private static Dictionary<string, string> Rows(ClientLogSession session) => session.Snapshot().ToDictionary();
     private sealed class ChangingDrive : ILocalPathResolver, IPathComponentProbe
     {

@@ -44,7 +44,8 @@ public sealed partial class FeatureHost
     public IReadOnlyList<IFeatureCommandHandler> Commands => commands.AsReadOnly();
     public IReadOnlyList<(string FeatureId, object ViewModel)> Overlays => overlays.AsReadOnly();
     public IReadOnlyList<FeatureDefaultBinding> DefaultBindings => defaults.AsReadOnly();
-    public bool HasLogSubscriptions => subscriptions.Count != 0 || envelopeSubscriptions.Count != 0;
+    public bool HasLogSubscriptions => subscriptions.Count != 0 || logRegistrations.Count != 0;
+    // Synchronous injection retained for portable feature contract tests; production uses ConnectLogs.
     public void Publish(LogEvent value, Action<string, Exception>? report = null)
     {
         foreach (var (featureId, handler) in subscriptions)
@@ -121,9 +122,18 @@ public sealed partial class FeatureHost
             host.post(() => host.Route(item, context, press));
         public void RegisterOmniHandler(IOmniHandler handler) { Registering(); host.omni.Add((manifest.Id, handler)); }
         public void Subscribe<T>(Action<T> handler) where T : LogEvent
-        { Registering(); host.subscriptions.Add((manifest.Id, value => { if (value is T typed) handler(typed); })); }
+        {
+            Registering();
+            Action<LogEvent> dispatch = value => { if (value is T typed) handler(typed); };
+            host.subscriptions.Add((manifest.Id, dispatch));
+            host.logRegistrations.Add(new(manifest.Id, e => dispatch(e.Event), null));
+        }
         public void SubscribeLog(Action<ClientLogEvent> handler, LogReplay? replay = null)
-        { Registering(); host.envelopeSubscriptions.Add((manifest.Id, handler, replay)); }
+        {
+            Registering(); ArgumentNullException.ThrowIfNull(handler);
+            if (replay is not null) ArgumentOutOfRangeException.ThrowIfLessThan(replay.MaxEvents, 1);
+            host.logRegistrations.Add(new(manifest.Id, handler, replay));
+        }
         public IReadOnlyList<ITooltipSectionProvider> TooltipSections => host.tooltipSections.AsReadOnly();
         public void RegisterTooltipSection(ITooltipSectionProvider provider)
         { Registering(); host.tooltipSections.Add(provider); }

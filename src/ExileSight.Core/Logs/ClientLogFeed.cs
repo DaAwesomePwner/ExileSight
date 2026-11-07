@@ -3,12 +3,18 @@ namespace ExileSight.Core.Logs;
 /// <summary>Offset is a process-local event sequence, not a file byte offset. Generation changes with the path.</summary>
 public sealed record ClientLogEvent(long Offset, long Generation, LogEvent Event, bool IsReplay)
 {
+    /// <summary>Number of live deliveries lost immediately before this event for this subscriber.</summary>
+    public long DroppedBefore { get; init; }
     public DateTime? Timestamp => Event.Envelope?.Timestamp;
     public long? UptimeMilliseconds => Event.Envelope?.UptimeMilliseconds;
 }
 
+/// <summary>Path selection changed. The enclosing Generation identifies the new source without exposing its path.</summary>
+public sealed record LogSourceChanged() : LogEvent("", null);
+
 /// <summary>Replay only covers retained events observed by this live session, never pre-start file contents.
-/// Both filters are inclusive; missing timestamps cannot match Since. At most MaxEvents are replayed.</summary>
+/// Both filters are inclusive; missing timestamps cannot match Since. At most MaxEvents are replayed.
+/// Replay uses a separate bounded snapshot, reserving the full live capacity during catch-up.</summary>
 public sealed record LogReplay(long? FromOffset = null, DateTime? Since = null, int MaxEvents = 256);
 
 /// <summary>One publisher, bounded in-memory history and independent serial worker queues.
@@ -28,21 +34,26 @@ public sealed class ClientLogFeed : IDisposable
     }
 
     public LogSubscription Subscribe(Action<ClientLogEvent> handler, LogReplay? replay = null,
-        int capacity = 256, Action<string>? reportFailure = null)
+        int capacity = 256, Action<string>? reportFailure = null, string name = "anonymous")
     {
         ArgumentNullException.ThrowIfNull(handler);
+        return SubscribeCore(_ => handler, replay, capacity, reportFailure, name);
+    }
+
+    internal LogSubscription SubscribeCore(Func<ClientLogEvent[], Action<ClientLogEvent>> createHandler,
+        LogReplay? replay, int capacity, Action<string>? reportFailure, string name)
+    {
         ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 1);
         if (replay is not null) ArgumentOutOfRangeException.ThrowIfLessThan(replay.MaxEvents, 1);
         lock (sync)
         {
             ObjectDisposedException.ThrowIf(disposed, this);
-            var subscription = new LogSubscription(handler, capacity, reportFailure, Remove);
-            if (replay is not null)
-                foreach (var value in history.Where(e =>
-                    (replay.FromOffset is null || e.Offset >= replay.FromOffset) &&
-                    (replay.Since is null || e.Timestamp >= replay.Since))
-                    .TakeLast(Math.Min(replay.MaxEvents, historyCapacity)))
-                    subscription.Enqueue(value with { IsReplay = true });
+            var retained = replay is null ? [] : history.Where(e =>
+                (replay.FromOffset is null || e.Offset >= replay.FromOffset) &&
+                (replay.Since is null || e.Timestamp >= replay.Since))
+                .TakeLast(Math.Min(replay.MaxEvents, historyCapacity))
+                .Select(e => e with { IsReplay = true }).ToArray();
+            var subscription = new LogSubscription(createHandler(retained), retained, capacity, reportFailure, Remove, name);
             subscriptions.Add(subscription);
             return subscription;
         }
@@ -62,15 +73,20 @@ public sealed class ClientLogFeed : IDisposable
 
     internal void ChangePath()
     {
-        lock (sync) { generation++; history.Clear(); }
+        lock (sync)
+        {
+            generation++; history.Clear();
+            var changed = new ClientLogEvent(++offset, generation, new LogSourceChanged(), false);
+            foreach (var subscriber in subscriptions) subscriber.Enqueue(changed);
+        }
     }
     private void Remove(LogSubscription subscription) { lock (sync) subscriptions.Remove(subscription); }
     public string Diagnostic
     {
         get
         {
-            lock (sync) return string.Join("; ", subscriptions.Select((s, i) =>
-                $"Subscriber {i + 1}: dropped {s.DroppedEvents} events; failures {s.Failures}; last type {s.LastFailureType ?? "none"}"));
+            lock (sync) return string.Join("; ", subscriptions.Select(s =>
+                $"{s.Name}: dropped {s.DroppedEvents} events; failures {s.Failures}; last type {s.LastFailureType ?? "none"}"));
         }
     }
     public void Dispose()

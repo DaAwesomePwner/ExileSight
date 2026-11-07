@@ -11,7 +11,7 @@ using Xunit;
 
 namespace ExileSight.Core.Tests.Logs;
 
-public sealed class ClientLogFeedTests
+public sealed partial class ClientLogFeedTests
 {
     [Fact]
     public async Task OrderedIsolatedDeliveryAndLateSubscribersShareOneTailAcrossPaths()
@@ -29,7 +29,7 @@ public sealed class ClientLogFeedTests
         for (var i = 0; i < 3; i++) rig.Send(i);
         var events = new List<ClientLogEvent>();
         for (var i = 0; i < 3; i++) events.Add(await Next(received));
-        Assert.Equal(new long[] { 1, 2, 3 }, events.Select(e => e.Offset));
+        Assert.Equal(new long[] { 2, 3, 4 }, events.Select(e => e.Offset));
         Assert.All(events, e => Assert.False(e.IsReplay));
         for (var i = 0; i < 3; i++) Assert.Equal("InvalidOperationException", await Next(errors));
         var late = Channel.CreateUnbounded<ClientLogEvent>();
@@ -46,17 +46,18 @@ public sealed class ClientLogFeedTests
     }
 
     [Fact]
-    public async Task BlockedSubscriberDropsNewestWithoutBlockingTailOrOtherSubscribers()
+    public async Task BlockedSubscriberDropsOldestWithoutBlockingTailOrOtherSubscribers()
     {
         await using var rig = new Rig();
         using var entered = new ManualResetEventSlim();
         using var release = new ManualResetEventSlim();
         var received = Channel.CreateUnbounded<ClientLogEvent>();
-        var slowValues = new ConcurrentQueue<long>();
+        var slowValues = Channel.CreateUnbounded<ClientLogEvent>();
         using var slow = rig.Session.Events.Subscribe(e =>
         {
-            slowValues.Enqueue(e.Offset);
-            if (e.Offset == 1) { entered.Set(); release.Wait(TimeSpan.FromSeconds(10)); }
+            if (e.Event is LogSourceChanged) return;
+            slowValues.Writer.TryWrite(e);
+            if (e.Offset == 2) { entered.Set(); release.Wait(TimeSpan.FromSeconds(10)); }
         }, capacity: 2);
         using var fast = rig.Session.Events.Subscribe(e => received.Writer.TryWrite(e));
         try
@@ -70,6 +71,10 @@ public sealed class ClientLogFeedTests
             Assert.Contains("dropped 3 events", rig.Session.Events.Diagnostic);
         }
         finally { release.Set(); }
+        Assert.Equal(2, (await Next(slowValues)).Offset);
+        var afterGap = await Next(slowValues);
+        Assert.Equal(6, afterGap.Offset); Assert.Equal(3, afterGap.DroppedBefore);
+        Assert.Equal(7, (await Next(slowValues)).Offset);
     }
 
     [Fact]
@@ -83,7 +88,7 @@ public sealed class ClientLogFeedTests
         var replayed = Channel.CreateUnbounded<ClientLogEvent>();
         using var replay = rig.Session.Events.Subscribe(e => replayed.Writer.TryWrite(e), new(FromOffset: 2, MaxEvents: 2));
         var a = await Next(replayed); var b = await Next(replayed);
-        Assert.Equal(4, a.Offset); Assert.Equal(5, b.Offset);
+        Assert.Equal(5, a.Offset); Assert.Equal(6, b.Offset);
         Assert.True(a.IsReplay); Assert.True(b.IsReplay);
         Assert.NotNull(a.Timestamp); Assert.Equal(123, a.UptimeMilliseconds);
         rig.Send(5);
@@ -91,23 +96,30 @@ public sealed class ClientLogFeedTests
         var timed = Channel.CreateUnbounded<ClientLogEvent>();
         using var timeReplay = rig.Session.Events.Subscribe(e => timed.Writer.TryWrite(e),
             new(Since: new DateTime(2026, 11, 7, 12, 0, 4)));
-        Assert.Equal(5, (await Next(timed)).Offset);
         Assert.Equal(6, (await Next(timed)).Offset);
+        Assert.Equal(7, (await Next(timed)).Offset);
         rig.Settings.Update("general", s => s.General.ClientTxtPath = Path.Combine(rig.Root, "Other.txt"));
         await rig.Session.RefreshAsync();
         var cleared = Channel.CreateUnbounded<ClientLogEvent>();
         using var newReplay = rig.Session.Events.Subscribe(e => cleared.Writer.TryWrite(e), new());
         rig.Send(6);
         var last = await Next(cleared);
-        Assert.Equal(7, last.Offset); Assert.False(last.IsReplay);
+        Assert.Equal(9, last.Offset); Assert.False(last.IsReplay);
         Assert.Equal(1, rig.Tail.MaximumActive);
     }
 
-    private static async Task<T> Next<T>(Channel<T> channel) =>
-        await channel.Reader.ReadAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
-    private sealed class Module(Action<IFeatureContext> register) : IFeature
+    private static async Task<T> Next<T>(Channel<T> channel)
     {
-        public FeatureManifest Manifest { get; } = new("feedtest", [Game.PoE1], [], [], [], "Feed test");
+        while (true)
+        {
+            var value = await channel.Reader.ReadAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            if (value is ClientLogEvent { Event: LogSourceChanged }) continue;
+            return value;
+        }
+    }
+    private sealed class Module(Action<IFeatureContext> register, string id = "feedtest") : IFeature
+    {
+        public FeatureManifest Manifest { get; } = new(id, [Game.PoE1], [], [], [], "Feed test");
         public void Register(IFeatureContext context) => register(context);
     }
     private sealed class Rig : IAsyncDisposable

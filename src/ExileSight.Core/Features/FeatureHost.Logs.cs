@@ -4,20 +4,52 @@ namespace ExileSight.Core.Features;
 
 public sealed partial class FeatureHost
 {
-    private readonly List<(string Owner, Action<ClientLogEvent> Handler, LogReplay? Replay)> envelopeSubscriptions = [];
+    private sealed record LogRegistration(string Owner, Action<ClientLogEvent> Handler, LogReplay? Replay);
+    private readonly List<LogRegistration> logRegistrations = [];
 
-    /// <summary>Each registered callback gets its own serial bounded queue on the shared session.</summary>
-    public IDisposable ConnectLogs(ClientLogFeed feed, Action<string, string>? reportFailure = null)
+    /// <summary>One serial queue per owner; callbacks run in registration order, with independent failure isolation.</summary>
+    public LogConnections ConnectLogs(ClientLogFeed feed, Action<string, string>? reportFailure = null)
     {
         var connections = new List<LogSubscription>();
-        foreach (var (owner, handler) in subscriptions)
-            connections.Add(feed.Subscribe(e => handler(e.Event), reportFailure: type => reportFailure?.Invoke(owner, type)));
-        foreach (var (owner, handler, replay) in envelopeSubscriptions)
-            connections.Add(feed.Subscribe(handler, replay, reportFailure: type => reportFailure?.Invoke(owner, type)));
-        return new Connections(connections);
+        try
+        {
+            foreach (var group in logRegistrations.GroupBy(r => r.Owner))
+            {
+                var registrations = group.ToArray();
+                var requests = registrations.Where(r => r.Replay is not null).Select(r => r.Replay!).ToArray();
+                // Replay the union, then apply each handler's own selection and count.
+                var replay = requests.Length == 0 ? null : new LogReplay(MaxEvents: int.MaxValue);
+                connections.Add(feed.SubscribeCore(retained =>
+                {
+                    var selected = registrations.Select(r => retained.Where(e => r.Replay is { } request &&
+                        (request.FromOffset is null || e.Offset >= request.FromOffset) &&
+                        (request.Since is null || e.Timestamp >= request.Since))
+                        .TakeLast(r.Replay?.MaxEvents ?? 0).Select(e => e.Offset).ToHashSet()).ToArray();
+                    return value =>
+                    {
+                        List<Exception> failures = [];
+                        for (var i = 0; i < registrations.Length; i++)
+                        {
+                            if (value.IsReplay && !selected[i].Contains(value.Offset)) continue;
+                            try { registrations[i].Handler(value); }
+                            catch (Exception error) { failures.Add(error); }
+                        }
+                        if (failures.Count > 0) throw new LogHandlerFailures(failures);
+                    };
+                }, replay, 256, type => reportFailure?.Invoke(group.Key, type), group.Key));
+            }
+            return new(connections);
+        }
+        catch { foreach (var connection in connections) connection.Dispose(); throw; }
     }
-    private sealed class Connections(List<LogSubscription> subscriptions) : IDisposable
+}
+
+public sealed class LogConnections(List<LogSubscription> subscriptions) : IDisposable
+{
+    public void Dispose() { foreach (var subscription in subscriptions) subscription.Dispose(); }
+    public async Task StopAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
     {
-        public void Dispose() { foreach (var subscription in subscriptions) subscription.Dispose(); }
+        Dispose();
+        await Task.WhenAll(subscriptions.Select(s => s.Completion)).WaitAsync(timeout, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -38,9 +38,28 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
             if (!ClientLogDiscovery.IsLocalAbsolutePath(path))
             { lock (sync) status = "Choose a fully-qualified local log path in setup."; return; }
             cancellation = new();
-            running = ReadAsync(path!, cancellation.Token);
+            running = FollowAsync(path!, cancellation.Token);
         }
         finally { transition.Release(); }
+    }
+
+    private async Task FollowAsync(string selected, CancellationToken token)
+    {
+        while (!token.IsCancellationRequested)
+        {
+            try { await ReadAsync(selected, token).ConfigureAwait(false); }
+            catch (OperationCanceledException) when (token.IsCancellationRequested) { return; }
+            catch (Exception error)
+            {
+                lock (sync) status = $"Log reader failed: {error.GetType().Name}; retrying.";
+            }
+            try
+            {
+                if (pollingTimer is not null) await pollingTimer.DelayAsync(1000, token).ConfigureAwait(false);
+                else await Task.Delay(1000, token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested) { return; }
+        }
     }
 
     private async Task ReadAsync(string selected, CancellationToken token)
@@ -73,7 +92,6 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
             }
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
-        catch (Exception) { lock (sync) status = "Log reader stopped; run setup again to select a readable log."; }
         finally { if (diagnostics is not null) diagnostics.Diagnostic -= Report; }
     }
 
