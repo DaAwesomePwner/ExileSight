@@ -33,7 +33,11 @@ pending runs). Ordinary log/chat events do not write; active duration checkpoint
 occur at most once per 60 seconds of observed map time. No disk I/O holds the
 tracker/omni lock or runs on log delivery. Normal exit freezes log delivery, drains pending writes, then saves and drains a
 final incomplete checkpoint at the exit cutoff, including elapsed active time
-since the latest live log event. It does not add time while paused or extrapolate
+since the latest live log event, capped at 60 seconds for both duration and end
+time. If an active run receives another log event after a gap exceeding 60 seconds,
+it closes incomplete at the previous activity plus 60 seconds; periodic saving
+cannot turn sleep or hours of silence into play time. This conservative policy
+can undercount genuine play with sparse logging. It does not add time while paused or extrapolate
 replay-only events. A crash
 may lose the last minute of timer progress; recovered active rows are incomplete.
 Write failure/queue saturation visibly disables recording for the affected league
@@ -41,11 +45,15 @@ rather than dropping saved rows. Other leagues remain usable. All persistence
 exceptions are contained; diagnostics receive exception types only, even when the
 logging sink itself fails. The viewer reuses its existing window and updates storage status.
 
-Level-up events supply up to five character candidates, like GearCmp (D-078).
+Level-up and slain events supply up to five character candidates, like GearCmp
+(D-078); party names are candidates only, never automatically selected.
 Click the exact logged name in the viewer to confirm it; there is no free-text
 entry. Candidates and identity exist in memory only. The viewer shows
 "Deaths: counting for <name>" or "Deaths: not counted — confirm character" and
-refreshes that state when a session boundary clears the identity and candidates.
+refreshes that state with a reason when a session boundary clears the identity.
+The last confirmed name remains in memory as a "Confirm <name> again" choice,
+even across repeated boundaries. Other old candidates are cleared. Reconfirmation
+is always explicit; rejected/stale choices produce visible feedback.
 
 Runs begun before confirmation have unknown deaths. Confirming partway through
 cannot recover missed deaths, and changing identity mid-run also marks the count

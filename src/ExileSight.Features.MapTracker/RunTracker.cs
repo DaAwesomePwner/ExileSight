@@ -7,6 +7,7 @@ namespace ExileSight.Features.MapTracker;
 /// <summary>Pure event reducer. No raw log text or dialogue bodies survive reduction; confirmed identity stays in memory.</summary>
 public sealed class RunTracker
 {
+    public const double CheckpointWindowSeconds = 60;
     private MapRun? run;
     private string areaId = "", location = "";
     private long seed, lastUptime;
@@ -18,6 +19,8 @@ public sealed class RunTracker
     private readonly CharacterIdentity identity = new();
     public bool CharacterConfirmed => identity.Confirmed is not null;
     public string? Character => identity.Confirmed;
+    public string? Reconfirm => identity.Reconfirm;
+    public string? IdentityNotice => identity.Notice;
     public string[] Candidates => identity.Candidates;
     public long Revision { get; private set; }
     public bool ConfirmCharacter(string? name)
@@ -31,6 +34,7 @@ public sealed class RunTracker
     public MapRun? FinalCheckpoint(double elapsedSeconds)
     {
         if (run is null) return null;
+        elapsedSeconds = Math.Clamp(elapsedSeconds, 0, CheckpointWindowSeconds);
         if (active) run = run with { Seconds = run.Seconds + elapsedSeconds };
         lastTime = lastTime.AddSeconds(elapsedSeconds);
         return Close(true);
@@ -46,14 +50,19 @@ public sealed class RunTracker
         if (entry.DroppedBefore > 0 || entry.Event is LogSourceChanged || RunAreas.SessionEnded(entry.Event))
         {
             var incomplete = Close(true);
-            nextMap = null; identity.Clear(); clientSource = null;
+            nextMap = null;
+            identity.Clear(entry.DroppedBefore > 0 ? "Log gap — confirm character again" :
+                entry.Event is LogSourceChanged ? "Log source or league changed — confirm character again" :
+                "Session ended — confirm character again");
+            clientSource = null;
             // The event after a gap can establish a fresh instance, but never extends the old one.
-            if (entry.Event is AreaGenerated) Accept(entry with { DroppedBefore = 0 }, league);
+            if (entry.Event is AreaGenerated or PlayerSlain) Accept(entry with { DroppedBefore = 0 }, league);
             return incomplete;
         }
         if (entry.Event.Envelope is not { } envelope)
         {
             if (entry.Event is CharacterLevelUp level) identity.Observe(level.Name);
+            if (entry.Event is PlayerSlain slain) identity.Observe(slain.Name);
             return null;
         }
         var time = envelope.Timestamp;
@@ -63,10 +72,19 @@ public sealed class RunTracker
         if (envelope.Source.StartsWith("Client ", StringComparison.Ordinal)) clientSource = envelope.Source;
         if (sourceChanged || (run is not null && (uptime < lastUptime || time < lastTime)))
         {
-            var interrupted = Close(true); identity.Clear(); nextMap = null;
-            if (entry.Event is AreaGenerated or CharacterLevelUp) Accept(entry, league);
+            var interrupted = Close(true); identity.Clear("Client restarted — confirm character again"); nextMap = null;
+            if (entry.Event is AreaGenerated or CharacterLevelUp or PlayerSlain) Accept(entry, league);
             return interrupted;
         }
+        if (run is not null && active && (uptime - lastUptime) / 1000d > CheckpointWindowSeconds)
+        {
+            // A resumed log after silence/sleep is not evidence of continuous play.
+            var interrupted = FinalCheckpoint(CheckpointWindowSeconds);
+            identity.Clear("Log activity paused — confirm character again"); nextMap = null;
+            Accept(entry, league);
+            return interrupted;
+        }
+        if (entry.Event is PlayerSlain candidate) identity.Observe(candidate.Name);
         if (run is not null && active)
             run = run with { Seconds = run.Seconds + Math.Max(0, (uptime - lastUptime) / 1000d) };
         lastUptime = uptime; lastTime = time;

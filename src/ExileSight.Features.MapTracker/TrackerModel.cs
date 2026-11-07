@@ -20,9 +20,11 @@ public sealed class TrackerModel(IRunStore store, IClock? suppliedClock = null, 
     public string Status
     {
         get { lock (sync) return (writer.Failure(league) ?? status) +
-            (tracker.Character is { } name ? " Deaths: counting for " + name : " Deaths: not counted — confirm character"); }
+            (tracker.Character is { } name ? " Deaths: counting for " + name : " Deaths: not counted — confirm character") +
+            (tracker.IdentityNotice is { } notice ? " · " + notice : ""); }
     }
     public Task FlushAsync() => writer.FlushAsync();
+    public string? Reconfirm { get { lock (sync) return tracker.Reconfirm; } }
     public string[] Candidates { get { lock (sync) return tracker.Candidates; } }
     public bool ConfirmCharacter(string name)
     {
@@ -41,7 +43,7 @@ public sealed class TrackerModel(IRunStore store, IClock? suppliedClock = null, 
     {
         // Freeze the reducer before draining, so late log callbacks cannot race the final write.
         stopped = true;
-        var elapsed = extrapolate ? Math.Max(0, (clock.Milliseconds - lastReceipt) / 1000d) : 0;
+        var elapsed = extrapolate ? Math.Clamp((clock.Milliseconds - lastReceipt) / 1000d, 0, RunTracker.CheckpointWindowSeconds) : 0;
         await writer.FlushAsync().ConfigureAwait(false);
         lock (sync)
             if (tracker.FinalCheckpoint(elapsed) is { } final) Save(final);
@@ -73,7 +75,7 @@ public sealed class TrackerModel(IRunStore store, IClock? suppliedClock = null, 
             var revision = tracker.Revision;
             if (tracker.Accept(entry, league) is { } completed) Save(completed);
             if (tracker.Current is { } current &&
-                (revision != tracker.Revision || current.Seconds - checkpointSeconds >= 60))
+                (revision != tracker.Revision || current.Seconds - checkpointSeconds >= RunTracker.CheckpointWindowSeconds))
             {
                 Save(current with { Incomplete = true, Ended = entry.Timestamp ?? current.Started });
                 checkpointSeconds = current.Seconds;

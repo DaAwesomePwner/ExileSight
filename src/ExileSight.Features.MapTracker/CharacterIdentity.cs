@@ -5,7 +5,10 @@ internal sealed class CharacterIdentity
 {
     private readonly List<string> candidates = [];
     public string? Confirmed { get; private set; }
-    public string[] Candidates => candidates.ToArray();
+    public string? Reconfirm { get; private set; }
+    public string? Notice { get; private set; }
+    public string[] Candidates => (Reconfirm is { } name ? new[] { name }.Concat(candidates) : candidates)
+        .Distinct(StringComparer.Ordinal).Take(5).ToArray();
     public void Observe(string name)
     {
         if (string.IsNullOrWhiteSpace(name) || name.Length > 64 || name.Any(char.IsControl)) return;
@@ -14,8 +17,12 @@ internal sealed class CharacterIdentity
     }
     public bool Confirm(string? name)
     {
-        if (name is not null && !candidates.Contains(name, StringComparer.Ordinal)) return false;
-        Confirmed = name; return true;
+        if (name is not null && !Candidates.Contains(name, StringComparer.Ordinal)) return false;
+        Confirmed = name; Reconfirm = null; Notice = null; return true;
     }
-    public void Clear() { Confirmed = null; candidates.Clear(); }
+    public void Clear(string reason)
+    {
+        Reconfirm = Confirmed ?? Reconfirm;
+        Confirmed = null; candidates.Clear(); Notice = reason;
+    }
 }

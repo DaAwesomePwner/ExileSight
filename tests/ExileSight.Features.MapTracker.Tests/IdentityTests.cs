@@ -47,18 +47,48 @@ public sealed class IdentityTests
         Assert.Equal(1, Assert.Single(store.Read("L")).Deaths);
         Assert.DoesNotContain("ExactName", JsonSerializer.Serialize(store.Read("L")));
         model.Accept(TransitionTests.E(new LogSourceChanged())); await model.FlushAsync();
-        Assert.Empty(model.Candidates); Assert.False(model.ConfirmCharacter("ExactName"));
+        Assert.Equal(["ExactName"], model.Candidates); Assert.Equal("ExactName", model.Reconfirm);
         Assert.Contains("Deaths: not counted — confirm character", model.Status);
     }
     [Fact]
-    public void CandidatesAreBoundedAndChatAndDeathsCannotCreateThem()
+    public void CandidatesAreBoundedAndChatCannotCreateThem()
     {
         var tracker = new RunTracker();
         tracker.Accept(TransitionTests.E(new PlayerSlain("", TransitionTests.At(0), "Party")), "L");
         tracker.Accept(TransitionTests.E(new ChatMessage("", TransitionTests.At(0), "Local", "Chat", "")), "L");
-        Assert.Empty(tracker.Candidates);
+        Assert.Equal(["Party"], tracker.Candidates);
+        Assert.False(tracker.CharacterConfirmed);
         for (var i = 0; i < 10; i++) tracker.Accept(Level(i, "Candidate" + i), "L");
         Assert.Equal(5, tracker.Candidates.Length); Assert.Equal("Candidate9", tracker.Candidates[0]);
+    }
+    [Fact]
+    public async Task EndgameSlainCandidatesRequireExplicitChoiceAndSurviveAsReconfirmationOnly()
+    {
+        var store = new TestStore(); var model = new TrackerModel(store); model.SelectLeague("L");
+        model.Accept(TransitionTests.E(new PlayerSlain("", TransitionTests.At(0), "PartyMember")));
+        model.Accept(TransitionTests.E(new PlayerSlain("", TransitionTests.At(1), "LevelHundred")));
+        Assert.Equal(["LevelHundred", "PartyMember"], model.Candidates);
+        Assert.Contains("Deaths: not counted", model.Status);
+        Assert.True(model.ConfirmCharacter("LevelHundred"));
+        model.Accept(TransitionTests.Area(2, "MapWorldsBeach"));
+        model.Accept(TransitionTests.E(new PlayerSlain("", TransitionTests.At(3), "PartyMember")));
+        model.Accept(TransitionTests.E(new PlayerSlain("", TransitionTests.At(4), "LevelHundred")));
+        model.Accept(TransitionTests.E(new Unknown("", TransitionTests.At(5, message: "Disconnected from server."))));
+        await model.FlushAsync();
+        var run = Assert.Single(store.Read("L")); Assert.True(run.DeathsKnown); Assert.Equal(1, run.Deaths);
+        Assert.Equal(["LevelHundred"], model.Candidates);
+        Assert.Equal("LevelHundred", model.Reconfirm);
+        Assert.Contains("Session ended — confirm character again", model.Status);
+        Assert.Contains("Deaths: not counted", model.Status);
+        Assert.DoesNotContain("LevelHundred", JsonSerializer.Serialize(run));
+        // Multiple login/source boundaries cannot discard the last confirmed name or auto-confirm it.
+        model.Accept(TransitionTests.E(new LogSourceChanged()));
+        Assert.Equal(["LevelHundred"], model.Candidates);
+        Assert.False(model.ConfirmCharacter("PartyMember"));
+        Assert.True(model.ConfirmCharacter("LevelHundred"));
+        Assert.Null(model.Reconfirm); Assert.Contains("Deaths: counting for LevelHundred", model.Status);
+        Assert.DoesNotContain("confirm character again", model.Status);
+        Assert.Empty(new TrackerModel(store).Candidates); // It was never persisted.
     }
     internal static ClientLogEvent Level(int second, string name) =>
         TransitionTests.E(new CharacterLevelUp("", TransitionTests.At(second), name, "Witch", 90));

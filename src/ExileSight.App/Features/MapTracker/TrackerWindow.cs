@@ -30,16 +30,26 @@ public sealed class TrackerWindow : Window
         Button(filters, "Export filtered CSV", Export);
         var identities = new WrapPanel();
         DockPanel.SetDock(identities, Dock.Top); root.Children.Add(identities);
+        var confirmationFeedback = new TextBlock { TextWrapping = TextWrapping.Wrap };
+        DockPanel.SetDock(confirmationFeedback, Dock.Top); root.Children.Add(confirmationFeedback);
         string[]? displayedCandidates = null;
+        string? displayedReconfirm = null;
         void RefreshCandidates()
         {
             var candidates = model.Candidates;
-            if (displayedCandidates?.SequenceEqual(candidates) == true) return;
+            var reconfirm = model.Reconfirm;
+            if (displayedCandidates?.SequenceEqual(candidates) == true && displayedReconfirm == reconfirm) return;
+            displayedReconfirm = reconfirm;
             displayedCandidates = candidates; identities.Children.Clear();
             identities.Children.Add(new TextBlock { Text = candidates.Length == 0
-                ? "Character candidates appear after a level-up log event." : "Confirm your character from the log: " });
+                ? "Character candidates appear after a level-up or slain log event." : "Confirm your character from the log: " });
             foreach (var candidate in candidates)
-                Button(identities, candidate, () => model.ConfirmCharacter(candidate));
+                Button(identities, candidate == reconfirm ? "Confirm " + candidate + " again" : candidate, () =>
+                {
+                    confirmationFeedback.Text = model.ConfirmCharacter(candidate) ? "" :
+                        "Character candidate is no longer available. Choose a current candidate and confirm again.";
+                    RefreshCandidates();
+                });
         }
         RefreshCandidates();
         var storageStatus = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new(8) };

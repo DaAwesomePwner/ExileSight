@@ -83,6 +83,37 @@ public sealed class ShutdownTests
         model.SelectLeague("L"); model.Accept(TransitionTests.Area(0, "MapWorldsBeach"));
         await model.StopAsync(); Assert.Contains("ArgumentException", model.Status);
     }
+    [Theory]
+    [InlineData(false, 70)]
+    [InlineData(true, 10)]
+    public async Task HoursOfSilenceOrSleepCannotExtendExitBeyondOneWindow(bool paused, double expected)
+    {
+        var clock = new FakeClock(); var store = new TestStore(); var model = new TrackerModel(store, clock);
+        model.SelectLeague("L"); model.Accept(TransitionTests.Area(0, "MapWorldsBeach"));
+        clock.Milliseconds = 10000;
+        model.Accept(paused ? TransitionTests.Area(10, "HideoutCoastal") :
+            TransitionTests.E(new Unknown("", TransitionTests.At(10))));
+        clock.Milliseconds = 6 * 60 * 60 * 1000; // Includes sleep, just like TickCount64.
+        await model.StopAsync();
+        var run = Assert.Single(store.Read("L"));
+        Assert.Equal(expected, run.Seconds); Assert.Equal(TransitionTests.At(70).Timestamp, run.Ended);
+    }
+    [Fact]
+    public async Task PeriodicCheckpointAfterHoursOfSilenceClosesAtLastActivityPlusOneWindow()
+    {
+        var clock = new FakeClock(); var store = new TestStore(); var model = new TrackerModel(store, clock);
+        model.SelectLeague("L"); model.Accept(TransitionTests.Area(0, "MapWorldsBeach"));
+        clock.Milliseconds = 60000;
+        model.Accept(TransitionTests.E(new Unknown("", TransitionTests.At(60)))); await model.FlushAsync();
+        Assert.Equal(60, Assert.Single(store.Read("L")).Seconds);
+        clock.Milliseconds = 6 * 60 * 60 * 1000;
+        model.Accept(TransitionTests.E(new Unknown("", TransitionTests.At(21600)))); await model.FlushAsync();
+        var bounded = Assert.Single(store.Read("L"));
+        Assert.Equal(120, bounded.Seconds); Assert.Equal(TransitionTests.At(120).Timestamp, bounded.Ended);
+        Assert.True(bounded.Incomplete);
+        clock.Milliseconds *= 2; await model.StopAsync();
+        Assert.Equal(bounded, Assert.Single(store.Read("L"))); // Exit cannot add another window.
+    }
     private sealed class FakeClock : IClock
     {
         public long Milliseconds { get; set; }
