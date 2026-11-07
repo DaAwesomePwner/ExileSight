@@ -92,7 +92,8 @@ public sealed class OverlayHost(IGameWindow game, IOverlayWindowStyler styler,
         if (disposed) return;
         if (!dispatcher.CheckAccess())
         {
-            dispatcher.Invoke(Dispose);
+            if (!dispatcher.HasShutdownStarted && !dispatcher.HasShutdownFinished)
+                dispatcher.BeginInvoke(Dispose);
             return;
         }
         disposed = true;

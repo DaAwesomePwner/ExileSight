@@ -81,13 +81,13 @@ public sealed class HostedOverlayWindow : System.Windows.Window
             return;
         }
         var physical = placement.Calculate(client, design, scaleOverride);
-        if (!IsVisible) Show();
-        if (placement.NeedsPosition(physical))
+        bool justShown = !IsVisible;
+        if (justShown) Show();
+        if (placement.NeedsPosition(physical, styler.GetBounds(handle), justShown))
         {
-            // Record only successful placement. DPI-triggered refreshes with the same desired
-            // bounds do not set native bounds again, preventing cross-monitor feedback loops.
+            // Correct WPF's DPI-suggested rect whenever it differs from our physical geometry.
+            // Show also requires reasserting HWND_TOPMOST, even when geometry already matches.
             styler.Position(handle, physical);
-            placement.Applied(physical);
         }
         // Native placement establishes the destination monitor before converting content to DIPs.
         var dpi = VisualTreeHelper.GetDpi(this);

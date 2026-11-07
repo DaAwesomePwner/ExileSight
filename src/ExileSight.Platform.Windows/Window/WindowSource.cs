@@ -10,8 +10,8 @@ internal sealed record WindowCandidate(nint Handle, uint Pid, string Class, stri
 internal interface IWindowSource
 {
     IReadOnlySet<uint> StreamingPids();
-    IReadOnlyList<WindowCandidate> Enumerate();
-    WindowCandidate? Read(nint handle);
+    IReadOnlyList<WindowCandidate> Enumerate(IReadOnlySet<uint> streamingPids);
+    WindowCandidate? Read(nint handle, IReadOnlySet<uint> streamingPids);
     GameWindowState State(nint handle);
 }
 
@@ -24,29 +24,33 @@ internal sealed class WindowSource : IWindowSource
         finally { foreach (var process in processes) process.Dispose(); }
     }
 
-    public unsafe IReadOnlyList<WindowCandidate> Enumerate()
+    public unsafe IReadOnlyList<WindowCandidate> Enumerate(IReadOnlySet<uint> streamingPids)
     {
         var windows = new List<WindowCandidate>();
         PInvoke.EnumWindows((hwnd, _) =>
         {
-            if (PInvoke.IsWindowVisible(hwnd) && Read((nint)hwnd.Value) is { } candidate)
+            if (PInvoke.IsWindowVisible(hwnd) && Read((nint)hwnd.Value, streamingPids) is { } candidate)
                 windows.Add(candidate);
             return true;
         }, default);
         return windows;
     }
 
-    public unsafe WindowCandidate? Read(nint handle)
+    public unsafe WindowCandidate? Read(nint handle, IReadOnlySet<uint> streamingPids)
     {
         HWND hwnd = new(handle);
         if (hwnd.IsNull || !PInvoke.IsWindow(hwnd)) return null;
         char* buffer = stackalloc char[1024];
         int length = PInvoke.GetClassName(hwnd, buffer, 1024);
         string windowClass = new(buffer, 0, Math.Max(0, length));
-        length = PInvoke.GetWindowText(hwnd, buffer, 1024);
-        string title = new(buffer, 0, Math.Max(0, length));
         uint pid = 0;
         PInvoke.GetWindowThreadProcessId(hwnd, &pid);
+        string title = string.Empty;
+        if (streamingPids.Contains(pid))
+        {
+            length = PInvoke.GetWindowText(hwnd, buffer, 1024);
+            title = new(buffer, 0, Math.Max(0, length));
+        }
         return new(handle, pid, windowClass, title);
     }
 

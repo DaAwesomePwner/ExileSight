@@ -49,18 +49,30 @@ public sealed class ProductionOverlayTests
         var client = new PixelRect(-50, 0, 1920, 1080);
         var design = new OverlayRect(8, 8, 160, 32);
         var bounds = placement.Calculate(client, design, null);
-        Assert.True(placement.NeedsPosition(bounds));
-        placement.Applied(bounds);
+        Assert.True(placement.NeedsPosition(bounds, default, false));
         foreach (uint dpi in new uint[] { 96, 144, 96, 192, 144 })
         {
             // Content DIPs change, but physical placement must not depend on overlay DPI.
             var dips = OverlayRules.ToDips(0, 0, bounds.Width, bounds.Height, dpi);
             Assert.True(dips.Width > 0);
-            Assert.False(placement.NeedsPosition(placement.Calculate(client, design, null)));
+            Assert.False(placement.NeedsPosition(placement.Calculate(client, design, null), bounds, false));
         }
-        Assert.True(placement.NeedsPosition(placement.Calculate(client with { X = 100 }, design, null)));
-        Assert.True(placement.NeedsPosition(placement.Calculate(client, design, 2)));
-        Assert.True(placement.NeedsPosition(placement.Calculate(client with { Height = 1440 }, design, null)));
+        Assert.True(placement.NeedsPosition(placement.Calculate(client with { X = 100 }, design, null), bounds, false));
+        Assert.True(placement.NeedsPosition(placement.Calculate(client, design, 2), bounds, false));
+        Assert.True(placement.NeedsPosition(placement.Calculate(client with { Height = 1440 }, design, null), bounds, false));
+    }
+
+    [Fact]
+    public void CorrectsWpfDpiSuggestedBoundsAndReassertsTopmostAfterShow()
+    {
+        var placement = new OverlayPlacement();
+        var computed = new PixelRect(1928, 8, 160, 32);
+        var wpfSuggested = computed with { Width = 240, Height = 48 };
+        Assert.True(placement.NeedsPosition(computed, wpfSuggested, false));
+        Assert.True(placement.NeedsPosition(computed, computed with { X = 1900 }, false));
+        Assert.False(placement.NeedsPosition(computed, computed, false));
+        Assert.True(placement.NeedsPosition(computed, computed, true));
+        Assert.True(placement.NeedsPosition(computed, wpfSuggested, true));
     }
 
     [Fact]

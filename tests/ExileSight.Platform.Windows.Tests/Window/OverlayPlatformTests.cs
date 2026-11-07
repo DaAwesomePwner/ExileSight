@@ -11,6 +11,8 @@ public sealed class OverlayPlatformTests
     {
         var styler = new OverlayWindowStyler();
         Assert.Throws<ArgumentException>(() => styler.Apply(0));
+        Assert.Throws<ArgumentException>(() => styler.GetBounds(0));
+        Assert.Throws<ArgumentException>(() => styler.GetBounds(-123));
         Assert.Throws<ArgumentException>(() => styler.SetClickThrough(0, false));
         Assert.Throws<ArgumentException>(() => styler.Position(0, new PixelRect(0, 0, 100, 100)));
         Assert.Throws<ArgumentException>(() => styler.Apply(-123));

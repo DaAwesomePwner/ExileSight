@@ -28,12 +28,12 @@ internal sealed class GameWindowDetection(IWindowSource source, TimeProvider clo
     internal GameWindowState Refresh(GameWindowState previous, out uint pid)
     {
         if (!previous.Found) InvalidateSnapshot();
-        var candidate = source.Read(previous.Handle);
+        var snapshot = Snapshot();
+        var candidate = source.Read(previous.Handle, snapshot);
         if (candidate is null || (streaming && !IsStreamingGame(candidate)))
         {
             candidate = null;
-            var snapshot = Snapshot();
-            foreach (var window in source.Enumerate())
+            foreach (var window in source.Enumerate(snapshot))
             {
                 if (!OverlayRules.Matches(window.Class,
                     OverlayRules.MatchesProcess(window.Pid, snapshot), window.Title)) continue;

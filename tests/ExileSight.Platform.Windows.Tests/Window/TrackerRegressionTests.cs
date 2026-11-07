@@ -93,8 +93,8 @@ public sealed class TrackerRegressionTests
         internal int Snapshots { get; private set; }
         private readonly WindowCandidate window = new(123, 42, "StreamingWindow", "Path of Exile");
         public IReadOnlySet<uint> StreamingPids() { Snapshots++; return Pids.ToHashSet(); }
-        public IReadOnlyList<WindowCandidate> Enumerate() => [window];
-        public WindowCandidate? Read(nint handle) => handle == window.Handle ? window : null;
+        public IReadOnlyList<WindowCandidate> Enumerate(IReadOnlySet<uint> streamingPids) => [window];
+        public WindowCandidate? Read(nint handle, IReadOnlySet<uint> streamingPids) => handle == window.Handle ? window : null;
         public GameWindowState State(nint handle) => new(true, handle, new(0, 0, 1920, 1080), 96, true, false, default);
     }
 

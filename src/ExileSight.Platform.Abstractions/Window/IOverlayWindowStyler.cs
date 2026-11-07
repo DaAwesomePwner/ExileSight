@@ -5,5 +5,6 @@ public interface IOverlayWindowStyler
 {
     void Apply(nint handle);
     void SetClickThrough(nint handle, bool enabled);
+    PixelRect GetBounds(nint handle);
     void Position(nint handle, PixelRect rect);
 }
