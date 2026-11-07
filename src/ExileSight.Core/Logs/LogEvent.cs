@@ -19,3 +19,5 @@ public record ChatMessage(string Raw, LogEnvelope? Envelope, string Channel, str
 /// <summary>A trade request is display data, never proof that a sale completed.</summary>
 public sealed record TradeWhisper(string Raw, LogEnvelope? Envelope, string Direction, string Peer, string Text,
     string Item, string? Price, string League, string? Stash) : ChatMessage(Raw, Envelope, Direction, Peer, Text);
+
+public sealed record KillCountReported(string Raw, LogEnvelope? Envelope, long Count) : LogEvent(Raw, Envelope);

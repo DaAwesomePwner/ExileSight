@@ -1,0 +1,6 @@
+[
+  {"id":"MercenaryEncounter","displayName":"Mercenary encounter","enabledByDefault":true,"category":"encounter"},
+  {"id":"Seer","displayName":"Nameless Seer","enabledByDefault":true,"category":"encounter"},
+  {"id":"ReflectingMist","displayName":"Reflecting Mist","enabledByDefault":true,"category":"encounter"},
+  {"id":"Hideout","displayName":"Discoverable hideout","enabledByDefault":false,"category":"diagnostic"}
+]

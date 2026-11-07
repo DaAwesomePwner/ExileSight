@@ -30,7 +30,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-Exile-UI's own acknowledgements apply to data derived through it. The leveling guide was originally derived from [exile-leveling](https://github.com/HeartofPhos/exile-leveling); confirm its license before shipping that data. Do not redistribute data Exile-UI derived from poedb, or images (zone layouts, boss pictures), until their licensing has been checked. See docs/DECISIONS.md D-008.
+Exile-UI's own acknowledgements apply to data derived through it. The leveling guide was originally derived from [exile-leveling](https://github.com/HeartofPhos/exile-leveling); it is MIT licensed (notice below). Do not redistribute data Exile-UI derived from poedb, or images (zone layouts, boss pictures), until their licensing has been checked. See docs/DECISIONS.md D-008.
 
 ## Path of Building Community
 
@@ -42,7 +42,7 @@ Price data is fetched at runtime from https://poe.ninja. No poe.ninja data is re
 
 ## RePoE (repoe-fork)
 
-Source: https://github.com/repoe-fork/repoe-fork.github.io. The default export is pinned to `d0bc438357d849bb93ad22f3db0b12938aaf6da1` (3.29.3.4); each pack manifest records the actual source SHA and per-input SHA-256. DataGen consumes its base_items, mods and stat_translations exports. Game data © Grinding Gear Games. Extracted by the RePoE fork project. Published by ExileSight with permission of the project owner as a convenience, as GitHub release assets and offline CI test-build bundles; not affiliated with or endorsed by Grinding Gear Games. Only synthetic fixtures are checked in; generated game data is never committed. RePoE code is MIT licensed (notice below); that license does not grant rights to the generated game data.
+Source: https://github.com/repoe-fork/repoe-fork.github.io. The default export is pinned to `d0bc438357d849bb93ad22f3db0b12938aaf6da1` (3.29.3.4); each pack manifest records the actual source SHA and per-input SHA-256. DataGen consumes its base_items, mods, stat_translations, world_areas and gems exports. Game data © Grinding Gear Games. Extracted by the RePoE fork project. Published by ExileSight with permission of the project owner as a convenience, as GitHub release assets and offline CI test-build bundles; not affiliated with or endorsed by Grinding Gear Games. Only synthetic fixtures are checked in; generated game data is never committed. RePoE code is MIT licensed (notice below); that license does not grant rights to the generated game data.
 
 This product isn't affiliated with or endorsed by Grinding Gear Games in any way.
 
@@ -75,3 +75,33 @@ SOFTWARE.
 Contents of generated files (all files in the `data` directory) are owned
 by Grinding Gear Games and shall not be used or published without being in
 accordance with their terms of use.
+
+## exile-leveling
+
+https://github.com/HeartofPhos/exile-leveling. MIT-licensed guide source, derived through Exile-UI.
+
+```
+MIT License
+
+Copyright (c) 2025 HeartofPhos
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+Guide area/gem data and map modifier game text belong to Grinding Gear Games. Exile-UI matching patterns and guide prose retain their MIT attribution; the code license does not grant ownership of game data.

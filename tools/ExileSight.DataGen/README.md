@@ -41,3 +41,15 @@ Output uses invariant decimals without trailing zeros. Reverse matching enumerat
 Use `--coverage-report <path>` with DataGen to measure reachable, non-hidden English template lines at every packed mod's minimum and maximum endpoints. Each mod/endpoint/line counts separately. The report also counts stat occurrences with no translation. This is a reproducible endpoint probe, not coverage of every roll or evidence from a real client.
 
 Pinned-export endpoint probe (d0bc438357d849bb93ad22f3db0b12938aaf6da1): 12,648 of 84,371 reachable template-line probes remain unmatched (14.9909%). Separately, 15,081 mod-stat occurrences have no non-hidden translation in this export. This broad mods-pack metric includes non-equipment domains; it is not a percentage of player-visible equipment lines. Unsupported lookup/composite handlers and unrecoverable ignored stats remain fail-closed limitations.
+
+Phase 3 also emits guide, mapmods, events and leagues under schema 3 (the envelope is unchanged).
+`fetch-inputs.py <directory> [repoe-sha]` downloads all seven pinned inputs without redirects.
+Pass that directory to `--source-dir`; no network is used in that mode. Generated packs stay outside git.
+The guide preserves Exile-UI display markup, ordered pages, conditions, area advancement tokens and level hints.
+Quest identifiers normalize RePoE quest names and strip Exile-UI reward-page suffixes; only quest rewards are joined.
+Non-gem placeholders (including vendor-only Fallen from Grace) remain display hints, with no invented reward list.
+Map modifier IDs group alternative patterns with identical labels; differing labels retain separate entries with the same stable rating ID; `|` separates required lines and `#` marks numbers. Ratings are never packed.
+Events and historical leagues are ExileSight-authored JSON. The league list is deliberately incomplete; null end dates
+mean unknown, and current league names come from poe.ninja index-state at runtime.
+New pack versions hash both upstream pins and authored input hashes. Mixed-source manifest file keys are pinned raw
+GitHub URLs; authored sources use repository-relative paths and content hashes. Existing RePoE pack versions stay unchanged.

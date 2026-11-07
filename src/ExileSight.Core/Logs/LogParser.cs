@@ -61,6 +61,8 @@ public sealed class LogParser
         if (m.Success) return new FilterReloaded(raw, envelope, m.Groups[1].Value);
         if (text.Contains("Spawning discoverable Hideout", StringComparison.Ordinal)) return new MapEvent(raw, envelope, "Hideout");
         if (!system) return new Unknown(raw, envelope);
+        m = Match(text, @"^You have killed (\d+) monsters\.$");
+        if (m.Success && long.TryParse(m.Groups[1].Value, out var count)) return new KillCountReported(raw, envelope, count);
         m = Match(text, @"^You have entered (.+)\.$");
         if (m.Success) return new AreaEntered(raw, envelope, m.Groups[1].Value);
         m = Match(text, @"^(.+?) \(([^)]+)\) is now level (\d+)\.?$");
