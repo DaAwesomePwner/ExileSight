@@ -45,10 +45,11 @@ public sealed class GatePolicy(IntentRegistry registry, IEnumerable<ActionKind> 
         foreach (var manifest in manifests ?? []) { manifest.Validate(); result.Add(manifest.Id, manifest.GameActions.ToHashSet()); }
         return result;
     }
-    public ActionOutcome Validate(IntentToken? token, GameAction action, bool foreground, out IntentRegistry.Press? press)
+    public ActionOutcome Validate(IntentToken? token, GameAction action, bool foreground, out IntentRegistry.Press? press, string? featureId = null)
     {
         var result = registry.Consume(token, out press);
         if (result != ActionOutcome.Success) return result;
+        if (featureId is not null && press!.FeatureId != featureId) return ActionOutcome.Undeclared;
         if (press!.Action != action.Kind) return ActionOutcome.WrongAction;
         if (!foreground) return ActionOutcome.NotForeground;
         return allowed.TryGetValue(press.FeatureId, out var actions) && actions.Contains(action.Kind) ? ActionOutcome.Success : ActionOutcome.Undeclared;

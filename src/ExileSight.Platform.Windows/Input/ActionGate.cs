@@ -17,6 +17,9 @@ public sealed class ActionGate : IActionGate
     public string AuditPath => executor.AuditPath;
     public ActionResult TryExecute(IntentToken? token, GameAction action) => executor.TryExecute(token, action);
 
+    public ActionResult TryExecute(IntentToken? token, GameAction action, string featureId) =>
+        executor.TryExecute(token, action, featureId);
+
     private sealed class NativeSender : IKeySender
     {
         public bool IsStreaming => GameForeground.IsStreaming();

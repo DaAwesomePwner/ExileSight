@@ -26,7 +26,7 @@ public static class FeatureRegistration
                     if (!document.Features.Sections.TryGetValue(id, out var section))
                         document.Features.Sections[id] = section = [];
                     section[key] = value.Clone();
-                }), (token, action) => sp.GetRequiredService<IActionGate>().TryExecute(token, action));
+                }), (id, token, action) => sp.GetRequiredService<IActionGate>().TryExecute(token, action, id));
         });
         services.AddSingleton<FeatureViews>();
         services.AddHostedService<FeatureLogPump>();

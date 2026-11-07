@@ -25,6 +25,8 @@ public interface IActionGate
     string AuditPath { get; }
     int ActionsSent { get; }
     ActionResult TryExecute(IntentToken? token, GameAction action);
+    ActionResult TryExecute(IntentToken? token, GameAction action, string featureId) =>
+        new(ActionOutcome.Undeclared, "Scoped execution is not supported by this gate");
 }
 public sealed record ClipboardSnapshot(IReadOnlyDictionary<uint, byte[]> Formats, IReadOnlyList<uint> Skipped);
 
@@ -58,7 +60,7 @@ public interface IHotkeys : IDisposable
 public interface IFeatureCommandHandler
 {
     string Command { get; }
-    string FeatureId => "builtin";
+    string FeatureId { get; }
     ActionKind? RequiredAction => null;
     ActionResult Execute();
     ActionResult Execute(IntentToken? token) => Execute();

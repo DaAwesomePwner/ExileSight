@@ -91,6 +91,7 @@ public sealed class PressRouterTests
             FeatureCommand: feature ? "toggle" : null));
     private sealed class FakeCommand : IFeatureCommandHandler
     {
+        public string FeatureId => "builtin";
         public string Command => "toggle";
         public int Calls { get; private set; }
         public ActionResult Execute() { Calls++; return new(ActionOutcome.Success); }

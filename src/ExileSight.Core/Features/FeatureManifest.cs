@@ -25,7 +25,7 @@ public sealed class FeatureManifest
     public string Description { get; }
     public void Validate()
     {
-        if (string.IsNullOrWhiteSpace(Id) || Id == "builtin" || !Id.All(c => char.IsAsciiLetterOrDigit(c) || c == '-'))
+        if (string.IsNullOrWhiteSpace(Id) || string.Equals(Id, "builtin", StringComparison.OrdinalIgnoreCase) || !Id.All(c => char.IsAsciiLetterOrDigit(c) || c == '-'))
             throw new ArgumentException("Feature ID must be a non-reserved identifier");
         if (Games.Count == 0 || Games.Any(g => !Enum.IsDefined(g)) || GameActions.Any(a => !Enum.IsDefined(a)))
             throw new ArgumentException("Unknown game or action");

@@ -12,6 +12,17 @@ public sealed class OverlayClickPairingTests
         return pair;
     }
     [Fact]
+    public void OverlapUsesZOrderInsteadOfRegistrationOrder()
+    {
+        var pair = new OverlayClickPairing();
+        pair.SetTargets([new(123, 0, 0, 100, 100, 5), new(456, 0, 0, 100, 100, 1)]);
+        pair.Observe(true, false, 20, 20, 100); pair.Observe(false, false, 20, 20, 200);
+        Assert.NotNull(pair.Redeem(456, 20, 20, 200));
+        pair.SetTargets([new(123, 0, 0, 100, 100, 0), new(456, 0, 0, 100, 100, 1)]);
+        pair.Observe(true, false, 20, 20, 300); pair.Observe(false, false, 20, 20, 400);
+        Assert.NotNull(pair.Redeem(123, 20, 20, 400));
+    }
+    [Fact]
     public void PhysicalClickMatchesOnlyOnce()
     {
         var pair = Pair(); pair.Observe(true, false, 20, 20, 100); pair.Observe(false, false, 21, 21, 200);

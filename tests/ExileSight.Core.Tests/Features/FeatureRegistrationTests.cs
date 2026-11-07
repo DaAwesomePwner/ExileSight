@@ -22,7 +22,7 @@ public sealed class FeatureRegistrationTests
         var feature = new Module(c => c.RegisterCommand("copy", ActionKind.CopyItem,
             token => c.Execute(token, new GameAction.CopyItem())));
         var host = new FeatureHost([feature], (_, _) => null, (_, _, _) => { },
-            (token, action) => new(gate!.Validate(token, action, true, out _)));
+            (id, token, action) => new(gate!.Validate(token, action, true, out _, id)));
         gate = new(registry, [], host.Manifests);
         var config = new HotkeyConfiguration();
         var bindings = BindingMapper.Map([new PersistedBinding { Id = "key", Key = 118, FeatureCommand = "module:copy" }], config, host.Commands);

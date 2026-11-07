@@ -1,6 +1,6 @@
 namespace ExileSight.Core.Input;
 
-public sealed record OverlayClickTarget(nint Window, int Left, int Top, int Right, int Bottom);
+public sealed record OverlayClickTarget(nint Window, int Left, int Top, int Right, int Bottom, int ZOrder = 0);
 internal sealed record PhysicalClick(nint Window, int X, int Y, long Timestamp);
 
 /// <summary>Fixed-size single-hook-producer mailbox; no locks, waits or window queries on the hook.</summary>
@@ -11,7 +11,7 @@ public sealed class OverlayClickPairing
     private PhysicalClick? pending;
     public void SetTargets(IEnumerable<OverlayClickTarget> windows)
     {
-        var next = windows.Take(33).ToArray();
+        var next = windows.Take(33).OrderBy(w => w.ZOrder).ToArray();
         if (next.Length > 32 || next.Any(w => w.Window == 0)) throw new ArgumentException("Invalid overlay snapshot");
         if (Volatile.Read(ref targets).SequenceEqual(next)) return;
         Volatile.Write(ref targets, next);
