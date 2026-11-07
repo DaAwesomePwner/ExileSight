@@ -1,7 +1,13 @@
 # Releasing ExileSight
 
 Use **Actions → Release app → Run workflow**, selecting **main**. The workflow
-refuses to run from another branch and uses the protected `release` environment.
+has a failing job with an explicit error for off-main dispatches and uses the
+`release` environment. Before enabling releases, configure that environment in
+GitHub Settings → Environments with **Selected branches and tags: main only**
+(no tag rules), **required reviewers**, and prevention of self-review. Reviewers
+must verify the main commit and inputs before approving a deployment. Workflow
+`if` conditions alone are not a security boundary: another branch can modify them.
+The environment restriction must be enforced by GitHub outside the workflow.
 Only the publish job has repository write permission. Never publish from a local
 checkout. The owner must complete the Phase 5 Windows play-session gate first.
 
@@ -47,8 +53,24 @@ never consume the beta feed. This follows the pinned
 
 The pinned [GitHub source](https://github.com/velopack/velopack/blob/1.2.161/src/lib-csharp/Sources/GithubSource.cs)
 considers the ten most recent GitHub releases (including data-pack releases in
-that window). Keep a current app release within that window. The highest eligible
-package version wins; publication date does not authorize a version downgrade.
+that window), then filters prereleases. In `GitBase.GetReleaseFeed`, missing
+channel assets cause `GetAssetUrlFromName` to throw; that lookup is caught and the
+release is **skipped**, so pack releases without feeds do not fail the check.
+A present feed whose download or JSON parsing fails is not covered by that catch.
+
+Both publish workflows query the GitHub API before creating a release. Drafts are
+excluded and API ordering is preserved; one slot is reserved for the incoming
+release. A beta or pack publish fails unless the newest published non-prerelease
+release containing `releases.stable.json` remains among the first nine existing public
+releases. An older stable feed cannot conceal a displaced newer stable release.
+A stable app publish supplies that feed itself and can bootstrap an empty repo or
+restore a missing stable feed. API/JSON errors fail closed. Publish a new stable
+app version when the guard blocks; do not bypass it with a manual release.
+Serialize app and pack publication approvals: this preflight is not an atomic
+lock against concurrent workflows or manual publishing. Reviewers must wait for
+the previous publication to finish before approving the next one. Dry runs do
+not publish or run this guard. The highest eligible package version wins;
+publication date does not authorize a version downgrade.
 
 Change the existing setting in the active profile under `%APPDATA%\ExileSight\poe1`.
 Preferences are reread for checks, downloads and normal exit. Changing the channel
@@ -68,11 +90,18 @@ environment, set both secrets to enable signing automatically:
 - `SIGNING_CERT_PFX_BASE64`: base64-encoded PFX containing the signing private key.
 - `SIGNING_CERT_PASSWORD`: password protecting that PFX.
 
+Also set the `release` environment **variable** `SIGNING_TIMESTAMP_URL` to the
+owner-selected RFC 3161 timestamp authority's HTTP(S) URL. With both signing
+secrets configured, a missing or invalid URL fails the job before certificate
+import. Velopack passes `/tr <URL> /td SHA256` to signtool along with `/fd SHA256`.
+The app's host allowlist does not restrict CI's timestamp service; the application
+continues to contact only its allowed GitHub/poe.ninja hosts.
+
 The workflow temporarily imports the certificate into the runner's current-user
 certificate store. Velopack `--signParams` selects its thumbprint for signtool,
 so the password never appears in command arguments. Both the decoded file and
-imported certificates are removed in `finally`; an always-run step also removes
-the file. Missing/incomplete secrets produce a visible unsigned-build warning;
+imported certificates and private keys (`Remove-Item -DeleteKey`) are removed in
+`finally`; an always-run step also removes the file. Missing/incomplete secrets produce a visible unsigned-build warning;
 invalid configured credentials or signing failures fail the build. Dry runs
 exercise signing too. Never put secrets or decoded certificates in artifacts.
 The CLI options are pinned to
@@ -80,10 +109,11 @@ The CLI options are pinned to
 
 Unsigned builds can show an unknown publisher and SmartScreen warnings. Signing
 does not guarantee immediate reputation or removal of warnings. Test the actual
-installer on Windows; do not tell users to disable Windows protection. No external
-timestamp service is configured because the network policy authorizes GitHub and
-poe.ninja only. Signatures are therefore not timestamped; certificate expiry and
-a policy-approved timestamp provider remain owner decisions before signed GA.
+installer on Windows; do not tell users to disable Windows protection. RFC 3161
+timestamping permits validation after the signing certificate expires, subject to
+certificate trust and revocation. Certificate and TSA provider selection remain
+owner decisions before signed GA. Timestamp/signing failures must be resolved,
+not worked around by removing signing options.
 
 ## Rollback and size budget
 

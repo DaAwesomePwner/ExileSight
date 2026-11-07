@@ -107,6 +107,25 @@ jobs:
         with:
           name: poe1-packs
           path: bundle
+      - name: Guard stable app release window
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          NEW_STABLE_APP: 'false'
+        run: |
+          set -euo pipefail
+          # Preserve API order, exclude drafts invisible to the app, and reserve
+          # one of the first ten public release slots for the incoming release.
+          gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100" > "$RUNNER_TEMP/release-window.json"
+          if ! jq -e --arg stable "$NEW_STABLE_APP" '
+            add | map(select(.draft == false)) |
+            (map(select(.prerelease == false and
+              any(.assets[]?; .name == "releases.stable.json"))) | max_by(.published_at) | .id) as $latest |
+            ($stable == "true" or ($latest != null and any(.[0:9][]; .id == $latest)))
+            ' "$RUNNER_TEMP/release-window.json" > /dev/null; then
+            echo '::error::Publish a stable app release first: this release would hide the newest stable app feed from the first ten releases.'
+            exit 1
+          fi
       - name: Publish verified release assets
         env:
           GH_TOKEN: ${{ github.token }}

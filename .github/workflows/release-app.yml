@@ -22,6 +22,14 @@ concurrency:
   group: release-app-${{ inputs.version }}
   cancel-in-progress: false
 jobs:
+  reject-off-main:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject off-main dispatch
+        run: |
+          echo '::error::Release app must be dispatched from main. Select main and run again.'
+          exit 1
   build:
     if: github.ref == 'refs/heads/main'
     environment: release
@@ -40,8 +48,8 @@ jobs:
       - name: Validate release version and channel
         shell: pwsh
         run: |
-          $pattern = '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'
-          if ($env:CHANNEL -eq 'beta') { $pattern = $pattern.TrimEnd('$') + '-beta\.(0|[1-9][0-9]*)$' }
+          $pattern = '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\z'
+          if ($env:CHANNEL -eq 'beta') { $pattern = $pattern.Substring(0, $pattern.Length - 2) + '-beta\.(0|[1-9][0-9]*)\z' }
           if ($env:CHANNEL -notin @('stable', 'beta') -or $env:APP_VERSION -cnotmatch $pattern) {
             throw 'Use X.Y.Z for stable or X.Y.Z-beta.N for beta, without leading zeroes.'
           }
@@ -71,20 +79,23 @@ jobs:
         env:
           CERT_BASE64: ${{ secrets.SIGNING_CERT_PFX_BASE64 }}
           CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
+          SIGNING_TIMESTAMP_URL: ${{ vars.SIGNING_TIMESTAMP_URL }}
         run: |
           $certPath = Join-Path $env:RUNNER_TEMP 'ExileSight-signing.pfx'
           $certs = @()
           try {
             $sign = @()
             if ($env:CERT_BASE64 -and $env:CERT_PASSWORD) {
+              if ($env:SIGNING_TIMESTAMP_URL -notmatch '\Ahttps?://[^\s"<>]+\z') {
+                throw 'Signing requires release environment variable SIGNING_TIMESTAMP_URL (HTTP(S) RFC 3161 TSA URL).'
+              }
               [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:CERT_BASE64))
               $password = ConvertTo-SecureString $env:CERT_PASSWORD -AsPlainText -Force
               $certs = @(Import-PfxCertificate -FilePath $certPath -CertStoreLocation Cert:\CurrentUser\My -Password $password)
               $leaf = @($certs | Where-Object HasPrivateKey)
               if ($leaf.Count -ne 1) { throw 'Expected exactly one signing private key' }
               # Store lookup keeps the password out of CLI arguments and Velopack logs.
-              # No external timestamp host is authorized by the network policy.
-              $sign = @('--signParams', "/s My /sha1 $($leaf[0].Thumbprint) /fd SHA256")
+              $sign = @('--signParams', "/s My /sha1 $($leaf[0].Thumbprint) /fd SHA256 /tr $env:SIGNING_TIMESTAMP_URL /td SHA256")
             } else {
               Write-Output '::warning::Signing secrets absent or incomplete; producing unsigned artifacts.'
             }
@@ -92,7 +103,7 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw 'Velopack packaging failed' }
           } finally {
             Remove-Item $certPath -Force -ErrorAction SilentlyContinue
-            foreach ($cert in $certs) { Remove-Item "Cert:\CurrentUser\My\$($cert.Thumbprint)" -Force -ErrorAction SilentlyContinue }
+            foreach ($cert in $certs) { Remove-Item "Cert:\CurrentUser\My\$($cert.Thumbprint)" -DeleteKey -Force -ErrorAction SilentlyContinue }
           }
       - name: Prepare feeds, attribution and size report
         shell: pwsh
@@ -140,6 +151,25 @@ jobs:
         with:
           name: ExileSight-release-${{ inputs.channel }}
           path: bundle
+      - name: Guard stable app release window
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          NEW_STABLE_APP: ${{ inputs.channel == 'stable' }}
+        run: |
+          set -euo pipefail
+          # Preserve API order, exclude drafts invisible to the app, and reserve
+          # one of the first ten public release slots for the incoming release.
+          gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100" > "$RUNNER_TEMP/release-window.json"
+          if ! jq -e --arg stable "$NEW_STABLE_APP" '
+            add | map(select(.draft == false)) |
+            (map(select(.prerelease == false and
+              any(.assets[]?; .name == "releases.stable.json"))) | max_by(.published_at) | .id) as $latest |
+            ($stable == "true" or ($latest != null and any(.[0:9][]; .id == $latest)))
+            ' "$RUNNER_TEMP/release-window.json" > /dev/null; then
+            echo '::error::Publish a stable app release first: this release would hide the newest stable app feed from the first ten releases.'
+            exit 1
+          fi
       - name: Publish verified app assets
         env:
           GH_TOKEN: ${{ github.token }}
