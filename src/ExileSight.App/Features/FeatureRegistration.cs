@@ -7,13 +7,22 @@ using ExileSight.Platform.Abstractions.Storage;
 using ExileSight.Platform.Abstractions.Shell;
 using ExileSight.Platform.Windows.Shell;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace ExileSight.App.Features;
 
 public static class FeatureRegistration
 {
     // Add new compiled-in IFeature implementations here. Never discover/load plugin assemblies.
-    private static IFeature[] CompiledModules(IServiceProvider services) => [new ExileSight.Features.Omni.OmniFeature(), Vaalasync.ShopRegistration.Create(services)];
+    private static IFeature[] CompiledModules(IServiceProvider services) => [new ExileSight.Features.Omni.OmniFeature(),
+        new ExileSight.Features.ItemInfo.ItemInfoFeature
+        {
+            ReadData = () => services.GetRequiredService<DataPacks.PackStartup>().Data,
+            PackStatus = () => services.GetRequiredService<DataPacks.PackStartup>().TooltipStatus,
+            SectionError = error => services.GetRequiredService<ILogger<FeatureHost>>().LogWarning(
+                "Tooltip section failed: {ExceptionType}", error.GetType().Name)
+        },
+        Vaalasync.ShopRegistration.Create(services)];
     public static IServiceCollection AddFeatureModules(this IServiceCollection services)
     {
         services.AddSingleton<IBrowser, WindowsBrowser>();
@@ -35,6 +44,8 @@ public static class FeatureRegistration
         });
         services.AddSingleton<FeatureViews>();
         services.AddSingleton<OmniMenuView>();
+        services.AddSingleton<PassiveOverlayInput>();
+        services.AddSingleton<ItemInfo.ItemInfoTooltip>();
         services.AddHostedService<FeatureLogPump>();
         return services;
     }
@@ -42,6 +53,7 @@ public static class FeatureRegistration
     {
         var views = services.GetRequiredService<FeatureViews>();
         Vaalasync.ShopRegistration.Register(services, views);
+        views.RegisterManaged<ExileSight.Features.ItemInfo.ItemInfoViewModel>(services.GetRequiredService<ItemInfo.ItemInfoTooltip>().Start);
         views.Start();
         Vaalasync.ShopRegistration.Initialize(services);
         var model = services.GetRequiredService<FeatureHost>().Overlays

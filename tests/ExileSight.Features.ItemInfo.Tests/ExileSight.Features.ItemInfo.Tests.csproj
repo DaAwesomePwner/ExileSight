@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0</TargetFramework><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable></PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../src/ExileSight.App/DataPacks/PackStartup.cs" Link="PackStartup.cs" />
+    <Compile Include="../../src/ExileSight.App/DataPacks/PackRefreshThrottle.cs" Link="PackRefreshThrottle.cs" />
+    <Compile Include="../../src/ExileSight.App/Features/OverlayFailureGuard.cs" Link="OverlayFailureGuard.cs" />
     <ProjectReference Include="../../src/ExileSight.Features.ItemInfo/ExileSight.Features.ItemInfo.csproj" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />

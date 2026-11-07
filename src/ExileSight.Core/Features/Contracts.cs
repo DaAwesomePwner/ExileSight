@@ -25,6 +25,8 @@ public interface IFeatureContext
     void RegisterOmniHandler(IOmniHandler handler);
     void Subscribe<T>(Action<T> handler) where T : LogEvent;
     void RegisterOverlay(object viewModel);
+    void RegisterTooltipSection(ITooltipSectionProvider provider) => throw new NotSupportedException();
+    IReadOnlyList<ITooltipSectionProvider> TooltipSections => [];
     JsonElement? ReadSetting(string key);
     void WriteSetting(string key, JsonElement value);
 }
