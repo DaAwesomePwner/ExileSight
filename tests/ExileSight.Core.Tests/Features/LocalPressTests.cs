@@ -16,7 +16,7 @@ public sealed class LocalPressTests
     {
         var feature = new LocalFeature(declaresAction);
         var host = new FeatureHost([feature], (_, _) => null, (_, _, _) => { },
-            (_, _, _) => throw new InvalidOperationException("Gate must not be reached"));
+            (_, token, _) => { Assert.Null(token); return new(ActionOutcome.MissingToken); });
         var config = new HotkeyConfiguration();
         var mapped = BindingMapper.Map(host.DefaultBindings.Select(b => b.ToSetting()), config, host.Commands);
         var binding = Assert.Single(mapped.Bindings);
@@ -32,7 +32,7 @@ public sealed class LocalPressTests
         var up = dispatcher.Observe(new(9, false, false, 0, 1), true);
         Assert.False(up.Block); Assert.Equal(ActionOutcome.Success, router.Route(up.Press!).Outcome);
         Assert.Equal(1, feature.Releases); Assert.Null(feature.Received);
-        Assert.Equal(declaresAction ? ActionOutcome.MissingToken : ActionOutcome.Undeclared, feature.GateResult!.Outcome);
+        Assert.Equal(ActionOutcome.MissingToken, feature.GateResult!.Outcome);
         command.Press(new IntentToken(), new(2, 2));
         Assert.Null(feature.Received);
     }

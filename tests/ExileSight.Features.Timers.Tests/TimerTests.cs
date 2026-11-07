@@ -73,6 +73,41 @@ public sealed class TimerTests
         Assert.Empty(new TimersModel(new TimerStore(folder.Path), clock).Tick());
     }
     [Fact]
+    public void StopwatchCapsAtTenYearsEvenAcrossPauseResumeAndRestart()
+    {
+        using var folder = new TestFolder(); var clock = new Clock();
+        var model = new TimersModel(new TimerStore(folder.Path), clock);
+        var id = model.Add("Watch", TimerKind.Stopwatch, TimeSpan.Zero, false);
+        model.Start(id); clock.Advance((int)TimeSpan.FromDays(3651).TotalSeconds);
+        Assert.Equal(TimerState.Maximum, model.Value(id)); model.Pause(id); model.Start(id);
+        clock.Advance(60); Assert.Equal(TimerState.Maximum, model.Value(id));
+        Assert.Equal(TimerState.Maximum, new TimersModel(new TimerStore(folder.Path), clock).Value(id));
+    }
+    [Theory]
+    [InlineData(TimerKind.Countdown)]
+    [InlineData(TimerKind.Stopwatch)]
+    public void StoredTimerClampsBackwardClockJump(TimerKind kind)
+    {
+        using var folder = new TestFolder(); var clock = new Clock();
+        var model = new TimersModel(new TimerStore(folder.Path), clock);
+        var id = model.Add("Jump", kind, TimeSpan.FromSeconds(60), true);
+        model.Start(id); clock.Advance(10); model.Pause(id); model.Start(id);
+        clock.Advance(-3600);
+        var restart = new TimersModel(new TimerStore(folder.Path), clock);
+        Assert.Equal(TimeSpan.FromSeconds(kind == TimerKind.Countdown ? 50 : 10), restart.Value(id));
+        Assert.Empty(restart.Tick());
+    }
+    [Fact]
+    public void PauseAfterExpiryBeforeTickStillAlertsOnce()
+    {
+        using var folder = new TestFolder(); var clock = new Clock();
+        var model = new TimersModel(new TimerStore(folder.Path), clock);
+        var id = model.Add("Tea", TimerKind.Countdown, TimeSpan.FromSeconds(1), true);
+        model.Start(id); clock.Advance(2); model.Pause(id);
+        Assert.False(Assert.Single(model.Snapshot()).IsRunning);
+        Assert.Single(model.Tick()); Assert.Empty(model.Tick());
+    }
+    [Fact]
     public void QuietExpiryAndEditingRemainLocalAndBounded()
     {
         using var folder = new TestFolder(); var clock = new Clock();
@@ -89,7 +124,7 @@ internal sealed class Clock : IClock
 {
     public long Milliseconds { get; private set; }
     public DateTimeOffset UtcNow { get; private set; } = DateTimeOffset.UnixEpoch;
-    public void Advance(int seconds) { UtcNow = UtcNow.AddSeconds(seconds); Milliseconds += seconds * 1000; }
+    public void Advance(int seconds) { UtcNow = UtcNow.AddSeconds(seconds); Milliseconds += seconds * 1000L; }
     public void Delay(int milliseconds) => throw new NotSupportedException();
 }
 internal sealed class TestFolder : IDisposable

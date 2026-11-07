@@ -83,9 +83,7 @@ public sealed partial class FeatureHost
         private bool closed;
         internal void Close() => closed = true;
         private void Registering() { if (closed) throw new InvalidOperationException("Registration has completed"); }
-        public ActionResult Execute(IntentToken? token, GameAction action) => manifest.GameActions.Contains(action.Kind)
-            ? token is null ? new(ActionOutcome.MissingToken) : host.execute(manifest.Id, token, action)
-            : new(ActionOutcome.Undeclared);
+        public ActionResult Execute(IntentToken? token, GameAction action) => host.execute(manifest.Id, token, action);
         public void RegisterCommand(string command, ActionKind? action, Func<IntentToken?, ActionResult> execute)
         {
             Registering();

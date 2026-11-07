@@ -10,6 +10,7 @@ public sealed record TimerState(Guid Id, string Name, TimerKind Kind, TimeSpan D
     TimeSpan SavedValue, DateTimeOffset? EndUtc, DateTimeOffset? RunningSinceUtc, bool Alert, bool Alerted)
 {
     public static readonly TimeSpan Maximum = TimeSpan.FromDays(3650);
+    [System.Text.Json.Serialization.JsonIgnore]
     public bool IsRunning => EndUtc is not null || RunningSinceUtc is not null;
     public static TimerState Create(string name, TimerKind kind, TimeSpan duration, bool alert)
     {
@@ -28,6 +29,7 @@ public sealed record TimerState(Guid Id, string Name, TimerKind Kind, TimeSpan D
             ? this with { EndUtc = now.ToUniversalTime().Add(SavedValue) }
             : this with { RunningSinceUtc = now.ToUniversalTime() };
     }
+    // An expired countdown pauses at zero; Complete still persists and alerts on the next tick.
     public TimerState Pause(DateTimeOffset now) => this with { SavedValue = Value(now), EndUtc = null, RunningSinceUtc = null };
     public TimerState Reset() => this with { SavedValue = Duration, EndUtc = null, RunningSinceUtc = null, Alerted = false };
     public TimerState Complete(DateTimeOffset now) => Kind == TimerKind.Countdown && !Alerted && Value(now) == TimeSpan.Zero

@@ -22,6 +22,17 @@ public sealed class BindingTests
         Assert.Single(result.Bindings); Assert.Contains(result.Rejected, r => r.Contains("Disabled"));
     }
     [Fact]
+    public void VisibilityNotificationsFollowEdgesImmediatelyAndIgnoreUnchangedState()
+    {
+        using var folder = new TestFolder(); var model = new TimersModel(new TimerStore(folder.Path), new Clock());
+        var states = new List<TimersVisibility>(); model.VisibilityChanged += states.Add;
+        model.Hold(1); Assert.Equal(new TimersVisibility(true, false), Assert.Single(states));
+        model.Hold(2); model.Release(1); Assert.Single(states);
+        model.Release(2); Assert.Equal(new TimersVisibility(false, false), states[1]);
+        model.Toggle(); Assert.Equal(new TimersVisibility(true, true), states[2]);
+        model.LoseFocus(); model.LoseFocus(); Assert.Equal(4, states.Count);
+    }
+    [Fact]
     public void StaleReleaseCannotCloseNewHoldAndFocusLossClearsModes()
     {
         using var folder = new TestFolder(); var model = new TimersModel(new TimerStore(folder.Path), new Clock());

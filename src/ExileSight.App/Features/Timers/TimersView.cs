@@ -24,6 +24,8 @@ public sealed class TimersView
     private readonly TextBlock toastText = TimerEditor.Label("");
     private readonly Dictionary<Guid, TimerRow> rows = [];
     private long toastUntil;
+    private TimersVisibility visibility;
+    private readonly Dictionary<HostedOverlayWindow, bool> requested = [];
     private sealed class TimerRow(Guid id) : System.ComponentModel.INotifyPropertyChanged
     {
         public Guid Id { get; } = id;
@@ -45,7 +47,7 @@ public sealed class TimersView
         buttons.Children.Add(TimerEditor.Button("Pause", () => Selected(model.Pause)));
         buttons.Children.Add(TimerEditor.Button("Reset", () => Selected(model.Reset)));
         buttons.Children.Add(TimerEditor.Button("Delete", () => Selected(model.Delete)));
-        buttons.Children.Add(TimerEditor.Button("Close", () => { model.LoseFocus(); Refresh(); }));
+        buttons.Children.Add(TimerEditor.Button("Close", model.LoseFocus));
         controls.Children.Add(buttons);
         list.SelectionChanged += (_, _) =>
         {
@@ -57,15 +59,38 @@ public sealed class TimersView
             new OverlayRect(20, 80, 400, 220));
         toast = host.Register(new Border { Background = Brushes.Black, Padding = new Thickness(10), Child = toastText },
             new OverlayRect(440, 80, 300, 100));
-        host.SetVisible(panel, false); host.SetVisible(passive, false); host.SetVisible(toast, false);
+        SetVisible(panel, false); SetVisible(passive, false); SetVisible(toast, false);
         host.Changed += VisibilityChanged;
-        panel.Closed += (_, _) => { ticker.Stop(); host.Changed -= VisibilityChanged; };
+        model.VisibilityChanged += Present;
+        panel.Closed += (_, _) => { ticker.Stop(); host.Changed -= VisibilityChanged; model.VisibilityChanged -= Present; };
         ticker.Tick += (_, _) => Tick(); ticker.Start();
         status.Text = model.Notice ?? "Choose a timer, or add a named countdown / stopwatch.";
     }
     private void VisibilityChanged(object? sender, EventArgs args)
     {
         if (!game.Current.IsForeground || game.Current.IsMinimized || !game.Current.Found) model.LoseFocus();
+    }
+    private void Present(TimersVisibility state)
+    {
+        if (!panel.Dispatcher.CheckAccess())
+        {
+            panel.Dispatcher.BeginInvoke(() => Present(state), DispatcherPriority.Normal);
+            return;
+        }
+        // Reconcile queued input with the current game focus before exposing an interactive panel.
+        if (!game.Current.IsForeground || game.Current.IsMinimized || !game.Current.Found) state = default;
+        visibility = state;
+        if (state.Visible) Refresh();
+        controls.Visibility = state.Interactive ? Visibility.Visible : Visibility.Collapsed;
+        if (!state.Interactive) list.SelectedItem = null;
+        SetVisible(panel, state.Interactive);
+        SetVisible(passive, state.Visible && !state.Interactive);
+    }
+    private void SetVisible(HostedOverlayWindow window, bool visible)
+    {
+        if (requested.TryGetValue(window, out var previous) && previous == visible) return;
+        requested[window] = visible;
+        host.SetVisible(window, visible);
     }
     private void Selected(Action<Guid> action)
     {
@@ -74,7 +99,7 @@ public sealed class TimersView
     }
     private void Run(Action action)
     {
-        try { action(); status.Text = "Saved."; Refresh(); }
+        try { action(); status.Text = "Saved."; if (visibility.Visible) Refresh(); }
         catch (Exception error) when (error is System.IO.IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
         { status.Text = "Could not save: " + error.GetType().Name; }
     }
@@ -87,8 +112,10 @@ public sealed class TimersView
             {
                 toastText.Text = "Countdown ended: " + string.Join(", ", completed.Select(r => r.Name));
                 toastUntil = Environment.TickCount64 + 6000;
+                SetVisible(toast, true);
             }
-            Refresh();
+            if (visibility.Visible) Refresh();
+            if (Environment.TickCount64 >= toastUntil) SetVisible(toast, false);
         }
         catch (Exception error) when (error is System.IO.IOException or UnauthorizedAccessException or ArgumentException)
         { status.Text = "Timers unavailable: " + error.GetType().Name; }
@@ -106,12 +133,8 @@ public sealed class TimersView
             row.Text = $"{state.Name} · {(int)value.TotalHours:00}:{value.Minutes:00}:{value.Seconds:00}" +
                 (state.Alerted ? " · ended" : state.IsRunning ? " · running" : " · paused");
         }
-        controls.Visibility = model.Interactive ? Visibility.Visible : Visibility.Collapsed;
-        if (!model.Interactive) list.SelectedItem = null;
-        passiveText.Text = "Timers · Ctrl+Shift+T to edit\n" + string.Join("\n", snapshot.Take(8).Select(r => rows[r.Id].Text)) +
+        var text = "Timers · Ctrl+Shift+T to edit\n" + string.Join("\n", snapshot.Take(8).Select(r => rows[r.Id].Text)) +
             (snapshot.Length > 8 ? $"\n+{snapshot.Length - 8} more · toggle to see all" : "");
-        host.SetVisible(panel, model.Interactive);
-        host.SetVisible(passive, model.Visible && !model.Interactive);
-        host.SetVisible(toast, Environment.TickCount64 < toastUntil);
+        if (passiveText.Text != text) passiveText.Text = text;
     }
 }
