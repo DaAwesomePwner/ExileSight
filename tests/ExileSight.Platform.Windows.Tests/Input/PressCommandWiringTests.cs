@@ -57,6 +57,38 @@ public sealed class PressCommandWiringTests
         }
         finally { unblock.Set(); await actionWorker; }
     }
+    [Theory]
+    [InlineData(ActionOutcome.Success)]
+    [InlineData(ActionOutcome.Expired)]
+    [InlineData(ActionOutcome.Failed)]
+    [InlineData(null)]
+    public void DeferredCommandReportsActualReleaseResultOnly(ActionOutcome? outcome)
+    {
+        var clock = new Clock();
+        var dispatcher = new HotkeyDispatcher(new IntentRegistry(clock), [Binding()]);
+        dispatcher.InstallFeatureIssuer((_, _) => new());
+        var expected = outcome is { } value ? new ActionResult(value, AuditFailed: true, PasteStatus: "release") : null;
+        var command = new DeferredCommand(expected);
+        var reports = new List<ActionResult>();
+        using var hooks = new HookHost(dispatcher, clock, (_, _) => throw new InvalidOperationException(),
+            new(), (_, result) => reports.Add(result), new GameWindow(), [command], () => true);
+        hooks.RouteAndReport(dispatcher.Observe(new(0x14, true, false, 0, 100), true).Press!);
+        Assert.Empty(reports);
+        hooks.RouteAndReport(dispatcher.Observe(new(0x14, false, false, 0, 200), true).Press!);
+        if (expected is null) Assert.Empty(reports);
+        else Assert.Same(expected, Assert.Single(reports));
+    }
+    private sealed class DeferredCommand(ActionResult? result) : IPressCommandHandler
+    {
+        private ActionResult? completed;
+        public string FeatureId => "omni";
+        public string Command => "omni:press";
+        public ActionKind? RequiredAction => ActionKind.CopyItem;
+        public ActionResult Execute() => throw new InvalidOperationException();
+        public ActionResult Press(IntentToken? token, PressStarted press) =>
+            PressRouter.DeferUntilRelease(() => completed);
+        public void Release(PressReleased release) => completed = result;
+    }
     private static HotkeyBinding Binding() => new("omni.press", 0x14, 0, true, null,
         FeatureCommand: "omni:press", FeatureId: "omni", CommandAction: ActionKind.CopyItem, TrackRelease: true);
     private sealed class TestCommand : IPressCommandHandler

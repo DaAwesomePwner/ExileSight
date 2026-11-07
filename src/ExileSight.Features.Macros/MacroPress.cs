@@ -1,4 +1,5 @@
 using ExileSight.Core.Features;
+using ExileSight.Core.Input;
 using ExileSight.Platform.Abstractions.Input;
 
 namespace ExileSight.Features.Macros;
@@ -10,6 +11,7 @@ public sealed class MacroPress(IFeatureContext context, MacroWheel wheel, bool t
     private long lastId = -1, version;
     private PressStarted? pending;
     private IntentToken? token;
+    private Action<ActionResult>? complete;
     public ActionResult Start(IntentToken? intent, PressStarted press)
     {
         if (press.Id <= lastId) return new(ActionOutcome.UsedOrUnknownToken);
@@ -20,12 +22,16 @@ public sealed class MacroPress(IFeatureContext context, MacroWheel wheel, bool t
         if (intent is null) return new(ActionOutcome.MissingToken);
         pending = press;
         token = intent;
-        return new(ActionOutcome.Success);
+        ActionResult? result = null;
+        complete = value => result = value;
+        return PressRouter.DeferUntilRelease(() => result);
     }
     public void Release(PressReleased release)
     {
         if (pending is not { } down || down.Id != release.Id || down.Timestamp != release.DownTimestamp) return;
         var intent = token;
+        var report = complete;
+        complete = null;
         pending = null;
         token = null;
         if (release.UpTimestamp < down.Timestamp) return;
@@ -34,13 +40,14 @@ public sealed class MacroPress(IFeatureContext context, MacroWheel wheel, bool t
         {
             var id = version;
             var commands = travel ? settings.Destinations : settings.Commands;
-            context.DispatchFeature(() => wheel.Show(id, commands));
+            var origin = wheel.CursorPosition();
+            context.DispatchFeature(() => wheel.Show(id, commands, origin));
         }
         else
         {
-            var command = travel ? "/hideout" : settings.Commands[0];
+            var command = travel ? "/hideout" : settings.Command0;
             if (!string.IsNullOrWhiteSpace(command))
-                context.Execute(intent, new GameAction.SendChatCommand(command));
+                report?.Invoke(context.Execute(intent, new GameAction.SendChatCommand(command)));
         }
     }
 }

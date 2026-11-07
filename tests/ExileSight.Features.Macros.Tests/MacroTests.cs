@@ -52,7 +52,7 @@ public sealed class MacroTests
     {
         var h = new Harness();
         long version = 0;
-        h.Feature.Wheel.Opened += (id, slots) => { version = id; Assert.Equal(8, slots.Count); };
+        h.Feature.Wheel.Opened += (id, slots, _) => { version = id; Assert.Equal(8, slots.Count); };
         h.Press().Press(new(), new(1, 100));
         Assert.Empty(h.Attempts); // no hold timer
         h.Press().Release(new(1, 100, 100 + duration));
@@ -81,7 +81,7 @@ public sealed class MacroTests
     {
         var h = new Harness { Outcome = outcome };
         var opens = 0;
-        h.Feature.Wheel.Opened += (_, _) => opens++;
+        h.Feature.Wheel.Opened += (_, _, _) => opens++;
         h.Press().Press(new(), new(1, 100));
         h.Press().Release(new(1, 100, 200)); // delayed processing can expire even a short physical press
         h.Press().Release(new(1, 100, 200));
@@ -94,7 +94,7 @@ public sealed class MacroTests
         var queue = new List<Action>();
         var h = new Harness(queue.Add);
         var opens = 0;
-        h.Feature.Wheel.Opened += (_, _) => opens++;
+        h.Feature.Wheel.Opened += (_, _, _) => opens++;
         h.Press().Press(new(), new(1, 100));
         h.Press().Release(new(1, 100, 400));
         h.Press("macro").Press(new(), new(2, 500));
@@ -108,7 +108,7 @@ public sealed class MacroTests
     {
         var h = new Harness();
         long id = 0;
-        h.Feature.Wheel.Opened += (version, _) => id = version;
+        h.Feature.Wheel.Opened += (version, _, _) => id = version;
         h.Press().Press(new(), new(1, 0));
         h.Press().Release(new(1, 0, 300));
         h.Feature.Wheel.SelectSlot(7, id, new());
@@ -124,8 +124,7 @@ public sealed class MacroTests
         Assert.Equal(ActionKind.SendChatCommand, Assert.Single(h.Feature.Manifest.GameActions));
         Assert.Equal(new[] { 0x74, 0x75 }, h.Host.DefaultBindings.Select(b => b.Key));
         Assert.All(h.Host.DefaultBindings, b => Assert.True(b.Block));
-        var settings = MacroSettings.Default;
-        settings.Commands[0] = "Thanks!";
+        var settings = MacroSettings.Default with { Command0 = "Thanks!" };
         h.Feature.Wheel.SaveSettings!(settings);
         h.Press("macro").Press(new(), new(1, 0));
         h.Press("macro").Release(new(1, 0, 10));
