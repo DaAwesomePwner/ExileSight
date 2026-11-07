@@ -18,6 +18,7 @@ public interface ISettingsStore<T> : IDisposable
 {
     T Snapshot { get; }
     bool IsReadOnly { get; }
+    bool IsReadOnlyNewerSchema { get; }
     IReadOnlyList<string> Warnings { get; }
     event EventHandler<SettingsChangedEventArgs>? Changed;
     void Update(string section, Action<T> update);

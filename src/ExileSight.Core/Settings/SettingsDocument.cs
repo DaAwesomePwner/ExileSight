@@ -14,6 +14,7 @@ public class ExtensibleSettings
 public class VersionedDocument : ExtensibleSettings
 {
     public int SchemaVersion { get; set; } = 1;
+    public Games.Game? Game { get; set; }
 }
 
 public sealed class SettingsDocument : VersionedDocument
@@ -38,6 +39,7 @@ public sealed class GeneralSettings : ExtensibleSettings
 public sealed class PersistedBinding : ExtensibleSettings
 {
     public string Id { get; set; } = "";
+    public bool Enabled { get; set; } = true;
     public int Key { get; set; }
     public KeyModifiers Modifiers { get; set; }
     public bool Block { get; set; } = true;

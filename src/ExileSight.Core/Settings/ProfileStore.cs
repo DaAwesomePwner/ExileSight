@@ -21,20 +21,21 @@ public sealed class ProfileStore : IProfileStore
             Game.PoE1 => "poe1", Game.PoE2 => "poe2",
             _ => throw new ArgumentOutOfRangeException(nameof(game))
         });
-        catalog = new(paths, Path.Combine(directory, "profiles.json"), SettingsJsonContext.Default.ProfileCatalog, () => new());
+        catalog = new(paths, Path.Combine(directory, "profiles.json"), SettingsJsonContext.Default.ProfileCatalog, () => new() { Game = game });
     }
 
     public IReadOnlyList<ProfileInfo> Profiles => catalog.Snapshot.Profiles.ToArray();
     public string ActiveProfileId => catalog.Snapshot.ActiveProfileId;
     public IReadOnlyList<string> Warnings => catalog.Warnings;
     public bool IsReadOnly => catalog.IsReadOnly;
+    public bool IsReadOnlyNewerSchema => catalog.IsReadOnlyNewerSchema;
 
     /// <summary>Caller owns/disposes the returned store; keep only one open owner for each profile.</summary>
     public ISettingsStore<SettingsDocument> Open(string id)
     {
         lock (sync)
         {
-            Require(id);
+            id = Require(id);
             return OpenDocument(id);
         }
     }
@@ -65,7 +66,7 @@ public sealed class ProfileStore : IProfileStore
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         lock (sync)
         {
-            Require(id);
+            id = Require(id);
             catalog.Update("profiles", x =>
             {
                 var index = x.Profiles.FindIndex(p => p.Id == id);
@@ -79,7 +80,7 @@ public sealed class ProfileStore : IProfileStore
     {
         lock (sync)
         {
-            Require(id);
+            id = Require(id);
             catalog.Update("activeProfile", x => x.ActiveProfileId = id);
             catalog.Flush();
         }
@@ -89,21 +90,20 @@ public sealed class ProfileStore : IProfileStore
     {
         lock (sync)
         {
-            Require(id);
+            id = Require(id);
             if (catalog.Snapshot.Profiles.Count == 1) throw new InvalidOperationException("Cannot delete the last profile.");
             catalog.Update("profiles", x =>
             {
                 x.Profiles.RemoveAll(p => p.Id == id);
-                if (x.ActiveProfileId == id) x.ActiveProfileId = x.Profiles[0].Id;
+                if (string.Equals(x.ActiveProfileId, id, StringComparison.OrdinalIgnoreCase)) x.ActiveProfileId = x.Profiles[0].Id;
             });
             catalog.Flush();
         }
     }
 
-    private void Require(string id)
-    {
-        if (!catalog.Snapshot.Profiles.Any(x => x.Id == id)) throw new ArgumentException("Unknown profile.", nameof(id));
-    }
+    private string Require(string id) => catalog.Snapshot.Profiles.Find(x =>
+        string.Equals(x.Id, id, StringComparison.OrdinalIgnoreCase))?.Id
+        ?? throw new ArgumentException("Unknown profile.", nameof(id));
 
     public void Dispose() { lock (sync) catalog.Dispose(); }
 }
