@@ -39,3 +39,37 @@ https://github.com/PathOfBuildingCommunity/PathOfBuilding (MIT). This is a possi
 ## poe.ninja
 
 Price data is fetched at runtime from https://poe.ninja. No poe.ninja data is redistributed in this repository.
+
+## RePoE (repoe-fork)
+
+Planned source: https://github.com/repoe-fork/repoe-fork.github.io, pinned to a full commit SHA. DataGen consumes its base_items and mods export schema; only synthetic fixtures are checked in. RePoE code is MIT licensed (notice below). Generated game data belongs to Grinding Gear Games; not distributed until redistribution is cleared. The MIT license does not grant rights to the generated game data.
+
+Upstream code notice (https://github.com/repoe-fork/repoe/blob/master/LICENSE.md):
+
+MIT License
+
+Copyright (c) 2016 brather1ng
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+------------------------------------------------------------------------------
+
+Contents of generated files (all files in the `data` directory) are owned
+by Grinding Gear Games and shall not be used or published without being in
+accordance with their terms of use.
