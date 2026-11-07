@@ -16,6 +16,9 @@ namespace ExileSight.App.Features;
 public sealed class FeatureViews(FeatureHost features, OverlayHost overlays, HookHost hooks, InputDiagnostics diagnostics)
 {
     private readonly Dictionary<Type, Func<object, FrameworkElement>> factories = [];
+    private readonly Dictionary<Type, Action<object>> managedViews = [];
+    public void RegisterManaged<T>(Action<T> start) where T : class =>
+        managedViews.Add(typeof(T), model => start((T)model));
     private readonly List<HostedOverlayWindow> windows = [];
     private readonly Dictionary<HostedOverlayWindow, string> owners = [];
     private string? creatingFeature;
@@ -26,6 +29,7 @@ public sealed class FeatureViews(FeatureHost features, OverlayHost overlays, Hoo
         foreach (var (featureId, model) in features.Overlays)
         {
             if (model is ExileSight.Features.Omni.OmniMenu) continue;
+            if (managedViews.TryGetValue(model.GetType(), out var start)) { start(model); continue; }
             if (!factories.TryGetValue(model.GetType(), out var factory))
                 throw new InvalidOperationException($"No view registered for {model.GetType().Name}");
             FrameworkElement view;

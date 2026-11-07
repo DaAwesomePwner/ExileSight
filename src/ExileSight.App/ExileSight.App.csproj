@@ -9,4 +9,5 @@
     <PackageReference Include="Velopack" />
   </ItemGroup>
   <ItemGroup><ProjectReference Include="../ExileSight.Features.Vaalasync/ExileSight.Features.Vaalasync.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.ItemInfo/ExileSight.Features.ItemInfo.csproj" /></ItemGroup>
 </Project>

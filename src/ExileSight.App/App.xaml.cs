@@ -18,6 +18,7 @@ using ExileSight.Platform.Windows.Install;
 using ExileSight.Platform.Windows.Tray;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace ExileSight.App;
 
@@ -36,6 +37,35 @@ public partial class App : Application
     private readonly LocalPathResolver localPaths = new();
     private ClientLogSession? logs;
     private TrayHome? tray;
+
+    public App()
+    {
+        DispatcherUnhandledException += HandleDispatcherException;
+        TaskScheduler.UnobservedTaskException += HandleTaskException;
+    }
+    private void LogUnhandled(Exception error)
+    {
+        try { host?.Services.GetService<ILogger<App>>()?.LogError("Unhandled exception: {ExceptionType}", error.GetType().Name); }
+        catch (Exception) { /* Logging must not throw from an exception handler. */ }
+        try { Trace.TraceError("Unhandled exception: {0}", error.GetType().Name); }
+        catch (Exception) { /* A failing trace listener must not escape either. */ }
+    }
+    private void HandleDispatcherException(object sender, DispatcherUnhandledExceptionEventArgs args)
+    {
+        args.Handled = true;
+        LogUnhandled(args.Exception);
+    }
+    private void HandleTaskException(object? sender, UnobservedTaskExceptionEventArgs args)
+    {
+        args.SetObserved();
+        foreach (var error in args.Exception.Flatten().InnerExceptions) LogUnhandled(error);
+    }
+    protected override void OnExit(ExitEventArgs e)
+    {
+        DispatcherUnhandledException -= HandleDispatcherException;
+        TaskScheduler.UnobservedTaskException -= HandleTaskException;
+        base.OnExit(e);
+    }
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -58,6 +88,7 @@ public partial class App : Application
             builder.Services.AddSingleton<DebugPanel>();
             builder.Services.AddSingleton<IDebugSection>(trayDiagnostics);
             builder.Services.AddUpdates();
+            ExileSight.App.DataPacks.PackRegistration.AddItemPacks(builder.Services);
             builder.Services.AddSingleton<IDebugSection>(logs);
             builder.Services.AddOverlays().AddFeatureModules().AddProductionInput();
             host = builder.Build();

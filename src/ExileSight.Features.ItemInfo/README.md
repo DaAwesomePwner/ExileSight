@@ -47,3 +47,26 @@ and the three-defence local hybrid increase stat.
 
 Synthetic fixtures and unit tests are evidence of logic behavior, not recorded client
 compatibility. Ported algorithms name Exile-UI source locations in their file headers.
+
+The app registers the reusable tooltip through FeatureViews. Additional compiled-in
+features register ITooltipSectionProvider via IFeatureContext.RegisterTooltipSection.
+Sections use WPF-free text rows and semantic tones, ascending priority (iteminfo = 100),
+with registration order breaking ties. Null sections are omitted. Providers are passive:
+they receive a ParsedItem, never an IntentToken. Gear comparison can contribute rows
+without depending on the ItemInfo assembly; interactive controls require a future contract.
+
+App startup reads bundled/cache packs on a background worker and publishes the adapter
+only after preparation. Refresh runs after local loading and a five-second delay, then
+hourly after first-run setup. Attempts and their known results are persisted per
+pack/tag before network access, including failures and interrupted attempts. Invalid
+records use their last-write timestamp for a bounded one-hour retry; future attempt
+timestamps are corrected and persisted. A failed pack refresh logs its exception type
+and does not prevent the other packs or the local reload from running. Unchanged
+pack versions and content hashes reuse the prepared adapter. The configurable composition argument defaults to poe1-packs-1.0.0; no releases
+were published when this wiring was implemented. PackLoader masks download failures,
+so diagnostics report an attempted check and retained local availability, not download
+success. The app tooltip shows unavailable/loading status until the next user copy rebuilds
+its rows; ready status is omitted. Each press calculates item info once and supplies
+the result through TooltipContext.Analysis. Provider failures are logged and isolated.
+The app-owned ItemInfo/OverlayTheme.xaml extends the common OverlayTheme with tone
+brush resources. Dispatcher open and DPI callbacks close/release leases on failures.

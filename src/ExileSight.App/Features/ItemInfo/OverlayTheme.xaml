@@ -1,0 +1,12 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/ExileSight.App;component/Overlay/OverlayTheme.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+    <SolidColorBrush x:Key="TooltipUnknown" Color="Gray" />
+    <SolidColorBrush x:Key="TooltipLow" Color="IndianRed" />
+    <SolidColorBrush x:Key="TooltipMedium" Color="Gold" />
+    <SolidColorBrush x:Key="TooltipHigh" Color="LightGreen" />
+    <SolidColorBrush x:Key="TooltipCrafted" Color="LightBlue" />
+    <SolidColorBrush x:Key="TooltipUnique" Color="Orange" />
+</ResourceDictionary>
