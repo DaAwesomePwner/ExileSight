@@ -1,4 +1,7 @@
 using System.Text.Json;
+using System.Security.Cryptography;
+using System.Text;
+using System.Runtime.CompilerServices;
 
 namespace ExileSight.Features.Stashninja;
 
@@ -17,7 +20,7 @@ public sealed class CalibrationStore
             if (!File.Exists(path)) return;
             if (new FileInfo(path).Length > 1024 * 1024) throw new JsonException("Calibration too large");
             values = JsonSerializer.Deserialize<Dictionary<string, Transform>>(File.ReadAllText(path)) ?? throw new JsonException();
-            if (values.Count > 1000 || values.Any(v => v.Value is null || !v.Value.IsValid)) throw new JsonException();
+            if (values.Count > 1000 || values.Any(v => v.Key.Length != 64 || !v.Key.All(Uri.IsHexDigit) || v.Value is null || !v.Value.IsValid)) throw new JsonException();
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException)
         {
@@ -27,8 +30,17 @@ public sealed class CalibrationStore
             Notice = "Invalid calibration preserved; recalibrate this resolution.";
         }
     }
-    private static string Key(Layout l, Resolution r) => JsonSerializer.Serialize(new
-    { l.TabId, l.Page, l.ReferenceResolution, l.Cells, l.FolderOffsets, Resolution = r });
+    // Layouts are immutable after loading; weak keys avoid retaining retired layout sets.
+    private static readonly ConditionalWeakTable<Layout, Fingerprint> fingerprints = new();
+    private sealed record Fingerprint(string Value);
+    private static string Hash(string text) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text)));
+    private static string Key(Layout l, Resolution r)
+    {
+        var geometry = fingerprints.GetValue(l, layout => new Fingerprint(Hash(JsonSerializer.Serialize(new
+        { layout.TabId, layout.Page, layout.ReferenceResolution, layout.Cells,
+            FolderOffsets = layout.FolderOffsets.OrderBy(pair => pair.Key, StringComparer.Ordinal) })))).Value;
+        return Hash($"{geometry}:{r.Width}x{r.Height}");
+    }
     public Transform? Get(Layout layout, Resolution resolution)
     { lock (sync) return values.GetValueOrDefault(Key(layout, resolution)); }
     public void Save(Layout layout, Resolution resolution, Transform transform)

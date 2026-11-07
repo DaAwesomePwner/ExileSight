@@ -9,6 +9,12 @@ public sealed record Transform(double Scale, double X, double Y)
 }
 public static class Geometry
 {
+    public static Point Viewport(Resolution client, double scale)
+    {
+        if (client.Width <= 0 || client.Height <= 0 || !double.IsFinite(scale) || scale <= 0)
+            throw new ArgumentException("Invalid viewport");
+        return new(client.Width / scale, client.Height / scale);
+    }
     public static Transform Fit(Resolution reference, Resolution client)
     {
         if (reference.Width <= 0 || reference.Height <= 0 || client.Width <= 0 || client.Height <= 0)

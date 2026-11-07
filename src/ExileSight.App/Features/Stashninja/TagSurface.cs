@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using ExileSight.App.Overlay;
@@ -11,19 +12,22 @@ namespace ExileSight.App.Features.Stashninja;
 
 public sealed class TagSurface
 {
-    private readonly Canvas canvas = new() { IsHitTestVisible = false };
+    private readonly Canvas canvas = new() { IsHitTestVisible = false, ClipToBounds = true };
     private readonly OverlayHost host;
     private readonly IGameWindow game;
     private readonly CalibrationStore store;
+    private readonly IOverlayWindowStyler styler;
     private readonly HostedOverlayWindow window;
     private Layout? layout;
     private PriceTag[] tags = [];
-    public TagSurface(OverlayHost host, IGameWindow game, CalibrationStore store)
+    public TagSurface(OverlayHost host, IGameWindow game, CalibrationStore store, IOverlayWindowStyler styler)
     {
-        this.host = host; this.game = game; this.store = store;
-        window = host.Register(canvas, new OverlayRect(0, 0, 2520, 1080), clickThrough: true);
+        this.host = host; this.game = game; this.store = store; this.styler = styler;
+        // The host needs an initial design rect; Draw replaces this owned window
+        // and its surface dimensions with the current client viewport on every update.
+        window = host.Register(canvas, new OverlayRect(0, 0, 1, 1), clickThrough: true);
         host.SetVisible(window, false);
-        game.Changed += (_, _) => canvas.Dispatcher.BeginInvoke(Draw);
+        host.Changed += (_, _) => Draw();
     }
     public void Show(Layout? value, PriceTag[] prices)
     { layout = value; tags = prices; Draw(); host.SetVisible(window, value is not null); }
@@ -37,7 +41,10 @@ public sealed class TagSurface
         var resolution = new Resolution(r.Width, r.Height);
         var transform = store.Get(layout, resolution) ?? ExileSight.Features.Stashninja.Geometry.Fit(layout.ReferenceResolution, resolution);
         var scale = host.EffectiveScale;
-        var bar = Math.Max(0, (r.Width - r.Height * 21d / 9) / 2);
+        var size = ExileSight.Features.Stashninja.Geometry.Viewport(resolution, scale);
+        var root = (FrameworkElement)window.Content;
+        root.Width = canvas.Width = size.X; root.Height = canvas.Height = size.Y;
+        if (window.IsVisible) styler.Position(new WindowInteropHelper(window).Handle, r);
         foreach (var tag in tags)
         {
             var point = transform.Apply(Layouts.Origin(layout, tag.Cell));
@@ -57,7 +64,7 @@ public sealed class TagSurface
                             Y1 = 12 - (a - min) / span * 12, Y2 = 12 - (b - min) / span * 12, Stroke = color });
             }
             panel.Children.Add(chart);
-            Canvas.SetLeft(panel, (point.X - bar) / scale); Canvas.SetTop(panel, point.Y / scale);
+            Canvas.SetLeft(panel, point.X / scale); Canvas.SetTop(panel, point.Y / scale);
             canvas.Children.Add(panel);
         }
     }

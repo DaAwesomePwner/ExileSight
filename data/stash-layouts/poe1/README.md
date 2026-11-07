@@ -19,19 +19,21 @@ Exile-UI modules/stash-ninja.ahk is a behaviour reference only. No bulk-exchange
 5. Build the app: these files are copied to `data/stash-layouts/poe1` beside the app.
    Press Ctrl+Shift+N or long-press omni and choose **Price stash tab…**. Select the
    tab/page, then Load. Unsupported tabs show a clear no-layout message.
-6. Click Calibrate, then the two named cell centers, in order (farthest from the first
-   cell is chosen second). Esc cancels. Clicks pass through to the game: use empty
+6. Choose any two distinct cells in the calibration selectors, preferably empty ones.
+   Click Calibrate, then those cell centers in order. Esc cancels and restores Highlight. Clicks pass through to the game: use empty
    cells and ensure no item is held. This observes physical clicks; it sends no input.
    Calibration fits uniform scale/translation, rejects inconsistent clicks, and is
    stored atomically under `%APPDATA%/ExileSight/poe1/stashninja/calibration.json`.
-   Calibration is keyed by tab/page, geometry and client resolution. Moving/resizing
+   Calibration uses a cached SHA-256 geometry fingerprint and a SHA-256 key per
+   client resolution, bounded to 1000 entries and 1 MiB. Old unhashed stores are
+   preserved as `.corrupt` files and require recalibration. Moving/resizing
    during calibration cancels it. Default placement scales by client height and
    compensates for black bars wider than 21:9.
 
 Profiles are configurable through the feature setting `stashninja.profiles`, an array
 of `{ "Name": "Valuable", "Minimum": 10, "High": 100, "LowColor": "#99DDFF",
 "HighColor": "#FFD700" }`. Minimum controls highlighting; High controls tag color.
-Search includes all priced item types at or above Minimum, escapes regex characters,
+Search includes all priced item types at or above Minimum, escapes only regex metacharacters (spaces, apostrophes and # stay literal),
 and is disabled if the complete quoted expression exceeds 250 characters. It does not
 inspect stash contents or quantities. The highlight button spends its own physical-click
 token on one PasteSearch; loading prices and calibration never send input.

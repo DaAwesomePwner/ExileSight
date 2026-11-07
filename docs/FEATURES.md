@@ -92,7 +92,8 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 - **Behaviour:**
   - Price tags drawn over the tab's fixed grid cells, sized from the client height.
   - Chaos and divine conversion, threshold color profiles, and a 7-day sparkline.
-- **Data:** the `poe1/stashtabs` pack (from `data/global/[stash-ninja] tabs.json`), and poe.ninja `poe1/api/economy/exchange/current/overview?league=…&type=…`, cached for 1 h or more.
+- **Calibration:** choose any two reference cells and click their centers to fit uniform scale and translation per geometry/client resolution. Use empty cells with no item held: these observed clicks reach the game. Esc cancels and restores Highlight.
+- **Data:** ExileSight-measured layouts with recorded screenshot provenance under `data/stash-layouts/poe1` (initially empty; no Exile-UI geometry), and poe.ninja `poe1/api/economy/exchange/current/overview?league=…&type=…`, cached for 1 h or more.
 - **Reference:** `modules/stash-ninja.ahk` (grid scaling around lines 59–65, poe.ninja around 440). Its bulk-exchange POST is **not** ported (D-003).
 
 ### `vaalasync`: Shop repricing + sales log

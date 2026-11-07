@@ -23,6 +23,9 @@ public sealed class StashView : StackPanel
     private readonly CalibrationFlow calibration;
     private readonly ComboBox tab = new() { IsEditable = true, Text = "currency" };
     private readonly ComboBox profile = new();
+    private readonly ComboBox firstCell = new() { DisplayMemberPath = "Label", ToolTip = "First reference cell" };
+    private readonly ComboBox secondCell = new() { DisplayMemberPath = "Label", ToolTip = "Second reference cell" };
+    private sealed record CellChoice(Cell Cell, string Label);
     private readonly TextBlock status = new() { Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap };
     private readonly Button highlight = new() { IsEnabled = false, Focusable = false };
     private HostedOverlayWindow? window;
@@ -34,7 +37,7 @@ public sealed class StashView : StackPanel
         this.model = model; this.services = services;
         host = services.GetRequiredService<OverlayHost>();
         var store = new CalibrationStore(Path.Combine(services.GetRequiredService<IAppPaths>().GetGameDirectory("poe1"), "stashninja"));
-        surface = new(host, services.GetRequiredService<IGameWindow>(), store);
+        surface = new(host, services.GetRequiredService<IGameWindow>(), store, services.GetRequiredService<IOverlayWindowStyler>());
         calibration = new(services.GetRequiredService<PassiveOverlayInput>(), services.GetRequiredService<IGameWindow>(), store);
         Background = Brushes.Black;
         Children.Add(new TextBlock { Text = "Stash prices — select tab/page", Foreground = Brushes.White });
@@ -43,19 +46,26 @@ public sealed class StashView : StackPanel
         var load = new Button { Content = "Load selected tab", Focusable = false };
         load.Click += async (_, _) => await Load(); Children.Add(load);
         foreach (var p in model.Profiles) profile.Items.Add(p.Name);
-        profile.SelectedIndex = 0; profile.SelectionChanged += (_, _) => Refresh(); Children.Add(profile);
+        profile.SelectedIndex = 0; profile.SelectionChanged += (_, _) => { calibration.Cancel(); Refresh(); }; Children.Add(profile);
+        Children.Add(new TextBlock { Text = "Choose two empty calibration cells (clicks reach game):", Foreground = Brushes.White });
+        Children.Add(firstCell); Children.Add(secondCell);
         var calibrate = new Button { Content = "Calibrate two reference cells", Focusable = false };
         calibrate.Click += (_, _) =>
         {
             if (layout is null) { status.Text = "Load a layout first"; return; }
-            Invalidate();
-            calibration.Start(layout, message => status.Text = message, Refresh);
+            if (firstCell.SelectedItem is not CellChoice first || secondCell.SelectedItem is not CellChoice second ||
+                first.Cell.Id == second.Cell.Id)
+            { status.Text = "Choose two distinct empty cells before calibrating"; return; }
+            calibration.Cancel(); Invalidate();
+            calibration.Start(layout, first.Cell, second.Cell, message => status.Text = message, Refresh);
         };
         Children.Add(calibrate);
         Children.Add(highlight); views.Bind(highlight, "stashninja:highlight");
         var close = new Button { Content = "Close", Focusable = false };
         close.Click += (_, _) => { generation++; calibration.Cancel(); Invalidate(); surface.Hide(); host.SetVisible(window!, false); };
         Children.Add(close); Children.Add(status);
+        if (model.ProfileNotice is { } notice)
+            Children.Add(new TextBlock { Text = notice, Foreground = Brushes.Orange, TextWrapping = TextWrapping.Wrap });
         status.Text = store.Notice;
         tab.SelectionChanged += (_, _) => Clear();
         tab.AddHandler(TextBox.TextChangedEvent, new TextChangedEventHandler((_, _) => Clear()));
@@ -67,7 +77,7 @@ public sealed class StashView : StackPanel
         host.SetVisible(window, false);
         host.Changed += (_, _) => Position();
         window.IsVisibleChanged += (_, _) =>
-        { if (!window.IsVisible) { generation++; calibration.Cancel(); Invalidate(); surface.Hide(); } };
+        { if (!window.IsVisible) calibration.Cancel(); };
     }
     private void Position()
     {
@@ -75,19 +85,21 @@ public sealed class StashView : StackPanel
         var client = services.GetRequiredService<IGameWindow>().Current.ClientRect;
         var scale = host.EffectiveScale;
         var width = Math.Min(client.Width, (int)(400 * scale));
-        var height = Math.Min(client.Height, (int)(260 * scale));
+        var height = Math.Min(client.Height, (int)(400 * scale));
         services.GetRequiredService<IOverlayWindowStyler>().Position(new WindowInteropHelper(window).Handle,
             new(client.X + client.Width - width, client.Y, width, height));
     }
     private void Invalidate() { model.SetSearch(new(null, "Load prices first")); highlight.IsEnabled = false; }
     private void Clear()
-    { generation++; calibration.Cancel(); layout = null; overview = null; Invalidate(); surface.Hide(); }
+    { generation++; calibration.Cancel(); layout = null; overview = null; firstCell.ItemsSource = secondCell.ItemsSource = null; Invalidate(); surface.Hide(); }
     private async Task Load()
     {
         Clear(); var request = generation;
         layout = model.Layouts.FirstOrDefault(l => tab.Text == l.TabId + "/" + l.Page || tab.Text == l.TabId);
         if (layout is null)
         { status.Text = model.LayoutError ?? $"No layout yet for {tab.Text} — see data/stash-layouts README"; return; }
+        var choices = layout.Cells.Select(c => new CellChoice(c, $"{c.ItemName ?? c.NinjaId} ({c.Id})")).ToArray();
+        firstCell.ItemsSource = choices; secondCell.ItemsSource = choices;
         var selected = layout;
         status.Text = "Loading cached prices…";
         try
@@ -108,7 +120,7 @@ public sealed class StashView : StackPanel
     }
     private void Refresh()
     {
-        if (layout is null || overview is null || profile.SelectedIndex < 0) return;
+        if (calibration.IsActive || layout is null || overview is null || profile.SelectedIndex < 0) return;
         var selected = model.Profiles[profile.SelectedIndex];
         var tags = Tags.Build(layout, overview, selected);
         surface.Show(layout, tags);

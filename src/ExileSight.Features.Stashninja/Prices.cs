@@ -44,13 +44,16 @@ public static class Tags
         }
         return result;
     }
+    // PoE search uses ordinary regex metacharacters; spaces, # and apostrophes stay literal.
+    public static string EscapeSearch(string name) => string.Concat(name.Select(c =>
+        @"\.^$|?*+()[]{}".Contains(c) ? "\\" + c : c.ToString()));
     public static SearchResult Search(IEnumerable<PriceTag> tags, decimal minimum)
     {
         var names = tags.Where(t => t.Chaos >= minimum).Select(t => t.Name).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         if (names.Length == 0) return new(null, "No priced items meet the threshold");
         if (names.Any(n => string.IsNullOrWhiteSpace(n) || n.Any(char.IsControl) || n.Contains('"')))
             return new(null, "An item name cannot be represented safely in stash search");
-        var text = "\"" + string.Join("|", names.Select(Regex.Escape)) + "\"";
+        var text = "\"" + string.Join("|", names.Select(EscapeSearch)) + "\"";
         return text.Length <= 250 ? new(text, $"Highlight {names.Length} item types") :
             new(null, "Search exceeds 250 characters — raise the threshold");
     }

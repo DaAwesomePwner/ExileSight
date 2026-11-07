@@ -10,6 +10,7 @@ public sealed class StashModel : IItemMenuProvider
     private SearchResult search = new(null, "Load prices first");
     public event Action? Opened;
     public Layout[] Layouts { get; init; } = [];
+    public string? ProfileNotice { get; private set; }
     public string? LayoutError { get; init; }
     public ThresholdProfile[] Profiles { get; set; } =
         [new("All", 0, 10, "#CCCCCC", "#FFD700"), new("Valuable", 10, 100, "#99DDFF", "#FFD700")];
@@ -24,10 +25,15 @@ public sealed class StashModel : IItemMenuProvider
         {
             try
             {
-                var profiles = System.Text.Json.JsonSerializer.Deserialize<ThresholdProfile[]>(saved.Value);
-                if (profiles is { Length: > 0 and <= 20 }) { foreach (var p in profiles) p.Validate(); Profiles = profiles; }
+                var profiles = System.Text.Json.JsonSerializer.Deserialize<ThresholdProfile[]>(saved.Value,
+                    new System.Text.Json.JsonSerializerOptions { RespectRequiredConstructorParameters = true });
+                if (profiles is not { Length: > 0 and <= 20 } || profiles.Any(p => p is null))
+                    throw new ArgumentException("Expected 1–20 non-null profiles");
+                foreach (var p in profiles) p.Validate();
+                Profiles = profiles;
             }
-            catch (Exception e) when (e is System.Text.Json.JsonException or ArgumentException or NullReferenceException) { }
+            catch (Exception e) when (e is System.Text.Json.JsonException or ArgumentException)
+            { ProfileNotice = "Invalid stash threshold profiles — using defaults. Check stashninja.profiles settings."; }
         }
         context.RegisterCommand("open", null, _ => { Open(); return new(ActionOutcome.Success); });
         context.RegisterDefaultBinding(new("stashninja.open", 0x4E, KeyModifiers.Control | KeyModifiers.Shift, true, "stashninja:open"));
