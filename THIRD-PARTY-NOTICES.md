@@ -42,7 +42,9 @@ Price data is fetched at runtime from https://poe.ninja. No poe.ninja data is re
 
 ## RePoE (repoe-fork)
 
-Planned source: https://github.com/repoe-fork/repoe-fork.github.io, pinned to a full commit SHA. DataGen consumes its base_items and mods export schema; only synthetic fixtures are checked in. RePoE code is MIT licensed (notice below). Generated game data belongs to Grinding Gear Games; not distributed until redistribution is cleared. The MIT license does not grant rights to the generated game data.
+Source: https://github.com/repoe-fork/repoe-fork.github.io. The default export is pinned to `d0bc438357d849bb93ad22f3db0b12938aaf6da1` (3.29.3.4); each pack manifest records the actual source SHA and per-input SHA-256. DataGen consumes its base_items and mods exports. Game data © Grinding Gear Games. Extracted by the RePoE fork project. Published by ExileSight with permission of the project owner as a convenience, as GitHub release assets generated in CI; not affiliated with or endorsed by Grinding Gear Games. Only synthetic fixtures are checked in; generated game data is never committed. RePoE code is MIT licensed (notice below); that license does not grant rights to the generated game data.
+
+This product isn't affiliated with or endorsed by Grinding Gear Games in any way.
 
 Upstream code notice (https://github.com/repoe-fork/repoe/blob/master/LICENSE.md):
 
