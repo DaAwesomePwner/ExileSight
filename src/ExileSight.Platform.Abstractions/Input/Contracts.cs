@@ -1,31 +1,46 @@
 namespace ExileSight.Platform.Abstractions.Input;
 
-public enum ActionKind { CopyItem, SendChatCommand }
+public enum ActionKind { CopyItem, SendChatCommand, PasteSearch, SetPriceNote }
 public abstract record GameAction
 {
     private GameAction() { }
     public sealed record CopyItem(bool Advanced = false) : GameAction;
     public sealed record SendChatCommand(string Text) : GameAction;
-    public ActionKind Kind => this is CopyItem ? ActionKind.CopyItem : ActionKind.SendChatCommand;
+    public sealed record PasteSearch(string Text) : GameAction;
+    public sealed record SetPriceNote(string Text) : GameAction;
+    public ActionKind Kind => this switch
+    {
+        CopyItem => ActionKind.CopyItem, SendChatCommand => ActionKind.SendChatCommand,
+        PasteSearch => ActionKind.PasteSearch, SetPriceNote => ActionKind.SetPriceNote,
+        _ => throw new InvalidOperationException()
+    };
 }
 
 /// <summary>Identity alone confers no authority: only a registered physical press is accepted.</summary>
 public sealed class IntentToken;
 public enum ActionOutcome { Success, MissingToken, UsedOrUnknownToken, Expired, NotForeground, Undeclared, WrongAction, Failed }
-public sealed record ActionResult(ActionOutcome Outcome, string Reason = "", string? CopiedText = null, bool AuditFailed = false);
+public sealed record ActionResult(ActionOutcome Outcome, string Reason = "", string? CopiedText = null, bool AuditFailed = false, int FormatsPreserved = 0, int FormatsSkipped = 0, string PasteStatus = "Not applicable");
 public interface IActionGate
 {
     string AuditPath { get; }
     int ActionsSent { get; }
     ActionResult TryExecute(IntentToken? token, GameAction action);
 }
-/// <summary>Phase 0 preserves Unicode text or empty only; other formats are not retained.</summary>
+public sealed record ClipboardSnapshot(IReadOnlyDictionary<uint, byte[]> Formats, IReadOnlyList<uint> Skipped);
+
+/// <summary>Snapshots own copied bytes, never borrowed native handles.</summary>
 public interface IClipboard
 {
     string? GetText();
+    string? GetText(int timeoutMilliseconds) => GetText();
     void SetText(string? text);
-    string? Save();
-    void Restore(string? saved);
+    ClipboardSnapshot Save();
+    void Restore(ClipboardSnapshot? saved);
+    void OfferText(string text);
+    bool PasteConsumed { get; }
+    void Pump();
+    void AbandonOffer() { }
+    int RecoveredFormats => 0;
     uint SequenceNumber { get; }
 }
 [Flags]

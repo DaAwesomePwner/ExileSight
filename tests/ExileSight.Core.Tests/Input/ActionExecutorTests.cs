@@ -103,21 +103,21 @@ public sealed class ActionExecutorTests
     [Theory]
     [InlineData(0)]
     [InlineData(2)]
-    public void ExhaustedRestoreClearsPayloadAndAuditsFailure(int clearFailures)
+    public void ExhaustedRestoreClearsActionText(int clearFailures)
     {
         var h = new ActionHarness();
         h.Clipboard.RestoreFailures = 3;
         h.Clipboard.ClearFailures = clearFailures;
         var result = h.Run(Chat);
         Assert.Equal(ActionOutcome.Failed, result.Outcome);
-        Assert.Contains("clipboard cleared", result.Reason);
+        Assert.Contains("action text cleared", result.Reason);
         Assert.Null(h.Clipboard.Text);
         Assert.Equal(3, h.Clipboard.RestoreCalls);
         Assert.Equal(clearFailures + 1, h.Clipboard.ClearCalls);
-        Assert.Contains("clipboard cleared", Assert.Single(h.Audit.Lines));
+        Assert.Contains("action text cleared", Assert.Single(h.Audit.Lines));
     }
     [Fact]
-    public void ImpossibleRestoreAndClearAreReportedAfterBoundedRetries()
+    public void ImpossibleRestoreIsReportedAfterBoundedRetries()
     {
         var h = new ActionHarness();
         h.Clipboard.RestoreFailures = h.Clipboard.ClearFailures = 100;

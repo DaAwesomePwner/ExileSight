@@ -16,7 +16,7 @@ public sealed class BlockedReleaseRecoveryTests
         configuration.Register("overlay");
         configuration.Replace([new("binding", 118, 0, true,
             feature ? null : new GameAction.CopyItem(), FeatureCommand: feature ? "toggle" : null)], []);
-        var dispatcher = new HotkeyDispatcher(new(new FakeClock()), configuration);
+        var dispatcher = new HotkeyDispatcher(TestIntents.Create(new FakeClock()), configuration);
         Assert.NotNull(dispatcher.Observe(Key(10000), true).Press);
 
         // The feature opens an overlay; Windows reports a blocked key as up.
@@ -67,7 +67,7 @@ public sealed class BlockedReleaseRecoveryTests
         var configuration = new HotkeyConfiguration();
         configuration.UpdateGameFocused(true, 1);
         configuration.Replace([new("copy", 118, 0, false, new GameAction.CopyItem())], []);
-        var dispatcher = new HotkeyDispatcher(new(new FakeClock()), configuration);
+        var dispatcher = new HotkeyDispatcher(TestIntents.Create(new FakeClock()), configuration);
         Assert.NotNull(dispatcher.Observe(Key(10000), true).Press);
         Assert.Null(dispatcher.Observe(Key(15000), true).Press);
         configuration.UpdateGameFocused(true, 2);
@@ -82,6 +82,6 @@ public sealed class BlockedReleaseRecoveryTests
     }
 
     private static HotkeyDispatcher Create(bool block) =>
-        new(new(new FakeClock()), [new("copy", 118, 0, block, new GameAction.CopyItem())]);
+        new(TestIntents.Create(new FakeClock()), [new("copy", 118, 0, block, new GameAction.CopyItem())]);
     private static PhysicalKey Key(long timestamp) => new(118, true, false, 0, timestamp);
 }

@@ -73,7 +73,7 @@ public sealed class ProductionHotkeyTests
         var b = Binding(); b.Context = "overlay";
         var mapped = BindingMapper.Map([b], contexts, []);
         contexts.Replace(mapped.Bindings, mapped.Rejected);
-        var dispatcher = new HotkeyDispatcher(new(new FakeClock()), contexts);
+        var dispatcher = new HotkeyDispatcher(TestIntents.Create(new FakeClock()), contexts);
         Assert.Null(dispatcher.Observe(Key(), true).Press);
         contexts.SetActive("overlay", true);
         Assert.Null(dispatcher.Observe(Key(), true).Press);
@@ -85,7 +85,7 @@ public sealed class ProductionHotkeyTests
         Assert.True(dispatcher.Observe(Key(false), true).Block);
         Assert.Null(dispatcher.Observe(Key(), true).Press);
         Assert.Equal("copy", press.Binding!.Id);
-        Assert.NotNull(dispatcher.Issue(press.Press!));
+        Assert.NotNull(dispatcher.IssueForTest(press.Press!));
     }
     [Fact]
     public void FeatureCommandsMapWithoutGameActionAuthority()
@@ -98,9 +98,9 @@ public sealed class ProductionHotkeyTests
         var execution = new HotkeyExecution(null!, [handler]);
         Assert.Equal(ActionOutcome.Success, execution.Execute(null, mapped.Bindings[0]).Outcome);
         Assert.Equal(1, handler.Calls);
-        var dispatcher = new HotkeyDispatcher(new(new FakeClock()), mapped.Bindings);
+        var dispatcher = new HotkeyDispatcher(TestIntents.Create(new FakeClock()), mapped.Bindings);
         var press = dispatcher.Observe(Key(), true).Press!;
-        Assert.Throws<InvalidOperationException>(() => dispatcher.Issue(press));
+        Assert.Throws<InvalidOperationException>(() => dispatcher.IssueForTest(press));
     }
     [Theory]
     [InlineData(0x207, 0, 4)]
@@ -108,7 +108,7 @@ public sealed class ProductionHotkeyTests
     [InlineData(0x20B, 0x20000, 6)]
     public void MouseUsesSameBlockingRepeatAndInjectionPolicy(uint message, uint data, int vk)
     {
-        var dispatcher = new HotkeyDispatcher(new(new FakeClock()),
+        var dispatcher = new HotkeyDispatcher(TestIntents.Create(new FakeClock()),
             [new("mouse", vk, 0, true, new GameAction.CopyItem())]);
         var physical = MouseButtonEvent.Decode(message, data, false, 0, 10000)!.Value;
         Assert.Equal(vk, physical.Key);
@@ -132,7 +132,7 @@ public sealed class ProductionHotkeyTests
         HotkeyBinding a = new("a", 118, 0, true, new GameAction.CopyItem());
         HotkeyBinding b = a with { Id = "b", Block = false };
         configuration.Replace([a], []);
-        var dispatcher = new HotkeyDispatcher(new(new FakeClock()), configuration);
+        var dispatcher = new HotkeyDispatcher(TestIntents.Create(new FakeClock()), configuration);
         var writer = Task.Run(() =>
         {
             for (var i = 0; i < 1000; i++) configuration.Replace([i % 2 == 0 ? a : b], []);

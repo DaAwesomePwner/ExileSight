@@ -14,13 +14,13 @@ internal sealed class ActionHarness
     private readonly IntentRegistry registry;
     public ActionHarness()
     {
-        registry = new(Clock);
-        Gate = new(new GatePolicy(registry, [ActionKind.CopyItem, ActionKind.SendChatCommand]), Clipboard, Sender, Clock, Audit);
+        registry = TestIntents.Create(Clock);
+        Gate = new(new GatePolicy(registry, Enum.GetValues<ActionKind>()), Clipboard, Sender, Clock, Audit);
     }
     public IntentToken Token(GameAction action)
     {
         var dispatcher = new HotkeyDispatcher(registry, [new("test", 118, 0, true, action)]);
-        return dispatcher.Issue(dispatcher.Observe(new(118, true, false, 0, Clock.Milliseconds), true).Press!);
+        return dispatcher.IssueForTest(dispatcher.Observe(new(118, true, false, 0, Clock.Milliseconds), true).Press!);
     }
     public ActionResult Run(GameAction action) => Gate.TryExecute(Token(action), action);
 }
@@ -35,15 +35,33 @@ internal sealed class TestClipboard : IClipboard
 {
     public string? Text { get; set; } = "private user clipboard";
     public uint SequenceNumber { get; private set; }
+    public Dictionary<uint, byte[]> ExtraFormats { get; } = [];
+    public uint[] SkippedFormats { get; set; } = [];
     public bool SaveFails { get; set; }
     public bool SetFails { get; set; }
     public bool ReadFails { get; set; }
+    public int RecoveredFormats { get; set; }
     public int RestoreFailures { get; set; }
     public int RestoreCalls { get; private set; }
     public int ClearFailures { get; set; }
     public int ClearCalls { get; private set; }
+    public Action? OnPump { get; set; }
+    public Action? BeforeRestore { get; set; }
+    public Func<int, string?>? ReadWithBudget { get; set; }
+    public int LastReadBudget { get; private set; }
     public Action? BeforeSet { get; set; }
-    public string? Save() => SaveFails ? throw new IOException() : Text;
+    public ClipboardSnapshot Save() => SaveFails ? throw new IOException() :
+        new(new Dictionary<uint, byte[]>(ExtraFormats) { [13] = System.Text.Encoding.Unicode.GetBytes(Text ?? "") }, SkippedFormats);
+    public bool PasteConsumed { get; set; }
+    public int ConsumeAfterPumps { get; set; } = 151;
+    private int pumps;
+    public void OfferText(string text) { SetText(text); PasteConsumed = false; pumps = 0; }
+    public void Pump() { OnPump?.Invoke(); if (++pumps >= ConsumeAfterPumps) PasteConsumed = true; }
+    public string? GetText(int timeoutMilliseconds)
+    {
+        LastReadBudget = timeoutMilliseconds;
+        return ReadWithBudget is null ? GetText() : ReadWithBudget(timeoutMilliseconds);
+    }
     public string? GetText() => ReadFails ? throw new IOException() : Text;
     public void SetText(string? text)
     {
@@ -55,18 +73,26 @@ internal sealed class TestClipboard : IClipboard
             if (ClearFailures-- > 0) throw new IOException();
         }
         Text = text;
+        ExtraFormats.Clear();
         SequenceNumber++;
     }
-    public void Restore(string? saved)
+    public void Restore(ClipboardSnapshot? saved)
     {
         RestoreCalls++;
+        BeforeRestore?.Invoke();
         if (RestoreFailures-- > 0) throw new IOException();
-        Text = saved;
+        ExtraFormats.Clear();
+        if (saved is not null)
+            foreach (var (format, bytes) in saved.Formats)
+                if (format != 13) ExtraFormats.Add(format, bytes);
+        Text = saved is null ? null : System.Text.Encoding.Unicode.GetString(saved.Formats[13]);
         SequenceNumber++;
     }
 }
 internal sealed class TestSender : IKeySender
 {
+    public bool IsStreaming { get; set; }
+    public bool CanExecuteOnCurrentThread { get; set; } = true;
     public bool IsGameForeground { get; set; } = true;
     public KeyModifiers Modifiers { get; set; }
     public KeySendResult Result { get; set; } = new(true, 4);

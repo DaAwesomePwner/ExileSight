@@ -1,6 +1,7 @@
 using ExileSight.Core.Input;
 using ExileSight.Platform.Abstractions.Input;
 using ExileSight.Platform.Abstractions.Time;
+using ExileSight.Platform.Abstractions.Window;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
@@ -8,7 +9,7 @@ using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace ExileSight.Platform.Windows.Input;
 
-public sealed class HookHost : IHotkeys
+public sealed partial class HookHost : IHotkeys
 {
     private readonly HotkeyDispatcher dispatcher;
     private readonly IClock clock;
@@ -23,70 +24,63 @@ public sealed class HookHost : IHotkeys
     private readonly HOOKPROC mouse;
     private Thread? hookThread;
     private Thread? worker;
-    private Thread? foregroundThread;
+    private Timer? repeatTimer;
+    private readonly HookForeground foreground;
     private volatile Exception? startupError;
     private int disposed;
     private readonly HotkeyConfiguration configuration;
-    public HookHost(HotkeyDispatcher dispatcher, IClock clock,
+    internal HookHost(HotkeyDispatcher dispatcher, IClock clock,
         Func<IntentToken?, HotkeyBinding, ActionResult> execute, KeyboardRepeatSettings repeatSettings,
-        Action<HotkeyBinding, ActionResult>? report = null)
+        Action<HotkeyBinding, ActionResult>? report = null, IGameWindow? gameWindow = null)
     {
         this.repeatSettings = repeatSettings;
+        ArgumentNullException.ThrowIfNull(gameWindow);
+        foreground = new(gameWindow, dispatcher.Configuration, clock);
+        dispatcher.SetRepeatProvider(() => repeatSettings.SilenceMilliseconds);
         configuration = dispatcher.Configuration;
         this.dispatcher = dispatcher; this.clock = clock;
         router = new(dispatcher, clock, GameForeground.IsGame, execute);
         this.report = report ?? ((_, _) => { });
         keyboard = Keyboard; mouse = Mouse;
     }
-    public bool IsAlive => hookThread?.IsAlive == true && worker?.IsAlive == true && foregroundThread?.IsAlive == true && startupError is null;
+    public bool IsAlive => hookThread?.IsAlive == true && worker?.IsAlive == true && startupError is null;
     public void Start()
     {
         ObjectDisposedException.ThrowIf(disposed != 0, this);
         if (hookThread is not null) throw new InvalidOperationException("Hooks already started");
         repeatSettings.Refresh(); // caller thread, before the hook can receive any input
         worker = new Thread(Work) { IsBackground = true, Name = "Input actions" };
+        worker.SetApartmentState(ApartmentState.MTA);
         hookThread = new Thread(Run) { IsBackground = true, Name = "Low-level input hooks" };
         hookThread.SetApartmentState(ApartmentState.STA);
-        foregroundThread = new Thread(RefreshForeground) { IsBackground = true, Name = "Input foreground snapshot" };
-        foregroundThread.Start(); worker.Start(); hookThread.Start(); started.Wait();
+        foreground.Start();
+        repeatTimer = new Timer(_ => RefreshRepeat(), null, 1000, 1000);
+        worker.Start(); hookThread.Start(); started.Wait();
         if (startupError is not null) { Dispose(); throw new InvalidOperationException("Hook startup failed", startupError); }
     }
     private void Work()
     {
-        try { Consume(); }
+        try
+        {
+            Volatile.Write(ref workerApartment, (int)Thread.CurrentThread.GetApartmentState());
+            Consume();
+        }
         catch (Exception error)
         {
             startupError = error;
             stop.Set();
         }
     }
-    private unsafe void RefreshForeground()
+    private void RefreshRepeat()
     {
-        try
-        {
-            // Dedicated observer: process discovery and its locks never run on the hook thread.
-            // A short wait bounds refresh latency independently of slow action execution.
-            nint previous = 0;
-            do
-            {
-                repeatSettings.Refresh(); // observer thread only; callbacks read the published value
-                var window = PInvoke.GetForegroundWindow();
-                if ((nint)window.Value != previous)
-                {
-                    previous = (nint)window.Value;
-                    configuration.UpdateGameFocused(false, previous);
-                }
-                var active = GameForeground.IsGame();
-                if (window != PInvoke.GetForegroundWindow()) active = false;
-                configuration.UpdateGameFocused(active, (nint)window.Value);
-            } while (!stop.WaitOne(20));
-        }
+        try { repeatSettings.Refresh(); }
         catch (Exception error) { startupError = error; stop.Set(); ready.Set(); }
     }
     private void Consume()
     {
         while (!stop.WaitOne(0))
         {
+            ReportIgnoredHotkey();
             while (queue.TryDequeue(out var press))
             {
                 if (stop.WaitOne(0)) return;
@@ -144,7 +138,7 @@ public sealed class HookHost : IHotkeys
             var timestamp = now - unchecked((uint)now - key.time);
             var physical = new PhysicalKey((int)key.vkCode,
                 message.Value is 0x100 or 0x104, false, Modifiers(), timestamp);
-            var decision = dispatcher.Observe(physical, true);
+            var decision = ObserveWithFocus(physical);
             // Overflow fails closed: the key stays blocked, but no intent/action is issued.
             if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
             if (decision.Block) return new LRESULT(1);
@@ -164,7 +158,7 @@ public sealed class HookHost : IHotkeys
                 now - unchecked((uint)now - mouse.time));
             if (key is { } physical)
             {
-                var decision = dispatcher.Observe(physical with { Modifiers = Modifiers() }, true);
+                var decision = ObserveWithFocus(physical with { Modifiers = Modifiers() });
                 if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
                 if (decision.Block) return new LRESULT(1);
             }
@@ -184,7 +178,13 @@ public sealed class HookHost : IHotkeys
     public void Dispose()
     {
         if (Interlocked.Exchange(ref disposed, 1) != 0) return;
-        stop.Set(); ready.Set(); hookThread?.Join(); worker?.Join(); foregroundThread?.Join();
+        stop.Set(); ready.Set(); hookThread?.Join(); worker?.Join();
+        foreground.Dispose();
+        if (repeatTimer is not null)
+        {
+            using var drained = new ManualResetEvent(false);
+            if (repeatTimer.Dispose(drained)) drained.WaitOne();
+        }
         stop.Dispose(); ready.Dispose(); started.Dispose();
     }
 }

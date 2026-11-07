@@ -3,6 +3,7 @@ using ExileSight.Core.Games;
 using ExileSight.Core.Input;
 using ExileSight.Core.Settings;
 using ExileSight.Platform.Abstractions.Input;
+using ExileSight.Platform.Abstractions.Window;
 using ExileSight.Platform.Abstractions.Storage;
 using ExileSight.Platform.Abstractions.Time;
 using ExileSight.Platform.Windows.Input;
@@ -29,34 +30,22 @@ public static class InputRegistration
         services.AddSingleton<HotkeySettings>(sp => new(
             () => sp.GetRequiredService<ISettingsStore<SettingsDocument>>(),
             sp.GetRequiredService<HotkeyConfiguration>(), sp.GetServices<IFeatureCommandHandler>()));
-        services.AddSingleton<InputPipeline>();
         services.AddSingleton<IClipboard, WindowsClipboard>();
-        services.AddSingleton<IActionGate>(sp => sp.GetRequiredService<InputPipeline>().Gate);
+        services.AddSingleton<HookHost>(sp => HookHost.Create(sp.GetRequiredService<IClock>(),
+            sp.GetRequiredService<HotkeyConfiguration>(), sp.GetRequiredService<IClipboard>(),
+            sp.GetRequiredService<IGameWindow>(),
+            (token, binding) => sp.GetRequiredService<HotkeyExecution>().Execute(token, binding),
+            (binding, result) => sp.GetRequiredService<InputDiagnostics>().Report(binding, result)));
+        services.AddSingleton<IActionGate>(sp => sp.GetRequiredService<HookHost>().Gate);
         services.AddSingleton<HotkeyExecution>();
         services.AddSingleton<InputDiagnostics>();
         services.AddSingleton<IDebugSection>(sp => sp.GetRequiredService<InputDiagnostics>());
-        services.AddSingleton<IHotkeys>(sp => new HookHost(sp.GetRequiredService<InputPipeline>().Dispatcher,
-            sp.GetRequiredService<IClock>(), sp.GetRequiredService<HotkeyExecution>().Execute,
-            sp.GetRequiredService<InputPipeline>().RepeatSettings, sp.GetRequiredService<InputDiagnostics>().Report));
+        services.AddSingleton<IHotkeys>(sp => sp.GetRequiredService<HookHost>());
         return services;
     }
     public static void StartProductionInput(IServiceProvider services)
     {
         services.GetRequiredService<HotkeySettings>();
         services.GetRequiredService<InputDiagnostics>().Start(services.GetRequiredService<IHotkeys>());
-    }
-    // Private wiring holds authority. IntentRegistry itself is never a DI service.
-    private sealed class InputPipeline
-    {
-        public KeyboardRepeatSettings RepeatSettings { get; } = new();
-        public HotkeyDispatcher Dispatcher { get; }
-        public IActionGate Gate { get; }
-        public InputPipeline(IClock clock, HotkeyConfiguration configuration, IClipboard clipboard)
-        {
-            var registry = new IntentRegistry(clock);
-            Dispatcher = new(registry, configuration, () => RepeatSettings.SilenceMilliseconds);
-            Gate = new ActionGate(new GatePolicy(registry, [ActionKind.CopyItem, ActionKind.SendChatCommand]),
-                clipboard, clock);
-        }
     }
 }

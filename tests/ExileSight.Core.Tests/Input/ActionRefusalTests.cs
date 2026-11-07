@@ -21,7 +21,7 @@ public sealed class ActionRefusalTests
     {
         var h = new ActionHarness();
         h.Clipboard.SaveFails = true;
-        Assert.Equal(ActionOutcome.Failed, h.Run(Copy).Outcome);
+        Assert.Equal("Clipboard could not be preserved", h.Run(Copy).Reason);
         Assert.Equal(0, h.Sender.Calls);
         Assert.Equal(0, h.Clipboard.RestoreCalls);
         Assert.Equal("private user clipboard", h.Clipboard.Text);

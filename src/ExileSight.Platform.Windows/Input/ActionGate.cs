@@ -19,6 +19,9 @@ public sealed class ActionGate : IActionGate
 
     private sealed class NativeSender : IKeySender
     {
+        public bool IsStreaming => GameForeground.IsStreaming();
+        public bool CanExecuteOnCurrentThread => SynchronizationContext.Current is null &&
+            Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA;
         public bool IsGameForeground => GameForeground.IsGame();
         public KeyModifiers Modifiers => HookHost.Modifiers();
         public unsafe KeySendResult Send(IReadOnlyList<KeyStroke> sequence)

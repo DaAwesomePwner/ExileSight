@@ -12,6 +12,8 @@ public sealed class InputDiagnostics(IActionGate gate, IClock clock, HotkeyConfi
     private string lastHotkey = "None";
     private string lastOutcome = "None";
     private bool auditFailed;
+    private int preserved, skipped;
+    private string pasteStatus = "Not applicable";
     private string copiedText = "";
     public string Title => "Input";
     public void Start(IHotkeys input)
@@ -26,6 +28,7 @@ public sealed class InputDiagnostics(IActionGate gate, IClock clock, HotkeyConfi
         lock (sync)
         {
             auditFailed = result.AuditFailed;
+            preserved = result.FormatsPreserved; skipped = result.FormatsSkipped; pasteStatus = result.PasteStatus;
             lastOutcome = $"{result.Outcome}: {result.Reason}";
             if (result.CopiedText is { } text) copiedText = text;
         }
@@ -44,7 +47,10 @@ public sealed class InputDiagnostics(IActionGate gate, IClock clock, HotkeyConfi
                 new("Audit log", gate.AuditPath),
                 new("Audit failed", auditFailed.ToString()),
                 new("Actions sent", gate.ActionsSent.ToString()),
-                new("Clipboard preservation", "Phase 0: Unicode text or empty only")
+                new("Clipboard preservation", "Duplicated HGLOBAL formats; unsupported formats reported"),
+                new("Clipboard formats preserved", preserved.ToString()),
+                new("Clipboard formats skipped", skipped.ToString()),
+                new("Paste consumption", pasteStatus)
             ];
     }
 }

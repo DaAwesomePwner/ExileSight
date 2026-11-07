@@ -1,81 +1,126 @@
-using ExileSight.Platform.Abstractions.Input;
+using System.Text;
 using ExileSight.Core.Input;
+using System.Runtime.InteropServices;
+using ExileSight.Platform.Abstractions.Input;
 using Windows.Win32;
-using Windows.Win32.Foundation;
-using Windows.Win32.System.Memory;
-using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace ExileSight.Platform.Windows.Input;
 
-/// <summary>Text-or-empty snapshot. Uses a private message-only STATIC window as clipboard owner.</summary>
+/// <summary>Preserves independently duplicated HGLOBAL formats; reports unsupported formats.</summary>
 public sealed class WindowsClipboard : IClipboard
 {
+    private ClipboardOwner? offer;
+    private bool lastConsumed;
+    public int RecoveredFormats { get; private set; }
     public uint SequenceNumber => PInvoke.GetClipboardSequenceNumber();
-    public string? Save() => GetText();
-    public void Restore(string? saved) => SetText(saved);
-    private static void Open(HWND owner)
+    public bool PasteConsumed => offer?.Consumed ?? lastConsumed;
+    public void Pump()
     {
-        for (var i = 0; i < 20; i++)
-        {
-            if (PInvoke.OpenClipboard(owner)) return;
-            Thread.Sleep(5);
-        }
-        throw new InvalidOperationException("Clipboard busy");
+        ClipboardOwner.Pump();
+        if (offer?.RenderError is { } error) throw new InvalidOperationException("Clipboard rendering failed", error);
     }
-    public unsafe string? GetText()
+    private static readonly BoundedClipboardRead<ClipboardSnapshot> snapshots = new();
+    public ClipboardSnapshot Save() => snapshots.Read(SaveCore, pump: ClipboardOwner.Pump);
+    private static ClipboardSnapshot SaveCore(CancellationToken cancellation)
     {
-        Open(default);
+        ClipboardMemory.Open(default);
         try
         {
-            var handle = PInvoke.GetClipboardData(13);
-            if (handle.IsNull) return null;
-            var size = PInvoke.GlobalSize(new HGLOBAL(handle.Value));
-            if (size < 2 || size > 16 * 1024 * 1024 || size % 2 != 0)
-                throw new InvalidOperationException("Invalid clipboard text size");
-            var memory = PInvoke.GlobalLock(new HGLOBAL(handle.Value));
-            if (memory == null) throw new InvalidOperationException("Clipboard lock failed");
-            try
+            var formats = new Dictionary<uint, byte[]>();
+            var skipped = new List<uint>();
+            var remaining = ClipboardMemory.MaximumBytes;
+            uint format = 0;
+            while (true)
             {
-                var text = new ReadOnlySpan<char>(memory, checked((int)(size / 2)));
-                return ClipboardText.Decode(text);
+                cancellation.ThrowIfCancellationRequested();
+                Marshal.SetLastPInvokeError(0);
+                format = PInvoke.EnumClipboardFormats(format);
+                if (format == 0)
+                {
+                    if (Marshal.GetLastWin32Error() != 0) throw new InvalidOperationException("Clipboard enumeration failed");
+                    break;
+                }
+                var bytes = ClipboardMemory.Read(format, remaining);
+                cancellation.ThrowIfCancellationRequested();
+                if (bytes is null) skipped.Add(format);
+                else { formats.Add(format, bytes); remaining -= bytes.Length; }
             }
-            finally { PInvoke.GlobalUnlock(new HGLOBAL(handle.Value)); }
+            // Refuse before mutation when nothing the user owns can be restored.
+            if (formats.Count == 0 && skipped.Count > 0)
+                throw new InvalidOperationException("No clipboard formats can be preserved");
+            return new(formats, skipped);
         }
         finally { PInvoke.CloseClipboard(); }
     }
-    public unsafe void SetText(string? text)
+    private static readonly BoundedClipboardRead<string?> textReads = new();
+    public string? GetText() => GetText(1500);
+    public string? GetText(int timeoutMilliseconds) => textReads.Read(_ => ReadText(), timeoutMilliseconds, ClipboardOwner.Pump);
+    private static string? ReadText()
     {
-        HWND owner;
-        fixed (char* cls = "STATIC")
-            owner = PInvoke.CreateWindowEx(0, cls, null, 0, 0, 0, 0, 0, new HWND(-3), default, default, null);
-        if (owner.IsNull) throw new InvalidOperationException("Clipboard owner creation failed");
+        ClipboardMemory.Open(default);
         try
         {
-            Open(owner);
-            try
-            {
-                if (!PInvoke.EmptyClipboard()) throw new InvalidOperationException("Clipboard clear failed");
-                if (text is null) return;
-                var memory = PInvoke.GlobalAlloc(GLOBAL_ALLOC_FLAGS.GMEM_MOVEABLE, (nuint)((text.Length + 1) * 2));
-                if (memory.IsNull) throw new OutOfMemoryException();
-                try
-                {
-                    var address = PInvoke.GlobalLock(memory);
-                    if (address == null) throw new InvalidOperationException("Clipboard allocation lock failed");
-                    try
-                    {
-                        text.AsSpan().CopyTo(new Span<char>(address, text.Length));
-                        ((char*)address)[text.Length] = '\0';
-                    }
-                    finally { PInvoke.GlobalUnlock(memory); }
-                    if (PInvoke.SetClipboardData(13, new HANDLE(memory.Value)).IsNull)
-                        throw new InvalidOperationException("Clipboard write failed");
-                    memory = default; // ownership transferred to the system
-                }
-                finally { if (!memory.IsNull) PInvoke.GlobalFree(memory); }
-            }
-            finally { PInvoke.CloseClipboard(); }
+            var bytes = ClipboardMemory.Read(13);
+            if (bytes is null) return null;
+            if (bytes.Length < 2 || bytes.Length % 2 != 0)
+                throw new InvalidOperationException("Invalid clipboard text size");
+            return ClipboardText.Decode(Encoding.Unicode.GetString(bytes));
         }
-        finally { PInvoke.DestroyWindow(owner); }
+        finally { PInvoke.CloseClipboard(); }
+    }
+    public void SetText(string? text) => Restore(text is null ? null :
+        new(new Dictionary<uint, byte[]> { [13] = Encoding.Unicode.GetBytes(text + '\0') }, []));
+    public void OfferText(string text)
+    {
+        RecoveredFormats = 0;
+        lastConsumed = false;
+        offer?.Dispose();
+        offer = new ClipboardOwner { Payload = Encoding.Unicode.GetBytes(text + '\0') };
+        ClipboardMemory.Open(offer.Handle);
+        try
+        {
+            if (!PInvoke.EmptyClipboard()) throw new InvalidOperationException("Clipboard clear failed");
+            foreach (var name in new[] { "ExcludeClipboardContentFromMonitorProcessing",
+                "CanIncludeInClipboardHistory", "CanUploadToCloudClipboard" })
+            {
+                var format = ClipboardMemory.RegisterFormat(name);
+                if (format == 0) throw new InvalidOperationException("Clipboard privacy format registration failed");
+                ClipboardMemory.Write(format, new byte[4]);
+            }
+            // A NULL handle is both the expected delayed-render success and the failure value.
+            Marshal.SetLastPInvokeError(0);
+            var result = PInvoke.SetClipboardData(13, default);
+            if (result.IsNull && Marshal.GetLastWin32Error() != 0 || !PInvoke.IsClipboardFormatAvailable(13))
+                throw new InvalidOperationException("Delayed clipboard offer failed");
+        }
+        finally { PInvoke.CloseClipboard(); }
+    }
+    public void AbandonOffer()
+    {
+        if (offer is not null) { lastConsumed = offer.Consumed; offer.Payload = null; }
+        offer?.Dispose();
+        offer = null;
+    }
+    public void Restore(ClipboardSnapshot? saved)
+    {
+        using var owner = new ClipboardOwner();
+        ClipboardMemory.Open(owner.Handle);
+        try
+        {
+            if (!PInvoke.EmptyClipboard()) throw new InvalidOperationException("Clipboard clear failed");
+            RecoveredFormats = 0;
+            Exception? failure = null;
+            foreach (var (format, bytes) in saved?.Formats ?? new Dictionary<uint, byte[]>())
+            {
+                try { ClipboardMemory.Write(format, bytes); RecoveredFormats++; }
+                catch (Exception error) { failure = error; }
+            }
+            if (failure is not null) throw failure;
+            AbandonOffer();
+        }
+        finally
+        {
+            PInvoke.CloseClipboard();
+        }
     }
 }

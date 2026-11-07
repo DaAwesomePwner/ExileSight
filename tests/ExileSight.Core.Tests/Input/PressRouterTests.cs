@@ -12,10 +12,11 @@ public sealed class PressRouterTests
     public void ExpiredPressReportsOutcomeWithoutExecuting(bool feature)
     {
         var clock = new TestClock();
-        var registry = new IntentRegistry(clock);
+        var registry = TestIntents.Create(clock);
         var dispatcher = new HotkeyDispatcher(registry, []);
         var press = Press(clock.Milliseconds, feature);
         var calls = 0;
+        TestIntents.Authorize(dispatcher);
         var router = new PressRouter(dispatcher, clock, () => true, (_, _) =>
         { calls++; return new(ActionOutcome.Success); });
         clock.Delay(1500);
@@ -30,10 +31,11 @@ public sealed class PressRouterTests
     public void GameContextRechecksForegroundBeforeBothRoutes(bool feature)
     {
         var clock = new TestClock();
-        var dispatcher = new HotkeyDispatcher(new(clock), []);
+        var dispatcher = new HotkeyDispatcher(TestIntents.Create(clock), []);
         var calls = 0;
         var focused = true;
         var press = Press(clock.Milliseconds, feature);
+        TestIntents.Authorize(dispatcher);
         var router = new PressRouter(dispatcher, clock, () => focused, (_, _) =>
         { calls++; return new(ActionOutcome.Success); });
         focused = false; // focus changed after the hook matched the press
@@ -47,10 +49,11 @@ public sealed class PressRouterTests
     public void GameActionReceivesSingleUseMatchingToken()
     {
         var clock = new TestClock();
-        var registry = new IntentRegistry(clock);
+        var registry = TestIntents.Create(clock);
         var dispatcher = new HotkeyDispatcher(registry, []);
         var policy = new GatePolicy(registry, [ActionKind.CopyItem]);
         IntentToken? issued = null;
+        TestIntents.Authorize(dispatcher);
         var router = new PressRouter(dispatcher, clock, () => true, (token, binding) =>
         {
             issued = token;
@@ -68,9 +71,10 @@ public sealed class PressRouterTests
     public void LocalFeatureExecutesOnceWithoutGameAuthority(string context, bool focused)
     {
         var clock = new TestClock();
-        var dispatcher = new HotkeyDispatcher(new(clock), []);
+        var dispatcher = new HotkeyDispatcher(TestIntents.Create(clock), []);
         var command = new FakeCommand();
         var execution = new HotkeyExecution(null!, [command]);
+        TestIntents.Authorize(dispatcher);
         var router = new PressRouter(dispatcher, clock, () => focused, (token, binding) =>
         {
             Assert.Null(token);
