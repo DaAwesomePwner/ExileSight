@@ -14,4 +14,6 @@
   <Project Path="tests/ExileSight.Features.Omni.Tests/ExileSight.Features.Omni.Tests.csproj" />
   <Project Path="src/ExileSight.Features.ItemInfo/ExileSight.Features.ItemInfo.csproj" />
   <Project Path="tests/ExileSight.Features.ItemInfo.Tests/ExileSight.Features.ItemInfo.Tests.csproj" />
+  <Project Path="src/ExileSight.Features.Vaalasync/ExileSight.Features.Vaalasync.csproj" />
+  <Project Path="tests/ExileSight.Features.Vaalasync.Tests/ExileSight.Features.Vaalasync.Tests.csproj" />
 </Solution>
