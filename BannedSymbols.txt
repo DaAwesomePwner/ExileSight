@@ -24,13 +24,6 @@ M:System.Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(System.In
 M:System.Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer``1(System.IntPtr); Native bypass and process access are forbidden.
 M:System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate(System.Delegate); Native bypass and process access are forbidden.
 M:System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate``1(``0); Native bypass and process access are forbidden.
-M:System.Diagnostics.Process.CloseMainWindow; Native bypass and process access are forbidden.
-M:System.Diagnostics.Process.Kill; Native bypass and process access are forbidden.
-M:System.Diagnostics.Process.Kill(System.Boolean); Native bypass and process access are forbidden.
-P:System.Diagnostics.Process.Handle; Native bypass and process access are forbidden.
-P:System.Diagnostics.Process.MainModule; Native bypass and process access are forbidden.
-P:System.Diagnostics.Process.Modules; Native bypass and process access are forbidden.
-P:System.Diagnostics.Process.SafeHandle; Native bypass and process access are forbidden.
 M:Windows.Win32.PInvoke.CreateRemoteThread(Windows.Win32.Foundation.HANDLE,Windows.Win32.Security.SECURITY_ATTRIBUTES*,System.UIntPtr,Windows.Win32.System.Threading.LPTHREAD_START_ROUTINE,System.Void*,System.UInt32,System.UInt32*); Restricted API.
 M:Windows.Win32.PInvoke.CreateSyntheticPointerDevice(Windows.Win32.UI.WindowsAndMessaging.POINTER_INPUT_TYPE,System.UInt32,Windows.Win32.UI.Input.Pointer.POINTER_FEEDBACK_MODE); Restricted API.
 M:Windows.Win32.PInvoke.DuplicateHandle(Windows.Win32.Foundation.HANDLE,Windows.Win32.Foundation.HANDLE,Windows.Win32.Foundation.HANDLE,Windows.Win32.Foundation.HANDLE*,System.UInt32,Windows.Win32.Foundation.BOOL,Windows.Win32.Foundation.DUPLICATE_HANDLE_OPTIONS); Restricted API.
@@ -66,19 +59,10 @@ M:Windows.Win32.PInvoke.SendMessageTimeoutW(Windows.Win32.Foundation.HWND,System
 M:Windows.Win32.PInvoke.TerminateProcess(System.Runtime.InteropServices.SafeHandle,System.UInt32); SPECULATIVE: verified alternate friendly, SafeHandle or A/W projection; disabled in production.
 M:Windows.Win32.PInvoke.SendMessageTimeout(Windows.Win32.Foundation.HWND,System.UInt32,Windows.Win32.Foundation.WPARAM,Windows.Win32.Foundation.LPARAM,Windows.Win32.UI.WindowsAndMessaging.SEND_MESSAGE_TIMEOUT_FLAGS,System.UInt32); SPECULATIVE: friendly overload disabled in production.
 M:Windows.Win32.PInvoke.SendMessageTimeout(Windows.Win32.Foundation.HWND,System.UInt32,Windows.Win32.Foundation.WPARAM,Windows.Win32.Foundation.LPARAM,Windows.Win32.UI.WindowsAndMessaging.SEND_MESSAGE_TIMEOUT_FLAGS,System.UInt32,System.UIntPtr@); SPECULATIVE: friendly overload disabled in production.
-M:System.Diagnostics.Process.WaitForExit; Native emission or process access is forbidden.
-M:System.Diagnostics.Process.WaitForExit(System.Int32); Native emission or process access is forbidden.
-M:System.Diagnostics.Process.WaitForExit(System.TimeSpan); Native emission or process access is forbidden.
-M:System.Diagnostics.Process.WaitForExitAsync(System.Threading.CancellationToken); Native emission or process access is forbidden.
-M:System.Diagnostics.Process.set_PriorityClass(System.Diagnostics.ProcessPriorityClass); Native emission or process access is forbidden.
-M:System.Diagnostics.Process.set_ProcessorAffinity(System.IntPtr); Native emission or process access is forbidden.
 M:System.Reflection.Emit.ILGenerator.EmitCalli(System.Reflection.Emit.OpCode,System.Reflection.CallingConventions,System.Type,System.Type[],System.Type[]); Native emission or process access is forbidden.
 M:System.Reflection.Emit.ILGenerator.EmitCalli(System.Reflection.Emit.OpCode,System.Runtime.InteropServices.CallingConvention,System.Type,System.Type[]); Native emission or process access is forbidden.
 M:System.Reflection.Emit.TypeBuilder.DefinePInvokeMethod(System.String,System.String,System.Reflection.MethodAttributes,System.Reflection.CallingConventions,System.Type,System.Type[],System.Runtime.InteropServices.CallingConvention,System.Runtime.InteropServices.CharSet); Native emission or process access is forbidden.
 M:System.Reflection.Emit.TypeBuilder.DefinePInvokeMethod(System.String,System.String,System.String,System.Reflection.MethodAttributes,System.Reflection.CallingConventions,System.Type,System.Type[],System.Runtime.InteropServices.CallingConvention,System.Runtime.InteropServices.CharSet); Native emission or process access is forbidden.
 M:System.Reflection.Emit.TypeBuilder.DefinePInvokeMethod(System.String,System.String,System.String,System.Reflection.MethodAttributes,System.Reflection.CallingConventions,System.Type,System.Type[],System.Type[],System.Type[],System.Type[][],System.Type[][],System.Runtime.InteropServices.CallingConvention,System.Runtime.InteropServices.CharSet); Native emission or process access is forbidden.
 M:System.Reflection.Emit.TypeBuilder.DefinePInvokeMethodCore(System.String,System.String,System.String,System.Reflection.MethodAttributes,System.Reflection.CallingConventions,System.Type,System.Type[],System.Type[],System.Type[],System.Type[][],System.Type[][],System.Runtime.InteropServices.CallingConvention,System.Runtime.InteropServices.CharSet); Native emission or process access is forbidden.
-P:System.Diagnostics.Process.HasExited; Native emission or process access is forbidden.
 T:System.Reflection.Emit.DynamicMethod; Native emission or process access is forbidden.
-P:System.Diagnostics.Process.PriorityClass; Property ban is required to reject setter syntax.
-P:System.Diagnostics.Process.ProcessorAffinity; Property ban is required to reject setter syntax.

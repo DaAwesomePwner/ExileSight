@@ -35,7 +35,7 @@ public sealed class BanCoverageTests
         Assert.True(File.Exists(projection), "Missing Windows 19041 projection: " + projection);
         symbols.UnionWith(AssemblyInventory.Symbols(projection));
         Assert.Contains("T:Windows.UI.Input.Preview.Injection.InputInjector", symbols);
-        foreach (var line in File.ReadLines(Path.Combine(Repository.Root, "BannedSymbols.txt")).Where(l => l.StartsWith("M:") || l.StartsWith("T:") || l.StartsWith("P:")))
+        foreach (var line in BanLines().Where(l => l.StartsWith("M:") || l.StartsWith("T:") || l.StartsWith("P:")))
         {
             var id = line.Split(';')[0];
             Assert.True(symbols.Contains(id) || line.Contains("SPECULATIVE:", StringComparison.Ordinal), "Unresolved ban: " + id);
@@ -66,6 +66,20 @@ public sealed class BanCoverageTests
             Assert.Contains("P:System.Diagnostics.Process." + property, bans);
     }
 
-    private static HashSet<string> Bans() => File.ReadLines(Path.Combine(Repository.Root, "BannedSymbols.txt"))
+    private static IEnumerable<string> BanLines() => new[] { "BannedSymbols.txt", "BannedSymbols.Production.txt" }
+        .SelectMany(file => File.ReadLines(Path.Combine(Repository.Root, file)));
+
+    [Fact]
+    public void OnlyManagedProcessMembersAreProductionScoped()
+    {
+        var global = File.ReadLines(Path.Combine(Repository.Root, "BannedSymbols.txt")).Where(line => line.Length > 2 && line[1] == ':').ToArray();
+        var production = File.ReadLines(Path.Combine(Repository.Root, "BannedSymbols.Production.txt")).Where(line => line.Length > 2 && line[1] == ':').ToArray();
+        Assert.NotEmpty(production);
+        Assert.DoesNotContain(global, line => line.Contains("System.Diagnostics.Process.", StringComparison.Ordinal));
+        Assert.All(production, line => Assert.True(line.StartsWith("M:System.Diagnostics.Process.", StringComparison.Ordinal)
+            || line.StartsWith("P:System.Diagnostics.Process.", StringComparison.Ordinal)));
+    }
+
+    private static HashSet<string> Bans() => BanLines()
         .Where(l => l.Length > 2 && l[1] == ':').Select(l => l.Split(';')[0]).ToHashSet(StringComparer.Ordinal);
 }

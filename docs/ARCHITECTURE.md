@@ -9,7 +9,8 @@ ExileSight.slnx
 Directory.Build.props          nullable on, warnings as errors, EnableWindowsTargeting=true
 Directory.Build.targets        RS0030 forced to error, no warning-error exemptions
 Directory.Packages.props       central package versions
-BannedSymbols.txt              input/memory APIs banned outside the Action Gate (see FAIR-PLAY.md)
+BannedSymbols.txt              global input/interop/Reflection.Emit/Win32 process-memory bans
+BannedSymbols.Production.txt   additional managed Process member bans for src/ and tools/
 src/
   ExileSight.Core/                    net10.0       game model, item parser, mod matcher, log events, pricing, feature logic
   ExileSight.Platform.Abstractions/   net10.0       IGameWindow, IHotkeys, IActionGate, IClipboard, IClock, IFileTail …
@@ -91,4 +92,4 @@ Architecture tests inspect exact current-configuration assembly paths, fail clea
 
 The normal debug window polls thread-safe IDebugSection snapshots; a section failure becomes an error row. Generic-host startup and shutdown are awaited off the dispatcher, while spike startup and WPF window work stay on the dispatcher. Source uses LF line endings and build-enforced file-scoped namespaces.
 
-The build also rejects the compiler's final `_SkipAnalyzers` flag and any compiler response file. A separate architecture test audits every solution project's resolved compiler state through MSBuild, checks canonical imports and guard execution markers, and independently enforces the pinned analyzer allowlist. Production native checks match restricted names and entry points across all src assemblies. Test subprocess cleanup alone has one narrowly scoped Process.Kill exception; no production suppression permissions change.
+The build also rejects the compiler's final `_SkipAnalyzers` flag and any compiler response file. A separate architecture test audits every solution project's resolved compiler state through MSBuild, checks canonical imports and guard execution markers, and independently enforces the pinned analyzer allowlist. Production native checks match restricted names and entry points across all src assemblies. Managed System.Diagnostics.Process member bans apply through BannedSymbols.Production.txt only to src/ and tools/. Tests can terminate their owned child processes normally, without any pragma. The only permitted RS0030 suppression anywhere remains Input/ActionGate.cs. Both the guard and independent audit require the production list in addition to the global list for all production projects.

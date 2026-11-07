@@ -8,7 +8,7 @@ public sealed class CompilerGuardTests
     [Fact]
     public async Task EvaluatedCompilerInputsCannotDisableTheBoundary()
     {
-        var directory = Path.Combine(Repository.Root, "tests/ExileSight.Architecture.Tests/obj", "guard-" + Guid.NewGuid().ToString("N"));
+        var directory = Path.Combine(Repository.Root, "src/ExileSight.Core/obj", "guard-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
         try
         {
@@ -80,6 +80,7 @@ public sealed class CompilerGuardTests
 
     private static IEnumerable<(string Mutation, string Expected)> Cases()
     {
+        yield return ("<ItemGroup><AdditionalFiles Remove=\"" + System.Security.SecurityElement.Escape(Path.Combine(Repository.Root, "BannedSymbols.Production.txt")) + "\" /></ItemGroup>", "Missing repository BannedSymbols.Production.txt");
         yield return ("<PropertyGroup><_SkipAnalyzers>true</_SkipAnalyzers></PropertyGroup>", "_SkipAnalyzers must not");
         yield return ("<PropertyGroup><CompilerResponseFile>compiler.rsp</CompilerResponseFile></PropertyGroup>", "CompilerResponseFile is forbidden");
         yield return ("<ItemGroup><CompilerResponseFile Include=\"compiler.rsp\" /></ItemGroup>", "CompilerResponseFile is forbidden");

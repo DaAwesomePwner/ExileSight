@@ -25,7 +25,7 @@ public sealed class MsBuildAuditTests
     [Fact]
     public async Task ImportBypassesAndEmptyGuardRedefinitionsFailIndependentAudit()
     {
-        var directory = Path.Combine(Repository.Root, "tests/ExileSight.Architecture.Tests/obj", "audit-" + Guid.NewGuid().ToString("N"));
+        var directory = Path.Combine(Repository.Root, "src/ExileSight.Core/obj", "audit-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
         try
         {
@@ -81,6 +81,20 @@ public sealed class MsBuildAuditTests
                 """);
             var rejected = await Assert.ThrowsAnyAsync<XunitException>(() => MsBuildAudit.Check(project));
             Assert.Contains("Unapproved analyzer", rejected.Message);
+            await File.WriteAllTextAsync(overrides, """
+                <Project>
+                  <Target Name="ExileSightGuardBeforeCompile" BeforeTargets="CoreCompile">
+                    <PropertyGroup><ExileSightGuardBeforeRan>true</ExileSightGuardBeforeRan></PropertyGroup>
+                  </Target>
+                  <Target Name="ExileSightGuardAfterCompile" AfterTargets="CoreCompile">
+                    <PropertyGroup><ExileSightGuardAfterRan>true</ExileSightGuardAfterRan></PropertyGroup>
+                    <ItemGroup><AdditionalFiles Remove="PRODUCTION_BANS_PATH" /></ItemGroup>
+                  </Target>
+                </Project>
+                """.Replace("PRODUCTION_BANS_PATH", System.Security.SecurityElement.Escape(Path.Combine(Repository.Root, "BannedSymbols.Production.txt")), StringComparison.Ordinal));
+            var missingProductionBans = await Assert.ThrowsAnyAsync<XunitException>(() => MsBuildAudit.Check(project));
+            Assert.Contains("Missing production ban", missingProductionBans.Message);
+
         }
         finally { Directory.Delete(directory, recursive: true); }
     }

@@ -32,6 +32,7 @@ public sealed class BoundaryScannerTests
     [InlineData("<AdditionalFiles Remove=\"@(AdditionalFiles)\" />", ".targets")]
     [InlineData("<AdditionalFiles Remove=\"@(AdditionalFiles->'%(Identity)')\" />", ".targets")]
     [InlineData("<Target Name=\"Mutate\"><ItemGroup><Analyzer Remove=\"@(Analyzer)\" /></ItemGroup></Target>", ".targets")]
+    [InlineData("<AdditionalFiles Remove=\"../BannedSymbols.Production.txt\" />", ".targets")]
     public void DetectsSuppression(string text, string extension) => Assert.True(BoundaryScanner.Suppression(text, extension));
 
     [Theory]

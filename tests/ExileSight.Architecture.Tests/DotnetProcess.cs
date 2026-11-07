@@ -26,9 +26,7 @@ internal static class DotnetProcess
         {
             try
             {
-#pragma warning disable RS0030 // Test-only process owner: terminate only the child tree started above.
                 process.Kill(entireProcessTree: true);
-#pragma warning restore RS0030
             }
             catch (InvalidOperationException) { } // Exit raced the timeout.
             await completion.Task.WaitAsync(TimeSpan.FromSeconds(10));

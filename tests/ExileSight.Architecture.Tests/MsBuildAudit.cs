@@ -66,6 +66,12 @@ internal static class MsBuildAudit
             Assert.Contains(analyzers, path => Path.GetFileName(path) == name);
         Assert.Contains(Items("AdditionalFiles"), path => path.Equals(Path.Combine(Repository.Root, "BannedSymbols.txt"), StringComparison.OrdinalIgnoreCase));
         Assert.True(File.Exists(Path.Combine(Repository.Root, "BannedSymbols.txt")));
+        var productionBans = Path.Combine(Repository.Root, "BannedSymbols.Production.txt");
+        var hasProductionBans = Items("AdditionalFiles").Contains(productionBans, StringComparer.OrdinalIgnoreCase);
+        if (Repository.IsProduction(Path.Combine(directory, "project.csproj")))
+            Assert.True(File.Exists(productionBans) && hasProductionBans, "Missing production ban compiler input.");
+        else
+            Assert.False(hasProductionBans, "Production Process bans must not apply to test projects.");
         foreach (var config in Items("EditorConfigFiles").Concat(Items("GlobalAnalyzerConfigFiles")).Where(File.Exists))
         {
             var generated = config.Equals(Full(Value("GeneratedMSBuildEditorConfigFile")), StringComparison.OrdinalIgnoreCase);

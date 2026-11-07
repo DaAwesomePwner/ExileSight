@@ -21,6 +21,8 @@
       <AdditionalFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
       <Configs ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
       <BannedFile ParameterType="System.String" Required="true" />
+      <ProductionBannedFile ParameterType="System.String" Required="true" />
+      <ProjectDirectory ParameterType="System.String" Required="true" />
       <RepoConfig ParameterType="System.String" Required="true" />
       <GeneratedConfig ParameterType="System.String" />
       <SdkDirectory ParameterType="System.String" Required="true" />
@@ -60,6 +62,12 @@
         var additional = AdditionalFiles ?? new Microsoft.Build.Framework.ITaskItem[0];
         if (!File.Exists(BannedFile) || !additional.Any(a => string.Equals(Path.GetFullPath(a.ItemSpec), Path.GetFullPath(BannedFile), StringComparison.OrdinalIgnoreCase)))
             fail("Missing repository BannedSymbols.txt compiler input.");
+        var projectPath = Path.GetFullPath(ProjectDirectory).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var isProduction = new[] { "src", "tools" }.Any(folder => projectPath.StartsWith(
+            Path.Combine(Path.GetDirectoryName(Path.GetFullPath(BannedFile)), folder) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase));
+        if (isProduction && (!File.Exists(ProductionBannedFile) || !additional.Any(a =>
+            string.Equals(Path.GetFullPath(a.ItemSpec), Path.GetFullPath(ProductionBannedFile), StringComparison.OrdinalIgnoreCase))))
+            fail("Missing repository BannedSymbols.Production.txt compiler input.");
         foreach (var config in Configs ?? new Microsoft.Build.Framework.ITaskItem[0])
         {
             var path = Path.GetFullPath(config.ItemSpec);
@@ -87,6 +95,7 @@
       PackageDirectory="$(NuGetPackageRoot)" PackDirectory="$(NetCoreTargetingPackRoot)"
       AnalyzerAllowlist="$(MSBuildThisFileDirectory)tests/ExileSight.Architecture.Tests/AnalyzerAllowlist.txt"
       Analyzers="@(Analyzer)" AdditionalFiles="@(AdditionalFiles)" Configs="@(GlobalAnalyzerConfigFiles);@(EditorConfigFiles)"
+      ProductionBannedFile="$(MSBuildThisFileDirectory)BannedSymbols.Production.txt" ProjectDirectory="$(MSBuildProjectDirectory)"
       BannedFile="$(MSBuildThisFileDirectory)BannedSymbols.txt" RepoConfig="$(MSBuildThisFileDirectory).editorconfig"
       GeneratedConfig="$(GeneratedMSBuildEditorConfigFile)" SdkDirectory="$(MSBuildToolsPath)" />
     <PropertyGroup><ExileSightGuardBeforeRan>true</ExileSightGuardBeforeRan></PropertyGroup>
@@ -98,6 +107,7 @@
       PackageDirectory="$(NuGetPackageRoot)" PackDirectory="$(NetCoreTargetingPackRoot)"
       AnalyzerAllowlist="$(MSBuildThisFileDirectory)tests/ExileSight.Architecture.Tests/AnalyzerAllowlist.txt"
       Analyzers="@(Analyzer)" AdditionalFiles="@(AdditionalFiles)" Configs="@(GlobalAnalyzerConfigFiles);@(EditorConfigFiles)"
+      ProductionBannedFile="$(MSBuildThisFileDirectory)BannedSymbols.Production.txt" ProjectDirectory="$(MSBuildProjectDirectory)"
       BannedFile="$(MSBuildThisFileDirectory)BannedSymbols.txt" RepoConfig="$(MSBuildThisFileDirectory).editorconfig"
       GeneratedConfig="$(GeneratedMSBuildEditorConfigFile)" SdkDirectory="$(MSBuildToolsPath)" />
     <PropertyGroup><ExileSightGuardAfterRan>true</ExileSightGuardAfterRan></PropertyGroup>

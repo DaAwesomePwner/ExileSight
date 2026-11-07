@@ -6,10 +6,13 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <_ExileSightRelativeProjectDirectory>$([MSBuild]::MakeRelative('$(MSBuildThisFileDirectory)', '$(MSBuildProjectDirectory)').Replace('\', '/'))/</_ExileSightRelativeProjectDirectory>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.Production.txt"
+      Condition="$([System.String]::Copy('$(_ExileSightRelativeProjectDirectory)').StartsWith('src/', System.StringComparison.OrdinalIgnoreCase)) Or $([System.String]::Copy('$(_ExileSightRelativeProjectDirectory)').StartsWith('tools/', System.StringComparison.OrdinalIgnoreCase))" />
   </ItemGroup>
 </Project>
