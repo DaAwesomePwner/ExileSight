@@ -11,6 +11,8 @@ public static class ActionData
     {
         GameAction.CopyItem { Advanced: true } => [new(17,true),new(18,true),new(67,true),new(67,false),new(18,false),new(17,false)],
         GameAction.CopyItem => [new(17,true),new(67,true),new(67,false),new(17,false)],
+        // FAIR-PLAY.md: Enter, Ctrl+V, Enter (one chat message). Known risk (Phase 1 follow-up): if the user
+        // already has an unsent draft open in the chat box, the first Enter sends that draft.
         GameAction.SendChatCommand => [new(13,true),new(13,false),new(17,true),new(86,true),new(86,false),new(17,false),new(13,true),new(13,false)],
         _ => throw new ArgumentOutOfRangeException(nameof(action))
     };
