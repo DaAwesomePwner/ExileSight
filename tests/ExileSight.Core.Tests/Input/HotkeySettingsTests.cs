@@ -29,7 +29,7 @@ public sealed class HotkeySettingsTests
         var configuration = new HotkeyConfiguration();
         configuration.UpdateGameFocused(true);
         var settings = new HotkeySettings(store, configuration, []);
-        var dispatcher = new HotkeyDispatcher(new(new FakeClock()), configuration);
+        var dispatcher = new HotkeyDispatcher(TestIntents.Create(new FakeClock()), configuration);
         Assert.NotNull(dispatcher.Observe(new(118, true, false, 0, 10000), true).Press);
         store.Update("hotkeys", s => s.Hotkeys.Clear());
         Assert.Empty(configuration.ActiveBindings);
@@ -46,7 +46,7 @@ public sealed class HotkeySettingsTests
         var configuration = new HotkeyConfiguration();
         configuration.UpdateGameFocused(true);
         using var settings = new HotkeySettings(store, configuration, []);
-        var dispatcher = new HotkeyDispatcher(new(new FakeClock()), configuration);
+        var dispatcher = new HotkeyDispatcher(TestIntents.Create(new FakeClock()), configuration);
         store.Warnings = ["Binding 'copy-item' disabled by settings validation: invalid modifiers."];
         store.Update("hotkeys", s =>
         {

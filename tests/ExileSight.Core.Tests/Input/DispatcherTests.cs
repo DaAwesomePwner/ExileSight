@@ -7,7 +7,7 @@ namespace ExileSight.Core.Tests.Input;
 public sealed class DispatcherTests
 {
     private static HotkeyDispatcher Create(bool block = true, KeyModifiers modifiers = 0) =>
-        new(new IntentRegistry(new FakeClock()), [new("test", 118, modifiers, block, new GameAction.CopyItem())]);
+        new(TestIntents.Create(new FakeClock()), [new("test", 118, modifiers, block, new GameAction.CopyItem())]);
     private static PhysicalKey Key(bool down = true, bool injected = false, KeyModifiers modifiers = 0) =>
         new(118, down, injected, modifiers, 10000);
     [Fact]
@@ -25,8 +25,8 @@ public sealed class DispatcherTests
         var dispatcher = Create();
         var first = dispatcher.Observe(Key(), true);
         Assert.True(first.Block);
-        Assert.NotNull(dispatcher.Issue(first.Press!));
-        Assert.Throws<InvalidOperationException>(() => dispatcher.Issue(first.Press!));
+        Assert.NotNull(dispatcher.IssueForTest(first.Press!));
+        Assert.Throws<InvalidOperationException>(() => dispatcher.IssueForTest(first.Press!));
         for (var i = 0; i < 100; i++)
         {
             var repeat = dispatcher.Observe(Key(), true);

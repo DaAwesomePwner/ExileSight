@@ -59,6 +59,8 @@ public static class BindingMapper
         if ((b.Action is not null) == hasCommand) return "Choose an action or a feature command";
         if (b.Action is null)
             return commands.Contains(b.FeatureCommand!) ? null : "Unknown feature command";
+        if (b.Action is ActionKind.PasteSearch or ActionKind.SetPriceNote)
+            return "Reserved for Phase 2 feature manifests; not enabled for user bindings";
         if (!Enum.IsDefined(b.Action.Value)) return "Unknown action";
         if (b.Action is ActionKind.SendChatCommand or ActionKind.PasteSearch or ActionKind.SetPriceNote &&
             (string.IsNullOrWhiteSpace(b.Text) || b.Text.Any(c => char.IsControl(c) || c is '\u2028' or '\u2029')))

@@ -50,8 +50,10 @@ public sealed class InputIntegrationTests
         // Fail before issuing any intent if a game happens to be foreground on the test desktop.
         Assert.False(GameForeground.IsGame());
         var clock = new SystemClock();
-        var registry = new IntentRegistry(clock);
+        var capability = new object();
+        var registry = new IntentRegistry(clock, capability);
         var dispatcher = new HotkeyDispatcher(registry, [new("test", 118, 0, true, new GameAction.CopyItem())]);
+        dispatcher.InstallIssuer((time, id, action) => registry.Register(capability, time, id, action));
         var token = dispatcher.Issue(dispatcher.Observe(new(118, true, false, 0, clock.Milliseconds), true).Press!);
         var gate = new ActionGate(new GatePolicy(registry, [ActionKind.CopyItem]), new UntouchableClipboard(), clock);
         Assert.Equal(ActionOutcome.NotForeground, gate.TryExecute(token, new GameAction.CopyItem()).Outcome);

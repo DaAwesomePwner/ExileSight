@@ -27,7 +27,10 @@ public sealed class HotkeyDispatcher
     internal const long BlockedReleaseSilenceMilliseconds = 1200;
     private Func<long> releaseSilenceThreshold;
     internal void SetRepeatProvider(Func<long> provider) => releaseSilenceThreshold = provider;
-    private readonly Func<long, string, ActionKind, IntentToken> issue;
+    private Func<long, string, ActionKind, IntentToken>? issue;
+    internal IntentRegistry Registry { get; }
+    internal void InstallIssuer(Func<long, string, ActionKind, IntentToken> capability) =>
+        Interlocked.CompareExchange(ref issue, capability, null);
     private int generation;
     internal HotkeyConfiguration Configuration => configuration;
     // Run between message dispatches, never in a low-level callback. Async state is
@@ -43,7 +46,7 @@ public sealed class HotkeyDispatcher
     public HotkeyDispatcher(IntentRegistry registry, IEnumerable<HotkeyBinding> bindings,
         Func<long>? releaseSilenceThreshold = null)
     {
-        issue = registry.CreateHookIssuer();
+        Registry = registry;
         this.releaseSilenceThreshold = releaseSilenceThreshold ?? (() => BlockedReleaseSilenceMilliseconds);
         configuration = new HotkeyConfiguration();
         configuration.Replace(bindings, []);
@@ -52,7 +55,7 @@ public sealed class HotkeyDispatcher
     public HotkeyDispatcher(IntentRegistry registry, HotkeyConfiguration configuration,
         Func<long>? releaseSilenceThreshold = null)
     {
-        issue = registry.CreateHookIssuer();
+        Registry = registry;
         this.releaseSilenceThreshold = releaseSilenceThreshold ?? (() => BlockedReleaseSilenceMilliseconds);
         this.configuration = configuration;
     }
@@ -66,9 +69,10 @@ public sealed class HotkeyDispatcher
         !key.Injected && key.Down && (uint)key.Key < 256 && (uint)key.Modifiers < 16 &&
         !held[key.Key] && configuration.Match(key.Key, key.Modifiers) is not null;
 
-    internal DispatchDecision Observe(PhysicalKey key, bool active)
+    internal DispatchDecision Observe(PhysicalKey key, bool active, bool passThrough = false)
     {
         if (key.Injected || (uint)key.Key >= 256 || (uint)key.Modifiers >= 16) return default;
+        if (passThrough) { Array.Clear(blocked); active = false; }
         if (!key.Down)
         {
             var block = blocked[key.Key];
@@ -90,6 +94,6 @@ public sealed class HotkeyDispatcher
     internal IntentToken Issue(PhysicalPress press)
     {
         if (Interlocked.Exchange(ref press.Redeemed, 1) != 0) throw new InvalidOperationException("Press already issued");
-        return issue(press.Timestamp, press.Binding.Id, (press.Binding.Action ?? throw new InvalidOperationException("Feature commands cannot issue game tokens")).Kind);
+        return (issue ?? throw new InvalidOperationException("Hook issuer not installed"))(press.Timestamp, press.Binding.Id, (press.Binding.Action ?? throw new InvalidOperationException("Feature commands cannot issue game tokens")).Kind);
     }
 }

@@ -3,16 +3,16 @@ using ExileSight.Platform.Abstractions.Time;
 
 namespace ExileSight.Core.Input;
 
-public sealed class IntentRegistry(IClock clock)
+public sealed class IntentRegistry(IClock clock, object? authority = null)
 {
     private readonly Dictionary<IntentToken, Press> pending = [];
     public const long LifetimeMilliseconds = 1500;
     public sealed record Press(long Timestamp, string HotkeyId, ActionKind Action);
-    // Owned by the physical-input dispatcher, never registered as a feature service.
-    // Capability retained by the physical-input dispatcher; no assembly-wide timestamp mint API.
-    internal Func<long, string, ActionKind, IntentToken> CreateHookIssuer() => Issue;
-    private IntentToken Issue(long timestamp, string hotkey, ActionKind action)
+    // Only a holder of the registry's construction capability can register a physical intent.
+    internal IntentToken Register(object capability, long timestamp, string hotkey, ActionKind action)
     {
+        if (authority is null || !ReferenceEquals(authority, capability))
+            throw new InvalidOperationException("Physical-input authority required");
         lock (pending)
         {
             foreach (var old in pending.Where(p => clock.Milliseconds - p.Value.Timestamp >= LifetimeMilliseconds)

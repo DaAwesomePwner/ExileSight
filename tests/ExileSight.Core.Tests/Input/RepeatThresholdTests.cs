@@ -59,7 +59,7 @@ public sealed class RepeatThresholdTests
     }
 
     private static HotkeyDispatcher Create(Func<long>? threshold = null, bool feature = false) =>
-        new(new(new FakeClock()), [new("binding", 118, 0, true,
+        new(TestIntents.Create(new FakeClock()), [new("binding", 118, 0, true,
             feature ? null : new GameAction.CopyItem(), FeatureCommand: feature ? "toggle" : null)], threshold);
     private static PhysicalKey Key(long timestamp) => new(118, true, false, 0, timestamp);
 }

@@ -20,7 +20,7 @@ public sealed class ContextRecoveryTests
         configuration.Register("overlay");
         configuration.SetActive("overlay", true);
         configuration.Replace([new("copy", 118, 0, true, new GameAction.CopyItem(), "overlay")], []);
-        var dispatcher = new HotkeyDispatcher(new(new FakeClock()), configuration);
+        var dispatcher = new HotkeyDispatcher(TestIntents.Create(new FakeClock()), configuration);
         Assert.True(dispatcher.Observe(Key(), true).Block);
         configuration.SetActive("overlay", false);
         dispatcher.ReconcileHeld(_ => true);
@@ -34,7 +34,7 @@ public sealed class ContextRecoveryTests
         var configuration = new HotkeyConfiguration();
         configuration.UpdateGameFocused(true, 1);
         configuration.Replace([new("copy", 118, 0, true, new GameAction.CopyItem())], []);
-        var dispatcher = new HotkeyDispatcher(new(new FakeClock()), configuration);
+        var dispatcher = new HotkeyDispatcher(TestIntents.Create(new FakeClock()), configuration);
         Assert.NotNull(dispatcher.Observe(Key(), true).Press);
         configuration.UpdateGameFocused(false, 2);
         dispatcher.ReconcileHeld(_ => true);

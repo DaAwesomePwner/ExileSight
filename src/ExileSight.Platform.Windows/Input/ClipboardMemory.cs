@@ -19,15 +19,17 @@ internal static class ClipboardMemory
         }
         throw new InvalidOperationException("Clipboard busy");
     }
-    internal static unsafe byte[]? Read(uint format)
+    internal const int MaximumBytes = 16 * 1024 * 1024;
+    internal static unsafe byte[]? Read(uint format, int remaining = MaximumBytes)
     {
+        if (remaining <= 0) return null; // Do not force a delayed provider once the budget is exhausted.
         // These formats contain GDI handles or nested handles, not portable HGLOBAL bytes.
         if (format is 2 or 3 or 9 or 14 or 0x80 or 0x82 or 0x83 or 0x8e or >= 0x300 and <= 0x3ff) return null;
         var handle = PInvoke.GetClipboardData(format);
         if (handle.IsNull) return null;
         var global = new HGLOBAL(handle.Value);
         var size = PInvoke.GlobalSize(global);
-        if (size == 0 || size > int.MaxValue) return null;
+        if (size == 0 || size > (nuint)Math.Min(remaining, MaximumBytes)) return null;
         var pointer = PInvoke.GlobalLock(global);
         if (pointer == null) return null;
         try { return new ReadOnlySpan<byte>(pointer, (int)size).ToArray(); }

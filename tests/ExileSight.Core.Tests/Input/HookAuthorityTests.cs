@@ -16,10 +16,10 @@ public sealed class HookAuthorityTests
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "ExileSight.slnx"))) root = root.Parent;
         Assert.NotNull(root);
         var configuration = new DirectoryInfo(AppContext.BaseDirectory).Parent!.Name;
-        foreach (var project in new[] { "ExileSight.Platform.Windows", "ExileSight.App" })
+        foreach (var project in new[] { "ExileSight.Core", "ExileSight.Platform.Windows", "ExileSight.App" })
         {
             var path = Path.Combine(root.FullName, "src", project, "bin", configuration,
-                "net10.0-windows10.0.19041.0", project + ".dll");
+                project == "ExileSight.Core" ? "net10.0" : "net10.0-windows10.0.19041.0", project + ".dll");
             using var stream = File.OpenRead(path);
             using var pe = new PEReader(stream);
             var metadata = pe.GetMetadataReader();
@@ -31,19 +31,32 @@ public sealed class HookAuthorityTests
                 foreach (var token in Calls(pe.GetMethodBody(method.RelativeVirtualAddress).GetILBytes()!))
                 {
                     var target = MetadataTokens.EntityHandle(token);
-                    if (target.Kind != HandleKind.MemberReference) continue;
-                    var member = metadata.GetMemberReference((MemberReferenceHandle)target);
-                    if (member.Parent.Kind != HandleKind.TypeReference) continue;
-                    var type = metadata.GetTypeReference((TypeReferenceHandle)member.Parent);
-                    if (metadata.GetString(type.Namespace) != "ExileSight.Core.Input") continue;
-                    var typeName = metadata.GetString(type.Name);
-                    var name = metadata.GetString(member.Name);
-                    Assert.False(typeName == "IntentRegistry" && name is "Issue" or "CreateHookIssuer");
-                    Assert.False(typeName == "HotkeyDispatcher" && name == "Issue");
-                    Assert.False(typeName == "PhysicalPress" && name == ".ctor");
+                    string typeName, name;
+                    if (target.Kind == HandleKind.MethodDefinition)
+                    {
+                        var definition = metadata.GetMethodDefinition((MethodDefinitionHandle)target);
+                        typeName = metadata.GetString(metadata.GetTypeDefinition(definition.GetDeclaringType()).Name);
+                        name = metadata.GetString(definition.Name);
+                    }
+                    else if (target.Kind == HandleKind.MemberReference)
+                    {
+                        var member = metadata.GetMemberReference((MemberReferenceHandle)target);
+                        if (member.Parent.Kind != HandleKind.TypeReference) continue;
+                        var type = metadata.GetTypeReference((TypeReferenceHandle)member.Parent);
+                        typeName = metadata.GetString(type.Name);
+                        name = metadata.GetString(member.Name);
+                    }
+                    else continue;
+                    var caller = metadata.GetString(owner.Name);
+                    if (typeName == "IntentRegistry" && name is "Register" or ".ctor")
+                        Assert.Equal("PhysicalIssuer", caller);
+                    if (name == "CreateHookIssuer") Assert.Equal("HookHost", caller);
+                    if (typeName == "HotkeyDispatcher" && name == "InstallIssuer") Assert.Equal("HookHost", caller);
+                    if (typeName == "HotkeyDispatcher" && name == "Issue") Assert.Equal("PressRouter", caller);
+                    if (typeName == "PhysicalPress" && name == ".ctor") Assert.Equal("HotkeyDispatcher", caller);
+                    if (typeName == "IntentToken" && name == ".ctor") Assert.Equal("IntentRegistry", caller);
                     if ((typeName == "HotkeyDispatcher" && name == "Observe") ||
-                        (typeName == "PressRouter" && name == "Route"))
-                        Assert.Equal("HookHost", metadata.GetString(owner.Name));
+                        (typeName == "PressRouter" && name == "Route")) Assert.Equal("HookHost", caller);
                 }
             }
         }

@@ -9,7 +9,7 @@ using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace ExileSight.Platform.Windows.Input;
 
-public sealed class HookHost : IHotkeys
+public sealed partial class HookHost : IHotkeys
 {
     private readonly HotkeyDispatcher dispatcher;
     private readonly IClock clock;
@@ -25,16 +25,17 @@ public sealed class HookHost : IHotkeys
     private Thread? hookThread;
     private Thread? worker;
     private Timer? repeatTimer;
-    private readonly IGameWindow gameWindow;
+    private readonly HookForeground foreground;
     private volatile Exception? startupError;
     private int disposed;
     private readonly HotkeyConfiguration configuration;
-    public HookHost(HotkeyDispatcher dispatcher, IClock clock,
+    internal HookHost(HotkeyDispatcher dispatcher, IClock clock,
         Func<IntentToken?, HotkeyBinding, ActionResult> execute, KeyboardRepeatSettings repeatSettings,
         Action<HotkeyBinding, ActionResult>? report = null, IGameWindow? gameWindow = null)
     {
         this.repeatSettings = repeatSettings;
-        this.gameWindow = gameWindow ?? throw new ArgumentNullException(nameof(gameWindow));
+        ArgumentNullException.ThrowIfNull(gameWindow);
+        foreground = new(gameWindow, dispatcher.Configuration, clock);
         dispatcher.SetRepeatProvider(() => repeatSettings.SilenceMilliseconds);
         configuration = dispatcher.Configuration;
         this.dispatcher = dispatcher; this.clock = clock;
@@ -51,8 +52,7 @@ public sealed class HookHost : IHotkeys
         worker = new Thread(Work) { IsBackground = true, Name = "Input actions" };
         hookThread = new Thread(Run) { IsBackground = true, Name = "Low-level input hooks" };
         hookThread.SetApartmentState(ApartmentState.STA);
-        gameWindow.Changed += ForegroundChanged;
-        ForegroundChanged(null, EventArgs.Empty);
+        foreground.Start();
         repeatTimer = new Timer(_ => RefreshRepeat(), null, 1000, 1000);
         worker.Start(); hookThread.Start(); started.Wait();
         if (startupError is not null) { Dispose(); throw new InvalidOperationException("Hook startup failed", startupError); }
@@ -70,11 +70,6 @@ public sealed class HookHost : IHotkeys
     {
         try { repeatSettings.Refresh(); }
         catch (Exception error) { startupError = error; stop.Set(); ready.Set(); }
-    }
-    private void ForegroundChanged(object? sender, EventArgs args)
-    {
-        var state = gameWindow.Current;
-        configuration.UpdateGameFocused(state.Found && state.IsForeground && !state.IsMinimized, state.Handle);
     }
     private void Consume()
     {
@@ -137,7 +132,7 @@ public sealed class HookHost : IHotkeys
             var timestamp = now - unchecked((uint)now - key.time);
             var physical = new PhysicalKey((int)key.vkCode,
                 message.Value is 0x100 or 0x104, false, Modifiers(), timestamp);
-            var decision = dispatcher.Observe(physical, true);
+            var decision = dispatcher.Observe(physical, true, !foreground.AllowsBlocking());
             // Overflow fails closed: the key stays blocked, but no intent/action is issued.
             if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
             if (decision.Block) return new LRESULT(1);
@@ -157,7 +152,7 @@ public sealed class HookHost : IHotkeys
                 now - unchecked((uint)now - mouse.time));
             if (key is { } physical)
             {
-                var decision = dispatcher.Observe(physical with { Modifiers = Modifiers() }, true);
+                var decision = dispatcher.Observe(physical with { Modifiers = Modifiers() }, true, !foreground.AllowsBlocking());
                 if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
                 if (decision.Block) return new LRESULT(1);
             }
@@ -178,7 +173,7 @@ public sealed class HookHost : IHotkeys
     {
         if (Interlocked.Exchange(ref disposed, 1) != 0) return;
         stop.Set(); ready.Set(); hookThread?.Join(); worker?.Join();
-        gameWindow.Changed -= ForegroundChanged;
+        foreground.Dispose();
         if (repeatTimer is not null)
         {
             using var drained = new ManualResetEvent(false);

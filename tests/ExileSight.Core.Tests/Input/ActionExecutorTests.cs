@@ -103,18 +103,18 @@ public sealed class ActionExecutorTests
     [Theory]
     [InlineData(0)]
     [InlineData(2)]
-    public void ExhaustedRestoreDoesNotClearPotentiallyRecoveredFormats(int clearFailures)
+    public void ExhaustedRestoreClearsActionText(int clearFailures)
     {
         var h = new ActionHarness();
         h.Clipboard.RestoreFailures = 3;
         h.Clipboard.ClearFailures = clearFailures;
         var result = h.Run(Chat);
         Assert.Equal(ActionOutcome.Failed, result.Outcome);
-        Assert.Contains("not cleared", result.Reason);
-        Assert.Equal("/w Person confidential", h.Clipboard.Text);
+        Assert.Contains("action text cleared", result.Reason);
+        Assert.Null(h.Clipboard.Text);
         Assert.Equal(3, h.Clipboard.RestoreCalls);
-        Assert.Equal(0, h.Clipboard.ClearCalls);
-        Assert.Contains("not cleared", Assert.Single(h.Audit.Lines));
+        Assert.Equal(clearFailures + 1, h.Clipboard.ClearCalls);
+        Assert.Contains("action text cleared", Assert.Single(h.Audit.Lines));
     }
     [Fact]
     public void ImpossibleRestoreIsReportedAfterBoundedRetries()
@@ -123,9 +123,9 @@ public sealed class ActionExecutorTests
         h.Clipboard.RestoreFailures = h.Clipboard.ClearFailures = 100;
         var result = h.Run(Chat);
         Assert.Equal(ActionOutcome.Failed, result.Outcome);
-        Assert.Contains("restore failed", result.Reason);
+        Assert.Contains("restore and clear failed", result.Reason);
         Assert.Equal(3, h.Clipboard.RestoreCalls);
-        Assert.Equal(0, h.Clipboard.ClearCalls);
-        Assert.Equal(10800, h.Clock.Milliseconds);
+        Assert.Equal(3, h.Clipboard.ClearCalls);
+        Assert.Equal(10850, h.Clock.Milliseconds);
     }
 }

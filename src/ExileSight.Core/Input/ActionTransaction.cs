@@ -6,7 +6,7 @@ namespace ExileSight.Core.Input;
 /// <summary>One token-authorized transaction. Timing and native effects are injected for portable tests.</summary>
 internal sealed class ActionTransaction(IClipboard clipboard, IKeySender sender, IClock clock)
 {
-    internal const int PasteTimeoutMilliseconds = 1500;
+    internal const int NativeHoldMilliseconds = 750, StreamingHoldMilliseconds = 1500;
     private int actionsSent;
     public int ActionsSent => Volatile.Read(ref actionsSent);
     public ActionResult Execute(GameAction action, IntentRegistry.Press press)
@@ -26,7 +26,9 @@ internal sealed class ActionTransaction(IClipboard clipboard, IKeySender sender,
             clock.Delay(5);
         if (sender.Modifiers != KeyModifiers.None)
             return new(ActionOutcome.Failed, "Release modifiers and press again");
-        var saved = clipboard.Save(); // if saving fails, do not mutate the clipboard or send
+        ClipboardSnapshot saved;
+        try { saved = clipboard.Save(); }
+        catch (Exception) { return new(ActionOutcome.Failed, "Clipboard could not be preserved"); }
         ActionResult result;
         try
         {
@@ -50,25 +52,28 @@ internal sealed class ActionTransaction(IClipboard clipboard, IKeySender sender,
             return new(ActionOutcome.Expired, "Intent expired before sending");
         if (!sender.IsGameForeground) return new(ActionOutcome.NotForeground, "Game lost foreground");
         if (sender.Modifiers != KeyModifiers.None) return new(ActionOutcome.Failed, "Modifier changed");
+        var hold = sender.IsStreaming ? StreamingHoldMilliseconds : NativeHoldMilliseconds;
         var sent = sender.Send(ActionData.Sequence(action));
         if (sent.Inserted > 0) Interlocked.Increment(ref actionsSent);
         if (action is not GameAction.CopyItem)
         {
             var consumed = false;
+            Exception? renderError = null;
             if (sent.Inserted > 0)
             {
-                var pasteDeadline = clock.Milliseconds + PasteTimeoutMilliseconds;
+                var pasteDeadline = clock.Milliseconds + hold;
                 do
                 {
-                    clipboard.Pump();
-                    consumed = clipboard.PasteConsumed;
-                    if (consumed || clock.Milliseconds >= pasteDeadline) break;
+                    try { clipboard.Pump(); consumed = clipboard.PasteConsumed; }
+                    catch (Exception error) { renderError = error; }
+                    if (clock.Milliseconds >= pasteDeadline) break;
                     clock.Delay(5);
                 } while (true);
             }
-            var status = consumed ? "Consumed" : sent.Inserted == 0 ? "Not sent" : "Timed out";
-            return new(sent.Success && consumed ? ActionOutcome.Success : ActionOutcome.Failed,
-                sent.Success ? consumed ? "" : "Paste timed out" : sent.Reason, PasteStatus: status);
+            if (renderError is not null) return new(ActionOutcome.Failed, "Clipboard rendering failed after send");
+            var status = sent.Success ? consumed ? "Sent (paste confirmed)" : "Sent (unconfirmed)" : "Not sent completely";
+            return new(sent.Success ? ActionOutcome.Success : ActionOutcome.Failed,
+                sent.Success ? status : sent.Reason, PasteStatus: status);
         }
         if (!sent.Success) return new(ActionOutcome.Failed, sent.Reason);
         var deadline = clock.Milliseconds + 500;
@@ -85,7 +90,17 @@ internal sealed class ActionTransaction(IClipboard clipboard, IKeySender sender,
             try { clipboard.Restore(saved); return null; }
             catch (Exception) { if (attempt < 2) clock.Delay(25); }
         }
-        // A restore can partially succeed. Never clear formats that were successfully recovered.
-        return "Clipboard restore failed; preserved formats were not cleared";
+        if (clipboard.RecoveredFormats > 0)
+        {
+            clipboard.AbandonOffer();
+            return $"Clipboard restore incomplete; {clipboard.RecoveredFormats} user formats recovered; action text removed";
+        }
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            try { clipboard.SetText(null); return "Clipboard restore failed; action text cleared"; }
+            catch (Exception) { if (attempt < 2) clock.Delay(25); }
+        }
+        clipboard.AbandonOffer();
+        return "Clipboard restore and clear failed; action text may remain; offer abandoned";
     }
 }

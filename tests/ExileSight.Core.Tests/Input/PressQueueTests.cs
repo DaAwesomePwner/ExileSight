@@ -10,7 +10,7 @@ public sealed class PressQueueTests
     public void OverflowFailsClosedAndRingWrapPreservesOrder()
     {
         var queue = new PressQueue();
-        var dispatcher = new HotkeyDispatcher(new IntentRegistry(new FakeClock()),
+        var dispatcher = new HotkeyDispatcher(TestIntents.Create(new FakeClock()),
             [new("test", 118, 0, true, new GameAction.CopyItem())]);
         for (var round = 0; round < 3; round++)
         {

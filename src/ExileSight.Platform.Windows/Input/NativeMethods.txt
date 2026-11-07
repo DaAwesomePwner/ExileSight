@@ -38,3 +38,6 @@ GetOpenClipboardWindow
 
 FKF_FILTERKEYSON
 RegisterClipboardFormat
+
+IsClipboardFormatAvailable
+GetClipboardOwner

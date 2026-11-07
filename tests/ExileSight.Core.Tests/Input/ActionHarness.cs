@@ -14,13 +14,13 @@ internal sealed class ActionHarness
     private readonly IntentRegistry registry;
     public ActionHarness()
     {
-        registry = new(Clock);
+        registry = TestIntents.Create(Clock);
         Gate = new(new GatePolicy(registry, Enum.GetValues<ActionKind>()), Clipboard, Sender, Clock, Audit);
     }
     public IntentToken Token(GameAction action)
     {
         var dispatcher = new HotkeyDispatcher(registry, [new("test", 118, 0, true, action)]);
-        return dispatcher.Issue(dispatcher.Observe(new(118, true, false, 0, Clock.Milliseconds), true).Press!);
+        return dispatcher.IssueForTest(dispatcher.Observe(new(118, true, false, 0, Clock.Milliseconds), true).Press!);
     }
     public ActionResult Run(GameAction action) => Gate.TryExecute(Token(action), action);
 }
@@ -40,6 +40,7 @@ internal sealed class TestClipboard : IClipboard
     public bool SaveFails { get; set; }
     public bool SetFails { get; set; }
     public bool ReadFails { get; set; }
+    public int RecoveredFormats { get; set; }
     public int RestoreFailures { get; set; }
     public int RestoreCalls { get; private set; }
     public int ClearFailures { get; set; }
@@ -80,6 +81,8 @@ internal sealed class TestClipboard : IClipboard
 }
 internal sealed class TestSender : IKeySender
 {
+    public bool IsStreaming { get; set; }
+    public bool CanExecuteOnCurrentThread { get; set; } = true;
     public bool IsGameForeground { get; set; } = true;
     public KeyModifiers Modifiers { get; set; }
     public KeySendResult Result { get; set; } = new(true, 4);

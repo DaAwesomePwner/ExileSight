@@ -27,6 +27,8 @@ internal sealed class ClipboardOwner : IDisposable
             }
         }
     }
+    private bool rendered;
+    internal Exception? RenderError { get; private set; }
     private LRESULT WindowProc(HWND window, uint message, WPARAM wParam, LPARAM lParam)
     {
         if (message == 0x305 && wParam.Value == 13 && Payload is { } bytes) // WM_RENDERFORMAT
@@ -37,9 +39,25 @@ internal sealed class ClipboardOwner : IDisposable
                 // when the clipboard opener is the foreground game window.
                 var reader = PInvoke.GetOpenClipboardWindow();
                 ClipboardMemory.Write(13, bytes); // WM_RENDERFORMAT must NOT OpenClipboard.
+                rendered = true;
                 Consumed = IsGameReader(reader);
             }
-            catch (Exception) { /* Transaction times out and restores the saved formats. */ }
+            catch (Exception error) { RenderError = error; }
+            return default;
+        }
+        if (message == 0x306 && !rendered && Payload is { } pending) // WM_RENDERALLFORMATS
+        {
+            try
+            {
+                ClipboardMemory.Open(Handle);
+                try
+                {
+                    if (PInvoke.GetClipboardOwner() == Handle)
+                    { ClipboardMemory.Write(13, pending); rendered = true; }
+                }
+                finally { PInvoke.CloseClipboard(); }
+            }
+            catch (Exception error) { RenderError = error; }
             return default;
         }
         return PInvoke.DefWindowProc(window, message, wParam, lParam);
@@ -51,7 +69,7 @@ internal sealed class ClipboardOwner : IDisposable
         uint readerPid = 0, gamePid = 0;
         PInvoke.GetWindowThreadProcessId(reader, &readerPid);
         PInvoke.GetWindowThreadProcessId(foreground, &gamePid);
-        return readerPid != 0 && readerPid == gamePid && GameForeground.IsGame() &&
+        return reader == foreground && readerPid != 0 && readerPid == gamePid && GameForeground.IsGame() &&
             foreground == PInvoke.GetForegroundWindow();
     }
     internal static unsafe void Pump()

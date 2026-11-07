@@ -38,6 +38,8 @@ public interface IClipboard
     void OfferText(string text);
     bool PasteConsumed { get; }
     void Pump();
+    void AbandonOffer() { }
+    int RecoveredFormats => 0;
     uint SequenceNumber { get; }
 }
 [Flags]
