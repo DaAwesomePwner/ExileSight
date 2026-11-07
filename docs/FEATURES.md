@@ -1,0 +1,123 @@
+# 1.0 feature specs (PoE1)
+
+Each spec lists:
+- **Trigger:** what the user does to start it
+- **Actions:** the `GameAction`s it may use (see FAIR-PLAY.md)
+- **Data:** what it reads
+- **Reference:** the matching Exile-UI code. The repository is on GitHub at Lailloken/Exile-UI; a local checkout on the owner's machine is at `/Users/bgomez/Documents/GitHub/Exile-UI`. Read it for behaviour and edge cases; never copy AHK structure.
+- **Done when:** the acceptance criteria
+
+Port behaviour, not code. Where Exile-UI changes the game window, chains inputs, or polls the screen, follow FAIR-PLAY.md instead.
+
+---
+
+### `omni`: Omni-key + context menu
+- **Trigger:** the omni-key (default CapsLock, which is blocked so the game never sees it) over an item.
+- **Actions:** `CopyItem`.
+- **Behaviour:**
+  - Parse the copied text and route it to the first matching handler by priority.
+  - A short press opens the default handler, usually item-info. A long press (over about 200 ms) opens the context menu.
+  - The context menu opens links in the browser: poewiki, poedb, Craft of Exile, and the trade site as a search URL only.
+  - If nothing was copied (no item under the cursor), do nothing. In 1.0 there are no screen checks to fall back on.
+- **Reference:** `modules/omni-key.ahk` (`Omni_Context` around lines 268–340, context menu around lines 342–575).
+- **Done when:** routing is unit-tested with fixtures, and one key press results in at most one `CopyItem`.
+
+### `iteminfo`: Item-info tooltip
+- **Trigger:** the omni handler for gear, jewels and flasks. An optional separate hotkey.
+- **Actions:** none beyond the omni copy.
+- **Behaviour:**
+  - A compact tooltip near the cursor showing:
+    - each mod's tier and roll position within its range, color-coded
+    - affix item-level requirement
+    - prefix and suffix counts
+    - base percentile for defences
+  - Up to 5 highlight profiles (desired and undesired mods, global or per item class), and unique drop tier.
+  - Closes on mouse move beyond a threshold or on Esc.
+- **Data:** the `poe1/mods` and `poe1/bases` packs, plus unique drop tiers.
+- **Reference:** `modules/item-checker.ahk` (parsing around lines 123–289, PoE1 mod matching around lines 1447–1460, drop tiers around 1819–1825), `data/global/item mods.json`, `item bases.json`, `item drop-tiers.json`.
+- **Done when:** fixture tests cover every rarity and slot class, and the 🎮 gate shows tiers matching the game on 20 real items.
+
+### `gearcmp`: Gear comparison
+- **Trigger:** the tooltip has a **Set as equipped** button. The slot is inferred from the item class; for rings the user picks left or right.
+- **Actions:** none.
+- **Behaviour:**
+  - Store equipped items per character, using the character name from Client.txt.
+  - The item-info tooltip for the same slot shows stat deltas: life, resistances, attributes, DPS for weapons, and defences.
+- **Reference:** `modules/item-checker.ahk` (`Iteminfo_GearParse` around lines 2354–2613, comparison around lines 865–1100). Exile-UI's inventory-pixel button placement is **not** ported (D-006).
+- **Done when:** delta maths is unit-tested and the stored gear survives a restart.
+
+### `guide`: Act-tracker guide
+- **Trigger:** passive, driven by `AreaEntered` and `CharacterLevelUp` log events. Hotkeys move the step forward or back manually.
+- **Actions:** none.
+- **Behaviour:**
+  - A small panel showing the current step and the next one, advanced by zone changes.
+  - Per-act and total timers with CSV export.
+  - Supports importing a custom guide from JSON.
+- **Data:** the `poe1/guide` pack, converted from Exile-UI's `data/english/[leveltracker] default guide.json`, `areas.json` and `gems.json` (license note in THIRD-PARTY-NOTICES).
+- **Reference:** `modules/leveling tracker.ahk` (`Leveltracker_Progress` around line 3160, timer around lines 3580–3697).
+- **Done when:** a recorded Acts 1–3 log replays through the guide in a unit test, and the 🎮 gate passes.
+
+### `mapinfo`: Map-info panel
+- **Trigger:** the omni handler for maps and logbooks. Optionally shown while Tab is held in a map, using the last copied map.
+- **Actions:** none beyond the omni copy.
+- **Behaviour:**
+  - Map mods are shortened and ranked by the user's danger rating (4 levels, set per mod with a click).
+  - Quantity, rarity and pack size are highlighted.
+- **Data:** the `poe1/mapmods` pack, converted from `data/english/map-info.txt`.
+- **Reference:** `modules/map-info.ahk`.
+- **Done when:** every map fixture parses into known mod IDs and ratings persist.
+
+### `maptracker`: Map tracker + log viewer
+- **Trigger:** passive, driven by log events (area generated with seed and level, area entered, deaths, NPC dialogue for mechanics).
+- **Actions:** `SendChatCommand("/kills")`, only from its own hotkey and never automatically.
+- **Behaviour:**
+  - Records each run with map name, tier, duration (time spent in hideout excluded), deaths, mechanics, map mods (if the map was copied before the run) and notes.
+  - A log viewer with filters, totals and CSV export.
+  - Storage: one SQLite or JSON-lines file per league.
+- **Reference:** `modules/map tracker.ahk`, `modules/client log.ahk` (deaths around line 534). League names and dates come from a data pack, not hard-coded as in Exile-UI (around lines 63–64).
+- **Done when:** a recorded mapping log replays into the expected runs in a unit test.
+
+### `events`: Map-event notifications
+- **Trigger:** passive log events: infamous mercenary, discoverable hideout, and similar.
+- **Actions:** none.
+- **Behaviour:** a short toast overlay, which can be turned off per event.
+- **Data:** the `poe1/events` pack, from `data/english/mercenaries.json` and the patterns in `client log.ahk` around lines 578–592.
+- **Reference:** `modules/qol tools.ahk` around lines 706–770.
+
+### `stashninja`: Stash-ninja price tags
+- **Trigger:** a hotkey (or long omni press) while a supported fixed stash tab is open. The user names the tab, or it is inferred from the copied item's class.
+- **Actions:** `CopyItem` from the omni press. `PasteSearch` for the optional generated regex, on its own click.
+- **Behaviour:**
+  - Price tags drawn over the tab's fixed grid cells, sized from the client height.
+  - Chaos and divine conversion, threshold color profiles, and a 7-day sparkline.
+- **Data:** the `poe1/stashtabs` pack (from `data/global/[stash-ninja] tabs.json`), and poe.ninja `poe1/api/economy/exchange/current/overview?league=…&type=…`, cached for 1 h or more.
+- **Reference:** `modules/stash-ninja.ahk` (grid scaling around lines 59–65, poe.ninja around 440). Its bulk-exchange POST is **not** ported (D-003).
+
+### `vaalasync`: Shop repricing + sales log
+- **Trigger:** omni-key over an item that has a `~b/o` or `~price` note opens the price buttons.
+- **Actions:** `CopyItem` (omni), then `SetPriceNote(text)` once per button click. The user opens the note box themselves.
+- **Behaviour:**
+  - Buttons offer ±1, ±10% and custom prices, suggested from the current note.
+  - Each listing and price change is logged. "Sold" is marked by hand or detected from trade whisper text in the log (display only).
+  - A sales and purchase log viewer converts prices with poe.ninja rates.
+- **Reference:** `modules/exchange.ahk` (async trade around lines 760–860). Exile-UI's automatic right-click is **not** ported (FAIR-PLAY.md).
+
+### `macros`: Chat macros + chat wheel
+- **Trigger:**
+  - Fast-travel key: a short press goes to `/hideout`; a long press opens a radial wheel of destinations.
+  - Macro key: a short press sends command 0; a long press opens an 8-slot wheel.
+- **Actions:** `SendChatCommand` once per press or per wheel selection.
+- **Reference:** `modules/macros.ahk`, radial menu in `modules/GUI.ahk` around line 578.
+
+### `searchstr`: Search-strings menu
+- **Trigger:** a hotkey opens a menu.
+  1. Pick the vendor or UI by hand (1.0 has no screen detection).
+  2. Pick a saved string. The mouse wheel cycles through multi-line strings.
+- **Actions:** `PasteSearch(text)` once per selection.
+- **Behaviour:** user-editable string lists per vendor, plus built-in PoE1 defaults.
+- **Reference:** `modules/search-strings.ahk`.
+
+### `timers`: Timers
+- **Behaviour:** named countdowns and a stopwatch that persist across restarts, shown in a small panel while Tab is held, with an optional alert when a countdown ends.
+- **Actions:** none.
+- **Reference:** `modules/qol tools.ahk` around lines 88–380.

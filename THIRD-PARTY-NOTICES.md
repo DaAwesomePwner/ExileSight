@@ -1,0 +1,41 @@
+# Third-party notices
+
+ExileSight ports data and logic from the projects below. Each ported file or data pack names its source in a header comment or a `source` field.
+
+## Exile-UI
+
+https://github.com/Lailloken/Exile-UI. Ported data (map-info patterns, leveling guide, stash tab grids, mercenaries) and algorithms from the item-info and map-info features.
+
+```
+MIT License
+
+Copyright (c) 2022 Lailloken
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+Exile-UI's own acknowledgements apply to data derived through it. The leveling guide was originally derived from [exile-leveling](https://github.com/HeartofPhos/exile-leveling); confirm its license before shipping that data. Do not redistribute data Exile-UI derived from poedb, or images (zone layouts, boss pictures), until their licensing has been checked. See docs/DECISIONS.md D-008.
+
+## Path of Building Community
+
+https://github.com/PathOfBuildingCommunity/PathOfBuilding (MIT). This is a possible source for mod and tier data in `tools/ExileSight.DataGen`. Add its license text here when data from it first ships.
+
+## poe.ninja
+
+Price data is fetched at runtime from https://poe.ninja. No poe.ninja data is redistributed in this repository.
