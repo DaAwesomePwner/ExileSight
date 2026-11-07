@@ -1,0 +1,18 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Wands",
+    "Rarity": "Normal",
+    "Name": "Imbued Wand",
+    "BaseType": "Imbued Wand",
+    "ItemLevel": 84,
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

@@ -1,0 +1,10 @@
+Item Class: Rune Daggers
+Rarity: Normal
+Imperial Skean
+--------
+Rune Dagger
+Physical Damage: 40-80
+Critical Strike Chance: 5.00%
+Attacks per Second: 1.50
+--------
+Item Level: 84

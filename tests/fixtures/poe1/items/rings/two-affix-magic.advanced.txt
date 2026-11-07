@@ -1,0 +1,10 @@
+Item Class: Rings
+Rarity: Magic
+Healthy Gold Ring of the Fox
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Healthy" (Tier: 6) }
++20(20-29) to maximum Life
+{ Suffix Modifier "of the Fox" (Tier: 4) }
++10(10-15) to Dexterity

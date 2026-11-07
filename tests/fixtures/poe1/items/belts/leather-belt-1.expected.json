@@ -1,0 +1,51 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Belts",
+    "Rarity": "Magic",
+    "Name": "Fecund Leather Belt",
+    "ItemLevel": 84,
+    "Influences": [
+      "Crusader"
+    ],
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "+92 to maximum Life",
+        "Kind": "Explicit",
+        "AffixType": "Unknown",
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 92.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ],
+    "BaseType": null
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Text": "+92(90-99) to maximum Life",
+        "Kind": "Explicit",
+        "AffixType": "Prefix",
+        "Tier": 1,
+        "AffixName": "Fecund",
+        "Values": [
+          {
+            "Value": 92.0,
+            "Minimum": 90.0,
+            "Maximum": 99.0
+          }
+        ]
+      }
+    ],
+    "BaseType": "Leather Belt"
+  }
+}

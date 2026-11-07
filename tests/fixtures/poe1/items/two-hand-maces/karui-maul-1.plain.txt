@@ -1,0 +1,14 @@
+Item Class: Two Hand Maces
+Rarity: Magic
+Heavy Karui Maul
+--------
+Two Handed Mace
+Physical Damage: 40-80 (augmented)
+Critical Strike Chance: 5.00%
+Attacks per Second: 1.50
+--------
+Item Level: 84
+--------
+40% increased Physical Damage
+--------
+Corrupted

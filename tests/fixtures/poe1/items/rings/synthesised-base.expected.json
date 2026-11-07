@@ -1,0 +1,35 @@
+{
+  "common": {
+    "Name": "Gold Ring",
+    "BaseType": "Gold Ring",
+    "Synthesised": true,
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Values": [
+          {
+            "Value": 12,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Values": [
+          {
+            "Value": 12,
+            "Minimum": 10,
+            "Maximum": 12
+          }
+        ]
+      }
+    ]
+  }
+}

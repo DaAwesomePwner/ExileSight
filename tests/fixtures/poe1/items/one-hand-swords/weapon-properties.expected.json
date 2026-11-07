@@ -1,0 +1,34 @@
+{
+  "common": {
+    "ItemClass": "One Hand Swords",
+    "Name": "Doom Edge",
+    "Requirements": {
+      "Level": 68,
+      "Dex": 212
+    },
+    "Properties": {
+      "Physical Damage": {
+        "Values": [
+          {
+            "Value": 100
+          },
+          {
+            "Value": 200
+          }
+        ]
+      },
+      "Attacks per Second": {
+        "Values": [
+          {
+            "Value": 1.8
+          }
+        ]
+      }
+    },
+    "Warnings": [],
+    "OtherText": [],
+    "Mods": []
+  },
+  "plain": {},
+  "advanced": {}
+}

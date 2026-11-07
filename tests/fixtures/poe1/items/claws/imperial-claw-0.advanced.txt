@@ -1,0 +1,14 @@
+Item Class: Claws
+Rarity: Rare
+Doom Shelter
+Imperial Claw
+--------
+Claw
+Physical Damage: 40-80 (augmented)
+Critical Strike Chance: 5.00%
+Attacks per Second: 1.50
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Heavy" (Tier: 8) — Damage, Physical, Attack }
+40(40-49)% increased Physical Damage

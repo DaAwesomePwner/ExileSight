@@ -1,0 +1,17 @@
+{
+  "common": {
+    "Name": "The Encroaching Darkness",
+    "Corrupted": false,
+    "Mirrored": false,
+    "Unidentified": false,
+    "Unmodifiable": false,
+    "Influences": [],
+    "Mods": [],
+    "OtherText": [
+      "Map",
+      "Corrupted"
+    ],
+    "FlavourText": [],
+    "Warnings": []
+  }
+}

@@ -1,0 +1,15 @@
+Item Class: Shields
+Rarity: Magic
+Fecund Pinnacle Tower Shield
+--------
+Chance to Block: 24%
+Armour: 400 (augmented)
+Quality: +20% (augmented)
+--------
+Sockets: R-R-G B
+--------
+Item Level: 84
+--------
++92 to maximum Life
+--------
+Synthesised Item

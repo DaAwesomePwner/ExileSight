@@ -1,0 +1,15 @@
+Item Class: Jewels
+Rarity: Magic
+Vivid Large Cluster Jewel
+--------
+Item Level: 84
+--------
+{ Enchantment Modifier }
+Adds 8 Passive Skills (enchant)
+{ Enchantment Modifier }
+Added Small Passive Skills grant: 12% increased Attack Damage (enchant)
+--------
+{ Prefix Modifier "Vivid" (Tier: 1) — Life }
+7(5-7)% increased maximum Life
+--------
+Corrupted

@@ -1,0 +1,18 @@
+Item Class: Maps
+Rarity: Rare
+Doom Shelter
+Dunes Map
+--------
+Map Tier: 16
+Item Quantity: +80% (augmented)
+Item Rarity: +40% (augmented)
+Monster Pack Size: +25% (augmented)
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Burning" (Tier: 1) — Physical, Elemental, Fire }
+Monsters deal 90(90-110)% extra Physical Damage as Fire
+--------
+Mirrored
+--------
+Travel to this Map by using it in a personal Map Device. Maps can only be used once.

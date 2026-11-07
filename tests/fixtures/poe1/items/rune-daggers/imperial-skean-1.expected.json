@@ -1,0 +1,19 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Rune Daggers",
+    "Rarity": "Magic",
+    "Name": "Imperial Skean",
+    "BaseType": "Imperial Skean",
+    "ItemLevel": 84,
+    "Unidentified": true,
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

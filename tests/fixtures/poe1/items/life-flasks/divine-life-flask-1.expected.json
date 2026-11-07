@@ -1,0 +1,48 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Life Flasks",
+    "Rarity": "Magic",
+    "Name": "Perpetual Divine Life Flask",
+    "ItemLevel": 84,
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "30% increased Charge Recovery",
+        "Kind": "Explicit",
+        "AffixType": "Unknown",
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 30.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ],
+    "BaseType": null
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Text": "30(25-30)% increased Charge Recovery",
+        "Kind": "Explicit",
+        "AffixType": "Prefix",
+        "Tier": 1,
+        "AffixName": "Perpetual",
+        "Values": [
+          {
+            "Value": 30.0,
+            "Minimum": 25.0,
+            "Maximum": 30.0
+          }
+        ]
+      }
+    ],
+    "BaseType": "Divine Life Flask"
+  }
+}

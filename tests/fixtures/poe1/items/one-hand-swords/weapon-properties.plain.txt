@@ -1,0 +1,16 @@
+Item Class: One Hand Swords
+Rarity: Rare
+Doom Edge
+Jewelled Foil
+--------
+Thrusting One Handed Sword
+Physical Damage: 100-200 (augmented)
+Elemental Damage: 12-24 (augmented), 30-60 (augmented)
+Critical Strike Chance: 6.50%
+Attacks per Second: 1.80
+--------
+Requirements:
+Level: 68
+Dex: 212
+--------
+Item Level: 85

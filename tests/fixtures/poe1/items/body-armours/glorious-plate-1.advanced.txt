@@ -1,0 +1,17 @@
+Item Class: Body Armours
+Rarity: Magic
+Fecund Glorious Plate
+--------
+Armour: 400 (augmented)
+Quality: +20% (augmented)
+--------
+Sockets: R-R-G B
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Fecund" (Tier: 1) — Life }
++92(90-99) to maximum Life
+--------
+Corrupted
+--------
+Note: ~b/o 2.5 divine

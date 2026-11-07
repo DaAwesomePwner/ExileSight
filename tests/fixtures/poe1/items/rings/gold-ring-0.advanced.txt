@@ -1,0 +1,5 @@
+Item Class: Rings
+Rarity: Normal
+Gold Ring
+--------
+Item Level: 84

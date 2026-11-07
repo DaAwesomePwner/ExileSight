@@ -1,0 +1,50 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Jewels",
+    "Rarity": "Rare",
+    "Name": "Doom Shelter",
+    "BaseType": "Cobalt Jewel",
+    "ItemLevel": 84,
+    "Influences": [
+      "Eater of Worlds"
+    ],
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Text": "7% increased maximum Life",
+        "Kind": "Explicit",
+        "AffixType": "Unknown",
+        "Tier": null,
+        "Values": [
+          {
+            "Value": 7.0,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Text": "7(5-7)% increased maximum Life",
+        "Kind": "Explicit",
+        "AffixType": "Prefix",
+        "Tier": 1,
+        "AffixName": "Vivid",
+        "Values": [
+          {
+            "Value": 7.0,
+            "Minimum": 5.0,
+            "Maximum": 7.0
+          }
+        ]
+      }
+    ]
+  }
+}

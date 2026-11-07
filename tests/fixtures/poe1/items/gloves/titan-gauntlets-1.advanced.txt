@@ -1,0 +1,12 @@
+Item Class: Gloves
+Rarity: Magic
+Titan Gauntlets
+--------
+Armour: 400 (augmented)
+Quality: +20% (augmented)
+--------
+Sockets: R-R-G B
+--------
+Item Level: 84
+--------
+Unidentified

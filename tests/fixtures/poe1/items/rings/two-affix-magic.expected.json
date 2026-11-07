@@ -1,0 +1,53 @@
+{
+  "common": {
+    "Name": "Healthy Gold Ring of the Fox",
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "BaseType": null,
+    "Mods": [
+      {
+        "Values": [
+          {
+            "Value": 20,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      {
+        "Values": [
+          {
+            "Value": 10,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ]
+  },
+  "advanced": {
+    "BaseType": "Gold Ring",
+    "Mods": [
+      {
+        "Values": [
+          {
+            "Value": 20,
+            "Minimum": 20,
+            "Maximum": 29
+          }
+        ]
+      },
+      {
+        "Values": [
+          {
+            "Value": 10,
+            "Minimum": 10,
+            "Maximum": 15
+          }
+        ]
+      }
+    ]
+  }
+}

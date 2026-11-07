@@ -1,0 +1,8 @@
+Item Class: Amulets
+Rarity: Rare
+Doom Shelter
+Onyx Amulet
+--------
+Item Level: 84
+--------
++92 to maximum Life

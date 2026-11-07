@@ -1,0 +1,74 @@
+{
+  "common": {
+    "ItemClass": "Rings",
+    "Name": "Kaom's Sign",
+    "FlavourText": [
+      "A token from the sea.",
+      "A promise from the king."
+    ],
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "Mods": [
+      {
+        "Values": [
+          {
+            "Value": 30,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      {
+        "Values": [
+          {
+            "Value": 15,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      },
+      {
+        "Values": [
+          {
+            "Value": 1,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ]
+  },
+  "advanced": {
+    "Mods": [
+      {
+        "Values": [
+          {
+            "Value": 30,
+            "Minimum": 20,
+            "Maximum": 30
+          }
+        ]
+      },
+      {
+        "Values": [
+          {
+            "Value": 15,
+            "Minimum": 10,
+            "Maximum": 20
+          }
+        ]
+      },
+      {
+        "Values": [
+          {
+            "Value": 1,
+            "Minimum": null,
+            "Maximum": null
+          }
+        ]
+      }
+    ]
+  }
+}

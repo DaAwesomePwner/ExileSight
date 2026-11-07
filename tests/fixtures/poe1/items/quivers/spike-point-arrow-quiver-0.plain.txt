@@ -1,0 +1,8 @@
+Item Class: Quivers
+Rarity: Rare
+Doom Shelter
+Spike-Point Arrow Quiver
+--------
+Item Level: 84
+--------
++92 to maximum Life

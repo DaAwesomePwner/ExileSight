@@ -1,0 +1,8 @@
+Item Class: Jewels
+Rarity: Normal
+Large Cluster Jewel
+--------
+Item Level: 84
+--------
+Adds 8 Passive Skills (enchant)
+Added Small Passive Skills grant: 12% increased Attack Damage (enchant)

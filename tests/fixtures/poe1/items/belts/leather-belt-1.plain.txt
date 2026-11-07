@@ -1,0 +1,9 @@
+Item Class: Belts
+Rarity: Magic
+Fecund Leather Belt
+--------
+Item Level: 84
+--------
++92 to maximum Life
+--------
+Crusader Item

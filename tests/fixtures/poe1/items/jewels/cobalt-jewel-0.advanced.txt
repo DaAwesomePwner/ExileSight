@@ -1,0 +1,12 @@
+Item Class: Jewels
+Rarity: Rare
+Doom Shelter
+Cobalt Jewel
+--------
+Limited to: 1
+Radius: Large
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Vivid" (Tier: 1) — Life }
+7(5-7)% increased maximum Life

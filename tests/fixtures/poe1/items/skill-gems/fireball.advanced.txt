@@ -1,0 +1,22 @@
+Item Class: Skill Gems
+Rarity: Gem
+Fireball
+--------
+Projectile, Spell, AoE, Fire
+Level: 1
+Cost: 6 Mana
+Cast Time: 0.75 sec
+Critical Strike Chance: 6.00%
+Effectiveness of Added Damage: 370%
+--------
+Requirements:
+Level: 1
+--------
+Unleashes a ball of fire towards a target which explodes, damaging nearby foes.
+--------
+Deals 9 to 14 Fire Damage
+25% chance to Ignite enemies
+--------
+Experience: 1/15,249
+--------
+Place into an item socket of the right colour to gain this skill. Right click to remove from a socket.

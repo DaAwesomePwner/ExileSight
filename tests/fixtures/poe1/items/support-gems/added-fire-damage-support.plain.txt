@@ -1,0 +1,18 @@
+Item Class: Support Gems
+Rarity: Gem
+Added Fire Damage Support
+--------
+Fire, Physical, Support
+Level: 1
+Cost & Reservation Multiplier: 120%
+--------
+Requirements:
+Level: 1
+--------
+Supports any skill that hits enemies.
+--------
+Supported Skills gain 25% of Physical Damage as Extra Fire Damage
+--------
+Experience: 1/15,249
+--------
+This is a Support Gem. It does not grant a bonus to your character, but to skills in sockets connected to it. Place into an item socket connected to a socket containing the Active Skill Gem you wish to augment. Right click to remove from a socket.

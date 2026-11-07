@@ -1,0 +1,5 @@
+Item Class: Belts
+Rarity: Normal
+Leather Belt
+--------
+Item Level: 84

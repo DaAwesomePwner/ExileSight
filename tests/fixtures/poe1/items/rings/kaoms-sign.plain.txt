@@ -1,0 +1,12 @@
+Item Class: Rings
+Rarity: Unique
+Kaom's Sign
+Coral Ring
+--------
++30 to maximum Life (implicit)
+--------
++15 to Strength
++1 to Maximum Endurance Charges
+--------
+A token from the sea.
+A promise from the king.

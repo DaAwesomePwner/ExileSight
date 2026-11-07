@@ -1,0 +1,18 @@
+{
+  "common": {
+    "Game": "PoE1",
+    "ItemClass": "Hybrid Flasks",
+    "Rarity": "Normal",
+    "Name": "Hallowed Hybrid Flask",
+    "BaseType": "Hallowed Hybrid Flask",
+    "ItemLevel": 84,
+    "Warnings": [],
+    "OtherText": []
+  },
+  "plain": {
+    "Mods": []
+  },
+  "advanced": {
+    "Mods": []
+  }
+}

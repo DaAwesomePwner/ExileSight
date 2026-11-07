@@ -1,0 +1,13 @@
+Item Class: Jewels
+Rarity: Rare
+Doom Shelter
+Cobalt Jewel
+--------
+Limited to: 1
+Radius: Large
+--------
+Item Level: 84
+--------
+7% increased maximum Life
+--------
+Eater of Worlds Item
