@@ -15,3 +15,12 @@ M:System.Diagnostics.Process.set_ProcessorAffinity(System.IntPtr); Native emissi
 P:System.Diagnostics.Process.HasExited; Native emission or process access is forbidden.
 P:System.Diagnostics.Process.PriorityClass; Property ban is required to reject setter syntax.
 P:System.Diagnostics.Process.ProcessorAffinity; Property ban is required to reject setter syntax.
+M:System.Diagnostics.Process.GetProcessById(System.Int32); Opens a handle to a foreign process (possibly the game); compare pids from a GetProcessesByName snapshot instead.
+M:System.Diagnostics.Process.GetProcessById(System.Int32,System.String); Opens a handle to a foreign process (possibly the game).
+P:System.Diagnostics.Process.ProcessName; Opens a handle to a foreign process (possibly the game).
+P:System.Diagnostics.Process.MainWindowHandle; Opens a handle to a foreign process (possibly the game).
+P:System.Diagnostics.Process.MainWindowTitle; Opens a handle to a foreign process (possibly the game).
+P:System.Diagnostics.Process.StartTime; Opens a handle to a foreign process (possibly the game).
+P:System.Diagnostics.Process.ExitTime; Opens a handle to a foreign process (possibly the game).
+P:System.Diagnostics.Process.ExitCode; Opens a handle to a foreign process (possibly the game).
+P:System.Diagnostics.Process.Responding; Opens a handle to a foreign process (possibly the game).
