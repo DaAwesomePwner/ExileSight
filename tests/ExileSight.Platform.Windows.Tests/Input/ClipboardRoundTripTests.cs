@@ -107,4 +107,44 @@ public sealed class ClipboardRoundTripTests
         finally { clipboard.Restore(original); }
     }
 
+    [WindowsOnlyFact]
+    public void RestorePumpsLateReaderWhileOpeningClipboard()
+    {
+        var clipboard = new WindowsClipboard();
+        var original = clipboard.Save();
+        using var held = new ManualResetEventSlim();
+        Task<byte[]?>? reader = null;
+        try
+        {
+            clipboard.OfferText("late reader");
+            reader = Task.Run(() =>
+            {
+                ClipboardMemory.Open(default);
+                try
+                {
+                    held.Set();
+                    Thread.Sleep(50); // Model a foreign consumer that hitches while holding the clipboard.
+                    return ClipboardMemory.Read(13);
+                }
+                finally { PInvoke.CloseClipboard(); }
+            });
+            Assert.True(held.Wait(5000));
+            clipboard.Restore(original); // No explicit test-side pump: Open's retry path must service WM_RENDERFORMAT.
+            var bytes = reader.GetAwaiter().GetResult();
+            Assert.NotNull(bytes);
+            Assert.Equal("late reader", ExileSight.Core.Input.ClipboardText.Decode(Encoding.Unicode.GetString(bytes)));
+            var restored = clipboard.Save();
+            foreach (var (format, saved) in original.Formats) Assert.Equal(saved, restored.Formats[format]);
+        }
+        finally
+        {
+            if (reader is not null)
+            {
+                while (!reader.IsCompleted) ClipboardOwner.Wait(5);
+                reader.GetAwaiter().GetResult();
+            }
+            clipboard.Restore(original);
+        }
+    }
+
 }

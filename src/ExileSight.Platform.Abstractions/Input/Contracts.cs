@@ -32,6 +32,7 @@ public sealed record ClipboardSnapshot(IReadOnlyDictionary<uint, byte[]> Formats
 public interface IClipboard
 {
     string? GetText();
+    string? GetText(int timeoutMilliseconds) => GetText();
     void SetText(string? text);
     ClipboardSnapshot Save();
     void Restore(ClipboardSnapshot? saved);

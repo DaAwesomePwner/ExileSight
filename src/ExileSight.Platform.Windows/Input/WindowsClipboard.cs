@@ -10,16 +10,17 @@ namespace ExileSight.Platform.Windows.Input;
 public sealed class WindowsClipboard : IClipboard
 {
     private ClipboardOwner? offer;
+    private bool lastConsumed;
     public int RecoveredFormats { get; private set; }
     public uint SequenceNumber => PInvoke.GetClipboardSequenceNumber();
-    public bool PasteConsumed => offer?.Consumed == true;
+    public bool PasteConsumed => offer?.Consumed ?? lastConsumed;
     public void Pump()
     {
         ClipboardOwner.Pump();
         if (offer?.RenderError is { } error) throw new InvalidOperationException("Clipboard rendering failed", error);
     }
     private static readonly BoundedClipboardRead<ClipboardSnapshot> snapshots = new();
-    public ClipboardSnapshot Save() => snapshots.Read(SaveCore);
+    public ClipboardSnapshot Save() => snapshots.Read(SaveCore, pump: ClipboardOwner.Pump);
     private static ClipboardSnapshot SaveCore(CancellationToken cancellation)
     {
         ClipboardMemory.Open(default);
@@ -51,7 +52,10 @@ public sealed class WindowsClipboard : IClipboard
         }
         finally { PInvoke.CloseClipboard(); }
     }
-    public string? GetText()
+    private static readonly BoundedClipboardRead<string?> textReads = new();
+    public string? GetText() => GetText(1500);
+    public string? GetText(int timeoutMilliseconds) => textReads.Read(_ => ReadText(), timeoutMilliseconds, ClipboardOwner.Pump);
+    private static string? ReadText()
     {
         ClipboardMemory.Open(default);
         try
@@ -69,6 +73,7 @@ public sealed class WindowsClipboard : IClipboard
     public void OfferText(string text)
     {
         RecoveredFormats = 0;
+        lastConsumed = false;
         offer?.Dispose();
         offer = new ClipboardOwner { Payload = Encoding.Unicode.GetBytes(text + '\0') };
         ClipboardMemory.Open(offer.Handle);
@@ -92,7 +97,7 @@ public sealed class WindowsClipboard : IClipboard
     }
     public void AbandonOffer()
     {
-        if (offer is not null) offer.Payload = null;
+        if (offer is not null) { lastConsumed = offer.Consumed; offer.Payload = null; }
         offer?.Dispose();
         offer = null;
     }

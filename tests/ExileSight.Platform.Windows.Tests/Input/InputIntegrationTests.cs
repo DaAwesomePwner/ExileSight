@@ -45,6 +45,17 @@ public sealed class InputIntegrationTests
         Assert.False(hooks.IsAlive);
     }
     [WindowsOnlyFact]
+    public void ActionWorkerRunsInMtaApartment()
+    {
+        var clock = new SystemClock();
+        using var hooks = new HookHost(new HotkeyDispatcher(new IntentRegistry(clock), []), clock,
+            (_, _) => throw new InvalidOperationException("No action expected"), new KeyboardRepeatSettings(),
+            gameWindow: new FakeGameWindow());
+        hooks.Start();
+        Assert.True(SpinWait.SpinUntil(() => hooks.ActionWorkerApartment != ApartmentState.Unknown, 5000));
+        Assert.Equal(ApartmentState.MTA, hooks.ActionWorkerApartment);
+    }
+    [WindowsOnlyFact]
     public void GateRefusesOutsideGameAndConsumesTokenWithoutTouchingClipboard()
     {
         // Fail before issuing any intent if a game happens to be foreground on the test desktop.

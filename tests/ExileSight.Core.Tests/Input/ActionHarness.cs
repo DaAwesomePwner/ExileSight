@@ -45,6 +45,10 @@ internal sealed class TestClipboard : IClipboard
     public int RestoreCalls { get; private set; }
     public int ClearFailures { get; set; }
     public int ClearCalls { get; private set; }
+    public Action? OnPump { get; set; }
+    public Action? BeforeRestore { get; set; }
+    public Func<int, string?>? ReadWithBudget { get; set; }
+    public int LastReadBudget { get; private set; }
     public Action? BeforeSet { get; set; }
     public ClipboardSnapshot Save() => SaveFails ? throw new IOException() :
         new(new Dictionary<uint, byte[]>(ExtraFormats) { [13] = System.Text.Encoding.Unicode.GetBytes(Text ?? "") }, SkippedFormats);
@@ -52,7 +56,12 @@ internal sealed class TestClipboard : IClipboard
     public int ConsumeAfterPumps { get; set; } = 151;
     private int pumps;
     public void OfferText(string text) { SetText(text); PasteConsumed = false; pumps = 0; }
-    public void Pump() { if (++pumps >= ConsumeAfterPumps) PasteConsumed = true; }
+    public void Pump() { OnPump?.Invoke(); if (++pumps >= ConsumeAfterPumps) PasteConsumed = true; }
+    public string? GetText(int timeoutMilliseconds)
+    {
+        LastReadBudget = timeoutMilliseconds;
+        return ReadWithBudget is null ? GetText() : ReadWithBudget(timeoutMilliseconds);
+    }
     public string? GetText() => ReadFails ? throw new IOException() : Text;
     public void SetText(string? text)
     {
@@ -70,6 +79,7 @@ internal sealed class TestClipboard : IClipboard
     public void Restore(ClipboardSnapshot? saved)
     {
         RestoreCalls++;
+        BeforeRestore?.Invoke();
         if (RestoreFailures-- > 0) throw new IOException();
         ExtraFormats.Clear();
         if (saved is not null)

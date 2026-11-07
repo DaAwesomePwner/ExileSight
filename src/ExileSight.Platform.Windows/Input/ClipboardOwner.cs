@@ -81,6 +81,13 @@ internal sealed class ClipboardOwner : IDisposable
             PInvoke.DispatchMessage(&message);
         }
     }
+    internal static unsafe void Wait(int milliseconds)
+    {
+        Pump();
+        PInvoke.MsgWaitForMultipleObjectsEx(0, null, (uint)milliseconds, QUEUE_STATUS_FLAGS.QS_ALLINPUT,
+            MSG_WAIT_FOR_MULTIPLE_OBJECTS_EX_FLAGS.MWMO_INPUTAVAILABLE);
+        Pump();
+    }
     public unsafe void Dispose()
     {
         PInvoke.DestroyWindow(Handle);

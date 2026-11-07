@@ -14,10 +14,11 @@ internal static class ClipboardMemory
     {
         for (var i = 0; i < 20; i++)
         {
+            ClipboardOwner.Pump();
             if (PInvoke.OpenClipboard(owner)) return;
-            Thread.Sleep(5);
+            ClipboardOwner.Wait(5);
         }
-        throw new InvalidOperationException("Clipboard busy");
+        throw new TimeoutException("Clipboard open timed out");
     }
     internal const int MaximumBytes = 16 * 1024 * 1024;
     internal static unsafe byte[]? Read(uint format, int remaining = MaximumBytes)

@@ -36,6 +36,7 @@ internal sealed class HookForeground(IGameWindow window, HotkeyConfiguration con
         configuration.UpdateGameFocused(focused, state.Handle);
         lease.Publish(state.Handle, focused, clock.Milliseconds);
     }
+    internal bool IsStale => lease.IsStale(clock.Milliseconds);
     internal unsafe bool AllowsBlocking() => lease.AllowsBlocking(clock.Milliseconds, (nint)PInvoke.GetForegroundWindow().Value);
     public void Dispose()
     {

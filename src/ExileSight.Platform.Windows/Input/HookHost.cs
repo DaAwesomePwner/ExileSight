@@ -50,6 +50,7 @@ public sealed partial class HookHost : IHotkeys
         if (hookThread is not null) throw new InvalidOperationException("Hooks already started");
         repeatSettings.Refresh(); // caller thread, before the hook can receive any input
         worker = new Thread(Work) { IsBackground = true, Name = "Input actions" };
+        worker.SetApartmentState(ApartmentState.MTA);
         hookThread = new Thread(Run) { IsBackground = true, Name = "Low-level input hooks" };
         hookThread.SetApartmentState(ApartmentState.STA);
         foreground.Start();
@@ -59,7 +60,11 @@ public sealed partial class HookHost : IHotkeys
     }
     private void Work()
     {
-        try { Consume(); }
+        try
+        {
+            Volatile.Write(ref workerApartment, (int)Thread.CurrentThread.GetApartmentState());
+            Consume();
+        }
         catch (Exception error)
         {
             startupError = error;
@@ -75,6 +80,7 @@ public sealed partial class HookHost : IHotkeys
     {
         while (!stop.WaitOne(0))
         {
+            ReportIgnoredHotkey();
             while (queue.TryDequeue(out var press))
             {
                 if (stop.WaitOne(0)) return;
@@ -132,7 +138,7 @@ public sealed partial class HookHost : IHotkeys
             var timestamp = now - unchecked((uint)now - key.time);
             var physical = new PhysicalKey((int)key.vkCode,
                 message.Value is 0x100 or 0x104, false, Modifiers(), timestamp);
-            var decision = dispatcher.Observe(physical, true, !foreground.AllowsBlocking());
+            var decision = ObserveWithFocus(physical);
             // Overflow fails closed: the key stays blocked, but no intent/action is issued.
             if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
             if (decision.Block) return new LRESULT(1);
@@ -152,7 +158,7 @@ public sealed partial class HookHost : IHotkeys
                 now - unchecked((uint)now - mouse.time));
             if (key is { } physical)
             {
-                var decision = dispatcher.Observe(physical with { Modifiers = Modifiers() }, true, !foreground.AllowsBlocking());
+                var decision = ObserveWithFocus(physical with { Modifiers = Modifiers() });
                 if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
                 if (decision.Block) return new LRESULT(1);
             }
