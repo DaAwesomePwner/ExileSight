@@ -52,8 +52,8 @@ public sealed class PackLoader(string cacheDirectory, GitHubTransport transport,
             var matching = cached?.ReleaseTag == releaseTag ? cached : null;
             var now = (timeProvider ?? TimeProvider.System).GetUtcNow();
             var last = checkedAt.GetValueOrDefault(key);
-            if (matching is not null && matching.CheckedAt > last) last = matching.CheckedAt;
-            // Future timestamps are stale: clock skew must not prevent refresh.
+            // Ignore future persisted checks so they cannot override the in-memory failure throttle.
+            if (matching is not null && matching.CheckedAt <= now && matching.CheckedAt > last) last = matching.CheckedAt;
             if (last <= now && now - last < TimeSpan.FromHours(1)) return await ReadLocalAsync(packId, cancellationToken);
             checkedAt[key] = now;
             var root = "https://github.com/DaAwesomePwner/ExileSight/releases/download/" + releaseTag + "/";

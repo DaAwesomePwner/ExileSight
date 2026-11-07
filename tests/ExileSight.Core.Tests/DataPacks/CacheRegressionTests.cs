@@ -76,6 +76,27 @@ public sealed class CacheRegressionTests : IDisposable
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public async Task FuturePersistedCheckDoesNotOverrideFailedRefreshThrottle(bool offline)
+    {
+        Directory.CreateDirectory(directory);
+        var cached = new CachedPack(Manifest, PackCodec.ContentBytes(content), "v1", clock.Now.AddDays(1));
+        await File.WriteAllBytesAsync(PathName, JsonSerializer.SerializeToUtf8Bytes(cached, PackJson.Default.CachedPack));
+        var handler = new Handler(_ => offline ? throw new HttpRequestException("offline") : new(HttpStatusCode.ServiceUnavailable));
+        using var transport = new GitHubTransport("1.0", () => handler);
+        var loader = new PackLoader(directory, transport, timeProvider: clock);
+        Assert.NotNull((await loader.RefreshAsync(content.PackId, "v1")).Pack);
+        Assert.NotNull((await loader.RefreshAsync(content.PackId, "v1")).Pack);
+        clock.Now += TimeSpan.FromMinutes(59);
+        Assert.NotNull((await loader.RefreshAsync(content.PackId, "v1")).Pack);
+        Assert.Equal(1, handler.Calls);
+        clock.Now += TimeSpan.FromMinutes(1);
+        Assert.NotNull((await loader.RefreshAsync(content.PackId, "v1")).Pack);
+        Assert.Equal(2, handler.Calls);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public async Task MissingOrCorruptCacheDoesNotSendEtagAndRetriesUnexpected304(bool corrupt)
     {
         var handler = new Handler(Serve);
