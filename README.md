@@ -1,5 +1,7 @@
 # ExileSight
 
+[User guide](docs/USER-GUIDE.md)
+
 A fair-play, Windows-native quality-of-life overlay for **Path of Exile**. You get item info, map info, tracking, and price tags drawn over the game. It never reads game memory, never injects anything, and never automates the game.
 
 > **This product isn't affiliated with or endorsed by Grinding Gear Games in any way.**
