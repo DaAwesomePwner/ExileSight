@@ -18,7 +18,7 @@ using ExileSight.Platform.Windows.Input;
 namespace ExileSight.App.Features;
 
 /// <summary>Pre-created, no-activate app window. Passive hook observations only dismiss UI.</summary>
-public sealed class OmniMenuView(HookHost hooks, IBrowser browser, IGameWindow game,
+public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, IGameWindow game,
     IOverlayWindowStyler styler, ISettingsStore<SettingsDocument> settings, ILogger<OmniMenuView> logger, IHostApplicationLifetime lifetime, PriceService? prices = null) : IDisposable
 {
     private readonly StackPanel panel = new();
@@ -28,7 +28,6 @@ public sealed class OmniMenuView(HookHost hooks, IBrowser browser, IGameWindow g
         ShowActivated = false, Topmost = true, AllowsTransparency = true, Background = Brushes.Transparent,
         Width = 260, Height = 180
     };
-    private readonly DispatcherTimer passiveTimer = new(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(16) };
     private LeagueResult? discovered;
     private OmniMenu? model;
     private nint handle;
@@ -43,8 +42,6 @@ public sealed class OmniMenuView(HookHost hooks, IBrowser browser, IGameWindow g
         styler.SetClickThrough(handle, false);
         menu.League = ReadLeague;
         menu.Opened += Open;
-        hooks.Passive.Observed += Observed;
-        passiveTimer.Tick += DrainPassive;
         window.IsVisibleChanged += VisibilityChanged;
         if (prices is not null) _ = DiscoverLeagueAsync();
         game.Changed += GameChanged;
@@ -56,11 +53,10 @@ public sealed class OmniMenuView(HookHost hooks, IBrowser browser, IGameWindow g
         try { Volatile.Write(ref discovered, await prices!.GetLeaguesAsync(cancellationToken: lifetime.ApplicationStopping).ConfigureAwait(false)); }
         catch (Exception error) { logger.LogWarning("League discovery failed: {ExceptionType}", error.GetType().Name); }
     }
-    private void DrainPassive(object? sender, EventArgs args) => hooks.Passive.Drain();
     private void VisibilityChanged(object sender, DependencyPropertyChangedEventArgs args)
     {
-        if (window.IsVisible) passiveTimer.Start();
-        else { passiveTimer.Stop(); hooks.Passive.Close(); }
+        if (window.IsVisible) passive.Open(this, Observed);
+        else passive.Close(this);
     }
     private void Open(IReadOnlyList<OmniLink> links) => window.Dispatcher.BeginInvoke(() =>
     {
@@ -99,7 +95,7 @@ public sealed class OmniMenuView(HookHost hooks, IBrowser browser, IGameWindow g
         styler.Position(handle, bounds);
         var dpi = VisualTreeHelper.GetDpi(window);
         ((FrameworkElement)window.Content).LayoutTransform = new ScaleTransform(scale / dpi.DpiScaleX, scale / dpi.DpiScaleY);
-        hooks.Passive.Open(hooks.InputTimestamp);
+        passive.Open(this, Observed);
     }
     private void Observed(PassiveInput input)
     {
@@ -122,15 +118,13 @@ public sealed class OmniMenuView(HookHost hooks, IBrowser browser, IGameWindow g
     {
         if (disposed) return;
         disposed = true;
-        hooks.Passive.Close();
-        hooks.Passive.Observed -= Observed;
+
         game.Changed -= GameChanged;
         settings.Changed -= SettingsChanged;
         if (model is not null) model.Opened -= Open;
         void Close()
         {
-            passiveTimer.Stop();
-            passiveTimer.Tick -= DrainPassive;
+            passive.Close(this);
             window.IsVisibleChanged -= VisibilityChanged;
             window.Close();
         }

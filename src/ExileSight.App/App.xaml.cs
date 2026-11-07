@@ -58,6 +58,7 @@ public partial class App : Application
             builder.Services.AddSingleton<DebugPanel>();
             builder.Services.AddSingleton<IDebugSection>(trayDiagnostics);
             builder.Services.AddUpdates();
+            ExileSight.App.DataPacks.PackRegistration.AddItemPacks(builder.Services);
             builder.Services.AddSingleton<IDebugSection>(logs);
             builder.Services.AddOverlays().AddFeatureModules().AddProductionInput();
             host = builder.Build();
