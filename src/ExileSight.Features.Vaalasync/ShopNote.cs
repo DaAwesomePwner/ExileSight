@@ -36,11 +36,12 @@ public sealed record ShopNote(string Prefix, decimal Amount, string Currency)
         decimal? value = choice switch
         {
             "minus1" => Amount - 1, "plus1" => Amount + 1,
-            "minus10" => Round(Amount * .9m), "plus10" => Round(Amount * 1.1m),
+            "minus10" => Amount * .9m, "plus10" => Amount * 1.1m,
             "custom" => ParseAmount(custom), _ => null
         };
+        if (value is > 0 and <= Maximum) value = Round(value.Value);
         return value is > 0 and <= Maximum ? this with { Amount = value.Value } : null;
     }
-    private decimal Round(decimal value) => decimal.Round(value, Currency is "divine" or "mirror" ? 2 : Amount < 10 ? 2 : 0, MidpointRounding.AwayFromZero);
+    private decimal Round(decimal value) => decimal.Round(value, Currency is "divine" or "mirror" ? 2 : value < 10 ? 2 : 0, MidpointRounding.AwayFromZero);
     public override string ToString() => $"{Prefix} {Amount.ToString("0.############################", CultureInfo.InvariantCulture)} {Currency}";
 }

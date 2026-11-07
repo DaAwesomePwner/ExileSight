@@ -16,12 +16,30 @@ public sealed class HistoryStore
     private readonly string path;
     private readonly object sync = new();
     private Listing[] rows = [];
+    private bool unavailable;
+    public string? RecoveryNotice { get; private set; }
     public HistoryStore(string directory)
     {
         path = Path.Combine(directory, "history.json");
-        if (!File.Exists(path)) return;
-        if (new FileInfo(path).Length > MaxBytes) throw new IOException("Shop history exceeds size limit.");
-        rows = Bound(JsonSerializer.Deserialize<Listing[]>(File.ReadAllText(path)) ?? []);
+        try
+        {
+            if (!File.Exists(path)) return;
+            if (new FileInfo(path).Length > MaxBytes) throw new IOException("Shop history exceeds size limit.");
+            var loaded = JsonSerializer.Deserialize<Listing[]>(File.ReadAllText(path));
+            Validate(loaded);
+            rows = Bound(loaded!);
+        }
+        catch (Exception error) when (error is JsonException or IOException or UnauthorizedAccessException)
+        {
+            var kept = path + "." + DateTimeOffset.UtcNow.ToString("yyyyMMddTHHmmssfffffffZ") + "." + Guid.NewGuid().ToString("N") + ".corrupt";
+            try { File.Move(path, kept); }
+            catch (Exception moveError) when (moveError is IOException or UnauthorizedAccessException)
+            {
+                kept = path;
+                unavailable = true; // Never overwrite an original that could not be quarantined.
+            }
+            RecoveryNotice = "History unavailable — previous file kept as " + kept;
+        }
     }
     public Listing[] Snapshot() { lock (sync) return rows.Select(r => r with { Prices = r.Prices.ToArray() }).ToArray(); }
     public Guid Observe(string item, string baseType, int? level, string league, ShopNote note, DateTimeOffset now)
@@ -52,7 +70,8 @@ public sealed class HistoryStore
         lock (sync)
         {
             var matching = rows.Where(r => !r.Purchase && r.Sold is null && r.League == whisper.League &&
-                r.Item == whisper.Item && r.Prices.LastOrDefault()?.Note is { } price &&
+                (r.Item == whisper.Item || r.Base == whisper.Item || r.Item + " " + r.Base == whisper.Item) &&
+                r.Prices.LastOrDefault()?.Note is { } price &&
                 price.Amount == note.Amount && price.Currency == note.Currency).Select(r => r.Id).ToHashSet();
             if (matching.Count == 0) return;
             Save(rows.Select(r => matching.Contains(r.Id) ? r with { Evidence = new(r.Item, note.ToString(), now) } : r).ToArray());
@@ -63,8 +82,16 @@ public sealed class HistoryStore
     private static string Clean(string value) => new(value.Where(c => !char.IsControl(c)).Take(256).ToArray());
     private static Listing[] Bound(Listing[] values) => values.TakeLast(MaxListings)
         .Select(r => r with { Item = Clean(r.Item), Base = Clean(r.Base), League = Clean(r.League), Prices = r.Prices.TakeLast(MaxPrices).ToArray() }).ToArray();
+    private static void Validate(Listing[]? values)
+    {
+        if (values is null || values.Any(r => r is null || r.Item is null || r.Base is null || r.League is null ||
+            r.Prices is null || r.Prices.Length == 0 || r.Prices.Any(p => p is null || p.Note is null ||
+                p.Kind is null || ShopNote.Parse(p.Note.ToString()) is null)))
+            throw new JsonException("Invalid shop history records.");
+    }
     private void Save(Listing[] values)
     {
+        if (unavailable) throw new IOException("Previous shop history could not be preserved.");
         var next = Bound(values);
         var bytes = JsonSerializer.SerializeToUtf8Bytes(next);
         if (bytes.Length > MaxBytes) throw new IOException("Shop history exceeds size limit.");

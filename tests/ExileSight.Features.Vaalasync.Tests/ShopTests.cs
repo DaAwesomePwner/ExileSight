@@ -60,8 +60,14 @@ public sealed class ShopTests : IDisposable
         Assert.Empty(sent);
         var physical = accepted;
         Assert.Equal(ActionOutcome.Success, command.Execute(physical).Outcome);
-        Assert.Equal(ActionOutcome.UsedOrUnknownToken, command.Execute(physical).Outcome);
+        Assert.Equal(ActionOutcome.Failed, command.Execute(physical).Outcome);
+        Assert.False(model.CanApply);
+        Assert.Contains(ShopModel.RearmMessage, model.Status);
         Assert.Equal("~price 3 divine", Assert.IsType<GameAction.SetPriceNote>(Assert.Single(sent)).Text);
+        Assert.Equal(ActionOutcome.Failed, command.Execute(accepted).Outcome);
+        host.Route(item, new(Game.PoE1), OmniPressKind.Short);
+        Assert.True(model.CanApply);
+        Assert.Equal(ActionOutcome.UsedOrUnknownToken, command.Execute(physical).Outcome);
         Assert.Equal(ActionOutcome.Success, command.Execute(accepted).Outcome);
         Assert.Equal(2, sent.Count);
     }

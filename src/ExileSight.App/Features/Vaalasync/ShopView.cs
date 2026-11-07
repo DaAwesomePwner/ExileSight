@@ -29,6 +29,10 @@ public sealed class ShopView : StackPanel
         foreach (var (label, choice) in new[] { ("−1", "minus1"), ("+1", "plus1"), ("−10%", "minus10"), ("+10%", "plus10"), ("Apply custom", "custom") })
         {
             var button = new Button { Content = label, Margin = new Thickness(2), Focusable = false };
+            var acceptClick = false;
+            button.PreviewMouseLeftButtonDown += (_, e) => acceptClick = ShopModel.AcceptClick(e.ClickCount);
+            // Runs before FeatureViews' mouse-up handler, so a double click cannot redeem a token.
+            button.PreviewMouseLeftButtonUp += (_, e) => { if (!acceptClick) e.Handled = true; acceptClick = false; };
             Children.Add(button); buttons.Add((button, choice)); views.Bind(button, "vaalasync:" + choice);
         }
         var history = new Button { Content = "History / custom price / record purchase" };
@@ -72,7 +76,7 @@ public sealed class ShopView : StackPanel
         foreach (var (button, choice) in buttons)
         {
             var suggestion = model.Note?.Suggest(choice, model.Custom);
-            button.IsEnabled = suggestion is not null;
+            button.IsEnabled = model.CanApply && suggestion is not null;
             button.Content = $"{choice}: {suggestion?.ToString() ?? "unavailable"}";
         }
     }
