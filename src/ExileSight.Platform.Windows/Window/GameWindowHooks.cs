@@ -4,13 +4,13 @@ using Windows.Win32.UI.Accessibility;
 
 namespace ExileSight.Platform.Windows.Window;
 
-internal sealed class GameWindowHooks(WINEVENTPROC callback) : IDisposable
+internal sealed class GameWindowHooks(WINEVENTPROC callback) : IGameWindowHooks
 {
     private HWINEVENTHOOK foreground;
     private readonly List<HWINEVENTHOOK> scoped = [];
     private uint scopedPid;
 
-    internal void Start()
+    public void Start()
     {
         if (!foreground.IsNull) return;
         // Do not skip our process: focusing ExileSight must hide the overlay too.
@@ -19,7 +19,7 @@ internal sealed class GameWindowHooks(WINEVENTPROC callback) : IDisposable
         if (foreground.IsNull) throw new Win32Exception();
     }
 
-    internal void ScopeTo(uint pid)
+    public void ScopeTo(uint pid)
     {
         if (pid == scopedPid) return;
         ClearScope();

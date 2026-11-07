@@ -13,6 +13,9 @@ public sealed class HostedOverlayWindow : System.Windows.Window
     private readonly IOverlayWindowStyler styler;
     private readonly FrameworkElement surface;
     private readonly OverlayRect design;
+    private readonly ScaleTransform contentScale = new();
+    private readonly OverlayPlacement placement = new();
+    private bool dpiRefreshPending;
     private nint handle;
     private bool clickThrough;
     internal bool RequestedVisible { get; set; } = true;
@@ -39,6 +42,7 @@ public sealed class HostedOverlayWindow : System.Windows.Window
         });
         surface = new Border { Width = design.Width, Height = design.Height, Child = content,
             HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
+        surface.LayoutTransform = contentScale;
         Content = surface;
         SourceInitialized += (_, _) =>
         {
@@ -46,10 +50,16 @@ public sealed class HostedOverlayWindow : System.Windows.Window
             styler.Apply(handle);
             styler.SetClickThrough(handle, this.clickThrough);
         };
-        DpiChanged += (_, _) => Dispatcher.BeginInvoke(() =>
+        DpiChanged += (_, _) =>
         {
-            if (IsVisible) RefreshRequested?.Invoke(this, EventArgs.Empty);
-        });
+            if (dpiRefreshPending) return;
+            dpiRefreshPending = true;
+            Dispatcher.BeginInvoke(() =>
+            {
+                dpiRefreshPending = false;
+                if (IsVisible) RefreshRequested?.Invoke(this, EventArgs.Empty);
+            });
+        };
         new WindowInteropHelper(this).EnsureHandle();
     }
 
@@ -70,15 +80,19 @@ public sealed class HostedOverlayWindow : System.Windows.Window
             Hide();
             return;
         }
-        var rect = OverlayRules.Place(new(client.X, client.Y, client.Width, client.Height), design, scaleOverride);
-        var physical = new PixelRect((int)Math.Round(rect.X), (int)Math.Round(rect.Y),
-            Math.Max(1, (int)Math.Ceiling(rect.Width)), Math.Max(1, (int)Math.Ceiling(rect.Height)));
-        styler.Position(handle, physical);
+        var physical = placement.Calculate(client, design, scaleOverride);
         if (!IsVisible) Show();
-        styler.Position(handle, physical);
+        if (placement.NeedsPosition(physical))
+        {
+            // Record only successful placement. DPI-triggered refreshes with the same desired
+            // bounds do not set native bounds again, preventing cross-monitor feedback loops.
+            styler.Position(handle, physical);
+            placement.Applied(physical);
+        }
         // Native placement establishes the destination monitor before converting content to DIPs.
         var dpi = VisualTreeHelper.GetDpi(this);
         var scale = OverlayRules.Scale(client.Height, scaleOverride);
-        surface.LayoutTransform = new ScaleTransform(scale / dpi.DpiScaleX, scale / dpi.DpiScaleY);
+        contentScale.ScaleX = scale / dpi.DpiScaleX;
+        contentScale.ScaleY = scale / dpi.DpiScaleY;
     }
 }

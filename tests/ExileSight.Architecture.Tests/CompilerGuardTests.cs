@@ -69,6 +69,10 @@ public sealed class CompilerGuardTests
                         p.WaitForInputIdle();
                         p.WaitForInputIdle(1);
                         p.WaitForInputIdle(TimeSpan.Zero);
+                        _ = p.Threads;
+                        _ = typeof(ProcessThread);
+                        Process.EnterDebugMode();
+                        Process.LeaveDebugMode();
                         p.WaitForExit();
                         _ = p.WaitForExitAsync();
                         _ = new DynamicMethod("x", typeof(void), Type.EmptyTypes);
@@ -80,7 +84,7 @@ public sealed class CompilerGuardTests
                 """);
             var banned = await Run(directory, "build", project, "--no-restore", "-nr:false");
             Assert.NotEqual(0, banned.ExitCode);
-            foreach (var symbol in new[] { "TotalProcessorTime", "UserProcessorTime", "PrivilegedProcessorTime", "PriorityBoostEnabled", "MinWorkingSet", "MaxWorkingSet", "EnableRaisingEvents", "WaitForInputIdle()", "WaitForInputIdle(int)", "WaitForInputIdle(TimeSpan)", "PriorityClass", "ProcessorAffinity", "HasExited", "ProcessName", "GetProcessById", "WaitForExit()", "WaitForExitAsync(", "DynamicMethod", "EmitCalli", "DefinePInvokeMethod" })
+            foreach (var symbol in new[] { "Process.Threads", "ProcessThread", "EnterDebugMode", "LeaveDebugMode", "TotalProcessorTime", "UserProcessorTime", "PrivilegedProcessorTime", "PriorityBoostEnabled", "MinWorkingSet", "MaxWorkingSet", "EnableRaisingEvents", "WaitForInputIdle()", "WaitForInputIdle(int)", "WaitForInputIdle(TimeSpan)", "PriorityClass", "ProcessorAffinity", "HasExited", "ProcessName", "GetProcessById", "WaitForExit()", "WaitForExitAsync(", "DynamicMethod", "EmitCalli", "DefinePInvokeMethod" })
                 Assert.True(banned.Output.Split('\n').Any(line => line.Contains("error RS0030:", StringComparison.Ordinal) && line.Contains(symbol, StringComparison.Ordinal)), symbol + Environment.NewLine + banned.Output);
 
         }

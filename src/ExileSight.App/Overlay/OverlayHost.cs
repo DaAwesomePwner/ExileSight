@@ -11,10 +11,11 @@ namespace ExileSight.App.Overlay;
 public sealed class OverlayHost(IGameWindow game, IOverlayWindowStyler styler,
     ISettingsStore<SettingsDocument>? settings = null) : IDisposable
 {
-    private readonly Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
+    private readonly Dispatcher dispatcher = Application.Current?.Dispatcher
+        ?? throw new InvalidOperationException("OverlayHost requires the WPF application dispatcher.");
     private readonly List<HostedOverlayWindow> windows = [];
     private bool started;
-    private bool disposed;
+    private volatile bool disposed;
     private bool enabled = true;
     private double? scaleOverride;
     public event EventHandler? Changed;
@@ -88,8 +89,12 @@ public sealed class OverlayHost(IGameWindow game, IOverlayWindowStyler styler,
 
     public void Dispose()
     {
-        dispatcher.VerifyAccess();
         if (disposed) return;
+        if (!dispatcher.CheckAccess())
+        {
+            dispatcher.Invoke(Dispose);
+            return;
+        }
         disposed = true;
         if (settings is not null) settings.Changed -= SettingsChanged;
         game.Changed -= Update;

@@ -43,6 +43,27 @@ public sealed class ProductionOverlayTests
         Assert.Equal(expected, OverlayRules.IsVisible(true, true, false, enabled, requested));
 
     [Fact]
+    public void DpiRefreshDoesNotRepeatNativePlacementButClientChangesDo()
+    {
+        var placement = new OverlayPlacement();
+        var client = new PixelRect(-50, 0, 1920, 1080);
+        var design = new OverlayRect(8, 8, 160, 32);
+        var bounds = placement.Calculate(client, design, null);
+        Assert.True(placement.NeedsPosition(bounds));
+        placement.Applied(bounds);
+        foreach (uint dpi in new uint[] { 96, 144, 96, 192, 144 })
+        {
+            // Content DIPs change, but physical placement must not depend on overlay DPI.
+            var dips = OverlayRules.ToDips(0, 0, bounds.Width, bounds.Height, dpi);
+            Assert.True(dips.Width > 0);
+            Assert.False(placement.NeedsPosition(placement.Calculate(client, design, null)));
+        }
+        Assert.True(placement.NeedsPosition(placement.Calculate(client with { X = 100 }, design, null)));
+        Assert.True(placement.NeedsPosition(placement.Calculate(client, design, 2)));
+        Assert.True(placement.NeedsPosition(placement.Calculate(client with { Height = 1440 }, design, null)));
+    }
+
+    [Fact]
     public void HookFailureSurfacesErrorAndContinuesDetectionUntilRecovery()
     {
         int attempts = 0;
