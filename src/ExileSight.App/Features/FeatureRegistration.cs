@@ -27,7 +27,8 @@ public static class FeatureRegistration
         {
             MatchLine = line => services.GetRequiredService<DataPacks.PackStartup>().Data?.MatchLine(line) ?? []
         },
-        Vaalasync.ShopRegistration.Create(services)];
+        Vaalasync.ShopRegistration.Create(services),
+        Stashninja.StashRegistration.Create(services)];
     public static IServiceCollection AddFeatureModules(this IServiceCollection services)
     {
         services.AddSingleton<IBrowser, WindowsBrowser>();
@@ -58,9 +59,11 @@ public static class FeatureRegistration
     {
         var views = services.GetRequiredService<FeatureViews>();
         Vaalasync.ShopRegistration.Register(services, views);
+        Stashninja.StashRegistration.Register(services, views);
         views.RegisterManaged<ExileSight.Features.ItemInfo.ItemInfoViewModel>(services.GetRequiredService<ItemInfo.ItemInfoTooltip>().Start);
         views.Start();
         Vaalasync.ShopRegistration.Initialize(services);
+        Stashninja.StashRegistration.Initialize(services);
         var model = services.GetRequiredService<FeatureHost>().Overlays
             .Select(o => o.ViewModel).OfType<ExileSight.Features.Omni.OmniMenu>().Single();
         services.GetRequiredService<OmniMenuView>().Start(model);
