@@ -9,7 +9,10 @@ public sealed class PackStartup(
     Func<string, CancellationToken, Task<(DataPack? Pack, string Source)>> read,
     Func<string, CancellationToken, Task> refresh, Action<string, Exception>? log = null) : IDebugSection
 {
-    public static IReadOnlyList<string> PackIds { get; } = Array.AsReadOnly(new[] { "poe1/bases", "poe1/mods", "poe1/stats" });
+    public static IReadOnlyList<string> PackIds { get; } = Array.AsReadOnly(new[] { "poe1/bases", "poe1/mods", "poe1/stats",
+        "poe1/guide", "poe1/mapmods", "poe1/events", "poe1/leagues" });
+    private readonly PackReader reader = new() { ReportFailure = error => log?.Invoke("Pack subscriber", error) };
+    public ExileSight.Core.Features.IPackReader Packs => reader;
     private sealed record State(IItemInfoData? Data, string Status, KeyValuePair<string, string>[] Rows);
     private State state = new(null, "Packs loading", [new("Status", "Packs loading"), new("Last refresh", "Not checked")]);
     public IItemInfoData? Data => Volatile.Read(ref state).Data;
@@ -34,11 +37,19 @@ public sealed class PackStartup(
         var rows = new List<KeyValuePair<string, string>>();
         foreach (var id in PackIds)
         {
-            var result = await read(id, token).ConfigureAwait(false);
+            (DataPack? Pack, string Source) result;
+            try { result = await read(id, token).ConfigureAwait(false); }
+            catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
+            catch (Exception error)
+            {
+                log?.Invoke(id, error);
+                result = (null, "none");
+            }
+            reader.Publish(id, result.Pack, result.Source);
             packs.Add(result.Pack);
             rows.Add(new(id, $"{result.Pack?.Manifest.PackVersion ?? "unavailable"} ({result.Source})"));
         }
-        var nextIdentity = string.Join("|", packs.Select(p => p is null ? "missing" :
+        var nextIdentity = string.Join("|", packs.Take(3).Select(p => p is null ? "missing" :
             p.Manifest.PackVersion + ":" + p.Manifest.ContentSha256));
         var data = Data;
         if (data is null || identity != nextIdentity)
@@ -50,7 +61,7 @@ public sealed class PackStartup(
         token.ThrowIfCancellationRequested();
         identity = nextIdentity;
         rows.Add(new("Last refresh", refreshResult));
-        Volatile.Write(ref state, new(data, packs.All(p => p is not null) ? "Packs ready" : packs.Any(p => p is not null) ? "Packs unavailable (partial data)" : "Packs unavailable", rows.ToArray()));
+        Volatile.Write(ref state, new(data, packs.Take(3).All(p => p is not null) ? "Packs ready" : packs.Take(3).Any(p => p is not null) ? "Packs unavailable (partial data)" : "Packs unavailable", rows.ToArray()));
     }
     public async Task RefreshAsync(CancellationToken token)
     {

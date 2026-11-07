@@ -13,6 +13,7 @@ public interface IFeature
 }
 public interface IFeatureContext
 {
+    IPackReader Packs => EmptyPackReader.Instance;
     ActionResult Execute(IntentToken? token, GameAction action);
     void RegisterCommand(string command, ActionKind? action, Func<IntentToken?, ActionResult> execute);
     // Null action means a local hold: press/release callbacks receive no input authority.
