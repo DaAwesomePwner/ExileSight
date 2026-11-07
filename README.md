@@ -36,6 +36,49 @@ ExileSight is built to follow [GGG's third-party policy](https://www.pathofexile
 - **No memory reading, injection or graphics hooks.** ExileSight never opens the game process and never changes the game window.
 - **Transparent.** What it reads: the game's `Client.txt` log and text you copy with Ctrl+C. What it sends: only the actions listed in [docs/FAIR-PLAY.md](docs/FAIR-PLAY.md).
 
+See the [transparency table](#transparency) for each feature’s declared permissions and defaults.
+
+<!-- transparency:start -->
+## Transparency
+
+Generated from compiled feature manifests and registered default bindings; supplemental file writes and App services are declared in `tests/ExileSight.Transparency.Tests/DeclaredResources.cs`.
+
+| Feature | Game actions | Data packs | Hosts | Writes | Default keys |
+|---|---|---|---|---|---|
+| events | None | `poe1/events` | None | `active profile JSON (event settings)` | `Control+Shift+E → events:settings (blocked)` |
+| gearcmp | None | `poe1/stats` | None | `poe1/gearcmp/active.json`<br>`poe1/gearcmp/character-{hash}.json`<br>`poe1/gearcmp/default.json` | None |
+| guide | None | `poe1/guide` | None | `poe1/guide/progress.json`<br>`poe1/guide/{hash}.json`<br>`user-selected CSV export` | `Control+Shift+F10 → guide:toggle (blocked)`<br>`Control+Shift+F11 → guide:back (blocked)`<br>`Control+Shift+F12 → guide:next (blocked)` |
+| iteminfo | None | `poe1/bases`<br>`poe1/mods`<br>`poe1/stats` | None | `active profile JSON (highlight profiles)` | None |
+| macros | `SendChatCommand` | None | None | `active profile JSON (commands)` | `F5 → macros:travel (blocked)`<br>`F6 → macros:macro (blocked)` |
+| mapinfo | None | `poe1/mapmods` | None | `poe1/mapinfo/ratings.json` | None |
+| maptracker | `SendChatCommand` | `poe1/leagues` | None | `active profile JSON (league)`<br>`poe1/maptracker/{league-hash}.jsonl`<br>`user-selected CSV export` | `Control+Shift+K → maptracker:kills (blocked)`<br>`Control+Shift+M → maptracker:viewer (blocked)` |
+| omni | `CopyItem` | None | `Browser: poedb.tw`<br>`Browser: www.craftofexile.com`<br>`Browser: www.pathofexile.com`<br>`Browser: www.poewiki.net` | None | `CapsLock → omni:press (blocked)` |
+| searchstr | `PasteSearch` | None | None | None | `F9 → searchstr:open (blocked)` |
+| stashninja | `PasteSearch` | None | `HTTP: poe.ninja` | `poe1/stashninja/calibration.json` | `Control+Shift+N → stashninja:open (blocked)` |
+| timers | None | None | None | `poe1/timers/timers.json` | `Control+Shift+T → timers:toggle (blocked)`<br>`Tab → timers:hold (passed through)` |
+| vaalasync | `SetPriceNote` | None | `HTTP: poe.ninja` | `poe1/vaalasync/history.json` | None |
+
+Omni owns the initial CopyItem action for other item tools. Browser hosts (including www.pathofexile.com) open your browser only; ExileSight itself makes no request to those browser links.
+
+Paths are relative to `%APPDATA%/ExileSight` (or the configured portable root), except user-selected exports and Velopack install files. Packs and the Action Gate audit always use `%APPDATA%/ExileSight`. Active profile JSON is `poe1/{profile-id}.json`. Stores may also create temporary, backup, recovery and corrupt-preservation files (`.tmp`, `.bak`, `.recovery`, `.corrupt*`).
+
+### App services
+
+| Service | HTTP hosts | Writes |
+|---|---|---|
+| Data packs | `github.com`<br>`objects.githubusercontent.com`<br>`release-assets.githubusercontent.com` | `cache/poe1/packs/*.pack.json`<br>`cache/poe1/packs/*.refresh.json` |
+| Prices | `poe.ninja` | `cache/poe1/poeninja/*.json`<br>`cache/poe1/poeninja/*.json.lock` |
+| Updates (installed builds) | `api.github.com`<br>`github.com`<br>`objects.githubusercontent.com`<br>`release-assets.githubusercontent.com` | `Velopack-managed update packages and install files` |
+| Settings and profiles | None | `poe1/profiles.json`<br>`poe1/{profile-id}.json` |
+| Action Gate audit | None | `logs/actions.log` |
+
+Regenerate from the repository root (PowerShell: set `$env:UPDATE_TRANSPARENCY='1'` first):
+
+```sh
+UPDATE_TRANSPARENCY=1 dotnet test tests/ExileSight.Transparency.Tests
+```
+<!-- transparency:end -->
+
 ## Building
 
 You need the .NET 10 SDK. The app runs on Windows 10 (1903+) and Windows 11. Core libraries and tests also build on macOS and Linux.
