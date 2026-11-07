@@ -39,10 +39,14 @@ public sealed class ContextRecoveryTests
         configuration.UpdateGameFocused(false, 2);
         dispatcher.ReconcileHeld(_ => true);
         Assert.Null(dispatcher.Observe(Key(), true).Press);
-        // Release was not delivered during the secure desktop interval.
+        // Release was not delivered during the secure desktop interval. Async state
+        // cannot recover a blocked key; a subsequent down needs a gap in hook events.
         configuration.UpdateGameFocused(true, 1);
         dispatcher.ReconcileHeld(_ => false);
-        Assert.NotNull(dispatcher.Observe(Key(), true).Press);
+        Assert.NotNull(dispatcher.Observe(Key() with
+        {
+            Timestamp = 10000 + HotkeyDispatcher.BlockedReleaseSilenceMilliseconds + 1
+        }, true).Press);
         Assert.True(dispatcher.Observe(Key(false), true).Block);
     }
     [Fact]

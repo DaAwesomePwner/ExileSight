@@ -21,18 +21,22 @@ public sealed class HotkeyDispatcher
     private readonly HotkeyConfiguration configuration;
     private readonly bool[] held = new bool[256];
     private readonly bool[] blocked = new bool[256];
+    private readonly long[] lastDown = new long[256];
+    // Hook-blocked downs do not update GetAsyncKeyState. Recover a missing release only
+    // after hook-observed silence beyond the maximum repeat delay plus a 200 ms margin.
+    internal const long BlockedReleaseSilenceMilliseconds = 1200;
     private readonly IntentRegistry registry;
     private int generation;
     internal HotkeyConfiguration Configuration => configuration;
-    // Run between message dispatches, never in a low-level callback. Preserve still-held
-    // keys to suppress repeats; retain blocked release tombstones until up or a fresh down.
+    // Run between message dispatches, never in a low-level callback. Async state is
+    // evidence only for pass-through keys; blocked keys rely on hook events below.
     internal void ReconcileHeld(Func<int, bool> isDown)
     {
         var current = configuration.Generation;
         if (current == generation) return;
         generation = current;
         for (var key = 0; key < held.Length; key++)
-            if (held[key] && !isDown(key)) held[key] = false;
+            if (held[key] && !blocked[key] && !isDown(key)) held[key] = false;
     }
     public HotkeyDispatcher(IntentRegistry registry, IEnumerable<HotkeyBinding> bindings)
     {
@@ -65,6 +69,11 @@ public sealed class HotkeyDispatcher
             held[key.Key] = blocked[key.Key] = false;
             return new(block, null);
         }
+        var silence = key.Timestamp - lastDown[key.Key];
+        if (held[key.Key] && blocked[key.Key] && silence > BlockedReleaseSilenceMilliseconds)
+            held[key.Key] = false;
+        // Every real autorepeat extends the held interval, even when its context is inactive.
+        lastDown[key.Key] = Math.Max(lastDown[key.Key], key.Timestamp);
         if (held[key.Key]) return new(blocked[key.Key], null);
         held[key.Key] = true;
         var binding = active ? configuration.Match(key.Key, key.Modifiers) : null;
