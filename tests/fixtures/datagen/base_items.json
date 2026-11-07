@@ -1,0 +1,1 @@
+{"Synthetic/PaperHat":{"name":"Imaginary Paper Hat","item_class":"PaperHats","tags":["paper"],"drop_level":3,"requirements":{"strength":7},"implicits":["InventedImplicit"],"properties":{"armour":{"min":4,"max":9},"evasion":2}}}
