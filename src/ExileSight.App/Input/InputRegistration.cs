@@ -37,7 +37,7 @@ public static class InputRegistration
         services.AddSingleton<IDebugSection>(sp => sp.GetRequiredService<InputDiagnostics>());
         services.AddSingleton<IHotkeys>(sp => new HookHost(sp.GetRequiredService<InputPipeline>().Dispatcher,
             sp.GetRequiredService<IClock>(), sp.GetRequiredService<HotkeyExecution>().Execute,
-            sp.GetRequiredService<InputDiagnostics>().Report));
+            sp.GetRequiredService<InputPipeline>().RepeatSettings, sp.GetRequiredService<InputDiagnostics>().Report));
         return services;
     }
     public static void StartProductionInput(IServiceProvider services)
@@ -48,12 +48,13 @@ public static class InputRegistration
     // Private wiring holds authority. IntentRegistry itself is never a DI service.
     private sealed class InputPipeline
     {
+        public KeyboardRepeatSettings RepeatSettings { get; } = new();
         public HotkeyDispatcher Dispatcher { get; }
         public IActionGate Gate { get; }
         public InputPipeline(IClock clock, HotkeyConfiguration configuration, IClipboard clipboard)
         {
             var registry = new IntentRegistry(clock);
-            Dispatcher = new(registry, configuration);
+            Dispatcher = new(registry, configuration, () => RepeatSettings.SilenceMilliseconds);
             Gate = new ActionGate(new GatePolicy(registry, [ActionKind.CopyItem, ActionKind.SendChatCommand]),
                 clipboard, clock);
         }

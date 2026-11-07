@@ -28,3 +28,5 @@ GetWindowText
 MapVirtualKey
 GlobalSize
 MSLLHOOKSTRUCT
+SystemParametersInfo
+FILTERKEYS

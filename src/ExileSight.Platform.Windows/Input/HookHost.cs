@@ -12,6 +12,7 @@ public sealed class HookHost : IHotkeys
 {
     private readonly HotkeyDispatcher dispatcher;
     private readonly IClock clock;
+    private readonly KeyboardRepeatSettings repeatSettings;
     private readonly PressRouter router;
     private readonly Action<HotkeyBinding, ActionResult> report;
     private readonly PressQueue queue = new();
@@ -27,9 +28,10 @@ public sealed class HookHost : IHotkeys
     private int disposed;
     private readonly HotkeyConfiguration configuration;
     public HookHost(HotkeyDispatcher dispatcher, IClock clock,
-        Func<IntentToken?, HotkeyBinding, ActionResult> execute,
+        Func<IntentToken?, HotkeyBinding, ActionResult> execute, KeyboardRepeatSettings repeatSettings,
         Action<HotkeyBinding, ActionResult>? report = null)
     {
+        this.repeatSettings = repeatSettings;
         configuration = dispatcher.Configuration;
         this.dispatcher = dispatcher; this.clock = clock;
         router = new(dispatcher, clock, GameForeground.IsGame, execute);
@@ -41,6 +43,7 @@ public sealed class HookHost : IHotkeys
     {
         ObjectDisposedException.ThrowIf(disposed != 0, this);
         if (hookThread is not null) throw new InvalidOperationException("Hooks already started");
+        repeatSettings.Refresh(); // caller thread, before the hook can receive any input
         worker = new Thread(Work) { IsBackground = true, Name = "Input actions" };
         hookThread = new Thread(Run) { IsBackground = true, Name = "Low-level input hooks" };
         hookThread.SetApartmentState(ApartmentState.STA);
@@ -66,6 +69,7 @@ public sealed class HookHost : IHotkeys
             nint previous = 0;
             do
             {
+                repeatSettings.Refresh(); // observer thread only; callbacks read the published value
                 var window = PInvoke.GetForegroundWindow();
                 if ((nint)window.Value != previous)
                 {

@@ -23,8 +23,9 @@ public sealed class HotkeyDispatcher
     private readonly bool[] blocked = new bool[256];
     private readonly long[] lastDown = new long[256];
     // Hook-blocked downs do not update GetAsyncKeyState. Recover a missing release only
-    // after hook-observed silence beyond the maximum repeat delay plus a 200 ms margin.
+    // after hook-observed silence beyond the platform's repeat/acceptance timing plus margin.
     internal const long BlockedReleaseSilenceMilliseconds = 1200;
+    private readonly Func<long> releaseSilenceThreshold;
     private readonly IntentRegistry registry;
     private int generation;
     internal HotkeyConfiguration Configuration => configuration;
@@ -38,16 +39,20 @@ public sealed class HotkeyDispatcher
         for (var key = 0; key < held.Length; key++)
             if (held[key] && !blocked[key] && !isDown(key)) held[key] = false;
     }
-    public HotkeyDispatcher(IntentRegistry registry, IEnumerable<HotkeyBinding> bindings)
+    public HotkeyDispatcher(IntentRegistry registry, IEnumerable<HotkeyBinding> bindings,
+        Func<long>? releaseSilenceThreshold = null)
     {
         this.registry = registry;
+        this.releaseSilenceThreshold = releaseSilenceThreshold ?? (() => BlockedReleaseSilenceMilliseconds);
         configuration = new HotkeyConfiguration();
         configuration.Replace(bindings, []);
         configuration.UpdateGameFocused(true);
     }
-    public HotkeyDispatcher(IntentRegistry registry, HotkeyConfiguration configuration)
+    public HotkeyDispatcher(IntentRegistry registry, HotkeyConfiguration configuration,
+        Func<long>? releaseSilenceThreshold = null)
     {
         this.registry = registry;
+        this.releaseSilenceThreshold = releaseSilenceThreshold ?? (() => BlockedReleaseSilenceMilliseconds);
         this.configuration = configuration;
     }
     /// <summary>Seed keys already down at hook installation; their repeats have no observed physical press.</summary>
@@ -70,7 +75,7 @@ public sealed class HotkeyDispatcher
             return new(block, null);
         }
         var silence = key.Timestamp - lastDown[key.Key];
-        if (held[key.Key] && blocked[key.Key] && silence > BlockedReleaseSilenceMilliseconds)
+        if (held[key.Key] && blocked[key.Key] && silence > Math.Max(BlockedReleaseSilenceMilliseconds, releaseSilenceThreshold()))
             held[key.Key] = false;
         // Every real autorepeat extends the held interval, even when its context is inactive.
         lastDown[key.Key] = Math.Max(lastDown[key.Key], key.Timestamp);
