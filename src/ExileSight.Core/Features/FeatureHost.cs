@@ -10,6 +10,7 @@ public sealed class FeatureHost
 {
     private readonly Func<string, IntentToken?, GameAction, ActionResult> execute;
     private readonly List<IFeatureCommandHandler> commands = [];
+    private readonly List<FeatureDefaultBinding> defaults = [];
     private readonly List<IOmniHandler> omni = [];
     private readonly List<(string FeatureId, Action<LogEvent> Handler)> subscriptions = [];
     private readonly List<(string FeatureId, object ViewModel)> overlays = [];
@@ -36,6 +37,7 @@ public sealed class FeatureHost
     public IReadOnlyList<FeatureManifest> Manifests { get; }
     public IReadOnlyList<IFeatureCommandHandler> Commands => commands.AsReadOnly();
     public IReadOnlyList<(string FeatureId, object ViewModel)> Overlays => overlays.AsReadOnly();
+    public IReadOnlyList<FeatureDefaultBinding> DefaultBindings => defaults.AsReadOnly();
     public bool HasLogSubscriptions => subscriptions.Count != 0;
     public void Publish(LogEvent value, Action<string, Exception>? report = null)
     {
@@ -62,6 +64,17 @@ public sealed class FeatureHost
         public ActionResult Execute(IntentToken? token) => action is not null && token is null
             ? new(ActionOutcome.MissingToken) : execute(token);
     }
+    private sealed class PressCommand(string owner, string name, ActionKind action,
+        Func<IntentToken?, PressStarted, ActionResult> press, Action<PressReleased> release) : IPressCommandHandler
+    {
+        public string FeatureId => owner;
+        public string Command => name;
+        public ActionKind? RequiredAction => action;
+        public ActionResult Execute() => new(ActionOutcome.MissingToken);
+        public ActionResult Press(IntentToken? token, PressStarted started) => token is null
+            ? new(ActionOutcome.MissingToken) : press(token, started);
+        public void Release(PressReleased released) => release(released);
+    }
     private sealed class Context(FeatureHost host, FeatureManifest manifest,
         Func<string, string, JsonElement?> read, Action<string, string, JsonElement> write) : IFeatureContext
     {
@@ -79,6 +92,28 @@ public sealed class FeatureHost
             if (host.commands.Any(c => c.Command == qualified)) throw new ArgumentException("Duplicate command");
             host.commands.Add(new RegisteredCommand(manifest.Id, qualified, action, execute));
         }
+        public void RegisterPressCommand(string command, ActionKind action,
+            Func<IntentToken?, PressStarted, ActionResult> press, Action<PressReleased> release)
+        {
+            Registering();
+            ArgumentException.ThrowIfNullOrWhiteSpace(command);
+            ArgumentNullException.ThrowIfNull(press);
+            ArgumentNullException.ThrowIfNull(release);
+            if (!manifest.GameActions.Contains(action)) throw new ArgumentException("Undeclared action");
+            var qualified = manifest.Id + ":" + command;
+            if (host.commands.Any(c => c.Command == qualified)) throw new ArgumentException("Duplicate command");
+            host.commands.Add(new PressCommand(manifest.Id, qualified, action, press, release));
+        }
+        public void RegisterDefaultBinding(FeatureDefaultBinding binding)
+        {
+            Registering();
+            if (!host.commands.Any(c => c.FeatureId == manifest.Id && c.Command == binding.Command))
+                throw new ArgumentException("Default binding must target an owned command");
+            if (host.defaults.Any(b => b.Id.Equals(binding.Id, StringComparison.OrdinalIgnoreCase)))
+                throw new ArgumentException("Duplicate default binding");
+            host.defaults.Add(binding);
+        }
+        public IReadOnlyList<IOmniHandler> OmniHandlers => host.omni.AsReadOnly();
         public void RegisterOmniHandler(IOmniHandler handler) { Registering(); host.omni.Add(handler); }
         public void Subscribe<T>(Action<T> handler) where T : LogEvent
         { Registering(); host.subscriptions.Add((manifest.Id, value => { if (value is T typed) handler(typed); })); }

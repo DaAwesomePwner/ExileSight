@@ -49,7 +49,7 @@ public interface IClipboard
 public enum KeyModifiers { None = 0, Control = 1, Alt = 2, Shift = 4, Windows = 8 }
 public sealed record HotkeyBinding(string Id, int Key, KeyModifiers Modifiers, bool Block, GameAction? Action,
     string Context = "gameFocused", string? FeatureCommand = null, string FeatureId = "builtin",
-    ActionKind? CommandAction = null);
+    ActionKind? CommandAction = null, bool TrackRelease = false);
 public interface IHotkeys : IDisposable
 {
     bool IsAlive { get; }

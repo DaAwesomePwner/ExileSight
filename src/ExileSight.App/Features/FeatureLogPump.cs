@@ -40,12 +40,12 @@ public sealed class FeatureLogPump(FeatureHost features, ISettingsStore<Settings
                 Changed(null, new("features"));
                 var stream = new LogEventStream(new LocalLogTail(new LocalPathResolver()), new LogParser());
                 await foreach (var value in stream.ReadAsync(path!, cancellationToken: session.Token))
-                    features.Publish(value, (id, error) => logger.LogError(error, "Feature {FeatureId} log subscriber failed", id));
+                    features.Publish(value, (id, error) => logger.LogError("Feature {FeatureId} log subscriber failed: {ExceptionType}", id, error.GetType().Name));
             }
             catch (OperationCanceledException) when (session.IsCancellationRequested) { }
             catch (Exception error)
             {
-                logger.LogError(error, "Feature log reader failed; retrying");
+                logger.LogError("Feature log reader failed; retrying: {ExceptionType}", error.GetType().Name);
                 await Task.Delay(1000, stoppingToken);
             }
             finally

@@ -15,6 +15,11 @@ public interface IFeatureContext
 {
     ActionResult Execute(IntentToken? token, GameAction action);
     void RegisterCommand(string command, ActionKind? action, Func<IntentToken?, ActionResult> execute);
+    void RegisterPressCommand(string command, ActionKind action,
+        Func<IntentToken?, PressStarted, ActionResult> press, Action<PressReleased> release) =>
+        throw new NotSupportedException();
+    void RegisterDefaultBinding(FeatureDefaultBinding binding) => throw new NotSupportedException();
+    IReadOnlyList<IOmniHandler> OmniHandlers => [];
     void RegisterOmniHandler(IOmniHandler handler);
     void Subscribe<T>(Action<T> handler) where T : LogEvent;
     void RegisterOverlay(object viewModel);

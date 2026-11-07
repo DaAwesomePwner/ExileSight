@@ -38,7 +38,7 @@ public static class BindingMapper
             };
             var handler = registered.FirstOrDefault(h => h.Command == b.FeatureCommand);
             bindings.Add(new(b.Id, b.Key, b.Modifiers, b.Block, action, b.Context, b.FeatureCommand,
-                handler?.FeatureId ?? "builtin", handler?.RequiredAction));
+                handler?.FeatureId ?? "builtin", handler?.RequiredAction, handler is IPressCommandHandler));
         }
         return new(bindings.AsReadOnly(), rejected.AsReadOnly());
     }

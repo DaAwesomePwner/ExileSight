@@ -25,6 +25,7 @@ public sealed class FeatureViews(FeatureHost features, OverlayHost overlays, Hoo
     {
         foreach (var (featureId, model) in features.Overlays)
         {
+            if (model is ExileSight.Features.Omni.OmniMenu) continue;
             if (!factories.TryGetValue(model.GetType(), out var factory))
                 throw new InvalidOperationException($"No view registered for {model.GetType().Name}");
             FrameworkElement view;
@@ -35,6 +36,8 @@ public sealed class FeatureViews(FeatureHost features, OverlayHost overlays, Hoo
             var window = overlays.Register(view, new OverlayRect(20, 20, 400, 300), clickThrough: false);
             windows.Add(window);
             owners.Add(window, featureId);
+            window.Activated += (_, _) => Snapshot();
+            window.Deactivated += (_, _) => Snapshot();
             window.LocationChanged += (_, _) => Snapshot();
             window.SizeChanged += (_, _) => Snapshot();
             window.IsVisibleChanged += (_, _) => Snapshot();

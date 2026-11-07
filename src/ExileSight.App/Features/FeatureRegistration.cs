@@ -11,7 +11,7 @@ namespace ExileSight.App.Features;
 public static class FeatureRegistration
 {
     // Add new compiled-in IFeature implementations here. Never discover/load plugin assemblies.
-    private static IFeature[] CompiledModules(IServiceProvider services) => [];
+    private static IFeature[] CompiledModules(IServiceProvider services) => [new ExileSight.Features.Omni.OmniFeature()];
     public static IServiceCollection AddFeatureModules(this IServiceCollection services)
     {
         services.AddSingleton<IBrowser, WindowsBrowser>();
@@ -29,9 +29,16 @@ public static class FeatureRegistration
                 }), (id, token, action) => sp.GetRequiredService<IActionGate>().TryExecute(token, action, id));
         });
         services.AddSingleton<FeatureViews>();
+        services.AddSingleton<OmniMenuView>();
         services.AddHostedService<FeatureLogPump>();
         return services;
     }
-    public static void StartFeatureViews(this IServiceProvider services) =>
-        services.GetRequiredService<FeatureViews>().Start();
+    public static void StartFeatureViews(this IServiceProvider services)
+    {
+        var views = services.GetRequiredService<FeatureViews>();
+        views.Start();
+        var model = services.GetRequiredService<FeatureHost>().Overlays
+            .Select(o => o.ViewModel).OfType<ExileSight.Features.Omni.OmniMenu>().Single();
+        services.GetRequiredService<OmniMenuView>().Start(model);
+    }
 }

@@ -30,7 +30,8 @@ public static class InputRegistration
         services.AddSingleton<IHotkeyContexts>(sp => sp.GetRequiredService<HotkeyConfiguration>());
         services.AddSingleton<HotkeySettings>(sp => new(
             () => sp.GetRequiredService<ISettingsStore<SettingsDocument>>(),
-            sp.GetRequiredService<HotkeyConfiguration>(), sp.GetRequiredService<FeatureHost>().Commands));
+            sp.GetRequiredService<HotkeyConfiguration>(), sp.GetRequiredService<FeatureHost>().Commands,
+            sp.GetRequiredService<FeatureHost>().DefaultBindings));
         services.AddSingleton<IClipboard, WindowsClipboard>();
         services.AddSingleton<HookHost>(sp => HookHost.Create(sp.GetRequiredService<IClock>(),
             sp.GetRequiredService<HotkeyConfiguration>(), sp.GetRequiredService<IClipboard>(),

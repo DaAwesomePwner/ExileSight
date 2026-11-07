@@ -8,14 +8,16 @@ public sealed class FeatureManifest
 {
     public FeatureManifest(string id, IEnumerable<Game> games, IEnumerable<ActionKind> gameActions,
         IEnumerable<string> dataPacks, IEnumerable<string> networkHosts, string description,
-        IEnumerable<string>? services = null)
+        IEnumerable<string>? services = null, IEnumerable<string>? browserHosts = null)
     {
         Id = id; Games = games.ToFrozenSet(); GameActions = gameActions.ToFrozenSet();
         DataPacks = dataPacks.ToFrozenSet(StringComparer.Ordinal);
         NetworkHosts = networkHosts.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
         Services = (services ?? []).ToFrozenSet(StringComparer.Ordinal); Description = description;
+        BrowserHosts = (browserHosts ?? []).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
         Validate();
     }
+    public FrozenSet<string> BrowserHosts { get; }
     public string Id { get; }
     public FrozenSet<Game> Games { get; }
     public FrozenSet<ActionKind> GameActions { get; }
@@ -31,6 +33,12 @@ public sealed class FeatureManifest
             throw new ArgumentException("Unknown game or action");
         if (string.IsNullOrWhiteSpace(Description) || DataPacks.Any(string.IsNullOrWhiteSpace) || Services.Any(string.IsNullOrWhiteSpace))
             throw new ArgumentException("Description and resource identifiers must be nonempty");
+        foreach (var host in BrowserHosts)
+        {
+            var uri = ExileSight.Platform.Abstractions.Shell.BrowserUrl.Validate("https://" + host + "/", [host]);
+            if (uri.AbsolutePath != "/" || uri.Query.Length != 0 || uri.Fragment.Length != 0)
+                throw new ArgumentException("Invalid browser host");
+        }
         if (NetworkHosts.Any(h => h is not ("poe.ninja" or "github.com" or "api.github.com" or "raw.githubusercontent.com" or "objects.githubusercontent.com")))
             throw new ArgumentException("Network host is not approved; browser links are separate from HTTP access");
     }

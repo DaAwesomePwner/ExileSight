@@ -6,7 +6,11 @@ public readonly record struct PhysicalKey(int Key, bool Down, bool Injected, Key
 public sealed class PhysicalPress
 {
     internal PhysicalPress(long timestamp, HotkeyBinding binding) { Timestamp = timestamp; Binding = binding; }
+    private static long nextId;
+    public long Id { get; } = Interlocked.Increment(ref nextId);
     internal int Redeemed;
+    internal bool Executed;
+    internal PhysicalPress? Origin { get; init; }
     public long Timestamp { get; }
     public HotkeyBinding Binding { get; }
 }
@@ -19,6 +23,7 @@ public readonly record struct DispatchDecision(bool Block, PhysicalPress? Press)
 public sealed class HotkeyDispatcher
 {
     private readonly HotkeyConfiguration configuration;
+    private readonly PhysicalPress?[] pending = new PhysicalPress?[256];
     private readonly bool[] held = new bool[256];
     private readonly bool[] blocked = new bool[256];
     private readonly long[] lastDown = new long[256];
@@ -81,27 +86,32 @@ public sealed class HotkeyDispatcher
     internal DispatchDecision Observe(PhysicalKey key, bool active, bool passThrough = false)
     {
         if (key.Injected || (uint)key.Key >= 256 || (uint)key.Modifiers >= 16) return default;
-        if (passThrough) { Array.Clear(blocked); active = false; }
+        if (passThrough) { Array.Clear(blocked); Array.Clear(pending); active = false; }
         if (!key.Down)
         {
             var block = blocked[key.Key];
             held[key.Key] = blocked[key.Key] = false;
-            return new(block, null);
+            var original = pending[key.Key];
+            pending[key.Key] = null;
+            return new(block, original is null ? null : new PhysicalPress(key.Timestamp, original.Binding) { Origin = original });
         }
         var silence = key.Timestamp - lastDown[key.Key];
         if (held[key.Key] && blocked[key.Key] && silence > Math.Max(BlockedReleaseSilenceMilliseconds, releaseSilenceThreshold()))
-            held[key.Key] = false;
+        { held[key.Key] = false; pending[key.Key] = null; }
         // Every real autorepeat extends the held interval, even when its context is inactive.
         lastDown[key.Key] = Math.Max(lastDown[key.Key], key.Timestamp);
         if (held[key.Key]) return new(blocked[key.Key], null);
         held[key.Key] = true;
         var binding = active ? configuration.Match(key.Key, key.Modifiers) : null;
         blocked[key.Key] = binding?.Block == true;
-        return new(blocked[key.Key], binding is null ? null : new PhysicalPress(key.Timestamp, binding));
+        var press = binding is null ? null : new PhysicalPress(key.Timestamp, binding);
+        pending[key.Key] = binding?.TrackRelease == true ? press : null;
+        return new(blocked[key.Key], press);
     }
     // Called only by the hook queue consumer, for a decision produced by Observe.
     internal IntentToken Issue(PhysicalPress press)
     {
+        if (press.Origin is not null) throw new InvalidOperationException("A release cannot issue an intent");
         if (Interlocked.Exchange(ref press.Redeemed, 1) != 0) throw new InvalidOperationException("Press already issued");
         if (featureIssue is not null) return featureIssue(press.Timestamp, press.Binding);
         return (issue ?? throw new InvalidOperationException("Hook issuer not installed"))(press.Timestamp, press.Binding.Id, (press.Binding.Action ?? throw new InvalidOperationException("Feature commands cannot issue game tokens")).Kind);
