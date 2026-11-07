@@ -35,4 +35,5 @@
   <Project Path="src/ExileSight.Features.MapTracker/ExileSight.Features.MapTracker.csproj" />
   <Project Path="tests/ExileSight.Features.MapTracker.Tests/ExileSight.Features.MapTracker.Tests.csproj" />
   <Project Path="tests/ExileSight.Perf.Tests/ExileSight.Perf.Tests.csproj" />
+  <Project Path="tests/ExileSight.Transparency.Tests/ExileSight.Transparency.Tests.csproj" />
 </Solution>
