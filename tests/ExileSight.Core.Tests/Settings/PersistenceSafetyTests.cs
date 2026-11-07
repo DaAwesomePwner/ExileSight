@@ -141,7 +141,7 @@ public sealed class PersistenceSafetyTests : IDisposable
     private sealed class BrokenMigration : IMigration
     {
         public int FromVersion => 1;
-        public void Apply(JsonObject document) => throw new InvalidOperationException("Migration failed.");
+        public void Apply(JsonObject document) => throw new JsonException("Migration failed.");
     }
 
     public void Dispose() { if (Directory.Exists(root)) Directory.Delete(root, true); }

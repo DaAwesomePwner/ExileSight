@@ -41,9 +41,9 @@ internal sealed class SettingsReader<T>(RootedFiles files, string path, JsonType
         using var json = JsonDocument.Parse(bytes);
         RejectDuplicates(json.RootElement);
         var node = JsonNode.Parse(bytes) as JsonObject ?? throw new JsonException("Settings must be a JSON object.");
-        if (expectedGame is not null && node["game"] is { } gameNode &&
-            (gameNode is not JsonValue gameValue || !gameValue.TryGetValue<int>(out var game) || game != (int)expectedGame))
-            throw new JsonException("Catalog game does not match the requested game.");
+        if (expectedGame is not null &&
+            (node["game"] is not JsonValue gameValue || !gameValue.TryGetValue<int>(out var game) || game != (int)expectedGame))
+            throw new JsonException("Missing, null, or mismatched game for the requested settings.");
         var version = MigrationPipeline.Version(node);
         if (version > migrations.CurrentVersion)
         {
@@ -57,14 +57,14 @@ internal sealed class SettingsReader<T>(RootedFiles files, string path, JsonType
         }
         if (version < migrations.CurrentVersion)
         {
-            // A failed older document is preserved and recovery tries the backup next.
+            // Only data-validation failures recover. Programming errors propagate with original files untouched.
             T migrated;
             try
             {
                 migrations.Apply(node);
                 migrated = Deserialize(node);
             }
-            catch (Exception e) { throw new JsonException("Settings migration failed: " + e.Message, e); }
+            catch (MigrationValidationException e) { throw new JsonException("Settings migration failed: " + e.Message, e); }
             files.PreserveVersion(source, path, version);
             return new(migrated, false, true, true);
         }

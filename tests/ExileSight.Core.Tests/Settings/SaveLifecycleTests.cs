@@ -80,7 +80,7 @@ public sealed class SaveLifecycleTests : IDisposable
         Directory.CreateDirectory(Path.Combine(root, "poe1"));
         var path = Path.Combine(root, "poe1", "profiles.json");
         File.WriteAllText(path, """
-            {"schemaVersion":1,"activeProfileId":"default","profiles":[
+            {"schemaVersion":1,"game":1,"activeProfileId":"default","profiles":[
               {"id":"default","name":"One"},{"id":"DEFAULT","name":"Two"}]}
             """);
         using var profiles = new ProfileStore(new AppPaths(root), ExileSight.Core.Games.Game.PoE1);

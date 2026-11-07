@@ -141,7 +141,7 @@ public sealed class PolishTests : IDisposable
         public void Apply(JsonObject document)
         {
             if (document["general"]!["language"]!.GetValue<string>() == "broken")
-                throw new InvalidOperationException("Invalid older document");
+                throw new MigrationValidationException("Invalid older document");
             document["general"]!["firstRunCompleted"] = true;
         }
     }
