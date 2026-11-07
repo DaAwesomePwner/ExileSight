@@ -83,7 +83,7 @@ public sealed partial class FeatureHost
     private sealed class Context(FeatureHost host, FeatureManifest manifest,
         Func<string, string, JsonElement?> read, Action<string, string, JsonElement> write) : IFeatureContext
     {
-        public IPackReader Packs => host.packs;
+        public IPackReader Packs { get; } = new FeaturePacks(host, manifest);
         private bool closed;
         internal void Close() => closed = true;
         private void Registering() { if (closed) throw new InvalidOperationException("Registration has completed"); }

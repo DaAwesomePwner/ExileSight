@@ -5,14 +5,16 @@ using ExileSight.Features.ItemInfo;
 namespace ExileSight.App.DataPacks;
 
 // Portable coordinator: IO delegates let tests exercise startup without WPF or network.
+// The hosted service is the single serial caller of LoadAsync/RefreshAsync.
 public sealed class PackStartup(
     Func<string, CancellationToken, Task<(DataPack? Pack, string Source)>> read,
     Func<string, CancellationToken, Task> refresh, Action<string, Exception>? log = null) : IDebugSection
 {
     public static IReadOnlyList<string> PackIds { get; } = Array.AsReadOnly(new[] { "poe1/bases", "poe1/mods", "poe1/stats",
         "poe1/guide", "poe1/mapmods", "poe1/events", "poe1/leagues" });
-    private readonly PackReader reader = new() { ReportFailure = error => log?.Invoke("Pack subscriber", error) };
-    public ExileSight.Core.Features.IPackReader Packs => reader;
+    private readonly PackPublisher publisher = new();
+    private readonly Dictionary<string, (DataPack? Pack, string Source)> retained = [];
+    public ExileSight.Core.Features.IPackReader Packs => publisher.Reader;
     private sealed record State(IItemInfoData? Data, string Status, KeyValuePair<string, string>[] Rows);
     private State state = new(null, "Packs loading", [new("Status", "Packs loading"), new("Last refresh", "Not checked")]);
     public IItemInfoData? Data => Volatile.Read(ref state).Data;
@@ -35,17 +37,23 @@ public sealed class PackStartup(
     {
         var packs = new List<DataPack?>();
         var rows = new List<KeyValuePair<string, string>>();
+        var errors = new List<(string Id, Exception Error)>();
         foreach (var id in PackIds)
         {
             (DataPack? Pack, string Source) result;
-            try { result = await read(id, token).ConfigureAwait(false); }
+            try
+            {
+                result = await read(id, token).ConfigureAwait(false);
+                publisher.Publish(id, result.Pack, result.Source);
+                retained[id] = result;
+            }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
             catch (Exception error)
             {
                 log?.Invoke(id, error);
-                result = (null, "none");
+                errors.Add((id, error));
+                result = retained.GetValueOrDefault(id, (null, "none"));
             }
-            reader.Publish(id, result.Pack, result.Source);
             packs.Add(result.Pack);
             rows.Add(new(id, $"{result.Pack?.Manifest.PackVersion ?? "unavailable"} ({result.Source})"));
         }
@@ -61,7 +69,9 @@ public sealed class PackStartup(
         token.ThrowIfCancellationRequested();
         identity = nextIdentity;
         rows.Add(new("Last refresh", refreshResult));
+        rows.Add(new("Release availability", "Missing release assets (including Phase 3 HTTP 404s) remain throttled to at most one attempt per pack/tag per hour."));
         Volatile.Write(ref state, new(data, packs.Take(3).All(p => p is not null) ? "Packs ready" : packs.Take(3).Any(p => p is not null) ? "Packs unavailable (partial data)" : "Packs unavailable", rows.ToArray()));
+        foreach (var (id, error) in errors) ReportFailure(id, error);
     }
     public async Task RefreshAsync(CancellationToken token)
     {

@@ -6,7 +6,8 @@ namespace ExileSight.Core.Features;
 public interface IPackReader
 {
     PackSnapshot<T>? TryGet<T>(string packId) where T : class;
-    /// <summary>Raised on the publisher's thread, after publication. Marshal UI work as needed.
+    /// <summary>Feature contexts queue notifications on the host work queue in single-publisher order.
+    /// Marshal UI work as needed. Data may already reflect a later version when a handler runs.
     /// Subscribe before reading initial state. Notifications carry no input authority.</summary>
     event Action<PackChange>? Changed;
 }
