@@ -20,7 +20,11 @@ public sealed class DebugPanel : Window
         Content = new ScrollViewer { Content = body, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         timer.Tick += Refresh;
-        Loaded += (_, _) => { Refresh(this, EventArgs.Empty); timer.Start(); };
+        IsVisibleChanged += (_, _) =>
+        {
+            if (IsVisible) { Refresh(this, EventArgs.Empty); timer.Start(); }
+            else timer.Stop();
+        };
         Closed += (_, _) => { timer.Stop(); timer.Tick -= Refresh; };
     }
 

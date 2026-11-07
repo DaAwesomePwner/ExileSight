@@ -1,7 +1,7 @@
-using System.Text.Json;
-using ExileSight.Core.Games;
 using System.Diagnostics;
+using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
+using ExileSight.Core.Games;
 using ExileSight.Platform.Abstractions.Storage;
 
 namespace ExileSight.Core.Settings;
@@ -9,7 +9,7 @@ namespace ExileSight.Core.Settings;
 /// <summary>One owner per file. Thread-safe within that owner. Events run on the updating caller.
 /// Dispose flushes pending changes. Timer failures remain dirty and are exposed through Warnings;
 /// explicit Flush retries and throws on failure. Newer schemas are displayed where readable but never written.</summary>
-public sealed class JsonSettingsStore<T> : ISettingsStore<T> where T : VersionedDocument
+public sealed class JsonSettingsStore<T> : ITransactionalSettingsStore<T> where T : VersionedDocument
 {
     private readonly object sync = new();
     private readonly RootedFiles files;
@@ -87,6 +87,35 @@ public sealed class JsonSettingsStore<T> : ISettingsStore<T> where T : Versioned
             document = Clone(candidate); // Caller cannot retain a live mutable reference.
             dirty = true;
             ScheduleSave();
+        }
+        Changed?.Invoke(this, new(section));
+    }
+
+    /// <summary>Persist a detached candidate before publishing it. Failure leaves the live
+    /// document, pending saves and Changed subscribers untouched.</summary>
+    public void Commit(string section, Action<T> update)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(section);
+        ArgumentNullException.ThrowIfNull(update);
+        lock (sync)
+        {
+            ThrowIfDisposed();
+            if (IsReadOnly) throw new InvalidOperationException("Settings use a newer schema and are read-only.");
+            var candidate = Clone(document);
+            var candidateWarnings = new List<string>(warnings);
+            update(candidate);
+            candidate.SchemaVersion = migrations.CurrentVersion;
+            SettingsValidation.PreserveUnknownBindings(document, candidate);
+            SettingsValidation.Validate(candidate, expectedGame, candidateWarnings);
+            candidate = Clone(candidate);
+            SettingsValidation.DisableUnknownBindings(Clone(candidate), candidateWarnings);
+            files.Write(path, JsonSerializer.SerializeToUtf8Bytes(candidate, typeInfo), rotateBackup);
+            document = candidate;
+            warnings.Clear();
+            warnings.AddRange(candidateWarnings);
+            dirty = false;
+            firstPending = null;
+            timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         }
         Changed?.Invoke(this, new(section));
     }

@@ -1,0 +1,6 @@
+Shell_NotifyIcon
+RegisterWindowMessage
+LoadIcon
+SetForegroundWindow
+GetWindowThreadProcessId
+GetCurrentThreadId

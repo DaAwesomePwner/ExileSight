@@ -41,9 +41,6 @@ internal sealed class SettingsReader<T>(RootedFiles files, string path, JsonType
         using var json = JsonDocument.Parse(bytes);
         RejectDuplicates(json.RootElement);
         var node = JsonNode.Parse(bytes) as JsonObject ?? throw new JsonException("Settings must be a JSON object.");
-        if (expectedGame is not null &&
-            (node["game"] is not JsonValue gameValue || !gameValue.TryGetValue<int>(out var game) || game != (int)expectedGame))
-            throw new JsonException("Missing, null, or mismatched game for the requested settings.");
         var version = MigrationPipeline.Version(node);
         if (version > migrations.CurrentVersion)
         {
@@ -55,6 +52,9 @@ internal sealed class SettingsReader<T>(RootedFiles files, string path, JsonType
                 return new(Fresh(defaults), true, false, false);
             }
         }
+        if (expectedGame is not null &&
+            (node["game"] is not JsonValue gameValue || !gameValue.TryGetValue<int>(out var game) || game != (int)expectedGame))
+            throw new JsonException("Missing, null, or mismatched game for the requested settings.");
         if (version < migrations.CurrentVersion)
         {
             // Only data-validation failures recover. Programming errors propagate with original files untouched.
