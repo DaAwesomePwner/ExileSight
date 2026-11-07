@@ -34,7 +34,7 @@ public sealed class RunTracker
     public MapRun? FinalCheckpoint(double elapsedSeconds)
     {
         if (run is null) return null;
-        elapsedSeconds = Math.Clamp(elapsedSeconds, 0, CheckpointWindowSeconds);
+        elapsedSeconds = active ? Math.Clamp(elapsedSeconds, 0, CheckpointWindowSeconds) : 0;
         if (active) run = run with { Seconds = run.Seconds + elapsedSeconds };
         lastTime = lastTime.AddSeconds(elapsedSeconds);
         return Close(true);
@@ -76,14 +76,7 @@ public sealed class RunTracker
             if (entry.Event is AreaGenerated or CharacterLevelUp or PlayerSlain) Accept(entry, league);
             return interrupted;
         }
-        if (run is not null && active && (uptime - lastUptime) / 1000d > CheckpointWindowSeconds)
-        {
-            // A resumed log after silence/sleep is not evidence of continuous play.
-            var interrupted = FinalCheckpoint(CheckpointWindowSeconds);
-            identity.Clear("Log activity paused — confirm character again"); nextMap = null;
-            Accept(entry, league);
-            return interrupted;
-        }
+        // Later log evidence credits the full uptime delta; silence is not a session boundary.
         if (entry.Event is PlayerSlain candidate) identity.Observe(candidate.Name);
         if (run is not null && active)
             run = run with { Seconds = run.Seconds + Math.Max(0, (uptime - lastUptime) / 1000d) };
