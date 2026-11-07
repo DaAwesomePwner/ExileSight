@@ -21,7 +21,7 @@ public sealed class FeatureHost
         Func<string, string, JsonElement?> readSetting, Action<string, string, JsonElement> writeSetting,
         Func<string, IntentToken?, GameAction, ActionResult>? execute = null, Action<Action>? dispatch = null)
     {
-        post = dispatch ?? new FeatureWorkQueue().Post;
+        post = dispatch ?? new FeatureWorkQueue { ReportFailure = type => ReportWorkFailure(type) }.Post;
         this.execute = execute ?? ((_, _, _) => new(ActionOutcome.Failed, "No gate configured"));
         var modules = features.ToArray();
         Manifests = Array.AsReadOnly(modules.Select(f => f.Manifest).ToArray());
@@ -38,6 +38,8 @@ public sealed class FeatureHost
             context.Close();
         }
     }
+    // App composition sets this before input starts; portable hosts may leave diagnostics disabled.
+    public Action<string> ReportWorkFailure { get; set; } = _ => { };
     public IReadOnlyList<FeatureManifest> Manifests { get; }
     public IReadOnlyList<IFeatureCommandHandler> Commands => commands.AsReadOnly();
     public IReadOnlyList<(string FeatureId, object ViewModel)> Overlays => overlays.AsReadOnly();

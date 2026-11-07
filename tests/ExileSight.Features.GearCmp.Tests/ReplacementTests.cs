@@ -12,6 +12,7 @@ public sealed class ReplacementTests : IDisposable
     [InlineData("One Hand Swords", "Shields", "Quivers", GearSlot.OffHand, 70, -20, 2, false)]
     [InlineData("Bows", "Quivers", "Bows", GearSlot.MainHand, 70, 70, 1, true)]
     [InlineData("Bows", "Quivers", "Two Hand Swords", GearSlot.MainHand, 70, -20, 2, false)]
+    [InlineData("One Hand Swords", "Shields", "Staves", GearSlot.MainHand, 70, -20, 2, false)]
     public void PreviewMatchesActualPersistedGearChange(string mainClass, string offClass, string candidateClass,
         GearSlot target, decimal candidateLife, decimal expectedDelta, int replacedCount, bool keepsOther)
     {

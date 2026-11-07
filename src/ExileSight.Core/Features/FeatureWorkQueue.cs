@@ -8,6 +8,7 @@ public sealed class FeatureWorkQueue
 {
     private readonly ConcurrentQueue<Action> work = new();
     private int running;
+    public Action<string> ReportFailure { get; set; } = type => System.Diagnostics.Trace.TraceWarning("Feature handler failed: {0}", type);
     public void Post(Action action)
     {
         work.Enqueue(action);
@@ -25,7 +26,11 @@ public sealed class FeatureWorkQueue
             while (work.TryDequeue(out var action))
             {
                 try { action(); }
-                catch (Exception) { /* A failing handler must not stop later feature work. */ }
+                catch (Exception error)
+                {
+                    try { ReportFailure(error.GetType().Name); }
+                    catch (Exception) { /* Diagnostics cannot stop later feature work. */ }
+                }
             }
         }
         finally
