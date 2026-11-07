@@ -48,6 +48,6 @@ clicks through the existing hook redemption API in a feature-local click handler
 Preparation uses the shared overlay failure guard. Pending selections are
 single-use, expire after 1.5 seconds, and clear whenever the menu hides or a
 click finishes (including failed redemption or dispatch). The menu closes after
-submission completes so hiding cannot race normal queued dispatch. Shared host
-command routing is unchanged; an overlay-only command restriction remains host
-work.
+submission completes so hiding cannot race normal queued dispatch. The paste
+command declares `CommandKind.OverlayOnly`; BindingMapper rejects hotkey bindings
+to it, including persisted bindings (D-084).

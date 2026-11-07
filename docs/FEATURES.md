@@ -108,13 +108,13 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 
 ### `macros`: Chat macros + chat wheel
 - **Trigger:**
-  - Fast-travel key: a short press goes to `/hideout`; a long press opens a radial wheel of destinations.
-  - Macro key: a short press sends command 0; a long press opens an 8-slot wheel.
+  - Fast-travel key (default F5): a short press goes to `/hideout`; a long press opens a radial wheel of destinations.
+  - Macro key (default F6): a short press sends command 0; a long press opens an 8-slot wheel.
 - **Actions:** `SendChatCommand` once per press or per wheel selection.
 - **Reference:** `modules/macros.ahk`, radial menu in `modules/GUI.ahk` around line 578.
 
 ### `searchstr`: Search-strings menu
-- **Trigger:** a hotkey opens a menu.
+- **Trigger:** a hotkey (default F9) opens a menu.
   1. Pick the vendor or UI by hand (1.0 has no screen detection).
   2. Pick a saved string. The mouse wheel cycles through multi-line strings.
 - **Actions:** `PasteSearch(text)` once per selection.
