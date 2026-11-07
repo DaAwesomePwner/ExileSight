@@ -27,6 +27,8 @@ public interface IFeatureContext
     void RegisterOverlay(object viewModel);
     void RegisterTooltipSection(ITooltipSectionProvider provider) => throw new NotSupportedException();
     IReadOnlyList<ITooltipSectionProvider> TooltipSections => [];
+    void RegisterItemMenu(IItemMenuProvider provider) => throw new NotSupportedException();
+    IReadOnlyList<IItemMenuProvider> ItemMenus => [];
     JsonElement? ReadSetting(string key);
     void WriteSetting(string key, JsonElement value);
 }

@@ -1,0 +1,13 @@
+Item Class: One Hand Swords
+Rarity: Rare
+Synthetic Blade
+Rusted Sword
+--------
+Physical Damage: 40-80 (augmented)
+Elemental Damage: 10-20, 30-50 (augmented)
+Attacks per Second: 1.50 (augmented)
+--------
+Item Level: 50
+--------
+100% increased Physical Damage
++30 to maximum Life

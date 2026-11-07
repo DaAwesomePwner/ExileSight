@@ -1,0 +1,17 @@
+Item Class: Body Armours
+Rarity: Rare
+Synthetic Coat
+Plate Vest
+--------
+Armour: 200 (augmented)
+Evasion Rating: 120
+Energy Shield: 45
+Ward: 10
+--------
+Item Level: 50
+--------
++60 to maximum Life
++25 to maximum Mana
++12% to all Elemental Resistances
++15 to all Attributes
++20% to Chaos Resistance

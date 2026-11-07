@@ -10,4 +10,5 @@
   </ItemGroup>
   <ItemGroup><ProjectReference Include="../ExileSight.Features.Vaalasync/ExileSight.Features.Vaalasync.csproj" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../ExileSight.Features.ItemInfo/ExileSight.Features.ItemInfo.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.GearCmp/ExileSight.Features.GearCmp.csproj" /></ItemGroup>
 </Project>

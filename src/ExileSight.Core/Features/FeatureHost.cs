@@ -10,6 +10,7 @@ public sealed class FeatureHost
 {
     private readonly Func<string, IntentToken?, GameAction, ActionResult> execute;
     private readonly List<IFeatureCommandHandler> commands = [];
+    private readonly List<IItemMenuProvider> itemMenus = [];
     private readonly List<ITooltipSectionProvider> tooltipSections = [];
     private readonly List<FeatureDefaultBinding> defaults = [];
     private readonly List<(string Owner, IOmniHandler Handler)> omni = [];
@@ -121,6 +122,9 @@ public sealed class FeatureHost
         public IReadOnlyList<ITooltipSectionProvider> TooltipSections => host.tooltipSections.AsReadOnly();
         public void RegisterTooltipSection(ITooltipSectionProvider provider)
         { Registering(); host.tooltipSections.Add(provider); }
+        public IReadOnlyList<IItemMenuProvider> ItemMenus => host.itemMenus.AsReadOnly();
+        public void RegisterItemMenu(IItemMenuProvider provider)
+        { Registering(); ArgumentNullException.ThrowIfNull(provider); host.itemMenus.Add(provider); }
         public void RegisterOverlay(object viewModel) { Registering(); host.overlays.Add((manifest.Id, viewModel)); }
         public JsonElement? ReadSetting(string key) => read(manifest.Id, key)?.Clone();
         public void WriteSetting(string key, JsonElement value) => write(manifest.Id, key, value.Clone());

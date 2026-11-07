@@ -22,6 +22,11 @@ public static class FeatureRegistration
             SectionError = error => services.GetRequiredService<ILogger<FeatureHost>>().LogWarning(
                 "Tooltip section failed: {ExceptionType}", error.GetType().Name)
         },
+        new ExileSight.Features.GearCmp.GearCmpFeature(new(new(
+            System.IO.Path.Combine(services.GetRequiredService<IAppPaths>().GetGameDirectory("poe1"), "gearcmp"))))
+        {
+            MatchLine = line => services.GetRequiredService<DataPacks.PackStartup>().Data?.MatchLine(line) ?? []
+        },
         Vaalasync.ShopRegistration.Create(services)];
     public static IServiceCollection AddFeatureModules(this IServiceCollection services)
     {
