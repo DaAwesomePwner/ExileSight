@@ -2,6 +2,13 @@ namespace ExileSight.Features.Vaalasync;
 
 public sealed partial class ShopModel
 {
+    public ShopCardModel CardSnapshot(DateTimeOffset now, string? selectedAmount)
+    {
+        lock (sync) return ShopCardMapping.Map(new(CurrentItemName, note, FirstListedAt, currency,
+            armed && !sending, NoteMode, Status, Instructions, CurrencyReminder,
+            ShopCardMapping.Choices.ToDictionary(c => c.Choice, c => Suggest(c.Choice)), Suggest("custom")), now, selectedAmount);
+    }
+
     // Never block the overlay on league discovery or disk history. Only the selected
     // read's listing is eligible; a trimmed price log cannot establish its first time.
     public string? CurrentItemName
@@ -16,8 +23,7 @@ public sealed partial class ShopModel
             lock (sync)
             {
                 if (currentRead is not { IsCompletedSuccessfully: true } || currentRead.Result is not { } read) return null;
-                return history.Snapshot().FirstOrDefault(row => row.Id == read.Listing)?
-                    .Prices.FirstOrDefault(price => price.Kind == "Listed")?.Time;
+                return history.FirstListedAt(read.Listing);
             }
         }
     }

@@ -3,9 +3,11 @@ using Xunit;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using ExileSight.App.Features.Vaalasync;
 using ExileSight.App.Ui;
+using ExileSight.Features.Vaalasync;
 #endif
 
 namespace ExileSight.App.Snapshots.Tests;
@@ -62,6 +64,51 @@ public sealed class ShopPricerSnapshotTests
     {
 #if SNAPSHOT_WINDOWS
         Render("no-timestamp", Fixture() with { ListedFor = null });
+#endif
+    }
+
+    [WindowsOnlyFact]
+    public void RefreshKeepsButtonsAndTheirBindings()
+    {
+#if SNAPSHOT_WINDOWS
+        SnapshotRenderer.Render(() =>
+        {
+            var bindings = new List<(Button Button, string Choice)>();
+            var invoked = new List<string>();
+            var surface = new ShopCardSurface(Fixture() with { CustomAmount = "12 divine" }, CardTheme.Default, (button, choice) =>
+            {
+                bindings.Add((button, choice));
+                var pending = false;
+                button.PreviewMouseLeftButtonDown += (_, _) => pending = true;
+                button.PreviewMouseLeftButtonUp += (_, _) =>
+                {
+                    if (pending) invoked.Add(choice);
+                    pending = false;
+                };
+            });
+            Assert.Equal(5, bindings.Count);
+            var parents = bindings.Select(b => b.Button.Parent).ToArray();
+            foreach (var (button, _) in bindings)
+                button.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left)
+                    { RoutedEvent = UIElement.PreviewMouseLeftButtonDownEvent });
+            // The same refresh used by ShopView handles history/seed changes during a gesture.
+            surface.Update(Fixture() with { Name = "Updated item", CustomAmount = "12 divine" });
+            surface.Update(Fixture() with { NoteMode = true, ListedFor = null, CustomAmount = "12 divine" });
+            for (var i = 0; i < bindings.Count; i++)
+            {
+                var (button, choice) = bindings[i];
+                Assert.Same(button, surface.Actions[choice]);
+                Assert.Same(parents[i], button.Parent);
+                button.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 1, MouseButton.Left)
+                    { RoutedEvent = UIElement.PreviewMouseLeftButtonUpEvent });
+            }
+            Assert.Equal(bindings.Select(b => b.Choice), invoked);
+            Assert.Equal(5, bindings.Count);
+            surface.Update(Fixture() with { Armed = false, Pasted = "39" });
+            Assert.All(surface.Actions.Values, button => Assert.False(button.IsEnabled));
+            Assert.All(surface.Actions.Values, button => Assert.Same(surface.History.Template, button.Template));
+            return surface.Frame;
+        }, "shop-stable-buttons");
 #endif
     }
 

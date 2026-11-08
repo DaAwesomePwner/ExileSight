@@ -43,6 +43,11 @@ public sealed class HistoryStore
         }
     }
     public Listing[] Snapshot() { lock (sync) return rows.Select(r => r with { Prices = r.Prices.ToArray() }).ToArray(); }
+    public DateTimeOffset? FirstListedAt(Guid id)
+    {
+        lock (sync) return rows.FirstOrDefault(row => row.Id == id)?
+            .Prices.FirstOrDefault(price => price.Kind == "Listed")?.Time;
+    }
     public Guid Observe(string item, string baseType, int? level, string league, ShopNote note, DateTimeOffset now, string? kind = null)
     {
         lock (sync)

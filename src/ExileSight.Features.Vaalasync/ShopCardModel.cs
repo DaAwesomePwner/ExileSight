@@ -1,4 +1,4 @@
-namespace ExileSight.App.Features.Vaalasync;
+namespace ExileSight.Features.Vaalasync;
 
 public sealed record ShopAmount(string Choice, string Adjustment, string Text, bool Available);
 

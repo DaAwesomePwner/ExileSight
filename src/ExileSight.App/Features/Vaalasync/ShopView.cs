@@ -16,14 +16,32 @@ public sealed class ShopView : StackPanel
 {
     private readonly ShopModel model;
     private readonly IServiceProvider services;
-    private readonly FeatureViews views;
+    private readonly ShopCardSurface card;
     private HostedOverlayWindow? window;
     private PixelRect? placement;
     private string? selectedAmount;
     public ShopView(ShopModel model, FeatureViews views, IServiceProvider services)
     {
-        this.model = model; this.services = services; this.views = views;
+        this.model = model; this.services = services;
         HorizontalAlignment = HorizontalAlignment.Left;
+        card = new ShopCardSurface(model.CardSnapshot(DateTimeOffset.UtcNow, null), CardTheme.Default, (button, choice) =>
+        {
+            var acceptClick = false;
+            button.PreviewMouseLeftButtonDown += (_, e) => acceptClick = ShopModel.AcceptClick(e.ClickCount);
+            // Preserve the double-click guard before FeatureViews redeems the physical token.
+            button.PreviewMouseLeftButtonUp += (_, e) =>
+            {
+                if (!acceptClick) e.Handled = true;
+                else if (model.Suggest(choice) is { } next) selectedAmount = model.NoteMode
+                    ? next.ToString() : GameAction.FormatAmount(next.Amount);
+                acceptClick = false;
+            };
+            views.Bind(button, "vaalasync:" + choice);
+        });
+        Children.Add(card.Frame);
+        card.History.Click += (_, _) => new HistoryView(model, services.GetRequiredService<PriceService>()).Show();
+        card.EditCustom.Click += (_, _) => new HistoryView(model, services.GetRequiredService<PriceService>()).Show();
+        card.Close.Click += (_, _) => services.GetRequiredService<OverlayHost>().SetVisible(window!, false);
         model.Opened += () => Dispatcher.BeginInvoke(Open);
         model.Changed += () => Dispatcher.BeginInvoke(Refresh);
         Refresh();
@@ -67,64 +85,7 @@ public sealed class ShopView : StackPanel
     }
     private void Refresh()
     {
-        var amounts = new List<ShopAmount>();
-        foreach (var (label, choice) in new[] { ("−10%", "minus10"), ("−1", "minus1"), ("+1", "plus1"), ("+10%", "plus10") })
-        {
-            var suggestion = model.Suggest(choice);
-            // A duplicate still shows its number, but only Suggest decides availability.
-            var display = suggestion;
-            if (display is null && !model.NoteMode && model.Note is { } note)
-            {
-                var raw = choice switch { "minus10" => note.Amount * .9m, "minus1" => note.Amount - 1,
-                    "plus1" => note.Amount + 1, _ => note.Amount * 1.1m };
-                display = note with { Amount = Math.Max(1, decimal.Round(raw, 0, MidpointRounding.AwayFromZero)) };
-            }
-            amounts.Add(new(choice, label, display is null ? "—" : model.NoteMode
-                ? display.ToString() : GameAction.FormatAmount(display.Amount), suggestion is not null));
-        }
-        var pasted = !model.CanApply && model.Status.Contains(ShopModel.RearmMessage, StringComparison.Ordinal)
-            ? selectedAmount : null;
-        var notice = model.DisplayStatus;
-        if (notice == model.Instructions || notice == ShopModel.RearmMessage) notice = "";
-        var data = new ShopCardModel(model.CurrentItemName ?? "Shop pricer", model.Note?.DisplayAmount,
-            model.FirstListedAt is { } first ? DateTimeOffset.UtcNow - first : null,
-            model.Currency, model.CanApply, model.NoteMode, amounts,
-            model.Suggest("custom") is { } custom ? model.NoteMode ? custom.ToString() : custom.DisplayAmount : null,
-            pasted, notice);
-        Children.Clear();
-        var card = ShopCardBuilder.Build(data, CardTheme.Default);
-        Children.Add(card); // Bind requires the control to belong to the existing window.
-        foreach (var button in Buttons(card))
-        {
-            var choice = (string)button.Tag;
-            if (choice is "history" or "edit-custom")
-                button.Click += (_, _) => new HistoryView(model, services.GetRequiredService<PriceService>()).Show();
-            else if (choice == "close")
-                button.Click += (_, _) => services.GetRequiredService<OverlayHost>().SetVisible(window!, false);
-            else
-            {
-                var acceptClick = false;
-                button.PreviewMouseLeftButtonDown += (_, e) => acceptClick = ShopModel.AcceptClick(e.ClickCount);
-                // Preserve the double-click guard before FeatureViews redeems the physical token.
-                button.PreviewMouseLeftButtonUp += (_, e) =>
-                {
-                    if (!acceptClick) e.Handled = true;
-                    else if (model.Suggest(choice) is { } next) selectedAmount = model.NoteMode
-                        ? next.ToString() : GameAction.FormatAmount(next.Amount);
-                    acceptClick = false;
-                };
-                views.Bind(button, "vaalasync:" + choice);
-            }
-        }
+        card.Update(model.CardSnapshot(DateTimeOffset.UtcNow, selectedAmount));
         Position();
-    }
-
-    private static IEnumerable<Button> Buttons(DependencyObject parent)
-    {
-        foreach (var child in LogicalTreeHelper.GetChildren(parent).OfType<DependencyObject>())
-        {
-            if (child is Button button) yield return button;
-            else foreach (var descendant in Buttons(child)) yield return descendant;
-        }
     }
 }
