@@ -54,6 +54,25 @@ public sealed class ActionLogReaderTests : IDisposable
         Assert.Contains("does not exist", snapshot.Note);
     }
     [Fact]
+    public void AbsentPathInAbsentDirectoryReportsMissing()
+    {
+        var absent = Path.Combine(path, "actions.log");
+        Assert.False(File.Exists(absent));
+        Assert.False(Directory.Exists(absent));
+        var snapshot = ActionLogReader.Read(absent);
+        Assert.Empty(snapshot.Entries);
+        Assert.True(snapshot.Missing);
+        Assert.Contains("does not exist", snapshot.Note);
+    }
+    [Fact]
+    public void ExistingDirectoryWithoutTrailingSeparatorIsUnreadable()
+    {
+        var snapshot = ActionLogReader.Read(Path.TrimEndingDirectorySeparator(Path.GetTempPath()));
+        Assert.Empty(snapshot.Entries);
+        Assert.False(snapshot.Missing);
+        Assert.Contains("Could not read", snapshot.Note);
+    }
+    [Fact]
     public void SharingViolationReturnsErrorNote()
     {
         using var locked = new FileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None);

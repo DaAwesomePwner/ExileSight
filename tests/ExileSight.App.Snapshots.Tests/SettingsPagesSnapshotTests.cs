@@ -39,7 +39,7 @@ public sealed class SettingsPagesSnapshotTests
                 SettingsJsonContext.Default.SettingsDocument, () => new());
             SnapshotRenderer.Render(() =>
             {
-                var host = new OverlayPageHost(store, 16d / 9);
+                var host = SettingsPageTestTheme.Apply(new OverlayPageHost(store, 16d / 9));
                 T Find<T>(string name) where T : FrameworkElement => Descendants(host.Content).OfType<T>().Single(e => e.Name == name);
                 var save = Descendants(host.Content).OfType<Button>().Single(b => Equals(b.Tag, "SaveOverlay"));
                 Find<TextBox>("Quantity").Text = "-1";

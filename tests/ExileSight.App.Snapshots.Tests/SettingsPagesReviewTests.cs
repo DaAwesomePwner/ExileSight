@@ -23,13 +23,13 @@ public sealed class SettingsPagesReviewTests
 #if SNAPSHOT_WINDOWS
         SnapshotRenderer.Render(() =>
         {
-            var overlay = OverlayPageBuilder.Build(new(new(), new()), CardTheme.Default);
+            var overlay = SettingsPageTestTheme.Apply(OverlayPageBuilder.Build(new(new(), new()), CardTheme.Default));
             // Target Home while the displayed tree still contains Density/Contrast.
             Assert.Null(ShellViewState.LeagueBox(overlay, "Overlay"));
             Assert.Null(ShellViewState.LeagueBox(overlay, "Home"));
             Assert.True(ShellRefreshPolicy.ShouldRebuild(true, false, false,
                 ShellViewState.LeagueBox(overlay, "Overlay")?.Text, "Standard"));
-            var home = HomeBuilder.Build(new("Home", "Standard", [], [], null), CardTheme.Default, false);
+            var home = SettingsPageTestTheme.Apply(HomeBuilder.Build(new("Home", "Standard", [], [], null), CardTheme.Default, false));
             var league = Assert.IsType<ComboBox>(ShellViewState.LeagueBox(home, "Home"));
             league.Text = "Unsaved league";
             Assert.False(ShellRefreshPolicy.ShouldRebuild(true, false, false, league.Text, "Standard"));
@@ -50,7 +50,7 @@ public sealed class SettingsPagesReviewTests
                 SettingsJsonContext.Default.SettingsDocument, () => new());
             SnapshotRenderer.Render(() =>
             {
-                var host = new OverlayPageHost(store, 16d / 9);
+                var host = SettingsPageTestTheme.Apply(new OverlayPageHost(store, 16d / 9));
                 T Find<T>(string name) where T : FrameworkElement => Descendants(host.Content).OfType<T>().Single(e => e.Name == name);
                 Assert.False(Find<TextBox>("Scale").IsEnabled);
                 var density = Find<ComboBox>("Density");
@@ -91,7 +91,7 @@ public sealed class SettingsPagesReviewTests
                 Assert.Equal("2026-01-02 12:34:56", TransparencyPageBuilder.FormatTime(timestamp, new DateTime(2026, 1, 3)));
                 Assert.Equal("Copy item", TransparencyPageBuilder.ActionName("CopyItem"));
                 Assert.Equal("FutureAction", TransparencyPageBuilder.ActionName("FutureAction"));
-                var page = TransparencyPageBuilder.Build(new([], 0, false, "actions.log does not exist yet.", true), CardTheme.Default);
+                var page = SettingsPageTestTheme.Apply(TransparencyPageBuilder.Build(new([], 0, false, "actions.log does not exist yet.", true), CardTheme.Default));
                 var button = Assert.Single(Descendants(page).OfType<Button>());
                 Assert.Equal("Open log folder", button.Content);
                 Assert.Equal(HorizontalAlignment.Left, button.HorizontalAlignment);

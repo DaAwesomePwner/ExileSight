@@ -17,12 +17,19 @@ public static class ActionLogReader
 {
     private static ActionLogSnapshot MissingFile() => new([], 0, false,
         "actions.log does not exist yet. Open log folder opens its folder when available.", true);
+    private static ActionLogSnapshot Unreadable(string reason) => new([], 0, false,
+        "Could not read actions.log (" + reason + "). Try again after access is restored.");
+    private static ActionLogSnapshot MissingOrUnreadable(string path, Exception error) =>
+        Directory.Exists(path) || File.Exists(path) ? Unreadable(error.GetType().Name) : MissingFile();
     public const int MaximumBytes = 1024 * 1024;
     public static Task<ActionLogSnapshot> ReadAsync(string path) => Task.Run(() => Read(path));
     public static ActionLogSnapshot Read(string path)
     {
         try
         {
+            // Windows can report a directory as FileNotFound, while Unix reports access denied.
+            // Check directory identity first so both platforms expose the same unreadable state.
+            if (Directory.Exists(path)) return Unreadable("path is a directory");
             using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
             var length = file.Length;
             var start = Math.Max(0, length - MaximumBytes);
@@ -62,9 +69,9 @@ public static class ActionLogReader
             }
             return new(entries, skipped, start > 0);
         }
-        catch (FileNotFoundException) { return MissingFile(); }
-        catch (DirectoryNotFoundException) { return MissingFile(); }
+        catch (FileNotFoundException error) { return MissingOrUnreadable(path, error); }
+        catch (DirectoryNotFoundException error) { return MissingOrUnreadable(path, error); }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
-        { return new([], 0, false, "Could not read actions.log (" + error.GetType().Name + "). Try again after access is restored."); }
+        { return Unreadable(error.GetType().Name); }
     }
 }
