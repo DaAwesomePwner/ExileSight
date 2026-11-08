@@ -1,6 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
+using ExileSight.App.Ui;
 using System.Windows.Threading;
 using ExileSight.App.Overlay;
 using ExileSight.Core.Overlay;
@@ -16,10 +16,11 @@ public sealed class TimersView
     private readonly IGameWindow game;
     private readonly HostedOverlayWindow panel, passive, toast;
     private readonly DispatcherTimer ticker = new() { Interval = TimeSpan.FromMilliseconds(250) };
-    private readonly ListBox list = new() { Height = 155, Focusable = false, Background = Brushes.Black, Foreground = Brushes.White, DisplayMemberPath = "Text" };
+    private readonly ListBox list = new() { Height = 155, Focusable = false, Background = CardTheme.Default.OverlayBackground, Foreground = CardTheme.Default.OverlayForeground, DisplayMemberPath = "Text" };
     private readonly TimerEditor editor = new();
     private readonly StackPanel controls = new();
-    private readonly TextBlock passiveText = TimerEditor.Label("");
+    private readonly Border passiveContent = new() { HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
+    private readonly CardTheme theme = CardTheme.Default;
     private readonly TextBlock status = TimerEditor.Label("");
     private readonly TextBlock toastText = TimerEditor.Label("");
     private readonly TimerRows rows = new();
@@ -42,7 +43,7 @@ public sealed class TimersView
             list.SelectedItem = list.ItemContainerGenerator.ItemFromContainer(item);
             e.Handled = true;
         };
-        var content = new StackPanel { Background = Brushes.Black, Margin = new Thickness(6) };
+        var content = new StackPanel { Background = CardTheme.Default.OverlayBackground, Margin = new Thickness(6) };
         content.Children.Add(TimerEditor.Label("Timers · hold Tab to view · Ctrl+Shift+T to edit"));
         content.Children.Add(list); content.Children.Add(controls); content.Children.Add(status);
         controls.Children.Add(editor);
@@ -61,9 +62,9 @@ public sealed class TimersView
                 editor.Select(row);
         };
         panel = host.Register(content, DefaultOverlayLayout.Timers, clickThrough: false);
-        passive = host.Register(new Border { Background = Brushes.Black, Padding = new Thickness(8), Child = passiveText },
+        passive = host.Register(passiveContent,
             DefaultOverlayLayout.CompactTimers);
-        toast = host.Register(new Border { Background = Brushes.Black, Padding = new Thickness(10), Child = toastText },
+        toast = host.Register(new Border { Background = CardTheme.Default.OverlayBackground, Padding = new Thickness(10), Child = toastText },
             DefaultOverlayLayout.TimersToast);
         SetVisible(panel, false); SetVisible(passive, false); SetVisible(toast, false);
         // Settings visibility changes bypass model notifications.
@@ -155,8 +156,8 @@ public sealed class TimersView
     private void Refresh()
     {
         rows.Refresh(model);
-        var text = "Timers · Ctrl+Shift+T to edit\n" + string.Join("\n", rows.Items.Take(8).Select(r => r.Text)) +
-            (rows.Items.Count > 8 ? $"\n+{rows.Items.Count - 8} more · toggle to see all" : "");
-        if (passiveText.Text != text) passiveText.Text = text;
+        if (visibility.Visible && !visibility.Interactive)
+            passiveContent.Child = TimersCardBuilder.Build(model.Snapshot()
+                .Select(r => new TimerCardRow(r.Name, r.Kind, model.Value(r.Id), r.Duration)).ToArray(), theme);
     }
 }
