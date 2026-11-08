@@ -26,7 +26,7 @@ browser to inspect exact sizes and colours.
 
 1. Read the spec section for your surface in [UI-SPEC.md](UI-SPEC.md), then open its PNG.
 2. Build the view as a pure builder (`model + theme → FrameworkElement`) and add your own
-   snapshot test class to the P7-T2 harness, one test per state with fixture models. Get the
+   snapshot test class to `tests/ExileSight.App.Snapshots.Tests`, one test per state with fixture models. Get the
    renders from Windows: run the snapshot tests on the Windows host (the only sure route until
    P7-T2's `workflow_dispatch` trigger is on `main`), or read the `ui-snapshots` CI artifact from a
    manual dispatch of your branch or from a PR into `main` or `integration/**`.
@@ -37,6 +37,30 @@ browser to inspect exact sizes and colours.
 4. If the mockup is impossible or wrong for real data (a value we don't have, a
    label that doesn't fit), don't silently diverge. Follow the spec text, and list
    the difference under `RISKS` in your report so the owner can decide.
+
+Use `SampleSnapshotTests.cs` as the template: mark each test `[WindowsOnlyFact]`, and
+wrap WPF imports and the test body in `#if SNAPSHOT_WINDOWS`. Keep the class and test
+method outside the conditional so non-Windows runs discover and skip the test.
+There is no shared registry. Inside the test call
+`SnapshotRenderer.Render(() => Build(model, theme), "surface-state", new Size(width, height))`.
+Create the view and all theme brushes inside the factory: it runs on a new STA thread.
+Use a unique output name per state. Omit the size to measure to content; explicit sizes
+are logical pixels, rounded up for the PNG. Rendering uses 96 DPI, scale 1.0 (1080p
+baseline), without opening a window. Builders must not use live services, effects or animations.
+Assert that the PNG exists and has the expected dimensions, as the sample does.
+
+On Windows run `dotnet test tests/ExileSight.App.Snapshots.Tests`. PNGs land under
+`tests/ExileSight.App.Snapshots.Tests/bin/Debug/net10.0-windows10.0.19041.0/TestResults/ui-snapshots/`
+(use `Release` instead of `Debug` for `-c Release`). Set `EXILESIGHT_UI_SNAPSHOTS_DIR`
+to override the output directory. macOS/Linux runs skip rendering; to compile-check
+the WPF path there, use `dotnet build tests/ExileSight.App.Snapshots.Tests -p:SnapshotRenderingEnabled=true`,
+then rebuild normally before running tests. A cross-build does not validate rendering.
+
+CI sets the output directory to `artifacts/ui-snapshots` and uploads the `ui-snapshots`
+artifact even when a test fails. In GitHub Actions, open the CI run and download that
+artifact to compare the PNGs. Once this workflow is on `main`, use **Run workflow**
+and select your task branch for a manual render; PRs into `main` or `integration/**`
+also run it. The sample is a harness smoke test, not a production design reference.
 
 The spec text wins over a mockup when they disagree. Sample values in mockups are
 illustrations, not data: never copy them into code or fixtures.

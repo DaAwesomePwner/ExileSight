@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <!-- Opt in on other hosts to compile-check the Windows path without running it. -->
+    <SnapshotRenderingEnabled Condition="'$(SnapshotRenderingEnabled)' == ''">$([MSBuild]::IsOSPlatform('Windows'))</SnapshotRenderingEnabled>
+    <UseWPF Condition="'$(SnapshotRenderingEnabled)' == 'true'">true</UseWPF>
+    <DefineConstants Condition="'$(SnapshotRenderingEnabled)' == 'true'">$(DefineConstants);SNAPSHOT_WINDOWS</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(SnapshotRenderingEnabled)' == 'true'">
+    <ProjectReference Include="../../src/ExileSight.App/ExileSight.App.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+</Project>
