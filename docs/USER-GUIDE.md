@@ -11,12 +11,11 @@ This product isn't affiliated with or endorsed by Grinding Gear Games in any way
 
 ## Install and update
 
-Use the win-x64 Velopack setup executable from a trusted ExileSight build. In
-GitHub Actions, the installer files are in **ExileSight-Velopack-win-x64**;
-**ExileSight-App-win-x64** is the separate portable app. CI creates artifacts;
-it does not publish a release automatically. Run setup, then complete the wizard.
-Once releases are published, get builds from the project’s
-[GitHub Releases](https://github.com/DaAwesomePwner/ExileSight/releases) page.
+Download `ExileSight-stable-Setup.exe` from the project’s
+[GitHub Releases](https://github.com/DaAwesomePwner/ExileSight/releases) page,
+run it, then complete the wizard. Each release lists what changed. Test builds
+from GitHub Actions (**ExileSight-Velopack-win-x64** installer,
+**ExileSight-App-win-x64** portable app) are for testing only.
 
 Installed copies check the project's GitHub releases after a five-second startup
 delay, then every six hours. Available updates download in the background and

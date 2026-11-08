@@ -19,10 +19,15 @@ checkout. The owner must complete the Phase 5 Windows play-session gate first.
 1. Choose an unused version: `1.0.0` with channel `stable`, or
    `1.0.0-beta.1` with channel `beta`. Do not include `v`. Versions have three
    numeric components; beta versions require `-beta.N`. Leading zeroes are rejected.
-2. Leave `dry_run` enabled. Download the workflow artifact and review the size
+2. On main, add a `## <version>` section to [CHANGELOG.md](../CHANGELOG.md) with
+   the player-facing changes. The workflow fails before building if it is
+   missing or empty. Release notes are that section, GitHub's generated list of
+   merged pull requests since the previous app release (for stable, the previous
+   stable), then the data attribution.
+3. Leave `dry_run` enabled. Download the workflow artifact and review the size
    table in the job summary and `Releases/ASSET-SIZES.md`. Test the Setup executable
    on Windows, including install, update from the previous release and normal exit.
-3. Run the same version/channel from the same reviewed main commit with
+4. Run the same version/channel from the same reviewed main commit with
    `dry_run` disabled. The workflow creates `v<version>` as a draft, uploads and
    verifies the prepared assets before exposing the release. Beta is marked as a
    GitHub prerelease. Existing tags/releases are never overwritten. Both kinds
