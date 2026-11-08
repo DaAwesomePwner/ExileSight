@@ -99,3 +99,10 @@ lose their title. `CardSlotKind.None` means a blank unique slot marker; `Unknown
 means a question mark. White items omit the slots section. Copies without any mod
 rows cannot reveal their copy mode and never request advanced copy. Fixed unique
 implicit/enchant rows retain their `imp`/`ench` kind pills.
+
+`ItemInfoResult.Settings` is transient card-building context: it is ignored by JSON
+serialization and by result equality/hashing. The six analysis fields retain their
+original record comparison semantics (including list identity). This keeps frozen
+calculator JSON comparisons independent of UI settings; recalculating highlights
+still changes the analysis rows themselves. Enchants always use `CardSlotKind.None`
+because they never consume a prefix or suffix slot.

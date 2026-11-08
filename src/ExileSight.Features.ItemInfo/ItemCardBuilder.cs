@@ -51,7 +51,7 @@ public static class ItemCardBuilder
         var crafted = source.Kind.HasFlag(ModKind.Crafted);
         var enchant = source.Kind.HasFlag(ModKind.Enchant);
         var uniqueMod = unique || source.Kind.HasFlag(ModKind.Unique);
-        var slot = implicitMod ? CardSlotKind.Implicit : uniqueMod ? CardSlotKind.None : source.AffixType switch
+        var slot = enchant ? CardSlotKind.None : implicitMod ? CardSlotKind.Implicit : uniqueMod ? CardSlotKind.None : source.AffixType switch
         {
             AffixType.Prefix => CardSlotKind.Prefix, AffixType.Suffix => CardSlotKind.Suffix, _ => CardSlotKind.Unknown
         };

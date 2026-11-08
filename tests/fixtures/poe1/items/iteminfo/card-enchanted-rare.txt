@@ -1,0 +1,12 @@
+Item Class: Helmets
+Rarity: Rare
+Synthetic Enchanted Crown
+Synthetic Hat
+--------
+Item Level: 80
+--------
+{ Enchantment Modifier }
+10(5-15)% increased Test Speed (enchant)
+--------
+{ Prefix Modifier "Synthetic Life" (Tier: 1) }
++30(20-30) to maximum Life
