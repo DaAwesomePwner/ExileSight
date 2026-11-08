@@ -6,8 +6,11 @@ using ExileSight.Core.Items;
 
 namespace ExileSight.Features.MapInfo;
 
-public sealed record MapRow(string? Id, string Text, string? Area, int Rank = 0);
-public sealed record MapResult(string Name, decimal? Quantity, decimal? Rarity, decimal? PackSize, IReadOnlyList<MapRow> Mods);
+public sealed record MapRow(string? Id, string Text, string? Area, int? Rank = null, string? Category = null)
+{
+    public bool IsUnknown => Id is null;
+}
+public sealed record MapResult(string Name, decimal? Quantity, decimal? Rarity, decimal? PackSize, IReadOnlyList<MapRow> Mods, int? Tier = null, string? ItemRarity = null, bool Corrupted = false);
 
 public sealed class MapMatcher
 {
@@ -36,7 +39,7 @@ public sealed class MapMatcher
         string? area = null;
         var logbook = item.ItemClass == "Expedition Logbooks";
         if (!logbook && item.Rarity is ItemRarity.Normal or ItemRarity.Unique)
-            return new(item.Name, item.MapQuantity, item.MapRarity, item.MapPackSize, rows);
+            return new(item.Name, item.MapQuantity, item.MapRarity, item.MapPackSize, rows, item.MapTier, item.Rarity == ItemRarity.Unknown ? null : item.Rarity.ToString().ToLowerInvariant(), item.Corrupted);
         for (var i = 0; i < item.Mods.Count;)
         {
             // Labels immediately preceding a recognised faction identify the copied expedition area.
@@ -60,7 +63,7 @@ public sealed class MapMatcher
                 match = applicable[0]; consumed = length; break;
             }
             var scope = first.Kind.HasFlag(ModKind.Implicit) ? area : null;
-            if (match is null) rows.Add(new(null, "unknown: " + first.Text, scope, 3));
+            if (match is null) rows.Add(new(null, "Not in map data · check in game", scope));
             else
             {
                 var values = item.Mods.Skip(i).Take(consumed).SelectMany(m => m.Values).Select(v => Math.Abs(v.Value)).ToArray();
@@ -69,17 +72,17 @@ public sealed class MapMatcher
                 {
                     values = values.Select((v, index) => v + previous.Values[index]).ToArray();
                     totals[key] = (previous.Index, values);
-                    rows[previous.Index] = new(match.Id, Render(match.Text, values), scope);
+                    rows[previous.Index] = new(match.Id, Render(match.Text, values), scope, Category: match.Type);
                 }
                 else
                 {
                     totals[key] = (rows.Count, values);
-                    rows.Add(new(match.Id, Render(match.Text, values), scope));
+                    rows.Add(new(match.Id, Render(match.Text, values), scope, Category: match.Type));
                 }
             }
             i += consumed;
         }
-        return new(item.Name, item.MapQuantity, item.MapRarity, item.MapPackSize, rows);
+        return new(item.Name, item.MapQuantity, item.MapRarity, item.MapPackSize, rows, item.MapTier, item.Rarity == ItemRarity.Unknown ? null : item.Rarity.ToString().ToLowerInvariant(), item.Corrupted);
     }
     private static string Render(string text, decimal[] values)
     {

@@ -16,7 +16,7 @@ internal static class DeclaredResources
         ["guide"] = ["poe1/guide/progress.json", "poe1/guide/{hash}.json", "user-selected CSV export"],
         ["iteminfo"] = ["active profile JSON (highlight profiles)"],
         ["macros"] = ["active profile JSON (commands)"],
-        ["mapinfo"] = ["poe1/mapinfo/ratings.json"],
+        ["mapinfo"] = ["poe1/mapinfo/ratings.json", "active profile JSON (map thresholds)"],
         ["maptracker"] = ["active profile JSON (league)", "poe1/maptracker/{league-hash}.jsonl", "user-selected CSV export"],
         ["omni"] = ["active profile JSON (use advanced copy)"],
         ["searchstr"] = [],
