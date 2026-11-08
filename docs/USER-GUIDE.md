@@ -138,7 +138,7 @@ with tags visible. These checks compare against the baseline captured when the p
 was identified. A stable page never causes a periodic full read or recurring blink.
 
 When no page is identified, sparse border checks at the saved calibration or default
-fit gate larger reads; they must score at least 12.5 before a full search starts.
+fit compare dark inner-slot bands, normalized against their neighboring pixels, and gate larger reads; they must score at least 12.5 before a full search starts.
 After the first immediate check, unidentified scenes are checked no more often than
 every 1.8 seconds, even when the moving world changes the header every tick. The
 header itself stays on its 450 ms schedule. Opening a supported stash waits at most

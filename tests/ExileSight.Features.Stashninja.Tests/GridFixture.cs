@@ -36,18 +36,25 @@ internal static class GridFixture
         for (var y = 0; y < size.Height; y++)
         for (var x = 0; x < size.Width; x++)
         {
-            double value = .42;
+            double value = .12;
             if (grid)
             for (var i = 0; i < boxes.Length; i++)
             {
                 var b = boxes[i]; var dx = x - b.P.X; var dy = y - b.P.Y;
                 if (dx < -2 || dy < -2 || dx > b.W + 2 || dy > b.H + 2) continue;
-                var distance = Math.Min(Math.Min(Math.Abs(dx), Math.Abs(dx - b.W)), Math.Min(Math.Abs(dy), Math.Abs(dy - b.H)));
-                value -= .32 * Math.Max(0, 1 - distance / 1.5);
-                if (i % 3 == 0 && dx > 7 && dx < b.W - 7 && dy > 7 && dy < b.H - 7) value = .75;
+                var near = GridEvidence.Near(layout) * transform.Scale;
+                var far = GridEvidence.Far(layout) * transform.Scale;
+                var distance = Math.Min(Math.Min(Math.Abs(dx - near), Math.Abs(dx - b.W + far)),
+                    Math.Min(Math.Abs(dy - near), Math.Abs(dy - b.H + far)));
+                value = .12 - .10 * Math.Max(0, 1 - distance / (1.5 * transform.Scale));
+                var border = Math.Min(Math.Min(Math.Abs(dx), Math.Abs(dx - b.W)), Math.Min(Math.Abs(dy), Math.Abs(dy - b.H)));
+                value += .02 * Math.Max(0, 1 - border / transform.Scale);
+                if (i % 3 == 0 && dx > near + 5 * transform.Scale && dx < b.W - far - 5 * transform.Scale &&
+                    dy > near + 5 * transform.Scale && dy < b.H - far - 5 * transform.Scale) value = .5;
+
             }
             else value = random.NextDouble();
-            var v = (byte)Math.Clamp(255 * brightness * Math.Pow(Math.Max(.01, value), gamma) + random.Next(-7, 8), 0, 255);
+            var v = (byte)Math.Clamp(255 * brightness * Math.Pow(Math.Max(.001, value + random.Next(-2, 3) / 1000d), gamma), 0, 255);
             var p = (y * size.Width + x) * 4;
             pixels[p] = pixels[p + 1] = pixels[p + 2] = v; pixels[p + 3] = 255;
         }

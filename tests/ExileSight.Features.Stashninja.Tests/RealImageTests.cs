@@ -22,6 +22,7 @@ public sealed class RealImageTests(ITestOutputHelper output)
         var folder = Environment.GetEnvironmentVariable("EXILESIGHT_REAL_STASH_DIR")!;
         var labels = JsonSerializer.Deserialize<Dictionary<string, string?>>(File.ReadAllText(Path.Combine(folder, "labels.json")))!;
         var layouts = Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts"));
+        var failures = new List<string>();
         foreach (var (name, expected) in labels.Where(p => p.Key.StartsWith("src", StringComparison.Ordinal)))
         foreach (var width in new[] { 2000, 3440 })
         foreach (var shiftX in expected is null ? new[] { 0 } : new[] { 0, -5, 5 })
@@ -58,12 +59,13 @@ public sealed class RealImageTests(ITestOutputHelper output)
                 });
             }
             output.WriteLine($"{name} {width} shift=({shiftX},{shiftY}): {expected ?? "Unknown"} => {actual ?? "Unknown"}, score={result.Score:F2}, margin={result.Margin:F2}, pre={(layout is null ? pre.Values.Max() : pre[layout]):F2}, error={error:F2}px, {elapsed:F1}ms");
-            Assert.Equal(expected, actual);
+            var tag = $"{name}/{width}/({shiftX},{shiftY})";
+            if (expected != actual) failures.Add($"{tag}: expected {expected ?? "Unknown"}, got {actual ?? "Unknown"}");
             if (layout is null) continue;
-            Assert.True(result.Margin >= GridIdentifier.MinimumMargin);
-            Assert.True(StashWatchPolicy.ShouldIdentify(pre[layout]));
-            Assert.NotNull(wide!.Transform);
-            Assert.InRange(error, 0, 2);
+            if (result.Margin < GridIdentifier.MinimumMargin) failures.Add($"{tag}: margin {result.Margin:F2}");
+            if (!StashWatchPolicy.ShouldIdentify(pre[layout])) failures.Add($"{tag}: precheck {pre[layout]:F2}");
+            if (wide!.Transform is null || error > 2) failures.Add($"{tag}: wide error {error:F2}");
         }
+        Assert.True(failures.Count == 0, string.Join(Environment.NewLine, failures));
     }
 }

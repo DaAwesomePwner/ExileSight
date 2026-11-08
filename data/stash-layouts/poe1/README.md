@@ -173,15 +173,20 @@ with no detected change need one second of consecutive Unknown before hiding.
 Unidentified scenes use sparse fixed-transform border pre-checks, no scale or
 translation search: eight 33×33 patches per layout, at most 69,696 pixels for all
 eight pages. The profile scans a ±12px normal band for coherent borders, requiring
-17/19 supported tangent samples. Score ≥12.5 gates full capture/identification.
+14/19 normalized valley samples above 8. Score ≥12.5 gates full capture/identification.
 After the initial immediate check, unidentified scenes have a minimum 1800 ms
 interval even if the header changes every tick. Header checks remain 450 ms. A
 supported stash waits at most 1.8 s for the gate, plus capture/scoring/price loading.
 
 Local identification compares every layout within ±3 px / ±0.3% scale, with
-refinement (≤559 evaluations per layout). Require coherent score ≥25/255,
-≥75% supported search probes and runner-up margin ≥3. Independent neighboring
-tangent probes reject noise. If needed, at most two qualifying uncalibrated
+refinement (≤559 evaluations per layout). Require normalized inner-band score ≥12,
+≥65% supported cells (evidence >6) and runner-up margin ≥3. The locator also
+requires score ≥8 and wide confidence ≥2.5. Near bands are 3 reference pixels
+inset (Blight 1.5, Delve 2.5); far bands are 8 pixels inset (Blight/Essence 8.5).
+These numeric offsets come from local median strip profiles; tag geometry is unchanged.
+Compare each band with its weaker flank, search ±2 reference pixels, and penalize
+tangent variation and displacement. Trim the strongest quarter of cells and
+subtract 1.5 standard errors across cells. If needed, at most two qualifying uncalibrated
 candidates get the broad ±3% height / ±5% scale search (≤40,000 evaluations each).
 Only one fully admitted wider-search batch is allowed per header baseline, and each layout has a
 separate 30-second cooldown. Reservations are consumed before work, even on failure
@@ -204,3 +209,7 @@ foreground/resolution changes, price-response races and manual controls. Only
 a genuine change or qualifying gate causes full capture; tags may hide through
 that transition's 32ms compositor delay, capture and off-thread scoring.
 No screenshots or signatures may be committed; samples stay on the PC.
+
+The S1-R5 band model is provisional: real-image and synthetic acceptance gates
+must pass before release. Set `EXILESIGHT_REAL_STASH_DIR` to the local corpus to
+run `RealImageTests`; no screenshots belong in this repository.

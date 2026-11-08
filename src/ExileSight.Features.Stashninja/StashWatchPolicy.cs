@@ -13,7 +13,7 @@ public sealed class StashWatchPolicy
     public bool Identified { get; private set; }
     public bool Pinned { get; private set; }
     public TimeSpan Interval => TimeSpan.FromMilliseconds(1800);
-    public static bool ShouldIdentify(double score) => score >= GridIdentifier.MinimumScore / 2;
+    public static bool ShouldIdentify(double score) => score >= 12.5;
     private static bool Changed(double[] a, double[] b) =>
         a.Length != b.Length || a.Zip(b).Average(p => Math.Abs(p.First - p.Second)) > ChangeThreshold;
 

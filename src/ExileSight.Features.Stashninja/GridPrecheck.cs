@@ -23,8 +23,8 @@ public static class GridPrecheck
                 var origin = Layouts.Origin(layout, cell);
                 foreach (var vertical in new[] { true, false })
                 {
-                    var p = start.Apply(new(origin.X + (vertical ? 0 : cell.W / 2),
-                        origin.Y + (vertical ? cell.H / 2 : 0)));
+                    var p = start.Apply(new(origin.X + (vertical ? GridEvidence.Near(layout) : cell.W / 2),
+                        origin.Y + (vertical ? cell.H / 2 : GridEvidence.Near(layout))));
                     var area = new GridArea((int)Math.Round(p.X) - 16, (int)Math.Round(p.Y) - 16, PatchSize, PatchSize);
                     if (area.X < 0 || area.Y < 0 || area.X + PatchSize > size.Width || area.Y + PatchSize > size.Height) continue;
                     var image = capture(area);
@@ -42,11 +42,11 @@ public static class GridPrecheck
                         double sum = 0; var supported = 0;
                         for (var t = 7; t <= 25; t++)
                         {
-                            var contrast = (Read(n - 3, t) + Read(n + 3, t)) / 2 - Read(n, t);
+                            var contrast = GridEvidence.Valley(Read(n - 3, t), Read(n, t), Read(n + 3, t));
                             sum += contrast;
-                            if (contrast > 6) supported++;
+                            if (contrast > 8) supported++;
                         }
-                        if (supported >= 17) best = Math.Max(best, sum / 19);
+                        if (supported >= 14) best = Math.Max(best, sum / 19);
                     }
                     total += best;
                 }

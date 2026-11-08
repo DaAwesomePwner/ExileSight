@@ -3,7 +3,7 @@ namespace ExileSight.Features.Stashninja;
 public sealed record GridSample(int X, int Y, int Width, int Height, byte[] Bgra);
 public sealed record GridLocation(Transform? Transform, double Confidence, string Reason, int Evaluations, double Score = 0);
 
-/// <summary>Display-only, bounded search for dark slot frames. No platform dependencies.</summary>
+/// <summary>Display-only, bounded search for inner slot bands. No platform dependencies.</summary>
 public static class GridLocator
 {
     public const int MaxPixels = 8_388_608;
@@ -30,45 +30,41 @@ public static class GridLocator
             var cell = layout.Cells[i * layout.Cells.Length / count]; var p = Layouts.Origin(layout, cell);
             for (var j = 1; j <= 3; j++)
             {
-                probes.Add(new(p.X, p.Y + cell.H * j / 4, true));
-                probes.Add(new(p.X + cell.W, p.Y + cell.H * j / 4, true));
-                probes.Add(new(p.X + cell.W * j / 4, p.Y, false));
-                probes.Add(new(p.X + cell.W * j / 4, p.Y + cell.H, false));
+                probes.Add(new(p.X + GridEvidence.Near(layout), p.Y + cell.H * j / 4, true));
+                probes.Add(new(p.X + cell.W - GridEvidence.Far(layout), p.Y + cell.H * j / 4, true));
+                probes.Add(new(p.X + cell.W * j / 4, p.Y + GridEvidence.Near(layout), false));
+                probes.Add(new(p.X + cell.W * j / 4, p.Y + cell.H - GridEvidence.Far(layout), false));
             }
         }
         var points = probes.ToArray(); var evaluations = 0;
-        double Read(double x, double y)
+        var bounds = GridSampling.Bounds(layout, client, start);
+        bounds = bounds with { X = bounds.X - sample.X, Y = bounds.Y - sample.Y };
+        var horizontal = GridEvidence.Map(luminance, sample.Width, sample.Height, start.Scale, false, bounds);
+        var vertical = GridEvidence.Map(luminance, sample.Width, sample.Height, start.Scale, true, bounds);
+        double Read(float[] values, double x, double y)
         {
             var ix = (int)x; var iy = (int)y; var fx = x - ix; var fy = y - iy;
-            return (luminance[iy * sample.Width + ix] * (1 - fx) + luminance[iy * sample.Width + ix + 1] * fx) * (1 - fy) +
-                (luminance[(iy + 1) * sample.Width + ix] * (1 - fx) + luminance[(iy + 1) * sample.Width + ix + 1] * fx) * fy;
+            return (values[iy * sample.Width + ix] * (1 - fx) + values[iy * sample.Width + ix + 1] * fx) * (1 - fy) +
+                (values[(iy + 1) * sample.Width + ix] * (1 - fx) + values[(iy + 1) * sample.Width + ix + 1] * fx) * fy;
         }
         (double Score, double Coverage)? Score(Transform t, bool confirm = false)
         {
-            double sum = 0; var supported = 0;
-            foreach (var p in points)
+            var cells = new double[count]; var supported = 0;
+            for (var i = 0; i < points.Length; i++)
             {
+                var p = points[i];
                 var x = p.X * t.Scale + t.X - sample.X; var y = p.Y * t.Scale + t.Y - sample.Y;
-                var d = Math.Max(3, 2 * t.Scale);
-                var xExtent = confirm && !p.Vertical ? 4 : d;
-                var yExtent = confirm && p.Vertical ? 4 : d;
-                if (x < xExtent || y < yExtent || x >= sample.Width - xExtent - 1 || y >= sample.Height - yExtent - 1) return null;
-                // Dark frame against its two neighbours: interior artwork contributes little
-                // because probes stay close to the border and avoid corners.
-                double contrast = 0;
-                var radius = confirm ? 2 : 0;
-                for (var tangent = -radius; tangent <= radius; tangent++)
-                {
-                    var tx = x + (p.Vertical ? 0 : tangent * 2);
-                    var ty = y + (p.Vertical ? tangent * 2 : 0);
-                    contrast += (p.Vertical ? Read(tx - d, ty) + Read(tx + d, ty) :
-                        Read(tx, ty - d) + Read(tx, ty + d)) / 2 - Read(tx, ty);
-                }
-                contrast /= 2 * radius + 1;
-                sum += Math.Clamp(contrast, -80, 80);
-                if (contrast > 6) supported++;
+                var extent = 8 * start.Scale;
+                if (x < extent || y < extent || x >= sample.Width - extent - 1 || y >= sample.Height - extent - 1) return null;
+                cells[i / 12] += Read(p.Vertical ? vertical : horizontal, x, y) / 12;
             }
-            return (sum / points.Length, (double)supported / points.Length);
+            foreach (var cell in cells) if (cell > 6) supported++;
+            Array.Sort(cells);
+            // Discard the strongest quarter: isolated artwork cannot carry a page.
+            var kept = Math.Max(1, count - count / 4);
+            var mean = cells.Average();
+            var uncertainty = 1.5 * Math.Sqrt(cells.Average(c => (c - mean) * (c - mean)) / count);
+            return (cells.Take(kept).Average() - uncertainty, (double)supported / count);
         }
         var range = local ? 3d : client.Height * TranslationRange;
         var pool = new List<Candidate>(); double total = 0, squared = 0; var coarseCount = 0;
@@ -109,7 +105,7 @@ public static class GridLocator
         var mean = total / coarseCount; var deviation = Math.Sqrt(Math.Max(1, squared / coarseCount - mean * mean));
         var confidence = (best.Score - mean) / deviation;
         var verified = Score(best.Transform, confirm: true);
-        if (best.Score < 8 || Score(best.Transform)!.Value.Coverage < .75 || (!local && confidence < 2.5))
+        if (best.Score < 8 || Score(best.Transform)!.Value.Coverage < .65 || (!local && confidence < 2.5))
             return new(null, confidence, "Grid confidence too low", evaluations, verified?.Score ?? 0);
         // Share the finite, positive uniform-transform consistency rules with manual calibration.
         var a = Geometry.Center(layout, layout.Cells[0]); var b = Geometry.Center(layout, layout.Cells[^1]);

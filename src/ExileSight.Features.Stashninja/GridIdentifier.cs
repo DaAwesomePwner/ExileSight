@@ -5,7 +5,7 @@ public sealed record GridIdentification(Layout? Layout, Transform? Transform, do
 /// <summary>Compare all shipped geometries; ambiguity never grants a display identity.</summary>
 public static class GridIdentifier
 {
-    public const double MinimumScore = 25, MinimumMargin = 3;
+    public const double MinimumScore = 12, MinimumMargin = 3;
     public static GridIdentification Identify(IReadOnlyList<Layout> layouts, Resolution size, GridSample sample,
         Func<Layout, Transform?> calibration, IReadOnlyDictionary<Layout, double>? precheck = null,
         Func<IReadOnlyList<Layout>, IReadOnlySet<Layout>>? reserveWideSearch = null)
