@@ -22,20 +22,26 @@ public sealed class TimersView
     private readonly TextBlock passiveText = TimerEditor.Label("");
     private readonly TextBlock status = TimerEditor.Label("");
     private readonly TextBlock toastText = TimerEditor.Label("");
-    private readonly Dictionary<Guid, TimerRow> rows = [];
+    private readonly TimerRows rows = new();
     private long toastUntil;
     private TimersVisibility visibility;
     private readonly Dictionary<HostedOverlayWindow, bool> requested = [];
-    private sealed class TimerRow(Guid id) : System.ComponentModel.INotifyPropertyChanged
-    {
-        public Guid Id { get; } = id;
-        private string text = "";
-        public string Text { get => text; set { if (text == value) return; text = value; PropertyChanged?.Invoke(this, new(nameof(Text))); } }
-        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
-    }
     public TimersView(TimersModel model, OverlayHost host, IGameWindow game)
     {
         this.model = model; this.host = host; this.game = game;
+        list.ItemsSource = rows.Items;
+        var itemStyle = new Style(typeof(ListBoxItem));
+        itemStyle.Setters.Add(new Setter(UIElement.FocusableProperty, false));
+        list.ItemContainerStyle = itemStyle;
+        list.PreviewMouseLeftButtonDown += (_, e) =>
+        {
+            // WPF ListBoxItem selects only if Focus() succeeds. NOACTIVATE must not
+            // depend on that path: select the hit row and consume it before bubbling.
+            if (!visibility.Interactive || e.OriginalSource is not DependencyObject source ||
+                ItemsControl.ContainerFromElement(list, source) is not ListBoxItem item) return;
+            list.SelectedItem = list.ItemContainerGenerator.ItemFromContainer(item);
+            e.Handled = true;
+        };
         var content = new StackPanel { Background = Brushes.Black, Margin = new Thickness(6) };
         content.Children.Add(TimerEditor.Label("Timers · hold Tab to view · Ctrl+Shift+T to edit"));
         content.Children.Add(list); content.Children.Add(controls); content.Children.Add(status);
@@ -148,19 +154,9 @@ public sealed class TimersView
     }
     private void Refresh()
     {
-        var snapshot = model.Snapshot();
-        foreach (var old in rows.Keys.Except(snapshot.Select(r => r.Id)).ToArray())
-        { list.Items.Remove(rows[old]); rows.Remove(old); }
-        foreach (var state in snapshot)
-        {
-            if (!rows.TryGetValue(state.Id, out var row))
-            { row = new(state.Id); rows.Add(state.Id, row); list.Items.Add(row); }
-            var value = model.Value(state.Id);
-            row.Text = $"{state.Name} · {(int)value.TotalHours:00}:{value.Minutes:00}:{value.Seconds:00}" +
-                (state.Alerted ? " · ended" : state.IsRunning ? " · running" : " · paused");
-        }
-        var text = "Timers · Ctrl+Shift+T to edit\n" + string.Join("\n", snapshot.Take(8).Select(r => rows[r.Id].Text)) +
-            (snapshot.Length > 8 ? $"\n+{snapshot.Length - 8} more · toggle to see all" : "");
+        rows.Refresh(model);
+        var text = "Timers · Ctrl+Shift+T to edit\n" + string.Join("\n", rows.Items.Take(8).Select(r => r.Text)) +
+            (rows.Items.Count > 8 ? $"\n+{rows.Items.Count - 8} more · toggle to see all" : "");
         if (passiveText.Text != text) passiveText.Text = text;
     }
 }
