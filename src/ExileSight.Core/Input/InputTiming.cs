@@ -4,7 +4,7 @@ namespace ExileSight.Core.Input;
 
 public enum InputStage
 {
-    HookDelay, LeaseAge, ReleaseCancelled, PressQueueAge,
+    HookDelay, LeaseAge, LeaseReevaluated, ReleaseCancelled, PressQueueAge,
     ClipboardSnapshot, ClipboardRead, ClipboardOpen, ClipboardRestore, ClipboardOffer,
     CopyWaitTimeout, PackLoadStart, PackLoadEnd, PackReclaimStart, PackReclaimEnd
 }
