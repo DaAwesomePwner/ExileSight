@@ -12,8 +12,4 @@ public sealed class OverlayPlacement
             Math.Max(1, (int)Math.Ceiling(rect.Width)), Math.Max(1, (int)Math.Ceiling(rect.Height)));
     }
 
-    // WPF can change the native rect after WM_DPICHANGED; previous requested bounds are not evidence
-    // of the current geometry. Showing again also requires reasserting topmost, even at equal bounds.
-    public bool NeedsPosition(PixelRect computed, PixelRect actual, bool justShown) =>
-        justShown || computed != actual;
 }

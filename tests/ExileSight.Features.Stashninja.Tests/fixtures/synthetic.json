@@ -1,0 +1,40 @@
+{
+  "tabId": "synthetic",
+  "page": "1",
+  "referenceResolution": {
+    "width": 1920,
+    "height": 1080
+  },
+  "cells": [
+    {
+      "id": "a",
+      "x": 100,
+      "y": 100,
+      "w": 40,
+      "h": 40,
+      "category": "Currency",
+      "itemName": "Chaos Orb"
+    },
+    {
+      "id": "b",
+      "x": 300,
+      "y": 300,
+      "w": 40,
+      "h": 40,
+      "category": "Currency",
+      "ninjaId": "divine",
+      "folder": "test"
+    }
+  ],
+  "folderOffsets": {
+    "test": {
+      "x": 10,
+      "y": 20
+    }
+  },
+  "provenance": {
+    "author": "ExileSight tests (synthetic geometry, not a game layout)",
+    "method": "measured from screenshot at 1920x1080",
+    "date": "2026-11-07"
+  }
+}

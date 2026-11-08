@@ -18,6 +18,7 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
     private string? path;
     private string area = "Unknown", level = "None", status = "Waiting for setup";
     private bool disposed;
+    public ClientLogFeed Events { get; } = new();
     public string Title => "Client log (read-only)";
 
     public async Task RefreshAsync()
@@ -32,13 +33,33 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
             await running.ConfigureAwait(false);
             cancellation?.Dispose();
             path = next;
+            Events.ChangePath();
             lock (sync) { recent.Clear(); area = "Unknown"; level = "None"; }
             if (!ClientLogDiscovery.IsLocalAbsolutePath(path))
             { lock (sync) status = "Choose a fully-qualified local log path in setup."; return; }
             cancellation = new();
-            running = ReadAsync(path!, cancellation.Token);
+            running = FollowAsync(path!, cancellation.Token);
         }
         finally { transition.Release(); }
+    }
+
+    private async Task FollowAsync(string selected, CancellationToken token)
+    {
+        while (!token.IsCancellationRequested)
+        {
+            try { await ReadAsync(selected, token).ConfigureAwait(false); }
+            catch (OperationCanceledException) when (token.IsCancellationRequested) { return; }
+            catch (Exception error)
+            {
+                lock (sync) status = $"Log reader failed: {error.GetType().Name}; retrying.";
+            }
+            try
+            {
+                if (pollingTimer is not null) await pollingTimer.DelayAsync(1000, token).ConfigureAwait(false);
+                else await Task.Delay(1000, token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested) { return; }
+        }
     }
 
     private async Task ReadAsync(string selected, CancellationToken token)
@@ -54,6 +75,7 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
             await foreach (var line in tail.ReadLinesAsync(selected, cancellationToken: token).ConfigureAwait(false))
             {
                 var parsed = parser.Parse(line);
+                Events.Publish(parsed);
                 if (parsed is Unknown) continue;
                 lock (sync)
                 {
@@ -70,20 +92,19 @@ public sealed class ClientLogSession(ISettingsStore<SettingsDocument> settings, 
             }
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
-        catch (Exception) { lock (sync) status = "Log reader stopped; run setup again to select a readable log."; }
         finally { if (diagnostics is not null) diagnostics.Diagnostic -= Report; }
     }
 
     public IReadOnlyList<KeyValuePair<string, string>> Snapshot()
     {
         lock (sync) return [new("Status", status), new("Current area", area), new("Last level-up", level),
-            new("Last 10 parsed events", string.Join("\n", recent))];
+            new("Event delivery", Events.Diagnostic), new("Last 10 parsed events", string.Join("\n", recent))];
     }
 
     public async ValueTask DisposeAsync()
     {
         await transition.WaitAsync().ConfigureAwait(false);
-        try { if (disposed) return; disposed = true; cancellation?.Cancel(); await running.ConfigureAwait(false); cancellation?.Dispose(); }
+        try { if (disposed) return; disposed = true; cancellation?.Cancel(); await running.ConfigureAwait(false); cancellation?.Dispose(); Events.Dispose(); }
         finally { transition.Release(); }
     }
 }

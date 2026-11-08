@@ -16,6 +16,8 @@ public sealed class ConversionTests
         var hat = Assert.Single(packs[0].Content.Bases);
         Assert.Null(hat.UniqueDropTier);
         Assert.Equal(new NumericRange(4, 9), hat.Defences["armour"]);
+        Assert.Equal(new NumericRange(3, 8), hat.Defences["ward"]);
+        Assert.False(hat.Defences.ContainsKey("energy_shield"));
         Assert.Equal(7, hat.Requirements["strength"]);
         var entries = Assert.Single(packs[1].Content.TierLadders!).Ranks.ToDictionary(r => r.ModId);
         Assert.Equal(1, entries["Invented1"].Tier);
@@ -27,6 +29,11 @@ public sealed class ConversionTests
         {
             await PackWriter.WriteAsync(first, packs);
             await PackWriter.WriteAsync(second, RepoeConverter.Convert(bases, mods, new string('a', 40)));
+            var notice = await File.ReadAllTextAsync(Path.Combine(first, "ATTRIBUTION.txt"));
+            Assert.Contains("Game data © Grinding Gear Games", notice);
+            Assert.Contains(new string('a', 40), notice);
+            Assert.Contains("not affiliated with or endorsed by Grinding Gear Games", notice);
+            Assert.Contains("  ATTRIBUTION.txt", await File.ReadAllTextAsync(Path.Combine(first, "SHA256SUMS")));
             foreach (var file in Directory.GetFiles(first))
                 Assert.Equal(await File.ReadAllBytesAsync(file), await File.ReadAllBytesAsync(Path.Combine(second, Path.GetFileName(file))));
         }

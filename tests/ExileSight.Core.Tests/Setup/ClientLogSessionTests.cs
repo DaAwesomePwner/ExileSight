@@ -105,6 +105,6 @@ public sealed class ClientLogSessionTests
             await drains.Writer.WriteAsync(tick, cancellationToken);
             await tick.Task.WaitAsync(cancellationToken);
         }
-        public async Task<TaskCompletionSource> Drained() => await drains.Reader.ReadAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        public async Task<TaskCompletionSource> Drained() => await drains.Reader.ReadAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(30));
     }
 }

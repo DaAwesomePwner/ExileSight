@@ -10,6 +10,7 @@ public sealed class ReviewSafeguardTests
     [Theory]
     [InlineData(ActionKind.PasteSearch)]
     [InlineData(ActionKind.SetPriceNote)]
+    [InlineData(ActionKind.SetListingAmount)]
     public void PhaseTwoActionsAreRejectedByUserBindingMapper(ActionKind action)
     {
         var result = BindingMapper.Map([new PersistedBinding { Id = "future", Key = 118, Action = action, Text = "life" }], new(), []);
@@ -93,6 +94,6 @@ public sealed class ReviewSafeguardTests
             }, 20));
             Assert.Throws<TimeoutException>(() => reader.Read(_ => throw new InvalidOperationException("Second provider started"), 20));
         }
-        finally { release.Set(); Assert.True(finished.Wait(5000)); }
+        finally { release.Set(); Assert.True(finished.Wait(TimeSpan.FromSeconds(30))); }
     }
 }

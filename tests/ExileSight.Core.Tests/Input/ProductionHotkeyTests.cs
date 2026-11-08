@@ -9,6 +9,7 @@ public sealed class ProductionHotkeyTests
 {
     private sealed class FakeCommand : IFeatureCommandHandler
     {
+        public string FeatureId => "builtin";
         public string Command => "overlay.toggle";
         public int Calls { get; private set; }
         public ActionResult Execute() { Calls++; return new(ActionOutcome.Success); }
@@ -133,17 +134,33 @@ public sealed class ProductionHotkeyTests
         HotkeyBinding b = a with { Id = "b", Block = false };
         configuration.Replace([a], []);
         var dispatcher = new HotkeyDispatcher(TestIntents.Create(new FakeClock()), configuration);
-        var writer = Task.Run(() =>
+        using var round = new Barrier(2);
+        var writer = Task.Factory.StartNew(() =>
         {
-            for (var i = 0; i < 1000; i++) configuration.Replace([i % 2 == 0 ? a : b], []);
-        });
-        for (var i = 0; i < 1000; i++)
+            for (var i = 0; i < 1000; i++)
+            {
+                Assert.True(round.SignalAndWait(TimeSpan.FromSeconds(30)));
+                configuration.Replace([i % 2 == 0 ? a : b], []);
+                Assert.True(round.SignalAndWait(TimeSpan.FromSeconds(30)));
+            }
+        }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        try
         {
-            var decision = dispatcher.Observe(Key(), true);
-            Assert.NotNull(decision.Press);
-            Assert.Equal(decision.Binding!.Id == "a", decision.Block);
-            dispatcher.Observe(Key(false), true);
+            for (var i = 0; i < 1000; i++)
+            {
+                Assert.True(round.SignalAndWait(TimeSpan.FromSeconds(30)));
+                var decision = dispatcher.Observe(Key(), true);
+                Assert.NotNull(decision.Press);
+                Assert.Equal(decision.Binding!.Id == "a", decision.Block);
+                dispatcher.Observe(Key(false), true);
+                Assert.True(round.SignalAndWait(TimeSpan.FromSeconds(30)));
+            }
         }
-        await writer;
+        finally
+        {
+            // Let the dedicated writer finish even when a reader assertion fails.
+            round.RemoveParticipant();
+            await writer.WaitAsync(TimeSpan.FromSeconds(30));
+        }
     }
 }

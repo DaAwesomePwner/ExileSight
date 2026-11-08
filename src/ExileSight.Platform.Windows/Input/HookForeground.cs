@@ -2,46 +2,77 @@ using ExileSight.Core.Input;
 using ExileSight.Platform.Abstractions.Time;
 using ExileSight.Platform.Abstractions.Window;
 using Windows.Win32;
+using Windows.Win32.Foundation;
 
 namespace ExileSight.Platform.Windows.Input;
 
-/// <summary>UI heartbeat renews tracker state. Stalled UI and changed native foreground pass keys through.</summary>
-internal sealed class HookForeground(IGameWindow window, HotkeyConfiguration configuration, IClock clock) : IDisposable
+internal readonly record struct NativeForeground(nint Handle, uint ProcessId, bool IsMinimized = false);
+internal readonly record struct ForegroundDecision(bool Allowed, long CachedAge, bool Reevaluated);
+
+/// <summary>Native focus freshness never depends on dispatching work to the UI.</summary>
+internal sealed class HookForeground : IDisposable
 {
+    private readonly IGameWindow window;
+    private readonly HotkeyConfiguration configuration;
+    private readonly IClock clock;
+    private readonly Func<NativeForeground> probe;
+    private readonly Func<nint, uint> processId;
     private readonly ForegroundLease lease = new();
-    private SynchronizationContext? context;
-    private Timer? timer;
-    private int pending, disposed;
+    private sealed record Identity(nint Handle, uint ProcessId);
+    private Identity expected = new(0, 0);
+    internal HookForeground(IGameWindow window, HotkeyConfiguration configuration, IClock clock,
+        Func<NativeForeground>? probe = null, Func<nint, uint>? processId = null)
+    {
+        this.window = window; this.configuration = configuration; this.clock = clock;
+        this.probe = probe ?? ReadForeground;
+        this.processId = processId ?? ReadProcessId;
+    }
     internal void Start()
     {
-        context = SynchronizationContext.Current;
-        window.Changed += Changed;
-        Changed(null, EventArgs.Empty);
-        // Without a UI context no heartbeat is possible: expire safely after the initial update.
-        if (context is not null) timer = new Timer(_ => Queue(), null, 100, 100);
+        window.Changed += CaptureIdentity;
+        CaptureIdentity(null, EventArgs.Empty);
     }
-    private void Queue()
-    {
-        if (Interlocked.Exchange(ref pending, 1) != 0) return;
-        context!.Post(_ =>
-        {
-            Interlocked.Exchange(ref pending, 0);
-            if (Volatile.Read(ref disposed) == 0) Changed(null, EventArgs.Empty);
-        }, null);
-    }
-    private void Changed(object? sender, EventArgs args)
+    private void CaptureIdentity(object? sender, EventArgs args)
     {
         var state = window.Current;
-        var focused = state.Found && state.IsForeground && !state.IsMinimized;
-        configuration.UpdateGameFocused(focused, state.Handle);
-        lease.Publish(state.Handle, focused, clock.Milliseconds);
+        Volatile.Write(ref expected, state.Found && state.Handle != 0
+            ? new(state.Handle, processId(state.Handle)) : new(0, 0));
     }
-    internal bool IsStale => lease.IsStale(clock.Milliseconds);
-    internal unsafe bool AllowsBlocking() => lease.AllowsBlocking(clock.Milliseconds, (nint)PInvoke.GetForegroundWindow().Value);
-    public void Dispose()
+    internal void Refresh() => Refresh(probe());
+    private void Refresh(NativeForeground native)
     {
-        Interlocked.Exchange(ref disposed, 1);
-        window.Changed -= Changed;
-        timer?.Dispose();
+        var identity = Volatile.Read(ref expected);
+        var focused = Matches(identity, native);
+        configuration.UpdateGameFocused(focused, identity.Handle);
+        lease.Publish(identity.Handle, focused, clock.Milliseconds);
     }
+    private static bool Matches(Identity identity, NativeForeground native) =>
+        !native.IsMinimized && identity.Handle != 0 && identity.ProcessId != 0 &&
+        identity.Handle == native.Handle && identity.ProcessId == native.ProcessId;
+    internal ForegroundDecision Evaluate()
+    {
+        var age = lease.Age(clock.Milliseconds);
+        var stale = lease.IsStale(clock.Milliseconds);
+        // Fixed native queries only: no process enumeration, UI lock, timer, or worker wait.
+        var native = probe();
+        if (stale || native.IsMinimized) Refresh(native);
+        return new(Matches(Volatile.Read(ref expected), native) &&
+            lease.AllowsBlocking(clock.Milliseconds, native.Handle), age, stale);
+    }
+    internal long Age => lease.Age(clock.Milliseconds);
+    internal bool IsStale => lease.IsStale(clock.Milliseconds);
+    private static unsafe uint ReadProcessId(nint handle)
+    {
+        uint pid = 0;
+        PInvoke.GetWindowThreadProcessId(new HWND(handle), &pid);
+        return pid;
+    }
+    private static unsafe NativeForeground ReadForeground()
+    {
+        var handle = (nint)PInvoke.GetForegroundWindow().Value;
+        var pid = ReadProcessId(handle);
+        var minimized = PInvoke.IsIconic(new HWND(handle));
+        return handle == (nint)PInvoke.GetForegroundWindow().Value ? new(handle, pid, minimized) : default;
+    }
+    public void Dispose() => window.Changed -= CaptureIdentity;
 }

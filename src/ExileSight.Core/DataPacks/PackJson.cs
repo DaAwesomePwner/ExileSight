@@ -6,6 +6,8 @@ namespace ExileSight.Core.DataPacks;
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, WriteIndented = true, NewLine = "\n")]
 [JsonSerializable(typeof(ModRank[]))]
+[JsonSerializable(typeof(EventDefinition[]))]
+[JsonSerializable(typeof(LeagueDefinition[]))]
 [JsonSerializable(typeof(DataPack))]
 [JsonSerializable(typeof(CachedPack))]
 [JsonSerializable(typeof(PackManifest))]
@@ -13,23 +15,34 @@ namespace ExileSight.Core.DataPacks;
 public partial class PackJson : JsonSerializerContext;
 
 // Base64 retains the exact content bytes across cache serialization and operating systems.
-public sealed record CachedPack(PackManifest Manifest, byte[] ContentBytes, string? ReleaseTag = null,
+public sealed record CachedPack(PackManifest Manifest,
+    [property: JsonConverter(typeof(PackBytesConverter))] byte[] ContentBytes, string? ReleaseTag = null,
     DateTimeOffset CheckedAt = default, string? ETag = null);
 
 public static class PackCodec
 {
-    public const int SchemaVersion = 2;
+    public const int SchemaVersion = 3;
     public static string Hash(byte[] bytes) => Convert.ToHexStringLower(SHA256.HashData(bytes));
     public static byte[] ContentBytes(PackContent content) => JsonSerializer.SerializeToUtf8Bytes(content, PackJson.Default.PackContent);
+    private static bool HasContent(PackContent c) => c.PackId switch
+    {
+        "poe1/guide" => c.Guide is { Pages.Length: > 0, Areas.Length: > 0, Gems: not null },
+        "poe1/mapmods" => c.MapMods is { Entries.Length: > 0 },
+        "poe1/events" => c.Events is { Entries.Length: > 0 },
+        "poe1/leagues" => c.Leagues is { Entries.Length: > 0 },
+        _ => true
+    };
     public static DataPack? Validate(PackManifest m, byte[] bytes, string packId)
     {
-        if (m is null || bytes is null || m.ContentSha256 != Hash(bytes)) return null;
+        if (m is null || bytes is null || m.SchemaVersion != SchemaVersion || m.ContentSha256 != Hash(bytes)) return null;
         var c = JsonSerializer.Deserialize(bytes, PackJson.Default.PackContent);
-        return c is not null && m.PackId == packId && c.PackId == packId &&
+        var valid = c is not null && m.PackId == packId && c.PackId == packId &&
             m.SchemaVersion == SchemaVersion && c.SchemaVersion == SchemaVersion &&
             m.Game is Games.Game.PoE1 or Games.Game.PoE2 && c.Bases is not null && c.Mods is not null &&
             m.Source is not null && !string.IsNullOrWhiteSpace(m.PackVersion) && m.Game == c.Game &&
             packId.StartsWith(m.Game == Games.Game.PoE1 ? "poe1/" : "poe2/", StringComparison.Ordinal) &&
-            m.PackVersion == c.PackVersion ? new(m, c) : null;
+            m.PackVersion == c.PackVersion && HasContent(c) ? new DataPack(m, c) : null;
+        // Patterns are cached lazily on the returned translations, never on discarded validation copies.
+        return valid;
     }
 }

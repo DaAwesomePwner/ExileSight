@@ -20,6 +20,7 @@ public sealed partial class HookHost : IHotkeys
     private readonly EventWaitHandle stop = new(false, EventResetMode.ManualReset);
     private readonly AutoResetEvent ready = new(false);
     private readonly ManualResetEventSlim started = new();
+    private readonly ManualResetEventSlim workerReady = new();
     private readonly HOOKPROC keyboard;
     private readonly HOOKPROC mouse;
     private Thread? hookThread;
@@ -31,15 +32,20 @@ public sealed partial class HookHost : IHotkeys
     private readonly HotkeyConfiguration configuration;
     internal HookHost(HotkeyDispatcher dispatcher, IClock clock,
         Func<IntentToken?, HotkeyBinding, ActionResult> execute, KeyboardRepeatSettings repeatSettings,
-        Action<HotkeyBinding, ActionResult>? report = null, IGameWindow? gameWindow = null)
+        Action<HotkeyBinding, ActionResult>? report = null, IGameWindow? gameWindow = null,
+        IEnumerable<IFeatureCommandHandler>? commands = null, Func<bool>? gameFocused = null)
     {
         this.repeatSettings = repeatSettings;
+        featureCommands = (commands ?? []).ToDictionary(c => c.Command, StringComparer.Ordinal);
         ArgumentNullException.ThrowIfNull(gameWindow);
         foreground = new(gameWindow, dispatcher.Configuration, clock);
         dispatcher.SetRepeatProvider(() => repeatSettings.SilenceMilliseconds);
         configuration = dispatcher.Configuration;
         this.dispatcher = dispatcher; this.clock = clock;
-        router = new(dispatcher, clock, GameForeground.IsGame, execute);
+        router = new(dispatcher, clock, gameFocused ?? GameForeground.IsGame, execute,
+            (token, press) => FindPressCommand(press.Binding) is { } command
+                ? command.Press(token, new(press.Id, press.Timestamp)) : execute(token, press.Binding),
+            (binding, released) => FindPressCommand(binding)?.Release(released));
         this.report = report ?? ((_, _) => { });
         keyboard = Keyboard; mouse = Mouse;
     }
@@ -55,7 +61,8 @@ public sealed partial class HookHost : IHotkeys
         hookThread.SetApartmentState(ApartmentState.STA);
         foreground.Start();
         repeatTimer = new Timer(_ => RefreshRepeat(), null, 1000, 1000);
-        worker.Start(); hookThread.Start(); started.Wait();
+        worker.Start(); workerReady.Wait();
+        if (startupError is null) { hookThread.Start(); started.Wait(); }
         if (startupError is not null) { Dispose(); throw new InvalidOperationException("Hook startup failed", startupError); }
     }
     private void Work()
@@ -63,6 +70,8 @@ public sealed partial class HookHost : IHotkeys
         try
         {
             Volatile.Write(ref workerApartment, (int)Thread.CurrentThread.GetApartmentState());
+            ClipboardWorker.Initialize();
+            workerReady.Set();
             Consume();
         }
         catch (Exception error)
@@ -70,6 +79,7 @@ public sealed partial class HookHost : IHotkeys
             startupError = error;
             stop.Set();
         }
+        finally { workerReady.Set(); }
     }
     private void RefreshRepeat()
     {
@@ -84,7 +94,7 @@ public sealed partial class HookHost : IHotkeys
             while (queue.TryDequeue(out var press))
             {
                 if (stop.WaitOne(0)) return;
-                report(press!.Binding, router.Route(press));
+                RouteAndReport(press!);
             }
             ready.WaitOne();
         }
@@ -96,6 +106,7 @@ public sealed partial class HookHost : IHotkeys
         {
             for (var key = 0; key < 256; key++)
                 if (Down(key)) dispatcher.SeedHeld(key);
+            foreground.Refresh();
             var module = PInvoke.GetModuleHandle(null);
             k = PInvoke.SetWindowsHookEx(WINDOWS_HOOK_ID.WH_KEYBOARD_LL, keyboard, module, 0);
             m = PInvoke.SetWindowsHookEx(WINDOWS_HOOK_ID.WH_MOUSE_LL, mouse, module, 0);
@@ -106,10 +117,12 @@ public sealed partial class HookHost : IHotkeys
             {
                 PInvoke.MsgWaitForMultipleObjectsEx(1, &handle, 100, QUEUE_STATUS_FLAGS.QS_ALLINPUT,
                     MSG_WAIT_FOR_MULTIPLE_OBJECTS_EX_FLAGS.MWMO_INPUTAVAILABLE);
+                foreground.Refresh();
                 dispatcher.ReconcileHeld(Down);
                 MSG message;
                 while (PInvoke.PeekMessage(&message, default, 0, 0, PEEK_MESSAGE_REMOVE_TYPE.PM_REMOVE))
                 {
+                    foreground.Refresh();
                     dispatcher.ReconcileHeld(Down);
                     PInvoke.TranslateMessage(&message);
                     PInvoke.DispatchMessage(&message);
@@ -126,45 +139,6 @@ public sealed partial class HookHost : IHotkeys
             ready.Set();
         }
     }
-    private unsafe LRESULT Keyboard(int code, WPARAM message, LPARAM data)
-    {
-        if (code >= 0)
-        {
-            var key = *(KBDLLHOOKSTRUCT*)data.Value;
-            if (!NativeHookEvent.KeyboardAllowed((uint)message.Value, (uint)key.flags))
-                return PInvoke.CallNextHookEx(default, code, message, data);
-            // Hook timestamps share the system tick epoch; unsigned subtraction handles 32-bit wrap.
-            var now = clock.Milliseconds;
-            var timestamp = now - unchecked((uint)now - key.time);
-            var physical = new PhysicalKey((int)key.vkCode,
-                message.Value is 0x100 or 0x104, false, Modifiers(), timestamp);
-            var decision = ObserveWithFocus(physical);
-            // Overflow fails closed: the key stays blocked, but no intent/action is issued.
-            if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
-            if (decision.Block) return new LRESULT(1);
-        }
-        return PInvoke.CallNextHookEx(default, code, message, data);
-    }
-    private unsafe LRESULT Mouse(int code, WPARAM message, LPARAM data)
-    {
-        if (code >= 0 && NativeHookEvent.IsMouseButton((uint)message.Value))
-        {
-            var mouse = *(MSLLHOOKSTRUCT*)data.Value;
-            if (!NativeHookEvent.MouseAllowed((uint)message.Value, (uint)mouse.flags))
-                return PInvoke.CallNextHookEx(default, code, message, data);
-            var now = clock.Milliseconds;
-            var key = MouseButtonEvent.Decode((uint)message.Value, mouse.mouseData,
-                false, KeyModifiers.None,
-                now - unchecked((uint)now - mouse.time));
-            if (key is { } physical)
-            {
-                var decision = ObserveWithFocus(physical with { Modifiers = Modifiers() });
-                if (decision.Press is { } press && queue.TryEnqueue(press)) ready.Set();
-                if (decision.Block) return new LRESULT(1);
-            }
-        }
-        return PInvoke.CallNextHookEx(default, code, message, data);
-    }
     public static KeyModifiers Modifiers()
     {
         var result = KeyModifiers.None;
@@ -178,13 +152,13 @@ public sealed partial class HookHost : IHotkeys
     public void Dispose()
     {
         if (Interlocked.Exchange(ref disposed, 1) != 0) return;
-        stop.Set(); ready.Set(); hookThread?.Join(); worker?.Join();
+        stop.Set(); ready.Set(); if (hookThread?.IsAlive == true) hookThread.Join(); worker?.Join();
         foreground.Dispose();
         if (repeatTimer is not null)
         {
             using var drained = new ManualResetEvent(false);
             if (repeatTimer.Dispose(drained)) drained.WaitOne();
         }
-        stop.Dispose(); ready.Dispose(); started.Dispose();
+        stop.Dispose(); ready.Dispose(); started.Dispose(); workerReady.Dispose();
     }
 }

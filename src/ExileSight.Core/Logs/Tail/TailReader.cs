@@ -22,7 +22,7 @@ internal sealed class TailReader(long? position, Action<FileTailCondition> warni
     internal async IAsyncEnumerable<string> ReadAsync(string path, [EnumeratorCancellation] CancellationToken token)
     {
         await using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete,
-            bytes.Length, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            1, FileOptions.Asynchronous | FileOptions.SequentialScan);
         var currentIdentity = identityProvider.Read(file);
         var stableCreation = identity.HasStableCreationTime && currentIdentity.HasStableCreationTime;
         var reset = initialized && (file.Length < offset || stableCreation && currentIdentity.CreationUtc != identity.CreationUtc);
@@ -54,6 +54,9 @@ internal sealed class TailReader(long? position, Action<FileTailCondition> warni
         identity = currentIdentity;
         prefix = currentPrefix;
         file.Position = offset;
+        // The reader already owns its byte buffer. Do not allocate a FileStream buffer
+        // or schedule an empty read on every quiet poll; later appends are read next poll.
+        if (file.Length == offset) yield break;
         while (true)
         {
             token.ThrowIfCancellationRequested();

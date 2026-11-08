@@ -1,10 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0-windows10.0.19041.0</TargetFramework><ApplicationManifest>app.manifest</ApplicationManifest><UseWPF>true</UseWPF><StartupObject>ExileSight.App.Program</StartupObject><OutputType>WinExe</OutputType><TargetPlatformVersion>10.0.19041.0</TargetPlatformVersion><SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion></PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../ExileSight.Features.Omni/ExileSight.Features.Omni.csproj" />
     <ProjectReference Include="../../src/ExileSight.Core/ExileSight.Core.csproj" />
     <ProjectReference Include="../../src/ExileSight.Platform.Abstractions/ExileSight.Platform.Abstractions.csproj" />
     <ProjectReference Include="../../src/ExileSight.Platform.Windows/ExileSight.Platform.Windows.csproj" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Velopack" />
+  </ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.Vaalasync/ExileSight.Features.Vaalasync.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.ItemInfo/ExileSight.Features.ItemInfo.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.GearCmp/ExileSight.Features.GearCmp.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.Stashninja/ExileSight.Features.Stashninja.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.SearchStrings/ExileSight.Features.SearchStrings.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.Macros/ExileSight.Features.Macros.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.Timers/ExileSight.Features.Timers.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.Events/ExileSight.Features.Events.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.Guide/ExileSight.Features.Guide.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.MapInfo/ExileSight.Features.MapInfo.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../ExileSight.Features.MapTracker/ExileSight.Features.MapTracker.csproj" /></ItemGroup>
+  <ItemGroup>
+    <!-- ConserveMemory reduces normal GC slack; PackStartup separately decommits after bulk loads.
+         No heap hard limit. Windows private-memory measurement remains authoritative. -->
+    <RuntimeHostConfigurationOption Include="System.GC.ConserveMemory" Value="9" />
   </ItemGroup>
 </Project>

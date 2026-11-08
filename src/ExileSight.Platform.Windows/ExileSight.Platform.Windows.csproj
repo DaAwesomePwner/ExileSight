@@ -4,6 +4,6 @@
     <ProjectReference Include="../../src/ExileSight.Core/ExileSight.Core.csproj" />
     <ProjectReference Include="../../src/ExileSight.Platform.Abstractions/ExileSight.Platform.Abstractions.csproj" />
     <PackageReference Include="Microsoft.Windows.CsWin32" PrivateAssets="all" />
-    <AdditionalFiles Include="Window/NativeMethods.txt;Input/NativeMethods.txt;Tray/NativeMethods.txt;Install/NativeMethods.txt" />
+    <AdditionalFiles Include="Window/NativeMethods.txt;Input/NativeMethods.txt;Tray/NativeMethods.txt;Install/NativeMethods.txt;Diagnostics/NativeMethods.txt" />
   </ItemGroup>
 </Project>

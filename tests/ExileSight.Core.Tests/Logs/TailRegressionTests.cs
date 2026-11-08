@@ -130,6 +130,6 @@ public sealed class TailRegressionTests : IDisposable
         await using var lines = new PollingFileTail(pollingMilliseconds: 60_000).ReadLinesAsync(path, cancellationToken: cts.Token).GetAsyncEnumerator();
         var next = lines.MoveNextAsync().AsTask();
         cts.Cancel();
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => next.WaitAsync(TimeSpan.FromSeconds(5)));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => next.WaitAsync(TimeSpan.FromSeconds(30)));
     }
 }

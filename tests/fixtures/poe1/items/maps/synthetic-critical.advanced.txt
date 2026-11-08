@@ -1,0 +1,14 @@
+Item Class: Maps
+Rarity: Rare
+Doom Road
+Dunes Map
+--------
+Item Quantity: +80% (augmented)
+Item Rarity: +40% (augmented)
+Monster Pack Size: +25% (augmented)
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Deadly" (Tier: 1) }
+Monsters have 300(250-350)% increased Critical Strike Chance
++40(30-50)% to Monster Critical Strike Multiplier

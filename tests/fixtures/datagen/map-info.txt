@@ -1,0 +1,15 @@
+;## Synthetic matching examples, not game data
+[Map Names]
+Synthetic Map = Example
+[synthetic # damage|synthetic # speed]
+type = monsters
+text = synthetic damage/speed
+ID = 1
+[synthetic alternate #]
+type = monsters
+text = synthetic damage/speed
+ID = 1
+[synthetic variant #]
+type = monsters
+text = synthetic variant label
+ID = 1

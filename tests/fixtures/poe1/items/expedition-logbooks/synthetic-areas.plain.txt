@@ -1,0 +1,17 @@
+Item Class: Expedition Logbooks
+Rarity: Rare
+Doom Record
+Expedition Logbook
+--------
+Item Level: 83
+--------
+Desert Ruins
+Black Scythe Mercenaries
+Area contains 20% increased number of Remnants (implicit)
+--------
+Forest Ruins
+Knights of the Sun
+Area contains 30% increased number of Monster Markers (implicit)
+--------
+30% increased Explosive Radius
+20% increased number of Explosives

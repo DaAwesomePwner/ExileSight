@@ -1,0 +1,10 @@
+2026/01/01 00:00:00 0 a [INFO Client 1] : You have entered The Twilight Strand.
+2026/01/01 00:00:10 10000 b [INFO Client 1] Generating level 1 area "SyntheticTown1" with seed 1
+2026/01/01 00:00:11 11000 c [INFO Client 1] : You have entered Lioneye's Watch.
+2026/01/01 00:00:20 20000 d [INFO Client 1] Generating level 12 area "SyntheticForest" with seed 2
+2026/01/01 00:00:21 21000 e [INFO Client 1] : You have entered The Southern Forest.
+2026/01/01 00:00:30 30000 f [INFO Client 1] : You have entered The Forest Encampment.
+2026/01/01 00:00:40 40000 g [INFO Client 1] Generating level 22 area "SyntheticCity" with seed 3
+2026/01/01 00:00:41 41000 h [INFO Client 1] : You have entered The City of Sarn.
+2026/01/01 00:00:50 50000 i [INFO Client 1] : You have entered The Sarn Encampment.
+2026/01/01 00:01:00 60000 j [INFO Client 1] : You have entered The Library.

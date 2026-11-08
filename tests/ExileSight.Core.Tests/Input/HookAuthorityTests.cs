@@ -51,7 +51,13 @@ public sealed class HookAuthorityTests
                     if (typeName == "IntentRegistry" && name is "Register" or ".ctor")
                         Assert.Equal("PhysicalIssuer", caller);
                     if (name == "CreateHookIssuer") Assert.Equal("HookHost", caller);
-                    if (typeName == "HotkeyDispatcher" && name == "InstallIssuer") Assert.Equal("HookHost", caller);
+                    if (typeName == "HotkeyDispatcher" && name is "InstallIssuer" or "InstallFeatureIssuer") Assert.Equal("HookHost", caller);
+                    if (typeName == "PhysicalIssuer" && name == "Issue")
+                    {
+                        Assert.Equal("ExileSight.Platform.Windows", project);
+                        Assert.Equal("HookHost", caller);
+                        Assert.Contains(metadata.GetString(method.Name), new[] { "Create", "RedeemOverlayClick" });
+                    }
                     if (typeName == "HotkeyDispatcher" && name == "Issue") Assert.Equal("PressRouter", caller);
                     if (typeName == "PhysicalPress" && name == ".ctor") Assert.Equal("HotkeyDispatcher", caller);
                     if (typeName == "IntentToken" && name == ".ctor") Assert.Equal("IntentRegistry", caller);

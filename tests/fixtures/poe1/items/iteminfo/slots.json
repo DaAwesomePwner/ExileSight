@@ -1,0 +1,11 @@
+[
+ ["Helmets","Normal"], ["Body Armours","Rare"], ["Gloves","Magic"], ["Boots","Unique"],
+ ["Shields","Normal"], ["One Hand Swords","Magic"], ["Two Hand Swords","Rare"],
+ ["One Hand Axes","Normal"], ["Two Hand Axes","Normal"], ["One Hand Maces","Normal"],
+ ["Two Hand Maces","Normal"], ["Daggers","Normal"], ["Rune Daggers","Normal"],
+ ["Claws","Normal"], ["Wands","Normal"], ["Sceptres","Normal"], ["Staves","Normal"],
+ ["Warstaves","Normal"], ["Bows","Normal"], ["Quivers","Rare"], ["Belts","Unique"],
+ ["Amulets","Magic"], ["Rings","Rare"], ["Jewels","Unique"], ["Abyss Jewels","Rare"],
+ ["Cluster Jewels","Magic"], ["Life Flasks","Normal"], ["Mana Flasks","Magic"],
+ ["Hybrid Flasks","Normal"], ["Utility Flasks","Unique"]
+]

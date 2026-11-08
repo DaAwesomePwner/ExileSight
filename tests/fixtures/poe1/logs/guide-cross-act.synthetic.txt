@@ -1,0 +1,7 @@
+2026/01/01 00:00:00 0 a [INFO Client 1] : You have entered Hideout.
+2026/01/01 00:00:10 10000 b [INFO Client 1] : You have entered Lioneye's Watch.
+2026/01/01 00:00:20 20000 c [INFO Client 1] : You have entered The Library.
+2026/01/01 00:00:30 30000 d [INFO Client 1] : You have entered The Southern Forest.
+2026/01/01 00:00:40 40000 e [INFO Client 1] : You have entered The Forest Encampment.
+2026/01/01 00:00:50 50000 f [INFO Client 1] : You have entered The City of Sarn.
+2026/01/01 00:01:00 60000 g [INFO Client 1] : You have entered The Sarn Encampment.

@@ -1,3 +1,4 @@
+using ExileSight.Core.Features;
 using ExileSight.Core.Settings;
 using ExileSight.Platform.Abstractions.Input;
 
@@ -11,7 +12,10 @@ public static class BindingMapper
     public static BindingMapping Map(IEnumerable<PersistedBinding?> source, HotkeyConfiguration contexts,
         IEnumerable<IFeatureCommandHandler> handlers)
     {
-        var commands = handlers.Select(h => h.Command).ToHashSet(StringComparer.Ordinal);
+        var registered = handlers.ToArray();
+        var commands = registered.Select(h => h.Command).ToHashSet(StringComparer.Ordinal);
+        var overlayOnly = registered.Where(h => h is IFeatureCommandPolicy { Kind: CommandKind.OverlayOnly })
+            .Select(h => h.Command).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var bindings = new List<HotkeyBinding>();
         var rejected = new List<string>();
         var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -19,7 +23,9 @@ public static class BindingMapper
         foreach (var b in source)
         {
             if (b is null) { rejected.Add("<null>: Binding required"); continue; }
-            var error = Validate(b, contexts, commands);
+            var error = b.FeatureCommand is { } command && overlayOnly.Contains(command)
+                ? "Overlay-only command requires a physical overlay click"
+                : Validate(b, contexts, commands);
             if (!b.Enabled) error = error is null ? "Disabled in settings" : $"Disabled in settings: {error}";
             if (error is null && ids.Contains(b.Id)) error = "Duplicate ID";
             if (error is null && chords.Contains((b.Context, b.Key, b.Modifiers)))
@@ -35,7 +41,9 @@ public static class BindingMapper
                 ActionKind.SetPriceNote => new GameAction.SetPriceNote(b.Text!),
                 _ => null
             };
-            bindings.Add(new(b.Id, b.Key, b.Modifiers, b.Block, action, b.Context, b.FeatureCommand));
+            var handler = registered.FirstOrDefault(h => h.Command == b.FeatureCommand);
+            bindings.Add(new(b.Id, b.Key, b.Modifiers, b.Block, action, b.Context, b.FeatureCommand,
+                handler?.FeatureId ?? "builtin", handler?.RequiredAction, handler is IPressCommandHandler));
         }
         return new(bindings.AsReadOnly(), rejected.AsReadOnly());
     }
@@ -59,7 +67,7 @@ public static class BindingMapper
         if ((b.Action is not null) == hasCommand) return "Choose an action or a feature command";
         if (b.Action is null)
             return commands.Contains(b.FeatureCommand!) ? null : "Unknown feature command";
-        if (b.Action is ActionKind.PasteSearch or ActionKind.SetPriceNote)
+        if (b.Action is ActionKind.PasteSearch or ActionKind.SetPriceNote or ActionKind.SetListingAmount)
             return "Reserved for Phase 2 feature manifests; not enabled for user bindings";
         if (!Enum.IsDefined(b.Action.Value)) return "Unknown action";
         if (b.Action is ActionKind.SendChatCommand or ActionKind.PasteSearch or ActionKind.SetPriceNote &&

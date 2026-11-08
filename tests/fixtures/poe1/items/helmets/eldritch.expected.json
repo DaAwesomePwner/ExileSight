@@ -44,7 +44,7 @@
     "Mods": [
       {
         "Kind": "Implicit, Exarch",
-        "Tier": null,
+        "Tier": 5,
         "Values": [
           {
             "Value": 12,
@@ -55,7 +55,7 @@
       },
       {
         "Kind": "Implicit, Eater",
-        "Tier": null,
+        "Tier": 5,
         "Values": [
           {
             "Value": 12,

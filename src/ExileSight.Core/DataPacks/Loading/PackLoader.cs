@@ -24,6 +24,9 @@ public sealed class PackLoader(string cacheDirectory, GitHubTransport transport,
     {
         var asset = packId switch
         {
+            "poe1/guide" => "poe1-guide", "poe1/mapmods" => "poe1-mapmods",
+            "poe1/events" => "poe1-events", "poe1/leagues" => "poe1-leagues",
+            "poe1/stats" => "poe1-stats",
             "poe1/bases" => "poe1-bases", "poe1/mods" => "poe1-mods",
             "poe2/bases" => "poe2-bases", "poe2/mods" => "poe2-mods",
             _ => throw new ArgumentException("Unknown pack ID.", nameof(packId))
@@ -37,7 +40,7 @@ public sealed class PackLoader(string cacheDirectory, GitHubTransport transport,
         var cached = await ReadAsync(Path.Combine(cacheDirectory, asset + ".pack.json"), packId, cancellationToken);
         if (cached is null && fallbackDirectory is not null)
             cached = await ReadAsync(Path.Combine(fallbackDirectory, asset + ".pack.json"), packId, cancellationToken);
-        return new(cached is null ? null : PackCodec.Validate(cached.Manifest, cached.ContentBytes, packId));
+        return new(cached?.Pack);
     }
     public async Task<PackResult> RefreshAsync(string packId, string releaseTag, CancellationToken cancellationToken = default)
     {
@@ -48,7 +51,7 @@ public sealed class PackLoader(string cacheDirectory, GitHubTransport transport,
         {
             var key = packId + ":" + releaseTag;
             var path = Path.Combine(cacheDirectory, asset + ".pack.json");
-            var cached = await ReadAsync(path, packId, cancellationToken);
+            var cached = (await ReadAsync(path, packId, cancellationToken))?.Cache;
             var matching = cached?.ReleaseTag == releaseTag ? cached : null;
             var now = (timeProvider ?? TimeProvider.System).GetUtcNow();
             var last = checkedAt.GetValueOrDefault(key);
@@ -63,11 +66,11 @@ public sealed class PackLoader(string cacheDirectory, GitHubTransport transport,
             {
                 // Re-read: the cache could have disappeared or become corrupt during the request.
                 var current = await ReadAsync(path, packId, cancellationToken);
-                if (matching is not null && current?.ReleaseTag == releaseTag && current.ETag == matching.ETag)
+                if (matching is not null && current?.Cache.ReleaseTag == releaseTag && current.Cache.ETag == matching.ETag)
                 {
-                    await WriteAsync(path, current with { CheckedAt = now }, cancellationToken);
+                    await WriteAsync(path, current.Cache with { CheckedAt = now }, cancellationToken);
                     checkedAt.Remove(key);
-                    return new(PackCodec.Validate(current.Manifest, current.ContentBytes, packId));
+                    return new(current.Pack);
                 }
             }
             using var retry = initial.StatusCode == HttpStatusCode.NotModified
@@ -91,12 +94,14 @@ public sealed class PackLoader(string cacheDirectory, GitHubTransport transport,
         }
         finally { gate.Release(); }
     }
-    private static async Task<CachedPack?> ReadAsync(string path, string packId, CancellationToken token)
+    private sealed record ValidatedCache(CachedPack Cache, DataPack Pack);
+    private static async Task<ValidatedCache?> ReadAsync(string path, string packId, CancellationToken token)
     {
         try
         {
             var cached = JsonSerializer.Deserialize(await File.ReadAllBytesAsync(path, token), PackJson.Default.CachedPack);
-            return cached is not null && PackCodec.Validate(cached.Manifest, cached.ContentBytes, packId) is not null ? cached : null;
+            return cached is not null && PackCodec.Validate(cached.Manifest, cached.ContentBytes, packId) is { } pack
+                ? new(cached, pack) : null;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException) { return null; }
     }

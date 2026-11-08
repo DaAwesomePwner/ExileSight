@@ -5,7 +5,7 @@ namespace ExileSight.Core.Input;
 /// <summary>One coalesced diagnostic, published without locks from the hook and drained by its worker.</summary>
 internal sealed class StaleFocusNotice
 {
-    internal const string Reason = "hotkey ignored: focus state stale";
+    internal const string Reason = "hotkey ignored: game not foreground (re-checked)";
     private HotkeyBinding? latest;
     internal bool RecordCandidate(HotkeyDispatcher dispatcher, PhysicalKey key)
     {

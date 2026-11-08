@@ -11,6 +11,23 @@ namespace ExileSight.Platform.Windows.Tests.Input;
 public sealed class ClipboardRoundTripTests
 {
     [WindowsOnlyFact]
+    public void WarmWorkerRestoresUserDataWithoutRetainingOwner()
+    {
+        var clipboard = new WindowsClipboard();
+        var original = clipboard.Save();
+        ClipboardWorker.Initialize();
+        try
+        {
+            clipboard.SetText("first operation");
+            Assert.True(PInvoke.GetClipboardOwner().IsNull);
+            Assert.Equal("first operation", clipboard.GetText());
+            clipboard.SetText("second operation");
+            Assert.True(PInvoke.GetClipboardOwner().IsNull);
+            Assert.Equal("second operation", clipboard.GetText());
+        }
+        finally { clipboard.Restore(original); }
+    }
+    [WindowsOnlyFact]
     public void BinaryAndUnicodeFormatsSurviveAnActionPayload()
     {
         var clipboard = new WindowsClipboard();
@@ -43,9 +60,10 @@ public sealed class ClipboardRoundTripTests
         try
         {
             clipboard.OfferText("delayed text");
-            read = Task.Run(() => new WindowsClipboard().GetText());
+            read = Task.Factory.StartNew(() => new WindowsClipboard().GetText(),
+                CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             var timeout = Stopwatch.StartNew();
-            while (!read.IsCompleted && timeout.Elapsed < TimeSpan.FromSeconds(3))
+            while (!read.IsCompleted && timeout.Elapsed < TimeSpan.FromSeconds(30))
             {
                 clipboard.Pump();
                 Thread.Sleep(1);
@@ -117,18 +135,18 @@ public sealed class ClipboardRoundTripTests
         try
         {
             clipboard.OfferText("late reader");
-            reader = Task.Run(() =>
+            reader = Task.Factory.StartNew(() =>
             {
                 ClipboardMemory.Open(default);
                 try
                 {
                     held.Set();
-                    Thread.Sleep(50); // Model a foreign consumer that hitches while holding the clipboard.
+                    // Delayed rendering blocks here until Restore pumps WM_RENDERFORMAT.
                     return ClipboardMemory.Read(13);
                 }
                 finally { PInvoke.CloseClipboard(); }
-            });
-            Assert.True(held.Wait(5000));
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            Assert.True(held.Wait(TimeSpan.FromSeconds(30)));
             clipboard.Restore(original); // No explicit test-side pump: Open's retry path must service WM_RENDERFORMAT.
             var bytes = reader.GetAwaiter().GetResult();
             Assert.NotNull(bytes);

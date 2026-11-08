@@ -17,7 +17,14 @@ public static class UpdatePolicy
         string? packageVersion, string? checkedVersion) =>
         downloaded && packageChannel == currentChannel && checkedVersion is not null && packageVersion == checkedVersion;
 
-    public static bool IncludePrereleases(GeneralSettings settings) => settings.UpdateChannel == "prerelease";
+    public const string RepositoryUrl = "https://github.com/DaAwesomePwner/ExileSight";
+
+    // The persisted/user-facing "prerelease" setting means the Velopack beta channel.
+    // Keep this mapping separate from settings validation: no migration or write is needed.
+    public static string ReleaseChannel(GeneralSettings settings) =>
+        string.Equals(settings.UpdateChannel, "prerelease", StringComparison.OrdinalIgnoreCase) ? "beta" : "stable";
+
+    public static bool IncludePrereleases(GeneralSettings settings) => ReleaseChannel(settings) == "beta";
 
     public static string? UnavailableReason(GeneralSettings settings, bool installed) =>
         !installed ? "not installed via Velopack" : !settings.CheckForUpdates ? "update checks disabled" : null;
