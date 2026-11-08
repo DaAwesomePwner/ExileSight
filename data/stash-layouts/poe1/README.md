@@ -6,18 +6,19 @@ Allflame is deferred: only one cell has a confirmed identity, but calibration
 requires two. Scarab and Eldritch pages are excluded. Shared Currency overflow
 slots and other free storage grids are not fixed item cells and are not mapped.
 
-Every cell marked `high` in the owner's identification table is included on the
-shipped pages. Identity determines inclusion, not today's price availability.
-Four additional corrupted Essence cells were independently confirmed against
-GitHub reference icons and exact names in poe.ninja. Allflame remains deferred
-because it has only one independently confirmed cell.
+Included cells have an independent GitHub icon reference in the evidence fixture,
+or an explicit `noReferenceIcon` reason where an appropriate icon could not be
+found. Initial `high` labels alone are not icon confirmation: the atlas Hunter and
+Warlord mappings were corrected by comparison, and the unidentified silver spiked
+orb at (451,161) is omitted. Four corrupted Essence cells were independently
+confirmed against GitHub icons. Allflame remains deferred because only one cell
+has a confirmed identity.
 
-Exchange overviews omit low-volume items. Names absent from Standard or the current
-challenge league (Allflame at measurement time) are retained when identity is high;
-the runtime simply draws no tag until a price is available. This includes Scroll
-Fragment, lower essence tiers, Legion splinters and some fossils. See
+Exchange overviews omit low-volume items. Confirmed identities stay in the layout
+even without a current API entry; the runtime draws no tag until a price is
+available. An absent API ID is not an identification failure. See
 [ATTRIBUTION.md](ATTRIBUTION.md) for screenshot and name evidence and
-[IDENTIFICATION-RECHECK.md](IDENTIFICATION-RECHECK.md) for uncertain-cell review.
+[IDENTIFICATION-RECHECK.md](IDENTIFICATION-RECHECK.md) for the icon audit.
 No Exile-UI coordinates, item ordering or icons are used.
 
 ## Updating layouts after a patch
@@ -36,21 +37,27 @@ Game-specific geometry and names live in JSON; a patch does not require C# edits
    Optionally use `python3 tools/stash-layouts/snap.py screenshot.png CX CY WIDTH HEIGHT`
    from the repository root. It searches pixel intensity transitions within two pixels
    of each estimated frame edge; inspect the result against the screenshot before
-   accepting it. ImageMagick is required; no images are committed.
+   accepting it. This is a **dev-only** Python helper, not shipped app code. Install
+   ImageMagick with `magick` on PATH; the helper reads the image dimensions itself.
+   No images are committed.
 4. Use a distinct tabId/page for every page. At least two distinct cell centers are
    needed for calibration. Runtime validation rejects missing provenance, duplicate
    cells/pages, unknown categories, nonfinite numbers and out-of-bounds geometry.
-5. Update the name evidence fixture (`tests/ExileSight.Features.Stashninja.Tests/fixtures/measured-names.json`)
-   with independent identity evidence. Record API IDs when available; do not remove
-   high-confidence cells merely because a price is absent. For uncertain cells, require
-   independent icon confirmation and exact spelling in Standard or the current challenge
-   league (discover it through poe.ninja `poe1/api/data/index-state`). Update attribution
-   and unmapped cells below. Run
-   `dotnet build ExileSight.slnx -warnaserror` and
-   `dotnet test tests/ExileSight.Features.Stashninja.Tests`. Build the app: these files are copied to `data/stash-layouts/poe1` beside the app.
+5. Update `tests/ExileSight.Features.Stashninja.Tests/fixtures/measured-names.json`.
+   Compare every candidate against an appropriate independent GitHub icon and record
+   its pinned repo/path in `referenceIcon`. If none exists, record a concrete
+   `noReferenceIcon` reason. Drop mismatches; do not trust an earlier `high` mark alone.
+   Record API IDs when available, but never remove a confirmed cell solely for lacking
+   a price. Check exact spelling in Standard and the current challenge league
+   (discover it through poe.ninja `poe1/api/data/index-state`).
+6. Update attribution and the Unmapped list below. Tests derive expected pages and
+   cells from the layout files and evidence fixture; layout edits need no C# test edit.
+7. Run `dotnet build ExileSight.slnx -warnaserror` and
+   `dotnet test tests/ExileSight.Features.Stashninja.Tests`.
+8. Launch the built app; layout files are copied to `data/stash-layouts/poe1` beside it.
    Press Ctrl+Shift+N or long-press omni and choose **Price stash tab…**. Select the
    tab/page, then Load. Unsupported tabs show a clear no-layout message.
-6. Choose any two distinct cells in the calibration selectors, preferably empty ones.
+9. Choose any two distinct empty cells in the calibration selectors.
    Click Calibrate, then those cell centers in order. Esc cancels and restores Highlight. Clicks pass through to the game: use empty
    cells and ensure no item is held. This observes physical clicks; it sends no input.
    Calibration fits uniform scale/translation, rejects inconsistent clicks, and is
@@ -92,7 +99,8 @@ from counts.
 
 ### currency-atlas — 13 included, 28 omitted
 
-- Unconfirmed identity: (58,161); (107,161); (156,161); (58,205); (107,205); (156,205); (236,161); (281,161); (236,205); (281,205); (259,250); (362,161); (451,205); (107,250); (385,250); (428,250); (340,294); (385,294); (428,294).
+- Unidentified silver spiked orb; does not match Hunter or Warlord references: (451,161).
+- Unconfirmed identity: (58,161); (107,161); (156,161); (58,205); (107,205); (156,205); (236,161); (281,161); (236,205); (281,205); (259,250); (451,205); (107,250); (385,250); (428,250); (340,294); (385,294); (428,294).
 - Unconfirmed individual Scouting Report identities (also absent from the checked API lists): (58,294); (58,338); (58,383); (107,294); (107,338); (107,383); (156,294); (156,338); (156,383).
 
 ### currency-league — 4 included, 20 omitted

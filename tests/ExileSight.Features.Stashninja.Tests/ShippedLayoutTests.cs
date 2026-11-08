@@ -8,7 +8,7 @@ namespace ExileSight.Features.Stashninja.Tests;
 public sealed class ShippedLayoutTests
 {
     private sealed record NameEvidence(string Page, string Category, string ItemName, string? NinjaId,
-        string Confidence, string? ReferenceIcon);
+        string Confidence, string? ReferenceIcon, string? NoReferenceIcon);
 
     [Fact]
     public void EveryShippedLayoutLoadsWithUniquePagesAndNonOverlappingCells()
@@ -21,7 +21,6 @@ public sealed class ShippedLayoutTests
         Assert.Equal(layouts.Length, layouts.Select(l => (l.TabId, l.Page)).Distinct().Count());
         foreach (var layout in layouts)
         {
-            Assert.Equal(new Resolution(2000, 837), layout.ReferenceResolution);
             for (var i = 0; i < layout.Cells.Length; i++)
             for (var j = i + 1; j < layout.Cells.Length; j++)
             {
@@ -39,51 +38,45 @@ public sealed class ShippedLayoutTests
     {
         var evidence = JsonSerializer.Deserialize<NameEvidence[]>(File.ReadAllText(
             Path.Combine(AppContext.BaseDirectory, "fixtures", "measured-names.json")), Layouts.Json)!;
-        var layouts = Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts"));
-        Assert.Equal(layouts.Sum(l => l.Cells.Length), evidence.Length);
-        foreach (var layout in layouts)
+        var directory = Path.Combine(AppContext.BaseDirectory, "layouts");
+        var layouts = Directory.GetFiles(directory, "*.layout.json").ToDictionary(
+            path => Path.GetFileName(path)[..^".layout.json".Length],
+            path => Layouts.Parse(File.ReadAllText(path)));
+        Assert.Equal(layouts.Keys.Order(), evidence.Select(e => e.Page).Distinct().Order());
+        Assert.Equal(layouts.Values.Sum(l => l.Cells.Length), evidence.Length);
+        foreach (var (page, layout) in layouts)
         foreach (var cell in layout.Cells)
         {
-            var page = layout.TabId is "currency" or "fragment"
-                ? $"{layout.TabId}-{layout.Page}" : layout.TabId;
             var entry = Assert.Single(evidence, e => e.Page == page &&
                 e.Category == cell.Category && e.ItemName == cell.ItemName);
             Assert.Contains(entry.Confidence, new[] { "high", "confirmed" });
-            if (entry.Confidence == "confirmed")
+            var hasReference = !string.IsNullOrWhiteSpace(entry.ReferenceIcon);
+            var hasReason = !string.IsNullOrWhiteSpace(entry.NoReferenceIcon);
+            Assert.True(hasReference ^ hasReason,
+                $"{page}/{cell.Id} needs exactly one referenceIcon or noReferenceIcon reason");
+            if (hasReference)
             {
-                Assert.False(string.IsNullOrWhiteSpace(entry.NinjaId));
                 Assert.StartsWith("https://github.com/", entry.ReferenceIcon);
+                Assert.Contains("/blob/", entry.ReferenceIcon);
             }
         }
-    }
-
-    [Theory]
-    [InlineData("currency", "general", 25)]
-    [InlineData("currency", "atlas", 13)]
-    [InlineData("currency", "league", 4)]
-    [InlineData("fragment", "general", 21)]
-    [InlineData("delve", "general", 29)]
-    [InlineData("essence", "general", 104)]
-    [InlineData("blight", "general", 16)]
-    [InlineData("delirium", "general", 14)]
-    public void MeasuredCoverageIncludesUnpricedHighConfidenceCells(string tab, string page, int count)
-    {
-        var layout = Assert.Single(Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts")),
-            l => l.TabId == tab && l.Page == page);
-        Assert.Equal(count, layout.Cells.Length);
     }
 
     [Fact]
     public void MissingPriceOmitsOnlyTheTagNotTheMeasuredCell()
     {
-        var layout = Assert.Single(Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts")),
-            l => l.TabId == "currency" && l.Page == "general");
-        Assert.Contains(layout.Cells, c => c.ItemName == "Scroll Fragment");
-        var prices = new PriceOverview([new("wisdom", "Scroll of Wisdom", "Currency",
-            null, 1, null, [], null, null)], null);
-        var tags = Tags.Build(layout, prices, new("test", 0, 10, "#FFFFFF", "#FFD700"));
-        Assert.Equal("Scroll of Wisdom", Assert.Single(tags).Name);
-        Assert.Contains(layout.Cells, c => c.ItemName == "Scroll Fragment");
+        var layouts = Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts"));
+        Assert.NotEmpty(layouts);
+        foreach (var layout in layouts)
+        {
+            var originalCells = layout.Cells.ToArray();
+            var priced = layout.Cells[0];
+            var prices = new PriceOverview([new(priced.NinjaId ?? priced.Id,
+                priced.ItemName!, priced.Category, null, 1, null, [], null, null)], null);
+            var tags = Tags.Build(layout, prices, new("test", 0, 10, "#FFFFFF", "#FFD700"));
+            Assert.Equal(priced, Assert.Single(tags).Cell);
+            Assert.Equal(originalCells, layout.Cells);
+        }
     }
 
     [Fact]

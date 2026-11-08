@@ -11,7 +11,12 @@ import subprocess
 import sys
 
 
-def measure(pixels, cx, cy, width, height, image_width=2000):
+def measure(image, cx, cy, width, height):
+    pixels, image_width, image_height = image
+    if (width <= 18 or height <= 18 or
+            cx - width / 2 < 4 or cy - height / 2 < 4 or
+            cx + width / 2 + 4 >= image_width or cy + height / 2 + 4 >= image_height):
+        raise ValueError("Frame estimate must leave room for edge sampling inside the image")
     def intensity(x, y):
         return pixels[y * image_width + x]
 
@@ -32,8 +37,15 @@ def measure(pixels, cx, cy, width, height, image_width=2000):
 
 
 def read_pixels(path):
-    return subprocess.check_output([shutil.which('magick') or '/opt/homebrew/bin/magick',
-                                   str(path), '-colorspace', 'Gray', '-depth', '8', 'gray:-'])
+    magick = shutil.which('magick')
+    if magick is None:
+        raise RuntimeError("ImageMagick 'magick' must be installed and available on PATH")
+    size = subprocess.check_output([magick, 'identify', '-format', '%w %h', str(path)], text=True)
+    width, height = map(int, size.split())
+    pixels = subprocess.check_output([magick, str(path), '-colorspace', 'Gray', '-depth', '8', 'gray:-'])
+    if len(pixels) != width * height:
+        raise ValueError("Expected a single-frame image")
+    return pixels, width, height
 
 
 if __name__ == '__main__':

@@ -4,400 +4,450 @@
     "category": "Currency",
     "itemName": "Scroll of Wisdom",
     "ninjaId": "wisdom",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyIdentification.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Portal Scroll",
     "ninjaId": "portal",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyPortal.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Blacksmith's Whetstone",
     "ninjaId": "whetstone",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyWeaponQuality.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Armourer's Scrap",
     "ninjaId": "scrap",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyArmourQuality.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Glassblower's Bauble",
     "ninjaId": "bauble",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyFlaskQuality.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Gemcutter's Prism",
     "ninjaId": "gcp",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyGemQuality.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Orb of Transmutation",
     "ninjaId": "transmute",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyUpgradeToMagic.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Orb of Alteration",
     "ninjaId": "alt",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyRerollMagic.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Orb of Annulment",
     "ninjaId": "annul",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/AnnullOrb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Orb of Chance",
     "ninjaId": "chance",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyUpgradeRandomly.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Exalted Orb",
     "ninjaId": "exalted",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyAddModToRare.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Mirror of Kalandra",
     "ninjaId": "mirror",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyDuplicate.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Regal Orb",
     "ninjaId": "regal",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyUpgradeMagicToRare.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Orb of Alchemy",
     "ninjaId": "alch",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyUpgradeToRare.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Chaos Orb",
     "ninjaId": "chaos",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyRerollRare.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Blessed Orb",
     "ninjaId": "blessed",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyImplicitMod.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Orb of Augmentation",
     "ninjaId": "aug",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyAddModToMagic.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Divine Orb",
     "ninjaId": "divine",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyModValues.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Jeweller's Orb",
     "ninjaId": "jewellers",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyRerollSocketNumbers.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Orb of Fusing",
     "ninjaId": "fusing",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyRerollSocketLinks.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Chromatic Orb",
     "ninjaId": "chrome",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyRerollSocketColours.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Orb of Scouring",
     "ninjaId": "scour",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyConvertToNormal.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Vaal Orb",
     "ninjaId": "vaal",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyVaal.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Orb of Regret",
     "ninjaId": "regret",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/CurrencyPassiveSkillRefund.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-atlas",
     "category": "Currency",
     "itemName": "Crusader's Exalted Orb",
     "ninjaId": "crusaders-exalted-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/crusaders-exalted-orb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-atlas",
     "category": "Currency",
     "itemName": "Warlord's Exalted Orb",
     "ninjaId": "warlords-exalted-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/warlords-exalted-orb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-atlas",
     "category": "Currency",
     "itemName": "Redeemer's Exalted Orb",
     "ninjaId": "redeemers-exalted-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/redeemers-exalted-orb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-atlas",
     "category": "Currency",
     "itemName": "Hunter's Exalted Orb",
     "ninjaId": "hunters-exalted-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/hunters-exalted-orb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-atlas",
     "category": "Currency",
     "itemName": "Orb of Conflict",
     "ninjaId": "orb-of-conflict",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/orb-of-conflict.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-atlas",
     "category": "Currency",
     "itemName": "Lesser Eldritch Ember",
     "ninjaId": "lesser-eldritch-ember",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/lesser-eldritch-ember.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-atlas",
     "category": "Currency",
     "itemName": "Greater Eldritch Ember",
     "ninjaId": "greater-eldritch-ember",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/greater-eldritch-ember.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-atlas",
     "category": "Currency",
     "itemName": "Grand Eldritch Ember",
     "ninjaId": "grand-eldritch-ember",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/grand-eldritch-ember.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-atlas",
     "category": "Currency",
     "itemName": "Exceptional Eldritch Ember",
     "ninjaId": "exceptional-eldritch-ember",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/exceptional-eldritch-ember.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-atlas",
     "category": "Currency",
     "itemName": "Lesser Eldritch Ichor",
     "ninjaId": "lesser-eldritch-ichor",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/lesser-eldritch-ichor.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-atlas",
     "category": "Currency",
     "itemName": "Greater Eldritch Ichor",
     "ninjaId": "greater-eldritch-ichor",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/greater-eldritch-ichor.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-atlas",
     "category": "Currency",
     "itemName": "Grand Eldritch Ichor",
     "ninjaId": "grand-eldritch-ichor",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/grand-eldritch-ichor.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-atlas",
     "category": "Currency",
     "itemName": "Exceptional Eldritch Ichor",
     "ninjaId": "exceptional-eldritch-ichor",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/exceptional-eldritch-ichor.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-league",
     "category": "Currency",
     "itemName": "Wild Crystallised Lifeforce",
     "ninjaId": "wild-lifeforce",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/wild-crystallised-lifeforce.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-league",
     "category": "Currency",
     "itemName": "Vivid Crystallised Lifeforce",
     "ninjaId": "vivid-lifeforce",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/vivid-crystallised-lifeforce.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-league",
     "category": "Currency",
     "itemName": "Primal Crystallised Lifeforce",
     "ninjaId": "primal-lifeforce",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/primal-crystallised-lifeforce.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-league",
     "category": "Currency",
     "itemName": "Sacred Crystallised Lifeforce",
     "ninjaId": "sacred-lifeforce",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/sacred-crystallised-lifeforce.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Veritania's Crest",
     "ninjaId": "veritanias-crest",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/veritanias-crest.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Al-Hezmin's Crest",
     "ninjaId": "al-hezmins-crest",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/al-hezmins-crest.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Drox's Crest",
     "ninjaId": "droxs-crest",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/droxs-crest.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Baran's Crest",
     "ninjaId": "barans-crest",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/barans-crest.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Offering to the Goddess",
     "ninjaId": "offer",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/offering-to-the-goddess.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Ritual Splinter",
     "ninjaId": "ritual-splinter",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/ritual-splinter.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Crescent Splinter",
     "ninjaId": "crescent-splinter",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/crescent-splinter.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Ritual Vessel",
     "ninjaId": "ritual-vessel",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/ritual-vessel.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "The Maven's Writ",
     "ninjaId": "the-mavens-writ",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/the-mavens-writ.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
@@ -405,1367 +455,1538 @@
     "itemName": "Hivebrain Gland",
     "ninjaId": "hivebrain-gland",
     "confidence": "high",
-    "referenceIcon": null
+    "referenceIcon": null,
+    "noReferenceIcon": "No Hivebrain Gland icon found in the pinned weo-soft/poeData or Jxycee/Project-Vaal inventories; retained from owner screenshot identification."
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Divine Vessel",
     "ninjaId": "divine-vessel",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/divine-vessel.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Timeless Eternal Emblem",
     "ninjaId": "timeless-eternal-emblem",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/legionEmblems/timeless-eternal-emblem.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Timeless Karui Emblem",
     "ninjaId": "timeless-karui-emblem",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/legionEmblems/timeless-karui-emblem.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Timeless Vaal Emblem",
     "ninjaId": "timeless-vaal-emblem",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/legionEmblems/timeless-vaal-emblem.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Timeless Templar Emblem",
     "ninjaId": "timeless-templar-emblem",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/legionEmblems/timeless-templar-emblem.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Timeless Maraketh Emblem",
     "ninjaId": "timeless-maraketh-emblem",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/legionEmblems/timeless-maraketh-emblem.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Jagged Fossil",
     "ninjaId": "jagged-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/jagged-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Dense Fossil",
     "ninjaId": "dense-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/dense-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Frigid Fossil",
     "ninjaId": "frigid-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/frigid-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Aberrant Fossil",
     "ninjaId": "aberrant-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/aberrant-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Scorched Fossil",
     "ninjaId": "scorched-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/scorched-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Metallic Fossil",
     "ninjaId": "metallic-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/metallic-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Pristine Fossil",
     "ninjaId": "pristine-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/pristine-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Bound Fossil",
     "ninjaId": "bound-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/bound-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Corroded Fossil",
     "ninjaId": "corroded-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/corroded-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Opulent Fossil",
     "ninjaId": "opulent-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/opulent-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Deft Fossil",
     "ninjaId": "deft-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/deft-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Aetheric Fossil",
     "ninjaId": "aetheric-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/aetheric-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Serrated Fossil",
     "ninjaId": "serrated-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/serrated-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Shuddering Fossil",
     "ninjaId": "shuddering-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/shuddering-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Tangled Fossil",
     "ninjaId": "tangled-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/tangled-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Bloodstained Fossil",
     "ninjaId": "bloodstained-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/bloodstained-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Gilded Fossil",
     "ninjaId": "gilded-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/gilded-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Fundamental Fossil",
     "ninjaId": "fundamental-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/fundamental-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Sanctified Fossil",
     "ninjaId": "sanctified-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/sanctified-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Hollow Fossil",
     "ninjaId": "hollow-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/hollow-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Glyphic Fossil",
     "ninjaId": "glyphic-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/glyphic-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Faceted Fossil",
     "ninjaId": "faceted-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/faceted-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Resonator",
     "itemName": "Primitive Chaotic Resonator",
     "ninjaId": "primitive-chaotic-resonator",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/primitive-chaotic-resonator.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Resonator",
     "itemName": "Potent Chaotic Resonator",
     "ninjaId": "potent-chaotic-resonator",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/potent-chaotic-resonator.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Resonator",
     "itemName": "Powerful Chaotic Resonator",
     "ninjaId": "powerful-chaotic-resonator",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/powerful-chaotic-resonator.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Resonator",
     "itemName": "Prime Chaotic Resonator",
     "ninjaId": "prime-chaotic-resonator",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/prime-chaotic-resonator.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Greed",
     "ninjaId": "deafening-essence-of-greed",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-greed.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Contempt",
     "ninjaId": "deafening-essence-of-contempt",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-contempt.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Contempt",
     "ninjaId": "screaming-essence-of-contempt",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-contempt.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Hatred",
     "ninjaId": "deafening-essence-of-hatred",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-hatred.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Woe",
     "ninjaId": "deafening-essence-of-woe",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-woe.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Woe",
     "ninjaId": "shrieking-essence-of-woe",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-woe.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Fear",
     "ninjaId": "deafening-essence-of-fear",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-fear.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Fear",
     "ninjaId": "wailing-essence-of-fear",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-fear.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Anger",
     "ninjaId": "deafening-essence-of-anger",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-anger.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Torment",
     "ninjaId": "deafening-essence-of-torment",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-torment.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Sorrow",
     "ninjaId": "deafening-essence-of-sorrow",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-sorrow.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Sorrow",
     "ninjaId": "shrieking-essence-of-sorrow",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-sorrow.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Weeping Essence of Sorrow",
     "ninjaId": "weeping-essence-of-sorrow",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/weeping-essence-of-sorrow.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Rage",
     "ninjaId": "deafening-essence-of-rage",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-rage.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Rage",
     "ninjaId": "shrieking-essence-of-rage",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-rage.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Rage",
     "ninjaId": "screaming-essence-of-rage",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-rage.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Suffering",
     "ninjaId": "deafening-essence-of-suffering",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-suffering.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Wrath",
     "ninjaId": "deafening-essence-of-wrath",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-wrath.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Wrath",
     "ninjaId": "shrieking-essence-of-wrath",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-wrath.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Weeping Essence of Wrath",
     "ninjaId": "weeping-essence-of-wrath",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/weeping-essence-of-wrath.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Doubt",
     "ninjaId": "deafening-essence-of-doubt",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-doubt.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Loathing",
     "ninjaId": "shrieking-essence-of-loathing",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-loathing.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Loathing",
     "ninjaId": "deafening-essence-of-loathing",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-loathing.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Zeal",
     "ninjaId": "shrieking-essence-of-zeal",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-zeal.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Zeal",
     "ninjaId": "deafening-essence-of-zeal",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-zeal.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Anguish",
     "ninjaId": "deafening-essence-of-anguish",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-anguish.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Spite",
     "ninjaId": "shrieking-essence-of-spite",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-spite.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Spite",
     "ninjaId": "deafening-essence-of-spite",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-spite.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Scorn",
     "ninjaId": "shrieking-essence-of-scorn",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-scorn.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Scorn",
     "ninjaId": "deafening-essence-of-scorn",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-scorn.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Envy",
     "ninjaId": "screaming-essence-of-envy",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-envy.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Envy",
     "ninjaId": "shrieking-essence-of-envy",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-envy.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Envy",
     "ninjaId": "deafening-essence-of-envy",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-envy.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Misery",
     "ninjaId": "deafening-essence-of-misery",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-misery.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Deafening Essence of Dread",
     "ninjaId": "deafening-essence-of-dread",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/deafening-essence-of-dread.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Clear Oil",
     "ninjaId": "clear-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/clear-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Sepia Oil",
     "ninjaId": "sepia-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/sepia-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Amber Oil",
     "ninjaId": "amber-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/amber-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Verdant Oil",
     "ninjaId": "verdant-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/verdant-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Teal Oil",
     "ninjaId": "teal-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/teal-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Azure Oil",
     "ninjaId": "azure-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/azure-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Indigo Oil",
     "ninjaId": "indigo-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/indigo-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Tainted Oil",
     "ninjaId": "tainted-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/tainted-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Violet Oil",
     "ninjaId": "violet-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/violet-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Crimson Oil",
     "ninjaId": "crimson-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/crimson-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Black Oil",
     "ninjaId": "black-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/black-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Opalescent Oil",
     "ninjaId": "opalescent-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/opalescent-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Silver Oil",
     "ninjaId": "silver-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/silver-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Golden Oil",
     "ninjaId": "golden-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/golden-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Reflective Oil",
     "ninjaId": "reflective-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/reflective-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "blight",
     "category": "Oil",
     "itemName": "Prismatic Oil",
     "ninjaId": "prismatic-oil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/oils/prismatic-oil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delirium",
     "category": "Fragment",
     "itemName": "Simulacrum Splinter",
     "ninjaId": "simulacrum-splinter",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/simulacrum-splinter.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delirium",
     "category": "Fragment",
     "itemName": "Simulacrum",
     "ninjaId": "simulacrum",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/simulacrum.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delirium",
     "category": "DeliriumOrb",
     "itemName": "Singular Delirium Orb",
     "ninjaId": "singular-delirium-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/deliriumOrbs/singular-delirium-orb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delirium",
     "category": "DeliriumOrb",
     "itemName": "Cartographer's Delirium Orb",
     "ninjaId": "cartographers-delirium-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/deliriumOrbs/cartographers-delirium-orb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delirium",
     "category": "DeliriumOrb",
     "itemName": "Armoursmith's Delirium Orb",
     "ninjaId": "armoursmiths-delirium-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/deliriumOrbs/armoursmiths-delirium-orb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delirium",
     "category": "DeliriumOrb",
     "itemName": "Thaumaturge's Delirium Orb",
     "ninjaId": "thaumaturges-delirium-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/deliriumOrbs/thaumaturges-delirium-orb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delirium",
     "category": "DeliriumOrb",
     "itemName": "Jeweller's Delirium Orb",
     "ninjaId": "jewellers-delirium-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/deliriumOrbs/jewellers-delirium-orb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delirium",
     "category": "DeliriumOrb",
     "itemName": "Whispering Delirium Orb",
     "ninjaId": "whispering-delirium-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/deliriumOrbs/whispering-delirium-orb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delirium",
     "category": "DeliriumOrb",
     "itemName": "Fragmented Delirium Orb",
     "ninjaId": "fragmented-delirium-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/deliriumOrbs/fragmented-delirium-orb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delirium",
     "category": "DeliriumOrb",
     "itemName": "Blacksmith's Delirium Orb",
     "ninjaId": "blacksmiths-delirium-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/deliriumOrbs/blacksmiths-delirium-orb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delirium",
     "category": "DeliriumOrb",
     "itemName": "Fine Delirium Orb",
     "ninjaId": "fine-delirium-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/deliriumOrbs/fine-delirium-orb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delirium",
     "category": "DeliriumOrb",
     "itemName": "Diviner's Delirium Orb",
     "ninjaId": "diviners-delirium-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/deliriumOrbs/diviners-delirium-orb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delirium",
     "category": "DeliriumOrb",
     "itemName": "Blighted Delirium Orb",
     "ninjaId": "blighted-delirium-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/deliriumOrbs/blighted-delirium-orb.png",
+    "noReferenceIcon": null
   },
   {
     "page": "currency-general",
     "category": "Currency",
     "itemName": "Scroll Fragment",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/casid/poe-stash-buddy/blob/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency/ScrollFragment.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Timeless Eternal Empire Splinter",
     "ninjaId": "timeless-eternal-empire-splinter",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/legionSplinters/timeless-eternal-empire-splinter.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Timeless Karui Splinter",
     "ninjaId": "timeless-karui-splinter",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/legionSplinters/timeless-karui-splinter.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Timeless Vaal Splinter",
     "ninjaId": "timeless-vaal-splinter",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/legionSplinters/timeless-vaal-splinter.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Timeless Templar Splinter",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/legionSplinters/timeless-templar-splinter.png",
+    "noReferenceIcon": null
   },
   {
     "page": "fragment-general",
     "category": "Fragment",
     "itemName": "Timeless Maraketh Splinter",
     "ninjaId": "timeless-maraketh-splinter",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/legionSplinters/timeless-maraketh-splinter.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Prismatic Fossil",
     "ninjaId": "prismatic-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/prismatic-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Lucent Fossil",
     "ninjaId": "lucent-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/lucent-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delve",
     "category": "Fossil",
     "itemName": "Fractured Fossil",
     "ninjaId": "fractured-fossil",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/fossils/fractured-fossil.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Greed",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-greed.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Greed",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-greed.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Greed",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-greed.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Weeping Essence of Greed",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/weeping-essence-of-greed.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Muttering Essence of Greed",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/muttering-essence-of-greed.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Whispering Essence of Greed",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/whispering-essence-of-greed.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Contempt",
     "ninjaId": "shrieking-essence-of-contempt",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-contempt.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Contempt",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-contempt.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Weeping Essence of Contempt",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/weeping-essence-of-contempt.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Muttering Essence of Contempt",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/muttering-essence-of-contempt.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Whispering Essence of Contempt",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/whispering-essence-of-contempt.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Hatred",
     "ninjaId": "shrieking-essence-of-hatred",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-hatred.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Hatred",
     "ninjaId": "screaming-essence-of-hatred",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-hatred.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Hatred",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-hatred.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Weeping Essence of Hatred",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/weeping-essence-of-hatred.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Muttering Essence of Hatred",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/muttering-essence-of-hatred.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Whispering Essence of Hatred",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/whispering-essence-of-hatred.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Woe",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-woe.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Woe",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-woe.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Weeping Essence of Woe",
     "ninjaId": "weeping-essence-of-woe",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/weeping-essence-of-woe.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Muttering Essence of Woe",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/muttering-essence-of-woe.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Whispering Essence of Woe",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/whispering-essence-of-woe.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Fear",
     "ninjaId": "shrieking-essence-of-fear",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-fear.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Fear",
     "ninjaId": "screaming-essence-of-fear",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-fear.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Weeping Essence of Fear",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/weeping-essence-of-fear.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Muttering Essence of Fear",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/muttering-essence-of-fear.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Anger",
     "ninjaId": "shrieking-essence-of-anger",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-anger.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Anger",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-anger.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Anger",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-anger.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Weeping Essence of Anger",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/weeping-essence-of-anger.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Muttering Essence of Anger",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/muttering-essence-of-anger.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Torment",
     "ninjaId": "shrieking-essence-of-torment",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-torment.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Torment",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-torment.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Torment",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-torment.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Weeping Essence of Torment",
     "ninjaId": "weeping-essence-of-torment",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/weeping-essence-of-torment.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Muttering Essence of Torment",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/muttering-essence-of-torment.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Sorrow",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-sorrow.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Sorrow",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-sorrow.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Muttering Essence of Sorrow",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/muttering-essence-of-sorrow.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Rage",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-rage.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Weeping Essence of Rage",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/weeping-essence-of-rage.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Suffering",
     "ninjaId": "shrieking-essence-of-suffering",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-suffering.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Suffering",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-suffering.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Suffering",
     "ninjaId": "wailing-essence-of-suffering",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-suffering.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Weeping Essence of Suffering",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/weeping-essence-of-suffering.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Wrath",
     "ninjaId": "screaming-essence-of-wrath",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-wrath.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Wrath",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-wrath.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Doubt",
     "ninjaId": "shrieking-essence-of-doubt",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-doubt.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Doubt",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-doubt.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Doubt",
     "ninjaId": "wailing-essence-of-doubt",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-doubt.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Weeping Essence of Doubt",
     "ninjaId": "weeping-essence-of-doubt",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/weeping-essence-of-doubt.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Loathing",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-loathing.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Loathing",
     "ninjaId": "screaming-essence-of-loathing",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-loathing.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Zeal",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-zeal.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Zeal",
     "ninjaId": "screaming-essence-of-zeal",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-zeal.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Anguish",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-anguish.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Anguish",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-anguish.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Anguish",
     "ninjaId": "shrieking-essence-of-anguish",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-anguish.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Wailing Essence of Spite",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/wailing-essence-of-spite.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Spite",
     "ninjaId": "screaming-essence-of-spite",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-spite.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Scorn",
     "ninjaId": "screaming-essence-of-scorn",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-scorn.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Misery",
     "ninjaId": null,
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-misery.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Misery",
     "ninjaId": "shrieking-essence-of-misery",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-misery.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Screaming Essence of Dread",
     "ninjaId": "screaming-essence-of-dread",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/screaming-essence-of-dread.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
     "category": "Essence",
     "itemName": "Shrieking Essence of Dread",
     "ninjaId": "shrieking-essence-of-dread",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/shrieking-essence-of-dread.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
@@ -1773,7 +1994,8 @@
     "itemName": "Essence of Insanity",
     "ninjaId": "essence-of-insanity",
     "confidence": "confirmed",
-    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/essence-of-insanity.png"
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/essence-of-insanity.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
@@ -1781,7 +2003,8 @@
     "itemName": "Essence of Horror",
     "ninjaId": "essence-of-horror",
     "confidence": "confirmed",
-    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/essence-of-horror.png"
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/essence-of-horror.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
@@ -1789,7 +2012,8 @@
     "itemName": "Essence of Delirium",
     "ninjaId": "essence-of-delirium",
     "confidence": "confirmed",
-    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/essence-of-delirium.png"
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/essence-of-delirium.png",
+    "noReferenceIcon": null
   },
   {
     "page": "essence",
@@ -1797,14 +2021,16 @@
     "itemName": "Essence of Hysteria",
     "ninjaId": "essence-of-hysteria",
     "confidence": "confirmed",
-    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/essence-of-hysteria.png"
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/essence-of-hysteria.png",
+    "noReferenceIcon": null
   },
   {
     "page": "delirium",
     "category": "DeliriumOrb",
     "itemName": "Skittering Delirium Orb",
     "ninjaId": "skittering-delirium-orb",
-    "confidence": "high",
-    "referenceIcon": null
+    "confidence": "confirmed",
+    "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/deliriumOrbs/skittering-delirium-orb.png",
+    "noReferenceIcon": null
   }
 ]

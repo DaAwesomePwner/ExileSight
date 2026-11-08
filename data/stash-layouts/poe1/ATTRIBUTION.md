@@ -7,7 +7,8 @@ The latter pixels are the reference coordinate system; do not rescale JSON back 
 3440x1440. No screenshots or reference icons are redistributed.
 
 The S1-X1 identification table supplied independently identified `high` cells.
-Every such cell is retained on shipped pages regardless of current price availability.
+These initial labels are now cross-checked against independent icons where available;
+price availability does not determine inclusion. Incorrect atlas positions were corrected.
 Four `verify` Essence cells were subsequently confirmed by visual comparison of the
 owner screenshot's ghost silhouettes against pinned GitHub icons (see recheck).
 Other `verify` and unknown cells remain excluded. No Exile-UI data or icons were consulted.
@@ -50,7 +51,7 @@ of price availability in every league. Refresh it alongside future layout change
 | DeliriumOrb | `aea82e75e08c38b2619af1cdc73c73a6bcd1f5469da96050bc40b97abf23f480` |
 | AllflameEmber | `cc20f3c9fe72822e4049068ffefa0289a85baf93b70604079599404063beaade` |
 
-## Fix-round verification
+## First fix-round verification
 
 The current challenge league was discovered as **Allflame** through
 `https://poe.ninja/poe1/api/data/index-state` on 2026-11-08. The same overview endpoint
@@ -71,3 +72,27 @@ identities have exact API names; other uncertain cells remain excluded.
 | AllflameEmber | `15ea009c92dff8200c829bf4420d861b870f8d16b44f71fd83827705d1d2d8d3` |
 
 Index-state SHA-256: `1a15c7f1e5d50e8febe252ee2cda846decb0907b71b713c58fdee4d3ffe85f7c`.
+
+## Final icon audit
+
+Each cell's evidence entry now records a pinned `referenceIcon` GitHub URL
+(repo, revision and path), or a concrete `noReferenceIcon` reason. No images are
+redistributed. The final audit corrects the initial atlas identification table:
+Hunter's Exalted Orb is at (362,161), Warlord's at (407,205), and the silver spiked
+orb at (451,161) remains unidentified and omitted.
+
+Currency General was compared visually against PoE1 icons from
+[casid/poe-stash-buddy at a2ecc1dc773afbd37f1bbd723857ed2b83ba0910](https://github.com/casid/poe-stash-buddy/tree/a2ecc1dc773afbd37f1bbd723857ed2b83ba0910/src/main/resources/currency).
+All 25 cells match. Those references resolve artwork differences in Project-Vaal's
+same-named currency icons; filename equality alone was not treated as evidence.
+Atlas and remaining Fragment cells were compared against
+[Jxycee/Project-Vaal at 87ddd63b7abf9dc9f3e37897818447830ebfc166](https://github.com/Jxycee/Project-Vaal/tree/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items).
+The reviewer supplied independent confirmation for Essence, Delirium Orb, Oil,
+Fossil, Legion splinter/emblem, crest, Eldritch ember/ichor, Lifeforce, Simulacrum
+and Resonator cells; their exact reference paths were resolved against the pinned
+GitHub inventories and recorded in the fixture. Atlas and fragment comparisons
+also rechecked the available icons in those pages directly.
+
+225 included cells have reference icons. Hivebrain Gland is the sole exception:
+no icon was found in the checked inventories, so its original owner-screenshot
+identification is retained with an explicit reason. It is not marked icon-confirmed.

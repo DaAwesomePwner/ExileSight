@@ -5,7 +5,7 @@ It lives in the notification area beside the clock. Right-click its icon for
 **Debug panel**, **Run setup again**, **Open settings folder**, and **Exit**.
 Clicking the icon opens diagnostics; closing that window leaves the app running.
 
-The stash price panel is inactive until supported stash layouts ship.
+The stash price panel supports eight measured pages; see [stashninja](#price-check--stashninja--ctrlshiftn).
 
 This product isn't affiliated with or endorsed by Grinding Gear Games in any way.
 

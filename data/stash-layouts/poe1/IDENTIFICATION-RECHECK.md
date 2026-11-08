@@ -1,5 +1,9 @@
 # Independent identification recheck — 2026-11-08
 
+The final audit below supersedes the first-pass source limitations and atlas mappings.
+
+## First-pass research
+
 The index-state endpoint identifies Allflame as the current softcore challenge
 league. Both Standard and Allflame name lists were checked. Listing alone does
 not establish a slot's identity: all unresolved candidates remain excluded.
@@ -27,7 +31,7 @@ the order at x=467, y=445/483/521/559; it does not rely on the tentative table o
 
 ## Remaining uncertainty
 
-Currency/Atlas and Fragment candidates still lack independent icon confirmation;
+At this first pass, excluded Currency/Atlas and Fragment candidates lacked independent icon confirmation;
 API presence did not promote them. Allflame has eight named API entries, but only
 Gilded has a high-confidence screenshot identity. With no independent second
 identity confirmed, that page remains deferred (two cells are needed to calibrate).
@@ -126,3 +130,26 @@ availability note. All high-confidence cells on shipped pages remain included.
 | Fragment | Synthesising Fragment | Yes | Yes |
 | Fragment | Traumatic Fragment | Yes | Yes |
 | Fragment | Tribute to the Goddess | Yes | Yes |
+
+## Final audit and corrections
+
+The final round uses Project-Vaal plus PoE1-specific currency references from
+poe-stash-buddy, in addition to poeData. See [ATTRIBUTION.md](ATTRIBUTION.md#final-icon-audit)
+for pinned revisions and the division between reviewer confirmations and direct
+comparisons. Every included cell records its exact source path in measured-names.json.
+
+- Hunter's Exalted Orb: moved from (407,205) to (362,161); matched the dark sphere
+  with a gold band and red inset in the GitHub icon.
+- Warlord's Exalted Orb: moved from (451,161) to (407,205); matched the gold face
+  and laurel-like horizontal band.
+- (451,161): silver spiked orb does not match either reference; omitted.
+- All 25 Currency General cells match the PoE1-specific reference set, including
+  ghosted Mirror of Kalandra. Same-named alternative artwork was not accepted.
+- Offering to the Goddess, Ritual Splinter, Crescent Splinter, Ritual Vessel,
+  The Maven's Writ and Divine Vessel match their independent references.
+- Hivebrain Gland has no icon in the checked repositories. Its evidence entry
+  explicitly records this limitation; no false icon confirmation is claimed.
+
+All previously reviewer-confirmed families retain their confirmation with explicit
+reference paths. Coverage remains 226 cells across eight pages: atlas replaces one
+unidentified cell with the correctly identified Hunter cell, rather than adding coverage.
