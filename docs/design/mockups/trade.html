@@ -20,7 +20,7 @@ body{margin:0}
 .pbtn:disabled{opacity:0.45;cursor:default}
 .cell{width:46px;height:46px;border:1px dashed #2E343D;box-sizing:border-box;border-radius:2px;position:relative}
 .tag{position:absolute;right:2px;bottom:2px;padding:0 3px;height:14px;line-height:14px;border-radius:2px;font:600 10px 'JetBrains Mono',Consolas,monospace;color:#0C0F14}
-.t-div{background:#6FE3D5}.t-hi{background:#6AA8FF}.t-lo{background:#3A414C;color:#C9CED6}
+.t-div{background:#6FE3D5}.t-hi{background:#6AA8FF}
 </style>
 <style>body{background:#0E1013}</style>
 </head>
@@ -75,35 +75,33 @@ body{margin:0}
           <div style="font-size: 11px; color: #6B7480;">Stash tab cells · game UI</div>
           <div style="display: grid; grid-template-columns: repeat(6, 46px); gap: 4px;">
             <div class="cell"><span class="tag t-div">1.4d</span></div>
-            <div class="cell"><span class="tag t-hi">180</span></div>
-            <div class="cell"><span class="tag t-lo">3</span></div>
+            <div class="cell"><span class="tag t-div">180</span></div>
+            <div class="cell"><span class="tag t-hi">3</span></div>
             <div class="cell"><span class="tag t-hi">42</span></div>
             <div class="cell"></div>
-            <div class="cell"><span class="tag t-lo">1</span></div>
+            <div class="cell"><span class="tag t-hi">1</span></div>
             <div class="cell"><span class="tag t-hi">25</span></div>
             <div class="cell"><span class="tag t-div">12d</span></div>
-            <div class="cell"><span class="tag t-lo">6</span></div>
+            <div class="cell"><span class="tag t-hi">6</span></div>
             <div class="cell"></div>
             <div class="cell"><span class="tag t-hi">14</span></div>
-            <div class="cell"><span class="tag t-lo">2</span></div>
-            <div class="cell"><span class="tag t-lo">8</span></div>
+            <div class="cell"><span class="tag t-hi">2</span></div>
+            <div class="cell"><span class="tag t-hi">8</span></div>
             <div class="cell"><span class="tag t-hi">60</span></div>
             <div class="cell"></div>
             <div class="cell"><span class="tag t-div">3.1d</span></div>
-            <div class="cell"><span class="tag t-lo">4</span></div>
+            <div class="cell"><span class="tag t-hi">4</span></div>
             <div class="cell"><span class="tag t-hi">11</span></div>
-            <div class="cell"><span class="tag t-lo">5</span></div>
+            <div class="cell"><span class="tag t-hi">5</span></div>
             <div class="cell"></div>
             <div class="cell"><span class="tag t-hi">33</span></div>
-            <div class="cell"><span class="tag t-lo">1</span></div>
-            <div class="cell"><span class="tag t-lo">7</span></div>
+            <div class="cell"><span class="tag t-hi">1</span></div>
+            <div class="cell"><span class="tag t-hi">7</span></div>
             <div class="cell"><span class="tag t-hi">19</span></div>
           </div>
         </div>
         <div class="card" style="width: 234px; gap: 8px;">
-          <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 11px; color: #8E97A4;">This tab</span><span class="mono" style="font-size: 20px; font-weight: 600; color: #6FE3D5;">≈ 21.4 div</span></div>
-          <div style="height: 1px; background: #262C35;"></div>
-          <div style="font-size: 11px; color: #8E97A4;">Top items · 7 days</div>
+          <div style="font-size: 11px; color: #8E97A4;">Highest unit prices · 7 days</div>
           <div style="display: grid; grid-template-columns: minmax(0, 1fr) 44px 40px; column-gap: 6px; align-items: center; row-gap: 6px; font-size: 12px;">
             <span>Divine Orb</span>
             <svg width="44" height="16" viewBox="0 0 54 16" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,12 9,11 18,12 27,9 36,8 45,6 54,4" fill="none" stroke="#6AA8FF" stroke-width="1.5"></polyline></svg>
@@ -120,11 +118,10 @@ body{margin:0}
         </div>
       </div>
       <div style="display: flex; gap: 16px; align-items: center; font-size: 12px; color: #9AA3AF;">
-        <span style="display: flex; align-items: center; gap: 6px;"><span class="mono" style="padding: 0 4px; border-radius: 2px; background: #6FE3D5; color: #0C0F14; font-size: 10px; font-weight: 600;">1.4d</span>≥ 1 divine</span>
-        <span style="display: flex; align-items: center; gap: 6px;"><span class="mono" style="padding: 0 4px; border-radius: 2px; background: #6AA8FF; color: #0C0F14; font-size: 10px; font-weight: 600;">42</span>≥ 10 chaos</span>
-        <span style="display: flex; align-items: center; gap: 6px;"><span class="mono" style="padding: 0 4px; border-radius: 2px; background: #3A414C; color: #C9CED6; font-size: 10px; font-weight: 600;">3</span>below</span>
+        <span style="display: flex; align-items: center; gap: 6px;"><span class="mono" style="padding: 0 4px; border-radius: 2px; background: #6FE3D5; color: #0C0F14; font-size: 10px; font-weight: 600;">180</span>at or above your High (150c)</span>
+        <span style="display: flex; align-items: center; gap: 6px;"><span class="mono" style="padding: 0 4px; border-radius: 2px; background: #6AA8FF; color: #0C0F14; font-size: 10px; font-weight: 600;">42</span>below it</span>
       </div>
-      <div class="note">Tags sit in the cell’s bottom-right corner, where the game prints stack size top-left, so they never cover the count. Chaos is the unit unless suffixed “d”. The thresholds are your threshold profile; the summary card sits outside the tab’s rectangle.</div>
+      <div class="note">Tags sit in the cell’s bottom-right corner, where the game prints stack size top-left, so they never cover the count. Chaos is the unit unless suffixed “d”. The two colours and the High value come from your threshold profile. Prices are per unit: there is no tab total, because stack counts are unknown.</div>
     </div>
   </div>
 </div>

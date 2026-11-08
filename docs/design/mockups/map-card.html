@@ -24,6 +24,8 @@ body{margin:0}
 .d2 i.on{background:#F2994A;border-color:#F2994A}
 .d3 i.on{background:#FF6B5E;border-color:#FF6B5E}
 .area{font-size:11px;color:#8E97A4;white-space:nowrap}
+.unr i{border-style:dashed;border-color:#5C6573}
+.unk{font:700 12px 'JetBrains Mono',Consolas,monospace;color:#F2994A;padding-left:2px}
 </style>
 <style>body{background:#0E1013}</style>
 </head>
@@ -53,14 +55,15 @@ body{margin:0}
         <div style="display: flex; flex-direction: column; gap: 2px;">
           <button class="mod" style="background: #221616;"><span class="pips d3"><i class="on"></i><i class="on"></i><i class="on"></i></span><span class="area">Monsters</span><span>Reflect 18% elemental</span></button>
           <button class="mod" style="background: #221616;"><span class="pips d3"><i class="on"></i><i class="on"></i><i class="on"></i></span><span class="area">Players</span><span>Cannot regenerate</span></button>
+          <button class="mod" disabled="disabled" style="cursor: default;"><span class="unk">?</span><span class="area">Unknown</span><span>Not in map data · check in game</span></button>
           <button class="mod"><span class="pips d2"><i class="on"></i><i class="on"></i><i></i></span><span class="area">Monsters</span><span>Crit chance + multi</span></button>
           <button class="mod"><span class="pips d1"><i class="on"></i><i></i><i></i></span><span class="area">Players</span><span>−12% max resists</span></button>
           <button class="mod"><span class="pips d1"><i class="on"></i><i></i><i></i></span><span class="area">Area</span><span>Burning ground</span></button>
-          <button class="mod" style="color: #8E97A4;"><span class="pips"><i></i><i></i><i></i></span><span class="area">+4 more</span><span>harmless · click to show</span></button>
+          <button class="mod" style="color: #8E97A4;"><span class="pips"><i></i><i></i><i></i></span><span class="area">+4 more</span><span>rated 0 · click to show</span></button>
         </div>
         <div style="font-size: 11px; color: #6B7480;">Click a mod to cycle 0–3 · rating saved for every map</div>
       </div>
-      <div class="note">Sorted by your danger rating, not by game order: this card is for a go / no-go call, so the dangerous lines come first. Harmless mods fold into one row.</div>
+      <div class="note">Sorted by your danger rating, not by game order: this card is for a go / no-go call. Mods missing from the map data sit just under the 3s, marked “?”. Only mods you rated 0 fold away; unrated mods always show (dashed pips).</div>
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -77,11 +80,11 @@ body{margin:0}
         </div>
         <div style="padding: 7px 8px; border-radius: 4px; border: 1px dashed #4A5260; font-size: 12px; line-height: 1.45; color: #B7BEC8;">Rate each mod once by clicking it. Every later map sorts itself.</div>
         <div style="display: flex; flex-direction: column; gap: 2px;">
-          <button class="mod"><span class="pips"><i></i><i></i><i></i></span><span class="area">Monsters</span><span>Extra lightning dmg</span></button>
-          <button class="mod"><span class="pips"><i></i><i></i><i></i></span><span class="area">Monsters</span><span>Hexproof</span></button>
-          <button class="mod"><span class="pips"><i></i><i></i><i></i></span><span class="area">Players</span><span>Less recovery</span></button>
-          <button class="mod"><span class="pips"><i></i><i></i><i></i></span><span class="area">Unique boss</span><span>Increased life</span></button>
-          <button class="mod"><span class="pips"><i></i><i></i><i></i></span><span class="area">Area</span><span>Shocked ground</span></button>
+          <button class="mod"><span class="pips unr"><i></i><i></i><i></i></span><span class="area">Monsters</span><span>Extra lightning dmg</span></button>
+          <button class="mod"><span class="pips unr"><i></i><i></i><i></i></span><span class="area">Monsters</span><span>Hexproof</span></button>
+          <button class="mod"><span class="pips unr"><i></i><i></i><i></i></span><span class="area">Players</span><span>Less recovery</span></button>
+          <button class="mod"><span class="pips unr"><i></i><i></i><i></i></span><span class="area">Unique boss</span><span>Increased life</span></button>
+          <button class="mod"><span class="pips unr"><i></i><i></i><i></i></span><span class="area">Area</span><span>Shocked ground</span></button>
         </div>
       </div>
       <div class="note">Quantity, rarity and pack size turn teal only at or above your thresholds (set in the app), so teal means “good map”, not just “a number”.</div>

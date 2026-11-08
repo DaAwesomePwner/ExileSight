@@ -57,9 +57,9 @@ a{color:#6FD1C6}a:hover{color:#9BE7DE}
       <section class="panel" style="flex: 1 1 420px;">
         <h2 class="cap" style="margin: 0;">ITEM AND MAP CARD POSITION</h2>
         <label class="opt on"><input type="radio" name="place" checked="checked"><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-weight: 600; font-size: 14px;">Beside the cursor, away from the game tooltip</span><span style="font-size: 13px; line-height: 1.45; color: #8E97A4;">Opens right of the cursor over your inventory and left of it over your stash. Closes when you move the mouse.</span></span></label>
-        <label class="opt"><input type="radio" name="place"><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-weight: 600; font-size: 14px;">Docked in one spot</span><span style="font-size: 13px; line-height: 1.45; color: #8E97A4;">Always the same place. Set it once by dragging a sample card over the game.</span></span></label>
+        <label class="opt"><input type="radio" name="place"><span style="display: flex; flex-direction: column; gap: 4px;"><span style="font-weight: 600; font-size: 14px;">Docked in one spot</span><span style="font-size: 13px; line-height: 1.45; color: #8E97A4;">Always the same place. Set it once by dragging a sample card on a preview of your game window.</span></span></label>
         <div style="height: 1px; background: #232933;"></div>
-        <div class="field"><span style="font-size: 14px;">Size</span><div style="display: flex; align-items: center; gap: 12px;"><input type="range" min="80" max="150" value="100" aria-label="Card size" style="flex-grow: 1; accent-color: #6FD1C6;"><span class="mono" style="font-size: 13px; width: 96px;">Auto · 100%</span></div></div>
+        <div class="field"><span style="font-size: 14px;">Overlay size</span><div style="display: flex; align-items: center; gap: 12px;"><input type="range" min="80" max="150" value="100" aria-label="Card size" style="flex-grow: 1; accent-color: #6FD1C6;"><span class="mono" style="font-size: 13px; width: 96px;">Auto · 100%</span></div></div>
         <div class="field"><span style="font-size: 14px;">Density</span><span class="seg"><button class="on">Compact</button><button>Comfortable</button></span></div>
         <div class="field"><span style="font-size: 14px;">Colours</span><span class="seg"><button class="on">Standard</button><button>High contrast</button></span></div>
       </section>
@@ -83,12 +83,12 @@ a{color:#6FD1C6}a:hover{color:#9BE7DE}
       </div>
       <div style="overflow-x: auto;">
         <div style="min-width: 560px;">
-          <div class="log" style="min-height: 28px;"><span class="cap">TIME</span><span class="cap">YOU PRESSED</span><span class="cap">SENT</span><span class="cap">RESULT</span></div>
-          <div class="log"><span class="mono" style="color: #8E97A4;">21:16:02</span><span class="mono">CapsLock</span><span>Copy item</span><span class="no">Refused · game not in front</span></div>
-          <div class="log"><span class="mono" style="color: #8E97A4;">21:15:40</span><span class="mono">F5</span><span>Chat command <span class="mono" style="color: #B7BEC8;">/hideout</span></span><span class="ok">Sent</span></div>
-          <div class="log"><span class="mono" style="color: #8E97A4;">21:14:09</span><span class="mono">Overlay click</span><span>Listing amount</span><span class="ok">Sent</span></div>
-          <div class="log"><span class="mono" style="color: #8E97A4;">21:14:03</span><span class="mono">CapsLock</span><span>Copy item</span><span class="ok">Sent</span></div>
-          <div class="log" style="border-bottom: 0;"><span class="mono" style="color: #8E97A4;">21:12:47</span><span class="mono">Overlay click</span><span>Search paste</span><span class="ok">Sent</span></div>
+          <div class="log" style="min-height: 28px;"><span class="cap">TIME</span><span class="cap">TRIGGER</span><span class="cap">SENT</span><span class="cap">RESULT</span></div>
+          <div class="log"><span class="mono" style="color: #8E97A4;">21:16:02</span><span>Omni key</span><span>Copy item</span><span class="no">Refused · game not in front</span></div>
+          <div class="log"><span class="mono" style="color: #8E97A4;">21:15:40</span><span>Hideout macro</span><span>Chat command <span class="mono" style="color: #B7BEC8;">/hideout</span></span><span class="ok">Sent</span></div>
+          <div class="log"><span class="mono" style="color: #8E97A4;">21:14:09</span><span>Shop price button</span><span>Listing amount</span><span class="ok">Sent</span></div>
+          <div class="log"><span class="mono" style="color: #8E97A4;">21:14:03</span><span>Omni key</span><span>Copy item</span><span class="ok">Sent</span></div>
+          <div class="log" style="border-bottom: 0;"><span class="mono" style="color: #8E97A4;">21:12:47</span><span>Search string</span><span>Search paste</span><span class="ok">Sent</span></div>
         </div>
       </div>
       <div style="display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 13px; color: #8E97A4;">
