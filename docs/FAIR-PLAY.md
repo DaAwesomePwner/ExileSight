@@ -23,10 +23,19 @@ GGG says new OAuth app registrations are currently closed, and that reverse-engi
 
 - Drawing ExileSight's own top-most, click-through, no-activate windows over the game.
 - Reading `Client.txt`. The first-run wizard tells the user what is read and why.
+- Reading game-client pixels for display-only Stashninja page recognition under the limits below (D-104, 1.1).
 - Reading the text that the game copies to the clipboard after a Ctrl+C sent by the Action Gate.
 - Writing to ExileSight's own settings and data folders under `%APPDATA%\ExileSight`.
 - HTTP GET to poe.ninja for prices and to GitHub for updates and data packs, with an identifiable User-Agent and at least one hour of caching.
 - Opening URLs (wikis, poedb, trade-site searches) in the user's default browser.
+
+## Screen reading limits (D-104)
+
+- Capture only the game client rectangle, only while the game is foreground and the stash overlay is open.
+- Recognize the open stash tab/page and switch displayed price tags only. Screen results never send input or obtain an `IntentToken`.
+- Use GDI `BitBlt` only: no DXGI capture, DirectX/Vulkan hooks or Windows.Graphics.Capture. Exclusive fullscreen may not capture; recommend Windowed Fullscreen.
+- References are taught by the user and captured locally, automatically after page calibration or with **Remember this page**. Store them only on the user’s machine; ship and commit no game images.
+- Declare screen-read purposes in the feature manifest and generated README transparency table. Calibration-free grid location remains a possible later follow-up, outside this approval.
 
 ## Forbidden
 
@@ -62,7 +71,7 @@ GGG says new OAuth app registrations are currently closed, and that reverse-engi
    6. appends one line to the local audit log (`%APPDATA%\ExileSight\logs\actions.log`)
 5. The token is consumed even when the action fails. Retrying needs a new key press.
 
-Timers, the log watcher, poe.ninja responses and future screen checks have no way to obtain a token. They can only update view models.
+Timers, the log watcher, poe.ninja responses and screen checks have no way to obtain a token. They can only update view models.
 
 ### Example: repricing a shop item
 
@@ -80,3 +89,4 @@ In optional note mode, the user instead opens the game's note box, then clicks a
 - [ ] Every new `GameAction` use is reached only from a token created by a user key press or click.
 - [ ] No new network host apart from poe.ninja and GitHub.
 - [ ] The feature's manifest lists every `GameAction` it uses, and the README transparency table is updated.
+- [ ] Every screen-read purpose is declared in the feature manifest and generated README transparency table, and obeys the screen reading limits above.

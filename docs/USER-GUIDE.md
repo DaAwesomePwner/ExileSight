@@ -53,8 +53,9 @@ remove `%APPDATA%\ExileSight` separately after backing up anything you want.
 ## Fair play: what is read and sent
 
 ExileSight reads the selected game log without changing it, and reads item text
-copied after your hotkey. It does not read game memory, inject code, inspect the
-screen, or change the game window or game files.
+copied after your hotkey. In 1.1, Stashninja may also read pixels of the foreground
+game client while its overlay is open to recognize stash pages (D-104). It does not
+read game memory, inject code, or change the game window or game files.
 
 Every game action follows your own physical key press or overlay click, and each
 invocation can perform only one game action: copy an item, paste a search, set a
@@ -108,9 +109,13 @@ Open **Ctrl+Shift+N** to load the last page loaded in this app session (Currency
 General initially), or choose **Price stash tab…** in the omni menu to load the
 page matching the copied item's name or base type. An unmatched item uses the
 last page. You can also select a fixed tab/page and click **Load selected tab**.
-Page changes in the game are not detected: reopen from an item or select the page
-manually. No screen capture or pixel reads are used. Tags describe item types, not your
-stash contents or quantities. The default price league is the current softcore
+For 1.0, reopen from an item or select the page manually when the game page changes.
+The approved 1.1 recognition feature (D-104) reads only pixels inside the game client
+rectangle, only while the game is foreground and the stash overlay is open, to switch
+the displayed price tags automatically. It uses GDI BitBlt, with no DXGI capture,
+DirectX/Vulkan hooks or Windows.Graphics.Capture. Exclusive fullscreen may not
+capture; use Windowed Fullscreen. Tags describe item types, not your stash contents
+or quantities. The default price league is the current softcore
 challenge league excluding SSF/Ruthless, with Standard as fallback; you can set
 `prices.league` in your profile. Stale or incomplete prices are labelled.
 
@@ -121,6 +126,12 @@ Select two distinct **empty** cells far apart diagonally in the calibration sele
 then click their centers in order with no item held. Esc cancels; clicks reach the game. Calibration is saved per layout and
 resolution. A physical **Highlight** click pastes one search; loading prices does
 not. Searches over the game's supported limit are disabled.
+
+In 1.1, teach page references locally: capture follows page calibration automatically,
+or use **Remember this page**. References stay only on your machine; ExileSight
+ships no game images and commits none. Screen recognition only changes the overlay
+display and never sends input or obtains an IntentToken. You still calibrate the grid;
+calibration-free grid location is a possible later follow-up outside this decision.
 
 ### Shop repricing / vaalasync — omni
 

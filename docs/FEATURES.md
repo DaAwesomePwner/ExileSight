@@ -88,11 +88,13 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 - **Reference:** `modules/qol tools.ahk` around lines 706–770.
 
 ### `stashninja`: Stash-ninja price tags
-- **Trigger:** a hotkey (or long omni press) while a supported fixed stash tab is open. The user selects the tab/page, or it is inferred by matching the copied item's name or base type to a layout cell's itemName or ninjaId. Hotkey opens the last loaded page in this app session, initially Currency General; unmatched items use that same fallback. Game tab switches are not detected; no screen capture or pixel reads.
+- **Trigger:** a hotkey (or long omni press) while a supported fixed stash tab is open. The user selects the tab/page, or it is inferred by matching the copied item's name or base type to a layout cell's itemName or ninjaId. Hotkey opens the last loaded page in this app session, initially Currency General; unmatched items use that same fallback. In 1.1, D-104 permits automatic tab/page recognition from user-taught local pixel references to switch displayed price tags.
 - **Actions:** `CopyItem` from the omni press. `PasteSearch` for the optional generated regex, on its own click.
 - **Behaviour:**
   - Price tags drawn over the tab's fixed grid cells, sized from the client height.
   - Chaos and divine conversion, threshold color profiles, and a 7-day sparkline.
+- **Screen reads (1.1, D-104):** declare "stash page recognition (game client area, display-only)" in the manifest. Use GDI `BitBlt` only within the game client rectangle while the game is foreground and the stash overlay is open. No DXGI capture, DirectX/Vulkan hooks or Windows.Graphics.Capture. Results only change overlay display; they never send input or obtain an `IntentToken`.
+- **References (1.1):** the user teaches each page locally, with automatic capture after calibration or **Remember this page**. Store references only on the user’s machine; ship and commit no game images. Exclusive fullscreen may not capture; recommend Windowed Fullscreen. Calibration-free grid location is a possible later follow-up, outside D-104.
 - **Calibration:** choose two empty reference cells far apart diagonally and click their centers to fit uniform scale and translation per geometry/client resolution. Use empty cells with no item held: these observed clicks reach the game. Esc cancels and restores Highlight.
 - **Data:** ExileSight-measured layouts with recorded screenshot provenance under `data/stash-layouts/poe1` (initially empty; no Exile-UI geometry), and poe.ninja `poe1/api/economy/exchange/current/overview?league=…&type=…`, cached for 1 h or more.
 - **Reference:** `modules/stash-ninja.ahk` (grid scaling around lines 59–65, poe.ninja around 440). Its bulk-exchange POST is **not** ported (D-003).
