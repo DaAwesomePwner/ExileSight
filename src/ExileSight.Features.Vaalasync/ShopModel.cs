@@ -5,24 +5,35 @@ using ExileSight.Platform.Abstractions.Input;
 
 namespace ExileSight.Features.Vaalasync;
 
-public sealed class ShopModel(HistoryStore history, Func<string> league) : IOmniHandler
+public sealed partial class ShopModel(HistoryStore history, Func<string> league) : IOmniHandler, IItemMenuProvider
 {
     public const int PricedItemPriority = int.MaxValue;
-    public const string RearmMessage = "Note set — open the note box and press omni again to reprice";
+    public const string RearmMessage = "Price sent — finish listing manually; press omni again to reprice";
     private readonly object sync = new();
     private IFeatureContext? context;
     private Guid listing;
-    private ShopNote? note;
+    private ParsedItem? item;
+    private string currency = "chaos";
+    public bool NoteMode { get; private set; }
+    public Func<ParsedItem, Task<ShopNote?>> SeedPrice { get; set; } = _ => Task.FromResult<ShopNote?>(null);
+    private long revision;
+    private string? currentCurrency;
+    public string Currency { get { lock (sync) return currency; } set { lock (sync) { currency = value; revision++; } Changed?.Invoke(); } }
+    public string Instructions => NoteMode ? "Open the game’s note box before clicking a price." :
+        "Open Set Item Price and focus its amount field. Choose the currency and click LIST ITEM yourself.";
+    public IReadOnlyList<ItemMenuEntry> BuildMenu(ParsedItem value) => value.Game != Game.PoE1 || ShopNote.Parse(value.Note) is not null ? [] :
+        [new("Set listing price…", () => Handle(value, new(Game.PoE1), OmniPressKind.Long))];
+    private ShopNote? note, estimate;
     private string custom = "";
     private bool armed, sending;
-    private string status = "Open the game's note box yourself, then click one price.";
+    private string status = "Open Set Item Price and focus its amount field. Choose the currency and click LIST ITEM yourself.";
     public Action<string> ReportFailure { get; set; } = type => System.Diagnostics.Trace.TraceWarning("Shop executor failed: {0}", type);
     public HistoryStore History => history;
     public string League => league();
     public string Status { get { lock (sync) return history.RecoveryNotice is { } notice ? notice + "\n" + status : status; } }
     public bool CanApply { get { lock (sync) return armed && !sending; } }
     public ShopNote? Note { get { lock (sync) return note; } }
-    public string Custom { get { lock (sync) return custom; } set { lock (sync) custom = value; Changed?.Invoke(); } }
+    public string Custom { get { lock (sync) return custom; } set { lock (sync) { custom = value; revision++; } Changed?.Invoke(); } }
     public event Action? Opened;
     public event Action? Changed;
     public int Priority => PricedItemPriority;
@@ -32,30 +43,39 @@ public sealed class ShopModel(HistoryStore history, Func<string> league) : IOmni
     internal void Register(IFeatureContext value)
     {
         context = value;
+        NoteMode = value.ReadSetting("listingMode") is { ValueKind: System.Text.Json.JsonValueKind.String } mode && mode.GetString() == "note";
+        status = Instructions;
         foreach (var choice in new[] { "minus1", "plus1", "minus10", "plus10", "custom" })
-            value.RegisterCommand(choice, ActionKind.SetPriceNote, token => Apply(choice, token), CommandKind.OverlayOnly);
+            value.RegisterCommand(choice, NoteMode ? ActionKind.SetPriceNote : ActionKind.SetListingAmount, token => Apply(choice, token), CommandKind.OverlayOnly);
     }
     public void Handle(ParsedItem item, OmniContext context, OmniPressKind press)
     {
+        long seedRevision;
         lock (sync)
         {
             if (sending) return; // Only a fresh read after the send completes may re-arm.
-            var selected = ShopNote.Parse(item.Note);
+            var current = ShopNote.Parse(item.Note);
+            this.item = item;
+            currentCurrency = current?.Currency;
+            seedRevision = ++revision;
             note = null;
+            estimate = null;
             armed = false;
             listing = Guid.Empty;
-            if (selected is null) return;
+            currency = current?.Currency ?? "chaos";
+            custom = "";
             try
             {
-                listing = history.Observe(item.Name, item.BaseType ?? "", item.ItemLevel, league(), selected, DateTimeOffset.UtcNow);
-                note = selected;
+                listing = current is null ? Guid.Empty : history.Observe(item.Name, item.BaseType ?? "", item.ItemLevel, league(), current, DateTimeOffset.UtcNow);
+                note = current;
                 armed = true;
-                status = "Open the game's note box yourself before clicking a price.";
+                status = Instructions;
             }
             catch (Exception error) when (error is IOException or UnauthorizedAccessException)
             { status = "History unavailable; repricing disabled until the listing can be saved."; }
         }
         Opened?.Invoke();
+        if (ShopNote.Parse(item.Note) is null) _ = SeedAsync(item, seedRevision);
     }
     public ActionResult Apply(string choice, IntentToken? token)
     {
@@ -65,20 +85,22 @@ public sealed class ShopModel(HistoryStore history, Func<string> league) : IOmni
         {
             if (token is null) return new(ActionOutcome.MissingToken);
             if (!armed || sending) return new(ActionOutcome.Failed, "Read the item with omni before repricing.");
-            next = note?.Suggest(choice, custom);
+            next = Suggest(choice);
             if (next is null)
             {
-                status = "Enter a positive price up to 1,000,000.";
+                status = !NoteMode && choice == "custom" && ShopNote.ParseAmount(custom) is { } amount && amount != decimal.Truncate(amount)
+                    ? "Async listing amounts must be a whole number." : "Enter a positive price up to 1,000,000.";
                 return new(ActionOutcome.Failed, status);
             }
             selected = listing;
+            revision++;
             sending = true;
             armed = false;
-            status = "Setting note…";
+            status = NoteMode ? "Setting note…" : "Setting amount…";
         }
         Changed?.Invoke();
         ActionResult result;
-        try { result = context!.Execute(token, new GameAction.SetPriceNote(next.ToString())); }
+        try { result = context!.Execute(token, NoteMode ? new GameAction.SetPriceNote(next.ToString()) : new GameAction.SetListingAmount(next.Amount)); }
         catch (Exception error)
         {
             try { ReportFailure(error.GetType().Name); }
@@ -94,11 +116,16 @@ public sealed class ShopModel(HistoryStore history, Func<string> league) : IOmni
         if (!rejectedBeforeInput)
         {
             var success = result.Outcome == ActionOutcome.Success;
-            message = success ? RearmMessage : "Note possibly set — press omni again before repricing. " + message;
+            message = success ? RearmMessage : "Price possibly set — press omni again before repricing. " + message;
             if (paste is not null) message += " — " + paste;
             // PasteStatus already includes 'Sent' when supplied by ActionTransaction.
             var kind = success ? paste ?? "Sent" : "Possibly set" + (paste is null ? "" : " — " + paste);
-            try { history.Change(selected, next, DateTimeOffset.UtcNow, kind); }
+            try
+            {
+                if (selected == Guid.Empty && item is { } source)
+                    history.Observe(source.Name, source.BaseType ?? "", source.ItemLevel, league(), next, DateTimeOffset.UtcNow, kind);
+                else history.Change(selected, next, DateTimeOffset.UtcNow, kind);
+            }
             catch (IOException) { message += " — history could not be saved."; }
             catch (UnauthorizedAccessException) { message += " — history access was denied."; }
         }
@@ -106,7 +133,6 @@ public sealed class ShopModel(HistoryStore history, Func<string> league) : IOmni
         {
             sending = false;
             armed = rejectedBeforeInput;
-            if (!armed) note = next;
             status = message;
         }
         Changed?.Invoke();

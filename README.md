@@ -56,7 +56,7 @@ Generated from compiled feature manifests and registered default bindings; suppl
 | searchstr | `PasteSearch` | None | None | None | `F9 → searchstr:open (blocked)` |
 | stashninja | `PasteSearch` | None | `HTTP: poe.ninja` | `poe1/stashninja/calibration.json` | `Control+Shift+N → stashninja:open (blocked)` |
 | timers | None | None | None | `poe1/timers/timers.json` | `Control+Shift+T → timers:toggle (blocked)`<br>`Tab → timers:hold (passed through)` |
-| vaalasync | `SetPriceNote` | None | `HTTP: poe.ninja` | `poe1/vaalasync/history.json` | None |
+| vaalasync | `SetListingAmount`<br>`SetPriceNote` | None | `HTTP: poe.ninja` | `poe1/vaalasync/history.json` | None |
 
 Omni owns the initial CopyItem action for other item tools. Browser hosts (including www.pathofexile.com) open your browser only; ExileSight itself makes no request to those browser links.
 

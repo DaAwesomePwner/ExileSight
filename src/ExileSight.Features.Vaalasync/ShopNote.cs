@@ -1,6 +1,7 @@
 // Provenance: Exile-UI modules/exchange.ahk:760–860,924–990; omni-key.ahk:54.
 // ExileSight adds fractions, both prefixes and symmetric, explicit-click suggestions.
 using System.Globalization;
+using ExileSight.Platform.Abstractions.Input;
 using System.Text.RegularExpressions;
 
 namespace ExileSight.Features.Vaalasync;
@@ -43,5 +44,6 @@ public sealed record ShopNote(string Prefix, decimal Amount, string Currency)
         return value is > 0 and <= Maximum ? this with { Amount = value.Value } : null;
     }
     private decimal Round(decimal value) => decimal.Round(value, Currency is "divine" or "mirror" ? 2 : value < 10 ? 2 : 0, MidpointRounding.AwayFromZero);
-    public override string ToString() => $"{Prefix} {Amount.ToString("0.############################", CultureInfo.InvariantCulture)} {Currency}";
+    public string DisplayAmount => $"{GameAction.FormatAmount(Amount)} {Currency}";
+    public override string ToString() => $"{Prefix} {DisplayAmount}";
 }

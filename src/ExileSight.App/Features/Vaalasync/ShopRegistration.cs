@@ -1,4 +1,5 @@
 using System.IO;
+using ExileSight.Core.Pricing;
 using Microsoft.Extensions.Logging;
 using ExileSight.Core.Features;
 using ExileSight.Core.Settings;
@@ -17,6 +18,8 @@ public static class ShopRegistration
         return new VaalasyncFeature(new ShopModel(new HistoryStore(Path.Combine(paths.GetGameDirectory("poe1"), "vaalasync")),
             () => string.IsNullOrWhiteSpace(settings.Snapshot.Prices.League) ? "Standard" : settings.Snapshot.Prices.League)
         {
+            SeedPrice = item => ListingPrices.FindAsync(services.GetRequiredService<PriceService>(),
+                settings.Snapshot.Prices.League, item),
             ReportFailure = type => services.GetRequiredService<ILogger<ShopModel>>().LogWarning("Shop executor failed: {ExceptionType}", type)
         });
     }

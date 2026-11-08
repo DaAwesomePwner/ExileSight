@@ -52,7 +52,7 @@ public sealed class RepricingTests : IDisposable
             reads = Task.Factory.StartNew(async () =>
             {
                 Assert.NotNull(model.Note);
-                Assert.Contains("Setting note", model.Status);
+                Assert.Contains("Setting amount", model.Status);
                 Assert.False(model.CanApply);
                 model.Custom = "1/3";
                 Assert.Equal("1/3", model.Custom);

@@ -43,17 +43,17 @@ public sealed class HistoryStore
         }
     }
     public Listing[] Snapshot() { lock (sync) return rows.Select(r => r with { Prices = r.Prices.ToArray() }).ToArray(); }
-    public Guid Observe(string item, string baseType, int? level, string league, ShopNote note, DateTimeOffset now)
+    public Guid Observe(string item, string baseType, int? level, string league, ShopNote note, DateTimeOffset now, string? kind = null)
     {
         lock (sync)
         {
             var existing = rows.FirstOrDefault(r => !r.Purchase && r.Sold is null && r.Item == item && r.Base == baseType && r.ItemLevel == level && r.League == league);
             if (existing is not null)
             {
-                if (existing.Prices.LastOrDefault()?.Note != note) Change(existing.Id, note, now, "Observed");
+                if (kind is not null || existing.Prices.LastOrDefault()?.Note != note) Change(existing.Id, note, now, kind ?? "Observed");
                 return existing.Id;
             }
-            var row = new Listing(Guid.NewGuid(), Clean(item), Clean(baseType), level, Clean(league), [new(now, note, "Listed")]);
+            var row = new Listing(Guid.NewGuid(), Clean(item), Clean(baseType), level, Clean(league), [new(now, note, kind ?? "Listed")]);
             Save([.. rows, row]);
             return row.Id;
         }
