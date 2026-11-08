@@ -121,17 +121,20 @@ public sealed class MacroWheelView : Canvas
     private void Observed(PassiveInput input)
     {
         if (window?.IsVisible != true) return;
-        if (input.Message == 0x200)
+        Guard(() =>
         {
-            var point = PointFromScreen(new Point(input.X, input.Y));
-            var selected = MacroWheelBuilder.Direction(point);
-            foreach (var button in slots)
-                MacroWheelBuilder.Highlight(button, (int)button.Tag == selected, CardTheme.Default);
-        }
-        var origin = PointToScreen(new Point());
-        var end = PointToScreen(new Point(ActualWidth, ActualHeight));
-        var inside = input.X >= origin.X && input.X < end.X && input.Y >= origin.Y && input.Y < end.Y;
-        if (input.Message == 0x100 || (!inside && input.Message is 0x201 or 0x204 or 0x207 or 0x20b))
-            Guard(Dismiss);
+            if (input.Message == 0x200)
+            {
+                var point = PointFromScreen(new Point(input.X, input.Y));
+                var selected = MacroWheelBuilder.Direction(point);
+                foreach (var button in slots)
+                    MacroWheelBuilder.Highlight(button, (int)button.Tag == selected, CardTheme.Default);
+            }
+            var origin = PointToScreen(new Point());
+            var end = PointToScreen(new Point(ActualWidth, ActualHeight));
+            var inside = input.X >= origin.X && input.X < end.X && input.Y >= origin.Y && input.Y < end.Y;
+            if (input.Message == 0x100 || (!inside && input.Message is 0x201 or 0x204 or 0x207 or 0x20b))
+                Dismiss();
+        });
     }
 }

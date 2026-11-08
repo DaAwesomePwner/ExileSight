@@ -22,13 +22,13 @@ public sealed class SearchStringsView : ContentControl
     private readonly PassiveOverlayInput passive;
     private readonly ILogger<SearchStringsView> logger;
     private FrameworkElement panel = new StackPanel();
-    private int[] lineIndexes = [];
-    private int[] lineCounts = [];
+    private readonly SearchStringsSelection selection;
     private HostedOverlayWindow? window;
     public SearchStringsView(SearchMenu model, FeatureHost features, HookHost hooks, OverlayHost host,
         PassiveOverlayInput passive, ILogger<SearchStringsView> logger)
     {
         this.model = model; this.features = features; this.hooks = hooks; this.host = host; this.passive = passive; this.logger = logger;
+        selection = new(model);
         Width = 320; HorizontalAlignment = HorizontalAlignment.Left; Content = panel;
         VerticalAlignment = VerticalAlignment.Top;
         HorizontalContentAlignment = HorizontalAlignment.Stretch;
@@ -57,7 +57,7 @@ public sealed class SearchStringsView : ContentControl
     }
     private void Vendors() => Rebuild(false);
     private SearchRowPresentation Row(int entry) => new(model.Entries[entry].Name, model.Text(entry),
-        lineIndexes[entry] + 1, lineCounts[entry]);
+        selection.Line(entry), selection.LineCount(entry));
     private void Rebuild(bool selected)
     {
         panel = SearchStringsBuilder.Build(new(model.Vendors, selected ? model.Vendor : null,
@@ -75,9 +75,7 @@ public sealed class SearchStringsView : ContentControl
             {
                 button.Click += (_, _) => Guard(() =>
                 {
-                    model.ChooseVendor(vendor);
-                    lineIndexes = new int[model.Entries.Count];
-                    lineCounts = model.Entries.Select(e => SearchSettings.Compile(e).Length).ToArray();
+                    selection.ChooseVendor(vendor);
                     Rebuild(true);
                 });
                 continue;
@@ -86,8 +84,7 @@ public sealed class SearchStringsView : ContentControl
             button.PreviewMouseWheel += (_, e) => Guard(() =>
             {
                 var direction = e.Delta > 0 ? -1 : 1;
-                model.Cycle(entry, direction);
-                lineIndexes[entry] = (lineIndexes[entry] + direction + lineCounts[entry]) % lineCounts[entry];
+                selection.Cycle(entry, direction);
                 button.Content = SearchStringsBuilder.Row(Row(entry), CardTheme.Default);
                 e.Handled = true;
             });

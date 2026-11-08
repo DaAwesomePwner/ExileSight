@@ -33,11 +33,12 @@ public static class MacroWheelBuilder
             label.TextTrimming = TextTrimming.CharacterEllipsis;
             label.HorizontalAlignment = HorizontalAlignment.Center;
             var button = OnDemandControls.Button(label, theme, pill: true);
-            button.Width = 86; button.Height = 32; button.Tag = i;
+            button.Width = 86; button.Height = 28; button.Tag = i;
+            button.Padding = new Thickness(6, 4, 6, 4);
             button.ToolTip = command; button.IsEnabled = !string.IsNullOrWhiteSpace(command);
             var angle = i * Math.PI / 4 - Math.PI / 2;
             Canvas.SetLeft(button, 157 + Math.Cos(angle) * 100);
-            Canvas.SetTop(button, 134 + Math.Sin(angle) * 100);
+            Canvas.SetTop(button, 136 + Math.Sin(angle) * 100);
             Highlight(button, i == model.HighlightedSlot, theme);
             canvas.Children.Add(button);
         }
@@ -49,7 +50,7 @@ public static class MacroWheelBuilder
 
     public static void Highlight(Button button, bool selected, CardTheme theme)
     {
-        button.BorderBrush = selected ? theme.Accent : theme.OverlayBorder;
+        button.SetValue(OnDemandControls.HighlightedProperty, selected);
         ((TextBlock)button.Content).Foreground = selected ? theme.Accent :
             button.IsEnabled ? theme.OverlayForeground : theme.TextMuted;
     }

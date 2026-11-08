@@ -51,6 +51,18 @@ public sealed class OnDemandSnapshotTests
             Assert.Equal(8, buttons.Length);
             Assert.Same(theme.Accent, buttons[selected].BorderBrush);
             Assert.False(buttons[7].IsEnabled);
+            wheel.Measure(new Size(400, 300));
+            wheel.Arrange(new Rect(0, 0, 400, 300));
+            for (var i = 0; i < buttons.Length; i++)
+            {
+                var current = buttons[i];
+                var next = buttons[(i + 1) % buttons.Length];
+                var bounds = new Rect(Canvas.GetLeft(current), Canvas.GetTop(current), current.ActualWidth, current.ActualHeight);
+                var adjacent = new Rect(Canvas.GetLeft(next), Canvas.GetTop(next), next.ActualWidth, next.ActualHeight);
+                Assert.False(bounds.IntersectsWith(adjacent), $"Wheel slots {i} and {(i + 1) % buttons.Length} overlap");
+                var centre = new Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2);
+                Assert.Equal(100, (centre - new Point(200, 150)).Length, 6);
+            }
             return wheel;
         });
 #endif
@@ -70,6 +82,44 @@ public sealed class OnDemandSnapshotTests
             var row = (StackPanel)SearchStringsBuilder.Row(new("Socket colours", "\"b-b\"", 2, 3), theme);
             Assert.Equal("wheel ↕ 2/3", ((TextBlock)row.Children[1]).Text);
             return card;
+        });
+#endif
+    }
+
+    [WindowsOnlyFact]
+    public void ButtonsShareTemplateAndAllowStyleTriggersToOverrideBaseBrush()
+    {
+#if SNAPSHOT_WINDOWS
+        Render("on-demand-button-feedback", 320, 180, theme =>
+        {
+            var panel = new StackPanel();
+            var buttons = new[]
+            {
+                OnDemandControls.Button(OnDemandControls.Row("In-app action", "›", theme), theme),
+                OnDemandControls.Button(OnDemandControls.Row("Search", "text", theme, mono: true), theme),
+                OnDemandControls.Button("Vendor", theme, pill: true),
+                OnDemandControls.Button("Selected vendor", theme, pill: true, selected: true)
+            };
+            foreach (var button in buttons)
+            {
+                Assert.Same(buttons[0].Template, button.Template);
+                Assert.True(button.Template.IsSealed);
+                Assert.Equal(DependencyProperty.UnsetValue, button.ReadLocalValue(Control.BorderBrushProperty));
+                var hover = Assert.Single(button.Style.Triggers.OfType<Trigger>(), t => t.Property == UIElement.IsMouseOverProperty);
+                Assert.Equal(true, hover.Value);
+                var setter = Assert.Single(hover.Setters.OfType<Setter>());
+                Assert.Equal(Control.BorderBrushProperty, setter.Property);
+                Assert.Same(theme.Accent, setter.Value);
+                var normal = button.BorderBrush;
+                button.SetValue(OnDemandControls.HighlightedProperty, true);
+                Assert.Same(theme.Accent, button.BorderBrush);
+                Assert.Equal(BaseValueSource.StyleTrigger,
+                    DependencyPropertyHelper.GetValueSource(button, Control.BorderBrushProperty).BaseValueSource);
+                button.SetValue(OnDemandControls.HighlightedProperty, false);
+                Assert.Same(normal, button.BorderBrush);
+                panel.Children.Add(button);
+            }
+            return panel;
         });
 #endif
     }

@@ -8,10 +8,16 @@ namespace ExileSight.App.Features.Macros;
 /// <summary>Service-free controls for the three interactive on-demand surfaces.</summary>
 public static class OnDemandControls
 {
-    public static Button Button(object content, CardTheme theme, bool pill = false, bool selected = false)
+    public static readonly DependencyProperty CornerRadiusProperty = DependencyProperty.RegisterAttached(
+        "CornerRadius", typeof(CornerRadius), typeof(OnDemandControls), new PropertyMetadata(new CornerRadius(3)));
+    public static readonly DependencyProperty HighlightedProperty = DependencyProperty.RegisterAttached(
+        "Highlighted", typeof(bool), typeof(OnDemandControls), new PropertyMetadata(false));
+    private static readonly ControlTemplate ButtonTemplate = CreateTemplate();
+
+    private static ControlTemplate CreateTemplate()
     {
         var border = new FrameworkElementFactory(typeof(Border));
-        border.SetValue(Border.CornerRadiusProperty, new CornerRadius(pill ? 14 : 3));
+        border.SetValue(Border.CornerRadiusProperty, new TemplateBindingExtension(CornerRadiusProperty));
         border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Control.BackgroundProperty));
         border.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Control.BorderBrushProperty));
         border.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Control.BorderThicknessProperty));
@@ -21,15 +27,28 @@ public static class OnDemandControls
         presenter.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
         border.AppendChild(presenter);
         var template = new ControlTemplate(typeof(Button)) { VisualTree = border };
-        var hover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-        hover.Setters.Add(new Setter(Control.BorderBrushProperty, theme.Accent));
-        template.Triggers.Add(hover);
+        template.Seal();
+        return template;
+    }
+
+    public static Button Button(object content, CardTheme theme, bool pill = false, bool selected = false)
+    {
+        var style = new Style(typeof(Button));
+        style.Setters.Add(new Setter(Control.TemplateProperty, ButtonTemplate));
+        style.Setters.Add(new Setter(CornerRadiusProperty, new CornerRadius(pill ? 14 : 3)));
+        style.Setters.Add(new Setter(Control.ForegroundProperty, selected ? theme.Accent : theme.OverlayForeground));
+        style.Setters.Add(new Setter(Control.BackgroundProperty, pill || selected ? theme.OverlayRaised : theme.OverlayBackground));
+        style.Setters.Add(new Setter(Control.BorderBrushProperty,
+            selected ? theme.Accent : pill ? theme.OverlayBorder : theme.OverlayBackground));
+        foreach (var property in new[] { UIElement.IsMouseOverProperty, HighlightedProperty })
+        {
+            var trigger = new Trigger { Property = property, Value = true };
+            trigger.Setters.Add(new Setter(Control.BorderBrushProperty, theme.Accent));
+            style.Triggers.Add(trigger);
+        }
         return new Button
         {
-            Content = content, Template = template, Focusable = false,
-            Foreground = selected ? theme.Accent : theme.OverlayForeground,
-            Background = pill || selected ? theme.OverlayRaised : theme.OverlayBackground,
-            BorderBrush = selected ? theme.Accent : pill ? theme.OverlayBorder : theme.OverlayBackground,
+            Content = content, Style = style, Focusable = false,
             BorderThickness = new Thickness(1), Padding = new Thickness(8, 6, 8, 6),
             FontFamily = theme.TextFont, FontSize = 13
         };
