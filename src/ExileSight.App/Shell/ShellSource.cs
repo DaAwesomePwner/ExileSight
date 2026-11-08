@@ -1,7 +1,5 @@
 using System.IO;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
+using ExileSight.Core.Pricing;
 using System.Windows.Input;
 using ExileSight.App.DataPacks;
 using ExileSight.Core.Features;
@@ -17,9 +15,13 @@ namespace ExileSight.App.Shell;
 
 public sealed class ShellSource(IServiceProvider services)
 {
+    private PriceCacheSnapshotReader? priceCache;
+    private (string Path, DateTime Stamp, long Size)? runSignature;
+    private MapRun[] savedRuns = [];
+    public Task<ShellModel> ReadAsync(string page) => Task.Run(() => Read(page));
     internal T? Model<T>() where T : class => services.GetRequiredService<FeatureHost>().Overlays
         .Select(o => o.ViewModel).OfType<T>().FirstOrDefault();
-    public ShellModel Read(string page)
+    private ShellModel Read(string page)
     {
         var settings = services.GetRequiredService<ISettingsStore<SettingsDocument>>().Snapshot;
         var league = settings.Prices.League ?? Model<TrackerModel>()?.League ?? "";
@@ -28,7 +30,7 @@ public sealed class ShellSource(IServiceProvider services)
         var packs = services.GetRequiredService<PackStartup>().Status;
         var bindings = FeatureDefaultBinding.Apply(settings.Hotkeys, services.GetRequiredService<FeatureHost>().DefaultBindings);
         var keys = bindings.Select(b => new KeyRow(KeyName(b), TriggerNames.Display(b.Id), b.Enabled)).ToArray();
-        var runs = Model<TrackerModel>()?.Query(league) ?? [];
+        var runs = ReadRuns(league);
         var sales = Model<ShopModel>()?.History.Snapshot() ?? [];
         var session = LastSession.Map(runs.Select(r => new SessionMap(new DateTimeOffset(r.Started), new DateTimeOffset(r.Ended), r.Seconds,
             r.DeathsKnown ? r.Deaths : null)), sales.Where(s => s.League == league).Select(s =>
@@ -42,28 +44,28 @@ public sealed class ShellSource(IServiceProvider services)
         var key = binding.Key == 0x14 ? "CapsLock" : KeyInterop.KeyFromVirtualKey(binding.Key).ToString();
         return binding.Modifiers == 0 ? key : binding.Modifiers.ToString().Replace(", ", " + ") + " + " + key;
     }
+    private MapRun[] ReadRuns(string league)
+    {
+        var paths = services.GetRequiredService<IAppPaths>();
+        var path = new RunStore(Path.Combine(paths.GetGameDirectory("poe1"), "maptracker")).PathFor(league);
+        var file = new FileInfo(path);
+        var signature = (path, file.Exists ? file.LastWriteTimeUtc : default, file.Exists ? file.Length : -1);
+        if (signature != runSignature)
+        {
+            savedRuns = Model<TrackerModel>()?.Query(league) ?? [];
+            runSignature = signature;
+        }
+        return savedRuns;
+    }
     private StatusTile CachedPrices(string league, TimeSpan interval)
     {
-        // Read the existing Currency cache only; never start a refresh from the Home page.
-        try
-        {
-            var uri = ExileSight.Core.Pricing.PriceEndpoints.Overview(league, "Currency");
-            var key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(uri.AbsoluteUri.ToUpperInvariant())));
-            var path = Path.Combine(services.GetRequiredService<IAppPaths>().RootDirectory, "cache", "poe1", "poeninja", key + ".json");
-            if (!File.Exists(path)) return HomeStatus.Prices(false, true, "No saved Currency prices for this league.");
-            if (new FileInfo(path).Length > 64 * 1024 * 1024) return HomeStatus.Prices(false, true, "Price cache unavailable.");
-            using var json = JsonDocument.Parse(File.ReadAllBytes(path));
-            var root = json.RootElement;
-            if (root.ValueKind != JsonValueKind.Object) throw new JsonException("Invalid cache shape.");
-            var available = root.TryGetProperty("Json", out var data) && data.ValueKind == JsonValueKind.String;
-            if (available) ExileSight.Core.Pricing.PriceParser.Parse(data.GetString()!, "Currency");
-            var updated = root.TryGetProperty("UpdatedAt", out var stamp) && stamp.ValueKind == JsonValueKind.String
-                ? stamp.GetDateTimeOffset() : (DateTimeOffset?)null;
-            var error = root.TryGetProperty("Error", out var failure) && failure.ValueKind == JsonValueKind.String;
-            return HomeStatus.Prices(available, error || updated is null || updated > DateTimeOffset.UtcNow || DateTimeOffset.UtcNow - updated >= interval,
-                updated is null ? "Saved Currency prices have no timestamp." : "Currency prices saved " + updated.Value.ToLocalTime().ToString("g"));
-        }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException or ArgumentException or FormatException or OverflowException)
-        { return HomeStatus.Prices(false, true, "Price cache unavailable."); }
+        priceCache ??= new(services.GetRequiredService<IAppPaths>().RootDirectory);
+        var cached = priceCache.Read(league, "Currency");
+        var now = DateTimeOffset.UtcNow;
+        return HomeStatus.Prices(cached.Available,
+            cached.Diagnostic is not null || cached.UpdatedAt is null || cached.UpdatedAt > now || now - cached.UpdatedAt >= interval,
+            cached.Diagnostic ?? (cached.UpdatedAt is { } updated
+                ? "Currency prices saved " + StatusFormat.Date(updated.ToLocalTime())
+                : "Saved Currency prices have no timestamp."));
     }
 }

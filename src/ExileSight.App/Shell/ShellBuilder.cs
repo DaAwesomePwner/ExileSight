@@ -9,6 +9,9 @@ public static class ShellBuilder
     public static FrameworkElement Build(ShellModel model, CardTheme t, bool narrow = false)
     {
         var root = new DockPanel { Background = t.AppBackground, LastChildFill = true };
+        root.Resources.MergedDictionaries.Add(new ResourceDictionary
+        { Source = new Uri("/ExileSight.App;component/Shell/ShellControls.xaml", UriKind.Relative) });
+        foreach (var key in new[] { "AppPanel", "AppNav", "OverlayBorder", "TextSecondary", "Accent" }) root.Resources[key] = t[key];
         var nav = new WrapPanel { Orientation = narrow ? Orientation.Horizontal : Orientation.Vertical,
             Background = t.AppNav, Width = narrow ? double.NaN : 200, Margin = new Thickness(0, 0, 16, 0) };
         nav.Children.Add(Text("  ◉  ExileSight", t, 18, true));
@@ -23,7 +26,7 @@ public static class ShellBuilder
         var content = new DockPanel { Margin = new Thickness(16, 24, 20, 16) };
         var footer = new StackPanel();
         footer.Children.Add(Text("This product isn't affiliated with or endorsed by Grinding Gear Games in any way.", t, 12, muted: true));
-        footer.Children.Add(Button("See everything it sent · Transparency", "Transparency", t));
+        footer.Children.Add(Link("See everything it sent · Transparency", "Transparency", t));
         DockPanel.SetDock(footer, Dock.Bottom); content.Children.Add(footer);
         FrameworkElement page = model.Page switch
         {
@@ -31,7 +34,7 @@ public static class ShellBuilder
             "Hotkeys" => HotkeysBuilder.Build(model, t),
             _ => PlaceholderBuilder.Build(model.Page, t)
         };
-        content.Children.Add(new ScrollViewer { Content = page, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+        content.Children.Add(new ScrollViewer { Content = page, Name = "PageScroll", HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
         root.Children.Add(content); return root;
     }
 }

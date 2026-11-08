@@ -1,13 +1,11 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Input;
-using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
 using ExileSight.App.Features.Vaalasync;
 using ExileSight.App.Ui;
 using ExileSight.Core.Pricing;
 using ExileSight.Core.Settings;
+using ExileSight.Core.Status;
 using ExileSight.Features.MapTracker;
 using ExileSight.Features.Vaalasync;
 using ExileSight.Platform.Abstractions.Storage;
@@ -19,37 +17,65 @@ public sealed class ShellWindow : Window
     private readonly IServiceProvider services;
     private readonly ShellSource source;
     private string page = "Home";
-    private bool narrow;
+    private bool narrow, refreshing, pending, closed;
+    private ShellModel? displayed;
     private HistoryView? history;
     private readonly DispatcherTimer refreshTimer = new() { Interval = TimeSpan.FromSeconds(10) };
+    private ComboBox? LeagueBox => ShellViewState.Find<ComboBox>(Content as DependencyObject).FirstOrDefault();
     public ShellWindow(IServiceProvider services)
     {
         this.services = services; source = new(services);
         Title = "ExileSight"; Width = 1280; Height = 820; MinWidth = 520; MinHeight = 480;
         Background = CardTheme.Default.AppBackground;
         Activated += (_, _) => Refresh();
-        refreshTimer.Tick += (_, _) =>
-        {
-            if (page == "Home" && Keyboard.FocusedElement is not TextBoxBase &&
-                FindCombo((DependencyObject)Content)?.IsKeyboardFocusWithin != true) Refresh();
-        };
-        IsVisibleChanged += (_, _) =>
-        {
-            if (IsVisible && WindowState != WindowState.Minimized) refreshTimer.Start(); else refreshTimer.Stop();
-        };
-        StateChanged += (_, _) =>
-        {
-            if (IsVisible && WindowState != WindowState.Minimized) refreshTimer.Start(); else refreshTimer.Stop();
-        };
-        Closed += (_, _) => refreshTimer.Stop();
+        refreshTimer.Tick += (_, _) => { if (page == "Home") Refresh(); };
+        IsVisibleChanged += (_, _) => UpdateTimer();
+        StateChanged += (_, _) => UpdateTimer();
+        Closed += (_, _) => { closed = true; refreshTimer.Stop(); };
         SizeChanged += (_, _) => { if (narrow != (ActualWidth < 760)) Refresh(); };
         AddHandler(Button.ClickEvent, new RoutedEventHandler(Clicked));
         Refresh();
     }
-    private void Refresh()
+    private void UpdateTimer()
     {
-        narrow = ActualWidth > 0 && ActualWidth < 760;
-        Content = ShellBuilder.Build(source.Read(page), CardTheme.Default, narrow);
+        if (IsVisible && WindowState != WindowState.Minimized) refreshTimer.Start(); else refreshTimer.Stop();
+    }
+    private bool CanReplace(bool changed, bool layoutChanged) => ShellRefreshPolicy.ShouldRebuild(changed, layoutChanged,
+        LeagueBox?.IsKeyboardFocusWithin == true || LeagueBox?.IsDropDownOpen == true, LeagueBox?.Text, displayed?.League);
+    private async void Refresh()
+    {
+        if (closed || !CanReplace(true, true)) return;
+        if (refreshing) { pending = true; return; }
+        refreshing = true;
+        try
+        {
+            do
+            {
+                pending = false;
+                var requestedPage = page;
+                var next = await source.ReadAsync(requestedPage);
+                if (closed) return;
+                if (requestedPage != page) { pending = true; continue; }
+                var nextNarrow = ActualWidth > 0 && ActualWidth < 760;
+                // Recheck after the await: the user may have started editing during the read.
+                if (!CanReplace(displayed is null || !displayed.SameContent(next), narrow != nextNarrow)) continue;
+                var offsets = displayed?.Page == next.Page ? ShellViewState.Capture(Content as DependencyObject) : [];
+                narrow = nextNarrow; displayed = next;
+                var view = ShellBuilder.Build(next, CardTheme.Default, narrow);
+                Content = view;
+                _ = Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+                {
+                    if (ReferenceEquals(Content, view)) ShellViewState.Restore(view, offsets);
+                }));
+                Title = "ExileSight";
+            } while (pending);
+        }
+        catch (Exception error)
+        {
+            // Retain the existing view and edits on transient storage failures. No modal timer dialogs.
+            Title = "ExileSight — status unavailable (" + error.GetType().Name + ")";
+        }
+        finally { refreshing = false; }
     }
     private void Clicked(object sender, RoutedEventArgs args)
     {
@@ -65,25 +91,29 @@ public sealed class ShellWindow : Window
             }
             history.Show(); history.WindowState = WindowState.Normal; history.Activate(); return;
         }
+        if (target == "DiscardLeague")
+        {
+            if (LeagueBox is { } box) box.Text = displayed?.League ?? "";
+            Refresh(); return;
+        }
         if (target == "SaveLeague")
         {
-            var value = FindCombo((DependencyObject)Content)?.Text.Trim();
+            var value = LeagueBox?.Text.Trim();
             if (string.IsNullOrEmpty(value)) return;
             try
             {
                 services.GetRequiredService<ISettingsStore<SettingsDocument>>().Update("prices", d => d.Prices.League = value);
+                if (displayed is not null) displayed = displayed with { League = value };
+                if (LeagueBox is { } box) box.Text = value;
                 Refresh();
             }
             catch (Exception error) { MessageBox.Show("Could not save league: " + error.GetType().Name, "ExileSight"); }
             return;
         }
+        if (!CanReplace(true, true))
+        {
+            MessageBox.Show("Save or discard the league edit before changing pages.", "ExileSight"); return;
+        }
         page = target; Refresh();
-    }
-    private static ComboBox? FindCombo(DependencyObject root)
-    {
-        if (root is ComboBox combo) return combo;
-        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
-            if (FindCombo(VisualTreeHelper.GetChild(root, i)) is { } found) return found;
-        return null;
     }
 }

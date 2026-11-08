@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using ExileSight.App.Ui;
 using ExileSight.Core.Status;
 using static ExileSight.App.Shell.ShellElements;
@@ -13,18 +14,21 @@ public static class HomeBuilder
         var body = new StackPanel();
         body.Children.Add(Text(HomeStatus.Title(model.Status), t, 24, true));
         body.Children.Add(Text("Your game, data and recent activity.", t, muted: true));
-        var leagueRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 16) };
+        var leagueRow = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 16) };
         leagueRow.Children.Add(Text("League  ", t, muted: true));
         var league = new ComboBox { IsEditable = true, Text = model.League, Width = 200, Tag = "League" };
         league.Items.Add("Standard"); league.Items.Add("Hardcore");
         if (!string.IsNullOrEmpty(model.League) && model.League is not ("Standard" or "Hardcore")) league.Items.Add(model.League);
-        leagueRow.Children.Add(league); leagueRow.Children.Add(Button("Save league", "SaveLeague", t)); body.Children.Add(leagueRow);
+        leagueRow.Children.Add(league); leagueRow.Children.Add(Button("Save league", "SaveLeague", t));
+        leagueRow.Children.Add(Button("Discard edit", "DiscardLeague", t)); body.Children.Add(leagueRow);
         var tiles = new WrapPanel();
         foreach (var status in model.Status)
         {
             var content = new StackPanel();
-            var label = Text("●  " + status.Label, t, 12);
-            label.Foreground = status.Ok ? t.OverlayAccent : t.TooltipLow;
+            var label = Text("", t, 12);
+            label.Foreground = t.TextSecondary;
+            label.Inlines.Add(new Run("●  ") { Foreground = status.Ok ? t.OverlayAccent : t.TooltipLow });
+            label.Inlines.Add(new Run(status.Label));
             content.Children.Add(label); content.Children.Add(Text(status.Summary, t, 14, true));
             content.Children.Add(Text(status.Detail, t, 12, muted: true));
             var tile = Card(content, t); tile.Width = narrow ? 230 : 220; tiles.Children.Add(tile);
@@ -48,10 +52,10 @@ public static class HomeBuilder
         if (session is null) body.Children.Add(Text("No recorded maps yet. Choose a league in Map log to begin.", t, muted: true));
         else
         {
-            body.Children.Add(Text(session.Started.ToString("g", CultureInfo.InvariantCulture), t, 12, muted: true));
+            body.Children.Add(Text(StatusFormat.Date(session.Started), t, 12, muted: true));
             body.Children.Add(Text($"{session.Maps.Count} maps run", t, 24, true));
-            body.Children.Add(Text(TimeSpan.FromSeconds(session.AverageSeconds).ToString(@"hh\:mm\:ss") + " average map time", t));
-            body.Children.Add(Text(session.DeathsKnown ? $"{session.KnownDeaths} deaths" : $"Deaths unknown ({session.KnownDeaths} known)", t));
+            body.Children.Add(Text(StatusFormat.Duration(session.AverageSeconds) + " average map time", t));
+            body.Children.Add(Text(session.DeathsKnown ? StatusFormat.Deaths(session.KnownDeaths) : $"Deaths unknown ({session.KnownDeaths} known)", t));
             body.Children.Add(Text(session.DivineSold.ToString("0.##", CultureInfo.InvariantCulture) + " divine marked sold", t));
             var bars = new StackPanel { Orientation = Orientation.Horizontal, Height = 64 };
             var max = Math.Max(1, session.Maps.Max(m => m.Seconds));
@@ -59,7 +63,7 @@ public static class HomeBuilder
                 bars.Children.Add(new Border { Width = 14, Height = Math.Max(2, map.Seconds / max * 56),
                     Background = map.Deaths > 0 ? t.TooltipLow : t.OverlayAccent, Margin = new Thickness(0, 0, 4, 0),
                     VerticalAlignment = VerticalAlignment.Bottom, ToolTip = $"{map.Seconds:0} seconds · deaths: {map.Deaths?.ToString() ?? "unknown"}" });
-            body.Children.Add(new ScrollViewer { Content = bars, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto });
+            body.Children.Add(new ScrollViewer { Content = bars, Name = "SessionChart", VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto });
             body.Children.Add(Text("Map time · orange: a death in that map", t, 12, muted: true));
         }
         var actions = new WrapPanel(); actions.Children.Add(Button("Open map log", "Map log", t));

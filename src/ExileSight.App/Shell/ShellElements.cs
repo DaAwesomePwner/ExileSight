@@ -21,6 +21,15 @@ internal static class ShellElements
         Content = label, Tag = target, Background = t.OverlayRaised, Foreground = t.OverlayForeground,
         BorderBrush = t.OverlayBorder, Padding = new Thickness(12, 8, 12, 8), Margin = new Thickness(0, 0, 8, 8)
     };
+    internal static Button Link(string label, string target, CardTheme t)
+    {
+        var text = Text(label, t, 12); text.Foreground = t.Accent; text.TextDecorations = TextDecorations.Underline;
+        var button = new Button { Content = text, Tag = target, HorizontalAlignment = HorizontalAlignment.Left,
+            Cursor = System.Windows.Input.Cursors.Hand };
+        var presenter = new FrameworkElementFactory(typeof(ContentPresenter));
+        button.Template = new ControlTemplate(typeof(Button)) { VisualTree = presenter };
+        return button;
+    }
     internal static FrameworkElement Keys(IReadOnlyList<KeyRow> keys, CardTheme t)
     {
         var panel = new StackPanel();
