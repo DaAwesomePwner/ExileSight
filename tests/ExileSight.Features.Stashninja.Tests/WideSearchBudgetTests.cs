@@ -51,6 +51,55 @@ public sealed class WideSearchBudgetTests
     }
 
     [Fact]
+    public void PartialBatchLeavesBaselineOpenForCoolingCandidateWithBoundedRetries()
+    {
+        var a = GridFixture.Layout;
+        var b = a with { Page = "second" };
+        var budget = new WideSearchBudget();
+        var start = DateTimeOffset.UnixEpoch;
+        Assert.Single(budget.Reserve(start.AddSeconds(-10), Header(-.2), [b]));
+        Assert.Single(budget.Reserve(start, Header(0), [a]));
+        var attempts = new Dictionary<Layout, List<DateTimeOffset>>
+        {
+            [a] = [start], [b] = [start.AddSeconds(-10)]
+        };
+        var partial = budget.Reserve(start.AddSeconds(20), Header(.5), [a, b]);
+        Assert.Equal(b, Assert.Single(partial));
+        attempts[b].Add(start.AddSeconds(20));
+        var resumed = budget.Reserve(start.AddSeconds(30), Header(.5), [a, b]);
+        Assert.Equal(a, Assert.Single(resumed));
+        attempts[a].Add(start.AddSeconds(30));
+
+        for (var i = 1; i <= 200; i++)
+        {
+            var now = start.AddSeconds(30).AddMilliseconds(i * 450);
+            var batch = budget.Reserve(now, Header(.5), [a, b]);
+            Assert.InRange(batch.Count, 0, 2);
+            foreach (var page in batch)
+            {
+                Assert.True(now - attempts[page][^1] >= TimeSpan.FromSeconds(30));
+                attempts[page].Add(now);
+            }
+            foreach (var history in attempts.Values)
+                Assert.True(history.Count <= Math.Ceiling((now - history[0]).TotalSeconds / 30) + 1);
+        }
+    }
+
+    [Fact]
+    public void FullyAvailableBatchConsumesBaselineAndNeverExceedsTwoCandidates()
+    {
+        var a = GridFixture.Layout;
+        var b = a with { Page = "second" };
+        var c = a with { Page = "third" };
+        var budget = new WideSearchBudget();
+        var start = DateTimeOffset.UnixEpoch;
+        var batch = budget.Reserve(start, Header(0), [a, b, c]);
+        Assert.Equal(2, batch.Count);
+        Assert.Contains(a, batch); Assert.Contains(b, batch); Assert.DoesNotContain(c, batch);
+        Assert.Empty(budget.Reserve(start.AddMinutes(1), Header(0), [a, b, c]));
+    }
+
+    [Fact]
     public void JitterCannotBypassThirtySecondPerLayoutCooldown()
     {
         var page = GridFixture.Layout;

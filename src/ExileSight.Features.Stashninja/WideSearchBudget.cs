@@ -27,11 +27,13 @@ public sealed class WideSearchBudget
         {
             ObserveHeader(header);
             if (!PageSignature.Valid(header) || attemptedBaseline) return new HashSet<Layout>();
-            var allowed = candidates.Where(l => !nextAttempt.TryGetValue(l.TabId + "/" + l.Page, out var next) || now >= next)
-                .Take(2).ToHashSet();
+            var top = candidates.Take(2).ToArray();
+            var allowed = top.Where(l => !nextAttempt.TryGetValue(l.TabId + "/" + l.Page, out var next) || now >= next)
+                .ToHashSet();
             if (allowed.Count == 0) return allowed;
-            // Consume before work begins: cancellation or failure cannot refund expensive work.
-            attemptedBaseline = true;
+            // Preserve deferred candidates on this baseline, but charge every admitted
+            // layout before work begins: cancellation or failure cannot refund it.
+            attemptedBaseline = top.All(allowed.Contains);
             foreach (var layout in allowed) nextAttempt[layout.TabId + "/" + layout.Page] = now + LayoutCooldown;
             return allowed;
         }

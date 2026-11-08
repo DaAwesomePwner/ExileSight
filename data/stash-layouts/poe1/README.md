@@ -180,10 +180,12 @@ refinement (≤559 evaluations per layout). Require coherent score ≥25/255,
 ≥75% supported search probes and runner-up margin ≥3. Independent neighboring
 tangent probes reject noise. If needed, at most two qualifying uncalibrated
 candidates get the broad ±3% height / ±5% scale search (≤40,000 evaluations each).
-Only one wider-search batch is allowed per header baseline, and each layout has a
+Only one fully admitted wider-search batch is allowed per header baseline, and each layout has a
 separate 30-second cooldown. Reservations are consumed before work, even on failure
-or cancellation; watcher resets do not clear them. Another batch requires a real
-header change. Save a successful calibration per geometry/resolution. Offsets
+or cancellation; watcher resets do not clear them. A fully admitted batch consumes
+the baseline and requires a real header change to retry. If any top candidate is
+cooling down, keep the baseline available for later attempts while retaining each
+layout’s 30-second cooldown. Save a successful calibration per geometry/resolution. Offsets
 outside the ±12 px sparse band need Ctrl+Shift+N → Auto-calibrate or manual calibration.
 
 Menu Load pins a manual selection until the header changes or the stash closes.

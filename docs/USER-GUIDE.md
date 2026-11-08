@@ -143,9 +143,11 @@ After the first immediate check, unidentified scenes are checked no more often t
 every 1.8 seconds, even when the moving world changes the header every tick. The
 header itself stays on its 450 ms schedule. Opening a supported stash waits at most
 1.8 seconds for this gate, then capture, scoring and price loading follow.
-Qualifying uncalibrated candidates can receive one wider-search batch per header
+Qualifying uncalibrated candidates can receive one fully admitted wider-search batch per header
 baseline (at most two pages), with a separate 30-second cooldown for each page.
-Another batch requires a real header change; simply waiting does not repeat it.
+A fully admitted batch requires a real header change to retry. If a top candidate
+is still cooling down, the baseline stays available for later attempts; each page
+can still be searched at most once per 30 seconds.
 The sparse pre-check only covers a ±12 px band around predicted borders. For larger
 first-use offsets, use Ctrl+Shift+N → **Auto-calibrate** or manual calibration.
 Tags can hide during a genuine page-change capture/search. Unknown after a change

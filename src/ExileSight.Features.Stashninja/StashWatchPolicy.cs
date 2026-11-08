@@ -27,7 +27,7 @@ public sealed class StashWatchPolicy
         if (changed && Identified)
         {
             if (headerChanged) Pinned = false;
-            return new(Identified ? WatchWork.Identify : WatchWork.Precheck, true);
+            return new(WatchWork.Identify, true);
         }
         unknown = false;
         if (Identified) return new(WatchWork.None);
