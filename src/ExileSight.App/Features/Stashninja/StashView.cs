@@ -90,7 +90,7 @@ public sealed partial class StashView : StackPanel
         tab.SelectionChanged += (_, _) => Clear();
         model.Opened += () =>
         {
-            var selected = model.SelectedLayout;
+            var selected = automaticPage ?? model.SelectedLayout;
             Dispatcher.BeginInvoke(async () =>
             {
                 var page = selected is null ? null : selected.TabId + "/" + selected.Page;
@@ -112,6 +112,7 @@ public sealed partial class StashView : StackPanel
         window = (HostedOverlayWindow)Window.GetWindow(this);
         window.PhysicalPlacement = Position;
         host.SetVisible(window, false);
+        UpdatePolling();
         window.IsVisibleChanged += (_, _) =>
         { if (!window.IsVisible) { autoEpoch++; calibration.Cancel(); } UpdatePolling(); };
     }
@@ -162,7 +163,8 @@ public sealed partial class StashView : StackPanel
         if (calibration.IsActive || layout is null || overview is null || profile.SelectedIndex < 0) return;
         var selected = model.Profiles[profile.SelectedIndex];
         var tags = Tags.Build(layout, overview, selected);
-        if (!recognitionHidden && window?.RequestedVisible == true) surface.Show(layout, tags);
+        if (autoDetect.IsChecked == true ? automaticPage == layout && !recognitionHidden :
+            window?.RequestedVisible == true) surface.Show(layout, tags);
         var search = Tags.Search(tags, selected.Minimum); model.SetSearch(search);
         highlight.Content = $"Highlight above {selected.Minimum}c"; highlight.IsEnabled = search.Text is not null;
         SetStatus(search.Status + $" — {tags.Length}/{layout.Cells.Length} cells priced" +

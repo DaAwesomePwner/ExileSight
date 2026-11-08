@@ -31,13 +31,13 @@ GGG says new OAuth app registrations are currently closed, and that reverse-engi
 
 ## Screen reading limits (D-104)
 
-- Capture only the game client rectangle, only while the game is foreground and the stash overlay is open.
+- Capture only the game client rectangle, only while the game is foreground. A light Stashninja watch is enabled by default and can be disabled with **Show stash prices automatically**, independently of the menu.
 - Recognize the open stash tab/page, locate its grid for calibration, and switch or position displayed price tags only. Screen results never send input or obtain an `IntentToken`.
 - Use GDI `BitBlt` only: no DXGI capture, DirectX/Vulkan hooks or Windows.Graphics.Capture. Exclusive fullscreen may not capture; recommend Windowed Fullscreen.
-- References are taught by the user and captured locally, automatically after page calibration or with **Remember this page**. Store them only on the user’s machine; ship and commit no game images.
+- Supported grids are identified and calibrated locally without teaching. Optional user-taught references may still be captured after manual calibration or with **Remember this page**. Store them only on the user’s machine; ship and commit no game images.
 - Declare screen-read purposes in the feature manifest and generated README transparency table. Display-only grid auto-calibration is approved by the owner as an extension of D-104; manual two-click calibration remains the fallback.
 
-Windows drawn over the game (notifications or other overlays) can appear in the sampled region. Samples never leave the PC; only the reduced signature is stored locally.
+Windows drawn over the game (notifications or other overlays) can appear in the sampled region. Samples never leave the PC; only calibration transforms and optional reduced reference signatures are stored locally.
 
 ## Forbidden
 

@@ -54,7 +54,7 @@ remove `%APPDATA%\ExileSight` separately after backing up anything you want.
 
 ExileSight reads the selected game log without changing it, and reads item text
 copied after your hotkey. In 1.1, Stashninja may also read pixels of the foreground
-game client while its overlay is open to recognize stash pages (D-104). It does not
+foreground game client to recognize stash pages automatically (D-104). It does not
 read game memory, inject code, or change the game window or game files.
 
 Every game action follows your own physical key press or overlay click, and each
@@ -103,65 +103,46 @@ are suggestions until you explicitly choose one.
 
 ### Price check / stashninja — Ctrl+Shift+N
 
-Stashninja draws poe.ninja price tags over measured fixed stash cells.
+Open a supported stash page and poe.ninja prices appear automatically. ExileSight
+identifies the cell arrangement and saves calibration the first time at each resolution;
+no menu, page selection or teaching is required. Closing the stash or opening an
+unknown page hides its tags.
 
-Open **Ctrl+Shift+N** to load the last page loaded in this app session (Currency
-General initially), or choose **Price stash tab…** in the omni menu to load the
-page matching the copied item's name or base type. An unmatched item uses the
-last page. You can also select a fixed tab/page and click **Load selected tab**.
-For 1.0, reopen from an item or select the page manually when the game page changes.
-The approved 1.1 recognition feature (D-104) reads only pixels inside the game client
-rectangle, only while the game is foreground and the stash overlay is open, to switch
-the displayed price tags automatically. It uses GDI BitBlt, with no DXGI capture,
-DirectX/Vulkan hooks or Windows.Graphics.Capture. Exclusive fullscreen may not
-capture; use Windowed Fullscreen. Tags describe item types, not your stash contents
-or quantities. The default price league is the current softcore
-challenge league excluding SSF/Ruthless, with Standard as fallback; you can set
-`prices.league` in your profile. Stale or incomplete prices are labelled.
+**Show stash prices automatically** defaults ON. Open Ctrl+Shift+N to turn it off;
+the choice is saved in your profile as `stashninja.automaticPrices`. The optional
+menu also provides price profiles, **Highlight**, **Auto-calibrate**, and manual
+calibration. Its page list follows automatic recognition. For a manual override,
+turn automatic prices off, select a page and click **Load selected tab**. Closing
+the menu does not stop the automatic watch.
 
 Supported pages: Currency General, Atlas and League; Fragment General; Delve,
-Essence, Blight and Delirium. Coverage is partial; unknown cells are omitted and cells without a current price
-have no tag. Allflame is deferred. See the [coverage and update guide](../data/stash-layouts/poe1/README.md).
-The overlay tries **Auto-calibrate** once when loading a page without saved calibration while the game is foreground. It briefly hides its tags, checks the visible slot borders, and saves a confident fit. You can retry with **Auto-calibrate**. If the stash is closed, capture fails, or the grid is uncertain, use the manual fallback.
-Select two distinct **empty** cells far apart diagonally in the calibration selectors, click **Calibrate**,
-then click their centers in order with no item held. Esc cancels; clicks reach the game. Calibration is saved per layout and
-resolution. A physical **Highlight** click pastes one search; loading prices does
-not. Searches over the game's supported limit are disabled.
+Essence, Blight and Delirium. Unknown/unpriced cells have no tag. Tags describe item
+types, not quantities or ownership. See the [coverage guide](../data/stash-layouts/poe1/README.md).
+Prices default to the current softcore challenge league excluding SSF/Ruthless,
+with Standard as fallback; set `prices.league` to override. Stale or incomplete
+prices are labelled.
 
-In 1.1, teach page references locally: capture follows page calibration automatically,
-or use **Remember this page**. References stay only on your machine; ExileSight
-ships no game images and commits none. Screen recognition only changes the overlay
-display and never sends input or obtains an IntentToken. D-104 also permits display-only grid auto-calibration; successful automatic and manual calibration both teach page references.
+If recognition cannot confidently identify the grid, tags stay hidden. Move
+covering windows away, or disable automatic prices and select the page manually.
+**Auto-calibrate** performs a wider grid search. As a fallback, select two distinct
+**empty** cells far apart diagonally, click **Calibrate**, then click their centers
+with no item held. These clicks reach the game; Esc cancels. Calibration is local
+and specific to the layout and resolution. A separate physical **Highlight** click
+pastes one search; loading prices never sends input.
 
-**Remember this page** teaches the currently loaded tab/page at the current client
-resolution; successful calibration also teaches it. **Forget this page** removes
-that resolution's reference. To undo an automatic result, recalibrate manually with
-two empty cells, then use **Forget this page** to remove the recognition reference
-(manual calibration also teaches it). References live beside calibration in local
-`poe1/stashninja/references.json`; corrupt or outdated references are ignored with
-a notice. Version-1 references must be re-taught for the two-stage matcher.
-Re-teach after a resolution or recognition rectangle change.
+The watch checks a small header strip about every 450 ms while the game is
+foreground, pausing during manual calibration. A grid check follows changes and
+runs at least every 2.5 seconds while identified; an unknown page is retried.
+Tags briefly hide for capture and may flicker during these checks. Unknown
+results hide tags immediately; Highlight clears after roughly one second.
 
-**Auto-detect taught pages** defaults on when references exist for this resolution.
-Calibration teaching respects an explicit off choice; **Remember this page** enables it.
-While the menu is open and the game foreground, it checks the shared header strip
-about every 250 ms, pausing during calibration. The header identifies the tab;
-a separate full sub-tab row distinguishes sibling pages. Teach **every shipped page**
-of a multi-page tab at this resolution before auto-detect can select any of them.
-Until then, a matched header shows a teaching reminder and its page is unknown.
-Two consecutive confident matches
-switch the tags; three unknown checks hide them while keeping the menu open.
-A new confident match restores tags. Disable the toggle for manual selection.
-Tied or ambiguous references count as unknown. No item counts or contents are read.
-
-The header avoids price tags and the menu. Blocked or failed captures show a
-notice without counting toward hiding tags. If tags from a different tab overlap
-a sub-tab region, they are hidden first and sampling waits for the next tick.
-If the matched tab’s own tags overlap, they stay visible and a “sub-tab area blocked
-by tags” notice replaces sampling; adjust calibration to clear the region. Notifications and other windows drawn over the
-game can still appear in the sampled region and disrupt recognition. Samples never
-leave the PC; only a reduced signature is stored, never the screenshot. Move
-covering windows away and teach again if needed. Closing the menu stops sampling.
+Only game-client pixels are captured, using GDI BitBlt, with no DXGI capture,
+DirectX/Vulkan hooks or Windows.Graphics.Capture. Use Windowed Fullscreen;
+exclusive fullscreen may not capture. Screen checks never send input or obtain
+an IntentToken. Samples never leave the PC and screenshots are never stored.
+Only calibration and optional reduced references are saved locally; no game images
+ship. **Remember this page** and **Forget this page** remain optional local-reference
+controls for compatibility; automatic identification does not use taught references.
 
 ### Shop repricing / vaalasync — omni
 

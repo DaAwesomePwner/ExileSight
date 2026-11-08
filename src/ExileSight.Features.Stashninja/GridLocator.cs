@@ -1,7 +1,7 @@
 namespace ExileSight.Features.Stashninja;
 
 public sealed record GridSample(int X, int Y, int Width, int Height, byte[] Bgra);
-public sealed record GridLocation(Transform? Transform, double Confidence, string Reason, int Evaluations);
+public sealed record GridLocation(Transform? Transform, double Confidence, string Reason, int Evaluations, double Score = 0);
 
 /// <summary>Display-only, bounded search for dark slot frames. No platform dependencies.</summary>
 public static class GridLocator
@@ -12,7 +12,7 @@ public static class GridLocator
     private readonly record struct Probe(double X, double Y, bool Vertical);
     private readonly record struct Candidate(Transform Transform, double Score);
 
-    public static GridLocation Locate(Layout layout, Resolution client, Transform start, GridSample sample)
+    public static GridLocation Locate(Layout layout, Resolution client, Transform start, GridSample sample, bool local = false)
     {
         if (!start.IsValid || client.Width <= 0 || client.Height <= 0 || client.Height > 16384 ||
             sample.Width < 8 || sample.Height < 8 || (long)sample.Width * sample.Height > MaxPixels ||
@@ -59,7 +59,7 @@ public static class GridLocator
             }
             return (sum / points.Length, (double)supported / points.Length);
         }
-        var range = client.Height * TranslationRange;
+        var range = local ? 3d : client.Height * TranslationRange;
         var pool = new List<Candidate>(); double total = 0, squared = 0; var coarseCount = 0;
         void Evaluate(Transform t, bool coarse)
         {
@@ -74,30 +74,34 @@ public static class GridLocator
             pool.Add(new(t, score));
             if (pool.Count > 16) { pool.Sort((a, b) => b.Score.CompareTo(a.Score)); pool.RemoveRange(8, pool.Count - 8); }
         }
-        // 21 scales x 21 x 21 translations; refinement is capped at 8 seeds per level.
-        for (var s = -10; s <= 10; s++)
-        for (var x = -10; x <= 10; x++)
-        for (var y = -10; y <= 10; y++)
-            Evaluate(new(start.Scale * (1 + s * .005), start.X + range * x / 10, start.Y + range * y / 10), true);
+        var steps = local ? 3 : 10;
+        for (var s = -steps; s <= steps; s++)
+        for (var x = -steps; x <= steps; x++)
+        for (var y = -steps; y <= steps; y++)
+            Evaluate(new(start.Scale * (1 + s * (local ? .001 : .005)),
+                start.X + range * x / steps, start.Y + range * y / steps), true);
         if (coarseCount == 0) return new(null, 0, "Grid lies outside the captured area", evaluations);
-        foreach (var level in new[] { (Scale: .001, Shift: range / 50), (Scale: .0002, Shift: .15) })
+        var levels = local ? new[] { (Scale: .0002, Shift: .3) } :
+            new[] { (Scale: .001, Shift: range / 50), (Scale: .0002, Shift: .15) };
+        foreach (var level in levels)
         {
             var seeds = pool.OrderByDescending(c => c.Score).Take(8).ToArray();
+            var refinement = local ? 1 : 3;
             foreach (var seed in seeds)
-            for (var s = -3; s <= 3; s++)
-            for (var x = -3; x <= 3; x++)
-            for (var y = -3; y <= 3; y++)
+            for (var s = -refinement; s <= refinement; s++)
+            for (var x = -refinement; x <= refinement; x++)
+            for (var y = -refinement; y <= refinement; y++)
                 Evaluate(new(seed.Transform.Scale + start.Scale * s * level.Scale,
                     seed.Transform.X + x * level.Shift, seed.Transform.Y + y * level.Shift), false);
         }
         var best = pool.MaxBy(c => c.Score);
         var mean = total / coarseCount; var deviation = Math.Sqrt(Math.Max(1, squared / coarseCount - mean * mean));
         var confidence = (best.Score - mean) / deviation;
-        if (best.Score < 8 || Score(best.Transform)!.Value.Coverage < .75 || confidence < 2.5)
-            return new(null, confidence, "Grid confidence too low", evaluations);
+        if (best.Score < 8 || Score(best.Transform)!.Value.Coverage < .75 || (!local && confidence < 2.5))
+            return new(null, confidence, "Grid confidence too low", evaluations, best.Score);
         // Share the finite, positive uniform-transform consistency rules with manual calibration.
         var a = Geometry.Center(layout, layout.Cells[0]); var b = Geometry.Center(layout, layout.Cells[^1]);
-        try { return new(Geometry.Calibrate(a, b, best.Transform.Apply(a), best.Transform.Apply(b)), confidence, "Grid located", evaluations); }
+        try { return new(Geometry.Calibrate(a, b, best.Transform.Apply(a), best.Transform.Apply(b)), confidence, "Grid located", evaluations, best.Score); }
         catch (ArgumentException) { return new(null, confidence, "Inconsistent grid geometry", evaluations); }
     }
 }
