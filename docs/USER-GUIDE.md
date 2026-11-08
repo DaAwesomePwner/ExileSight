@@ -133,8 +133,8 @@ There is no separate default key. Tap CapsLock over an item with a `~b/o` or
 3. Pick the currency in the game's dropdown, then click **LIST ITEM** yourself.
    ExileSight's currency reminder is display-only.
 
-Async amounts must be positive whole numbers until decimal support is confirmed
-in game: a dropped dot could turn 4.5 into 45. Suggestions round to whole numbers;
+Async amounts must be positive whole numbers, because the game's amount box takes
+only whole numbers. Suggestions round to whole numbers;
 custom amounts must already be whole numbers. Display and paste use the same
 invariant format, without thousands separators and with a dot for decimals.
 
