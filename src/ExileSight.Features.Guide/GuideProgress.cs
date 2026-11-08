@@ -24,11 +24,7 @@ public sealed class GuideProgress
     public GuideProgress(GuideData data, bool leagueStart = true, string bandit = "none")
     {
         this.data = data;
-        pages = data.Pages.Where(p => p.Condition is null || p.Condition.Kind switch
-        {
-            "league-start" => p.Condition.Values.Contains(leagueStart ? "yes" : "no"),
-            "bandit" => p.Condition.Values.Contains(bandit), _ => false
-        }).ToArray();
+        pages = GuidePages.Select(data, leagueStart, bandit);
         if (pages.Length == 0) throw new ArgumentException("Guide has no applicable pages.");
     }
     public void Restore(int index, long[] times, bool complete, bool uncertain)

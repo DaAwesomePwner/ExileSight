@@ -6,7 +6,7 @@ namespace ExileSight.App.Shell;
 
 public static class ShellBuilder
 {
-    public static FrameworkElement Build(ShellModel model, CardTheme t, bool narrow = false)
+    public static FrameworkElement Build(ShellModel model, CardTheme t, bool narrow = false, FrameworkElement? guidePage = null)
     {
         var root = new DockPanel { Background = t.AppBackground, LastChildFill = true };
         root.Resources.MergedDictionaries.Add(new ResourceDictionary
@@ -15,7 +15,7 @@ public static class ShellBuilder
         var nav = new WrapPanel { Orientation = narrow ? Orientation.Horizontal : Orientation.Vertical,
             Background = t.AppNav, Width = narrow ? double.NaN : 200, Margin = new Thickness(0, 0, 16, 0) };
         nav.Children.Add(Text("  ◉  ExileSight", t, 18, true));
-        foreach (var name in new[] { "Home", "Item rules", "Map log", "Sales", "Overlay", "Hotkeys", "Transparency" })
+        foreach (var name in new[] { "Home", "Item rules", "Map log", "Sales", "Act guide", "Overlay", "Hotkeys", "Transparency" })
         {
             var button = Button(name, name, t); button.HorizontalContentAlignment = HorizontalAlignment.Left;
             if (!narrow) button.Width = 184;
@@ -30,6 +30,7 @@ public static class ShellBuilder
         DockPanel.SetDock(footer, Dock.Bottom); content.Children.Add(footer);
         FrameworkElement page = model.Page switch
         {
+            "Act guide" => guidePage ?? Features.Guide.GuidePageBuilder.Build(new(null), t),
             "Home" => HomeBuilder.Build(model, t, narrow),
             "Hotkeys" => HotkeysBuilder.Build(model, t),
             _ => PlaceholderBuilder.Build(model.Page, t)

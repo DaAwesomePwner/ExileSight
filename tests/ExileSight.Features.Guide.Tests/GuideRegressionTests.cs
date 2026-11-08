@@ -50,14 +50,15 @@ public sealed class GuideRegressionTests : IDisposable
         data = data with { Pages = [data.Pages[0] with { Condition = new("league-start", ["yes"]) },
             data.Pages[1] with { Condition = new("bandit", ["oak"]) }] };
         var model = new GuideModel(store); model.Load(data, "new");
-        var text = model.Snapshot().Text;
-        Assert.Contains("League start: no · Bandit: oak", text);
+        var snapshot = model.StructuredSnapshot();
+        var text = string.Join("\n", snapshot.Lines.Append(snapshot.NextLine ?? ""));
+        Assert.False(snapshot.LeagueStart); Assert.Equal("oak", snapshot.Bandit);
         Assert.DoesNotContain("Lioneye's Watch", text); Assert.Contains("Southern Forest", text);
-        Assert.Contains("incompatible", text); model.Checkpoint();
+        Assert.Contains("incompatible", snapshot.Notice); model.Checkpoint();
         var saved = new GuideStore(directory).Load()!;
         Assert.Equal("new", saved.Version); Assert.True(saved.CustomDisabled);
         var resumed = new GuideModel(new GuideStore(directory)); resumed.Load(data, "new");
-        Assert.Contains("disabled", resumed.Snapshot().Text);
+        Assert.Contains("disabled", resumed.StructuredSnapshot().Notice);
         resumed.RemoveCustom(); Assert.False(File.Exists(Path.Combine(directory, id + ".json")));
         Assert.Null(new GuideStore(directory).Load()!.CustomId);
     }
@@ -73,7 +74,7 @@ public sealed class GuideRegressionTests : IDisposable
         var customPath = Path.Combine(directory, state.CustomId + ".json");
         var marker = new DateTime(2001, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         File.SetLastWriteTimeUtc(ProgressPath, marker); File.SetLastWriteTimeUtc(customPath, marker);
-        for (var i = 0; i < 180; i++) { clock.Milliseconds += 1000; model.Snapshot(); model.Checkpoint(); }
+        for (var i = 0; i < 180; i++) { clock.Milliseconds += 1000; model.StructuredSnapshot(); model.Checkpoint(); }
         Assert.Equal(marker, File.GetLastWriteTimeUtc(ProgressPath));
         model.Navigate(-1); // Same step, starts timing without changing persisted data.
         clock.Milliseconds += 60000; model.Checkpoint();
