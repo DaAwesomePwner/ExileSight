@@ -1,0 +1,109 @@
+<!doctype html>
+<!-- Reference mockup for docs/design/UI-SPEC.md (ExileSight design tokens). Static, sample values only.
+     Design changes need owner approval. After editing, re-render the PNG: docs/design/render-mockups.sh -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ExileSight design tokens</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+.mono{font-family:'JetBrains Mono',Consolas,monospace;font-feature-settings:'tnum'}
+.cap{font-size:11px;font-weight:600;letter-spacing:0.12em;color:#8E97A4}
+.sw{display:grid;grid-template-columns:36px minmax(0,1fr);column-gap:10px;align-items:center;min-height:40px}
+.chip{width:36px;height:28px;border-radius:4px;border:1px solid #2E3540;box-sizing:border-box}
+.k{font:500 11px 'JetBrains Mono',Consolas,monospace;color:#8E97A4}
+.n{font-size:13px;color:#E8EAED}
+.box{background:#13161B;border:1px solid #232933;border-radius:8px;padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.pill{display:inline-flex;align-items:center;justify-content:center;height:18px;min-width:24px;padding:0 4px;box-sizing:border-box;border-radius:3px;font:600 11px 'JetBrains Mono',Consolas,monospace;color:#0C0F14}
+.spec{font-size:12px;line-height:1.55;color:#B7BEC8}
+</style>
+<style>body{background:#0E1013}</style>
+</head>
+<body>
+<div style="width: 1280px; height: 940px; box-sizing: border-box; padding: 40px; background: #0E1013; font-family: Inter, 'Segoe UI', sans-serif; color: #E8EAED; display: flex; flex-direction: column; gap: 24px;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <div class="cap">FOR OverlayTheme.xaml AND THE APP WINDOW</div>
+    <div style="font-size: 22px; font-weight: 700;">Tokens and component specs</div>
+    <div style="font-size: 13px; color: #8E97A4;">The quality ramp replaces the six existing Tooltip* brushes one for one, so the item-info calculator’s thresholds and colour enum stay untouched.</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: start;">
+    <div class="box">
+      <div class="cap">QUALITY RAMP (TIER + ROLL)</div>
+      <div class="sw"><div class="chip" style="background: #6FE3D5;"></div><div style="display: flex; flex-direction: column;"><span class="n">Best · #6FE3D5</span><span class="k">TooltipBest / OverlayAccent</span></div></div>
+      <div class="sw"><div class="chip" style="background: #6AA8FF;"></div><div style="display: flex; flex-direction: column;"><span class="n">High · #6AA8FF</span><span class="k">TooltipHigh</span></div></div>
+      <div class="sw"><div class="chip" style="background: #AEB6C2;"></div><div style="display: flex; flex-direction: column;"><span class="n">Medium · #AEB6C2</span><span class="k">TooltipMedium</span></div></div>
+      <div class="sw"><div class="chip" style="background: #F2994A;"></div><div style="display: flex; flex-direction: column;"><span class="n">Low · #F2994A</span><span class="k">TooltipLow</span></div></div>
+      <div class="sw"><div class="chip" style="background: #C3A6FF;"></div><div style="display: flex; flex-direction: column;"><span class="n">Crafted · #C3A6FF</span><span class="k">TooltipCrafted</span></div></div>
+      <div class="sw"><div class="chip" style="background: #E2B97F;"></div><div style="display: flex; flex-direction: column;"><span class="n">Unique · #E2B97F</span><span class="k">TooltipUnique</span></div></div>
+      <div class="sw"><div class="chip" style="border: 1px dashed #5C6573;"></div><div style="display: flex; flex-direction: column;"><span class="n">Unknown · dashed #5C6573</span><span class="k">TooltipUnknown</span></div></div>
+    </div>
+
+    <div class="box">
+      <div class="cap">SURFACES</div>
+      <div class="sw"><div class="chip" style="background: #0F1217;"></div><div style="display: flex; flex-direction: column;"><span class="n">Card · #0F1217 at 96%</span><span class="k">OverlayBackground</span></div></div>
+      <div class="sw"><div class="chip" style="background: #17202A;"></div><div style="display: flex; flex-direction: column;"><span class="n">Verdict band · #17202A</span><span class="k">OverlayRaised</span></div></div>
+      <div class="sw"><div class="chip" style="background: #2E3540;"></div><div style="display: flex; flex-direction: column;"><span class="n">Card border · #2E3540</span><span class="k">OverlayBorder</span></div></div>
+      <div class="sw"><div class="chip" style="background: #262C35;"></div><div style="display: flex; flex-direction: column;"><span class="n">Hairline, bar track</span><span class="k">OverlayRule</span></div></div>
+      <div class="sw"><div class="chip" style="background: #0F1216;"></div><div style="display: flex; flex-direction: column;"><span class="n">App window · #0F1216</span><span class="k">AppBackground</span></div></div>
+      <div class="sw"><div class="chip" style="background: #14181E;"></div><div style="display: flex; flex-direction: column;"><span class="n">App panel · #14181E</span><span class="k">AppPanel</span></div></div>
+      <div class="sw"><div class="chip" style="background: #6FD1C6;"></div><div style="display: flex; flex-direction: column;"><span class="n">Interactive · #6FD1C6</span><span class="k">Accent</span></div></div>
+    </div>
+
+    <div class="box">
+      <div class="cap">TEXT</div>
+      <div class="sw"><div class="chip" style="background: #E8EAED;"></div><div style="display: flex; flex-direction: column;"><span class="n">Primary · #E8EAED</span><span class="k">OverlayForeground · 15.6:1</span></div></div>
+      <div class="sw"><div class="chip" style="background: #B7BEC8;"></div><div style="display: flex; flex-direction: column;"><span class="n">Secondary · #B7BEC8</span><span class="k">TextSecondary · 10:1</span></div></div>
+      <div class="sw"><div class="chip" style="background: #8E97A4;"></div><div style="display: flex; flex-direction: column;"><span class="n">Muted · #8E97A4</span><span class="k">TextMuted · 6.4:1</span></div></div>
+      <div class="sw"><div class="chip" style="background: #7D8592;"></div><div style="display: flex; flex-direction: column;"><span class="n">Faint · #7D8592</span><span class="k">TextFaint · 5.0:1</span></div></div>
+      <div class="spec">Ratios are against the card colour. Mockups draw some tags in #6B7480 (4.0:1); ship them in Faint so they pass 4.5:1.</div>
+      <div class="cap" style="margin-top: 6px;">SIGNALS</div>
+      <div style="display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px;"><span class="mono" style="color: #6AA8FF;">▲ better</span><span class="mono" style="color: #F2994A;">▼ worse</span><span style="color: #6FE3D5;">◆ wanted</span><span style="color: #F2994A;">✕ unwanted</span></div>
+    </div>
+
+    <div class="box">
+      <div class="cap">MAP DANGER (0–3)</div>
+      <div style="display: grid; grid-template-columns: 48px minmax(0, 1fr); row-gap: 10px; align-items: center; font-size: 13px;">
+        <span style="display: flex; gap: 3px;"><i style="width: 8px; height: 8px; border-radius: 4px; border: 1.5px solid #3A414C; box-sizing: border-box;"></i><i style="width: 8px; height: 8px; border-radius: 4px; border: 1.5px solid #3A414C; box-sizing: border-box;"></i><i style="width: 8px; height: 8px; border-radius: 4px; border: 1.5px solid #3A414C; box-sizing: border-box;"></i></span><span>0 · harmless, folded</span>
+        <span style="display: flex; gap: 3px;"><i style="width: 8px; height: 8px; border-radius: 4px; background: #E6CC5A;"></i><i style="width: 8px; height: 8px; border-radius: 4px; border: 1.5px solid #3A414C; box-sizing: border-box;"></i><i style="width: 8px; height: 8px; border-radius: 4px; border: 1.5px solid #3A414C; box-sizing: border-box;"></i></span><span>1 · #E6CC5A</span>
+        <span style="display: flex; gap: 3px;"><i style="width: 8px; height: 8px; border-radius: 4px; background: #F2994A;"></i><i style="width: 8px; height: 8px; border-radius: 4px; background: #F2994A;"></i><i style="width: 8px; height: 8px; border-radius: 4px; border: 1.5px solid #3A414C; box-sizing: border-box;"></i></span><span>2 · #F2994A</span>
+        <span style="display: flex; gap: 3px;"><i style="width: 8px; height: 8px; border-radius: 4px; background: #FF6B5E;"></i><i style="width: 8px; height: 8px; border-radius: 4px; background: #FF6B5E;"></i><i style="width: 8px; height: 8px; border-radius: 4px; background: #FF6B5E;"></i></span><span>3 · #FF6B5E, row tint #221616</span>
+      </div>
+      <div class="spec">Pip count carries the level, so the ramp still reads without colour.</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start;">
+    <div class="box">
+      <div class="cap">TYPE</div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;"><span style="font-size: 13px; font-weight: 600;">Card title 13 / 600</span><span class="k">Segoe UI Variable</span></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;"><span style="font-size: 13px;">Card body 13 / 400, line 24</span><span class="k">Segoe UI Variable</span></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;"><span class="mono" style="font-size: 12px;">95%  ▲ 142  84</span><span class="k">Cascadia Mono 11–12</span></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;"><span class="cap" style="color: #E8EAED;">SECTION LABEL</span><span class="k">11 / 600 · +12%</span></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;"><span style="font-size: 24px; font-weight: 700;">App title</span><span class="k">24 / 700</span></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;"><span style="font-size: 14px;">App body 14 / 400</span><span class="k">Segoe UI Variable</span></div>
+      </div>
+      <div class="spec">Numbers always tabular (WPF: Typography.NumeralAlignment="Tabular"), so columns don’t jitter between items. Fallbacks: Segoe UI, Consolas.</div>
+    </div>
+
+    <div class="box">
+      <div class="cap">MOD ROW</div>
+      <div style="display: grid; grid-template-columns: 12px 12px minmax(0,1fr) 26px 40px 30px 20px; column-gap: 5px; align-items: center; height: 24px; padding: 0 8px; border: 1px dashed #3A414C; border-radius: 4px; font-size: 13px;">
+        <span class="mono" style="font-size: 10px; color: #7D8592;">P</span><span style="color: #6FE3D5; font-size: 10px;">◆</span><span>% inc ES</span><span class="pill" style="background: #6FE3D5;">T1</span><div style="width: 40px; height: 6px; border-radius: 3px; background: #2A313C;"><div style="width: 95%; height: 6px; border-radius: 3px; background: #6AA8FF;"></div></div><span class="mono" style="font-size: 11px; text-align: right; color: #B7BEC8;">95%</span><span class="mono" style="font-size: 11px; text-align: right; color: #8E97A4;">84</span>
+      </div>
+      <div class="spec">Columns 12 · 12 · * · 26 · 40 · 30 · 20, gap 5, row 24. Slot letter, mark, label, tier pill (18 high, radius 3, coloured by tier), roll bar (40×6, radius 3, coloured by roll), roll %, ilvl. Hybrid mods: one row, 40 high, bracket on the label. Short labels fit 104 px at 13 px (about 14 characters); longer ones truncate with an ellipsis.</div>
+    </div>
+
+    <div class="box">
+      <div class="cap">CARD</div>
+      <div class="spec">Width 300 at 1080p, scaled by the existing OverlayRules.Scale from client height. Padding 10 top, 12 sides. Radius 6, 1 px border, no shadow. Sections split by a 1 px hairline; spacing on a 4 px grid (gaps 6 / 8 / 10).</div>
+      <div class="spec">Order is fixed: name line → verdict band → slots + base → mod rows → compare. A section with nothing known is dropped, never shown empty, except unknown tiers, which stay visible as dashed.</div>
+      <div class="spec">Max height: 60% of client height. Longer items scroll inside the card (map card already does).</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

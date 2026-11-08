@@ -1,0 +1,139 @@
+<!doctype html>
+<!-- Reference mockup for docs/design/UI-SPEC.md (Guide, timers, toasts and menus). Static, sample values only.
+     Design changes need owner approval. After editing, re-render the PNG: docs/design/render-mockups.sh -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guide, timers, toasts and menus</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+.mono{font-family:'JetBrains Mono',Consolas,monospace;font-feature-settings:'tnum'}
+.card{box-sizing:border-box;padding:12px;display:flex;flex-direction:column;gap:10px;background:rgba(15,18,23,0.96);border:1px solid #2E3540;border-radius:6px;font-size:13px;color:#E8EAED}
+.cap{font-size:11px;font-weight:600;letter-spacing:0.12em;color:#8E97A4}
+.note{font-size:12px;line-height:1.5;color:#9AA3AF}
+.mi{display:grid;grid-template-columns:18px minmax(0,1fr) auto;column-gap:8px;align-items:center;height:30px;padding:0 8px;border-radius:4px;border:0;background:transparent;color:#E8EAED;font:13px Inter,'Segoe UI',sans-serif;text-align:left;width:100%;cursor:pointer}
+.mi:hover{background:#1C2A2D}
+.k{font:600 10px 'JetBrains Mono',Consolas,monospace;color:#8E97A4;border:1px solid #3A414C;border-radius:3px;height:16px;display:inline-flex;align-items:center;justify-content:center}
+.slot{position:absolute;width:84px;height:30px;margin-left:-42px;margin-top:-15px;border-radius:15px;background:#1A1F27;border:1px solid #343C48;color:#E8EAED;font:500 12px 'JetBrains Mono',Consolas,monospace;display:flex;align-items:center;justify-content:center}
+.chip{height:28px;padding:0 10px;border-radius:14px;border:1px solid #343C48;background:#1A1F27;color:#E8EAED;font:12px Inter,'Segoe UI',sans-serif;cursor:pointer}
+</style>
+<style>body{background:#0E1013}</style>
+</head>
+<body>
+<div style="width: 1300px; height: 720px; box-sizing: border-box; padding: 40px; background: #0E1013; font-family: Inter, 'Segoe UI', sans-serif; color: #E8EAED; display: flex; flex-direction: column; gap: 28px;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <div class="cap">IN GAME · AMBIENT AND ON-DEMAND</div>
+    <div style="font-size: 22px; font-weight: 700;">Small, quiet, and gone when you don’t need it</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 48px; row-gap: 32px; align-items: start;">
+
+    <!-- Guide -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="cap">ACT GUIDE · PASSIVE</div>
+      <div class="card" style="width: 340px; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: #8E97A4;">
+          <span><span style="color: #6FD1C6; font-weight: 600;">Act 3</span> · step 14 of 52</span>
+          <span class="mono">12:41 · <span style="color: #6B7480;">1:48:20</span></span>
+        </div>
+        <div style="height: 3px; border-radius: 2px; background: #2A313C;"><div style="width: 27%; height: 3px; border-radius: 2px; background: #6FD1C6;"></div></div>
+        <div style="font-size: 15px; font-weight: 600; line-height: 1.35;">Kill Piety in the Crematorium</div>
+        <div style="display: flex; gap: 6px; align-items: baseline; font-size: 12px; color: #8E97A4;"><span style="font-weight: 600; color: #6B7480;">NEXT</span><span>Waypoint to the Sewers, take the Platinum Bust</span></div>
+      </div>
+      <div class="note">One step, one next step, act and run timers. Advances on zone change. Ctrl+Shift+F11 / F12 still step it by hand.</div>
+    </div>
+
+    <!-- Timers -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="cap">TIMERS · WHILE TAB IS HELD</div>
+      <div class="card" style="width: 300px; gap: 8px;">
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 64px; row-gap: 8px; column-gap: 10px; align-items: center;">
+          <div style="display: flex; flex-direction: column; gap: 4px;"><span>Heist contract</span><div style="height: 4px; border-radius: 2px; background: #2A313C;"><div style="width: 18%; height: 4px; border-radius: 2px; background: #F2994A;"></div></div></div>
+          <span class="mono" style="text-align: right; color: #F2994A; font-weight: 600;">00:42</span>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><span>Harvest grow</span><div style="height: 4px; border-radius: 2px; background: #2A313C;"><div style="width: 64%; height: 4px; border-radius: 2px; background: #6AA8FF;"></div></div></div>
+          <span class="mono" style="text-align: right;">1:12:05</span>
+          <div style="display: flex; flex-direction: column; gap: 4px;"><span style="color: #B7BEC8;">Stopwatch</span></div>
+          <span class="mono" style="text-align: right; color: #6FE3D5;">04:37</span>
+        </div>
+      </div>
+      <div class="note">Under a minute turns orange; that’s the only colour change. Names are yours.</div>
+    </div>
+
+    <!-- Toast -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="cap">EVENT TOAST · TOP CENTRE</div>
+      <div class="card" style="width: 340px; flex-direction: row; align-items: center; gap: 12px; padding: 10px 12px;">
+        <div style="width: 4px; align-self: stretch; border-radius: 2px; background: #6FD1C6;"></div>
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+          <span style="font-weight: 600;">Discoverable hideout in this area</span>
+          <span style="font-size: 12px; color: #8E97A4;">From the area log · Ctrl+Shift+E to mute this kind</span>
+        </div>
+      </div>
+      <div class="card" style="width: 340px; flex-direction: row; align-items: center; gap: 12px; padding: 10px 12px;">
+        <div style="width: 4px; align-self: stretch; border-radius: 2px; background: #F2994A;"></div>
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+          <span style="font-weight: 600;">Infamous mercenary spawned</span>
+          <span style="font-size: 12px; color: #8E97A4;">From the area log</span>
+        </div>
+      </div>
+      <div class="note">One line, 6 s, click-through. Stacks at most two; older ones drop.</div>
+    </div>
+
+    <!-- Omni menu -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="cap">OMNI LONG-PRESS MENU</div>
+      <div class="card" style="width: 260px; padding: 6px; gap: 2px;">
+        <div style="padding: 6px 8px 4px; font-size: 11px; color: #8E97A4;">Vaal Regalia · rare</div>
+        <button class="mi"><span class="k">1</span><span>Set as equipped</span><span style="color: #6B7480; font-size: 12px;">›</span></button>
+        <button class="mi"><span class="k">2</span><span>Set listing price…</span><span></span></button>
+        <div style="height: 1px; background: #262C35; margin: 4px 6px;"></div>
+        <button class="mi"><span class="k">3</span><span>Trade search</span><span style="color: #6B7480; font-size: 12px;">↗</span></button>
+        <button class="mi"><span class="k">4</span><span>poewiki</span><span style="color: #6B7480; font-size: 12px;">↗</span></button>
+        <button class="mi"><span class="k">5</span><span>poedb</span><span style="color: #6B7480; font-size: 12px;">↗</span></button>
+        <button class="mi"><span class="k">6</span><span>Craft of Exile</span><span style="color: #6B7480; font-size: 12px;">↗</span></button>
+      </div>
+      <div class="note">In-app actions first, browser links after the rule (↗). Key badges wait for a later number-key option; omit them until then.</div>
+    </div>
+
+    <!-- Chat wheel -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="cap">CHAT WHEEL · F6 HELD</div>
+      <div style="position: relative; width: 300px; height: 240px;">
+        <div style="position: absolute; left: 50px; top: 0; width: 200px; height: 200px; border-radius: 100px; border: 1px solid #262C35; background: rgba(15,18,23,0.7);"></div>
+        <div style="position: absolute; left: 110px; top: 60px; width: 80px; height: 80px; border-radius: 40px; background: rgba(15,18,23,0.96); border: 1px solid #2E3540; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;"><span class="mono" style="font-size: 12px; font-weight: 600;">F6</span><span style="font-size: 10px; color: #8E97A4;">release</span></div>
+        <div class="slot" style="left: 150px; top: 16px; background: #1C2A2D; border-color: #6FD1C6; color: #6FE3D5;">/kills</div>
+        <div class="slot" style="left: 222px; top: 46px;">/passives</div>
+        <div class="slot" style="left: 252px; top: 100px;">/remaining</div>
+        <div class="slot" style="left: 222px; top: 154px;">/played</div>
+        <div class="slot" style="left: 150px; top: 184px;">/deaths</div>
+        <div class="slot" style="left: 78px; top: 154px;">/afk</div>
+        <div class="slot" style="left: 48px; top: 100px;">/dnd</div>
+        <div class="slot" style="left: 78px; top: 46px;">/reset_xp</div>
+      </div>
+      <div class="note">Centred on the cursor. Highlight follows direction; release sends one command.</div>
+    </div>
+
+    <!-- Search strings -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="cap">SEARCH STRINGS · F9</div>
+      <div class="card" style="width: 320px; gap: 8px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+          <button class="chip" style="border-color: #6FD1C6; color: #6FE3D5; background: #1C2A2D;">Vendor</button>
+          <button class="chip">Stash</button>
+          <button class="chip">Gwennen</button>
+          <button class="chip">Tujen</button>
+          <button class="chip">+</button>
+        </div>
+        <div style="height: 1px; background: #262C35;"></div>
+        <button class="mi" style="grid-template-columns: minmax(0, 1fr) auto;"><span>Movement speed boots</span><span class="mono" style="font-size: 11px; color: #6B7480;">"0% m"</span></button>
+        <button class="mi" style="grid-template-columns: minmax(0, 1fr) auto; background: #1C2A2D;"><span>Linked sockets</span><span class="mono" style="font-size: 11px; color: #6B7480;">"r-g-b"</span></button>
+        <button class="mi" style="grid-template-columns: minmax(0, 1fr) auto;"><span>Chromatic recipe</span><span class="mono" style="font-size: 11px; color: #6B7480;">wheel ↕ 1/3</span></button>
+      </div>
+      <div class="note">Pick the vendor yourself (no screen detection), then one click pastes one search.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
