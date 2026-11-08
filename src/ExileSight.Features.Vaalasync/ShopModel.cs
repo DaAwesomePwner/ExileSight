@@ -54,7 +54,7 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
         Task<ReadHistory?> read;
         lock (sync)
         {
-            if (sending) return; // Only a fresh read after the send completes may re-arm.
+            if (sending || stoppingHistory) return; // Only a fresh read after the send completes may re-arm.
             var current = ShopNote.Parse(item.Note);
             currentCurrency = current?.Currency;
             seedRevision = ++revision;
@@ -64,7 +64,7 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
             currency = current?.Currency ?? "chaos";
             custom = "";
             status = Instructions;
-            read = RecordReadAsync(item, ResolveLeagueAsync(), historyTail, ++readRevision, DateTimeOffset.UtcNow);
+            read = RecordReadAsync(item, historyTail, ++readRevision, DateTimeOffset.UtcNow);
             currentRead = read;
             historyTail = read;
         }
@@ -78,7 +78,7 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
         lock (sync)
         {
             if (token is null) return new(ActionOutcome.MissingToken);
-            if (!armed || sending) return new(ActionOutcome.Failed, "Read the item with omni before repricing.");
+            if (!armed || sending || stoppingHistory) return new(ActionOutcome.Failed, "Read the item with omni before repricing.");
             next = Suggest(choice);
             if (next is null)
             {
@@ -89,6 +89,7 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
             selected = currentRead!;
             revision++;
             sending = true;
+            sendFinished = new(TaskCreationOptions.RunContinuationsAsynchronously);
             armed = false;
             status = NoteMode ? "Setting note…" : "Setting amount…";
         }
@@ -123,6 +124,7 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
             status = message;
             if (historyKind is not null)
                 historyTail = RecordSendAsync(selected, historyTail, next, historyKind, DateTimeOffset.UtcNow);
+            sendFinished!.TrySetResult();
         }
         NotifyChanged();
         return result;

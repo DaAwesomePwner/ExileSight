@@ -86,7 +86,7 @@ public sealed class EffectiveLeagueTests : IDisposable
     }
 
     [Fact]
-    public async Task StaleDiscoveryRetainsCachedDefaultAndMissingDataUsesStandard()
+    public async Task FailedDiscoveryRetainsLastDefaultAndUsesStandardOnlyWithoutKnownData()
     {
         var result = Current;
         var offline = false;
@@ -96,12 +96,18 @@ public sealed class EffectiveLeagueTests : IDisposable
         result = Current with { IsStale = true };
         Assert.Equal("Example Challenge", await league.ResolveAsync());
         offline = true;
-        Assert.Equal("Example Challenge", await league.ResolveAsync());
+        await Assert.ThrowsAsync<IOException>(league.ResolveAsync);
+        Assert.Equal("Example Challenge", league.Current);
         offline = false;
         result = new([], "Standard", true, "Offline");
-        Assert.Equal("Standard", await league.ResolveAsync());
+        await Assert.ThrowsAsync<InvalidOperationException>(league.ResolveAsync);
+        Assert.Equal("Example Challenge", league.Current);
         offline = true;
-        Assert.Equal("Standard", await league.ResolveAsync());
+        await Assert.ThrowsAsync<IOException>(league.ResolveAsync);
+        Assert.Equal("Example Challenge", league.Current);
+        var unknown = new ShopLeague(() => null, () => Task.FromResult(result));
+        await Assert.ThrowsAsync<InvalidOperationException>(unknown.ResolveAsync);
+        Assert.Equal("Standard", unknown.Current);
     }
 
     [Fact]

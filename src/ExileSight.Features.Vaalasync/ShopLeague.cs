@@ -21,23 +21,16 @@ public sealed class ShopLeague(Func<string?> configured, Func<Task<LeagueResult>
     {
         var value = configured();
         if (!string.IsNullOrWhiteSpace(value)) return value;
-        try
+        Task<LeagueResult> request;
+        lock (sync)
         {
-            Task<LeagueResult> request;
-            lock (sync)
-            {
-                if (pending is null || pending.IsCompleted) pending = discover();
-                request = pending;
-            }
-            var result = await request.ConfigureAwait(false);
-            Volatile.Write(ref fallback, result.Leagues.Count > 0
-                ? result.DefaultLeague : "Standard");
+            if (pending is null || pending.IsCompleted) pending = discover();
+            request = pending;
         }
-        catch (OperationCanceledException) { throw; }
-        catch (Exception)
-        {
-            // Retain the last known default when discovery itself fails.
-        }
+        var result = await request.ConfigureAwait(false);
+        if (result.Leagues.Count > 0) Volatile.Write(ref fallback, result.DefaultLeague);
+        if (result.Diagnostic is not null)
+            throw new InvalidOperationException("League discovery unavailable; use the best known league.");
         return Current; // A setting changed while discovery was pending still wins.
     }
 }

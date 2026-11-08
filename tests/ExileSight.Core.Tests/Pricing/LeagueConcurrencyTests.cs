@@ -30,6 +30,25 @@ public sealed class LeagueConcurrencyTests : IDisposable
         Assert.Equal(1, handler.Calls);
     }
 
+    [Fact]
+    public async Task CancellingFirstCallerDoesNotCancelSharedDiscovery()
+    {
+        var response = new TaskCompletionSource<HttpResponseMessage>();
+        var handler = new PendingHandler(response.Task);
+        using var transport = new PriceTransport("1.0", () => handler);
+        var service = new PriceService(new AppPaths(root), new PricingTests.Clock(), transport);
+        using var firstCancellation = new CancellationTokenSource();
+        var first = service.GetLeaguesAsync(cancellationToken: firstCancellation.Token);
+        var second = service.GetLeaguesAsync();
+        firstCancellation.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first);
+        Assert.False(second.IsCompleted);
+        response.SetResult(new(HttpStatusCode.OK) { Content = new StringContent(PricingTests.Fixture("leagues")) });
+        Assert.Equal("Example Challenge", (await second).DefaultLeague);
+        Assert.False((await second).IsStale);
+        Assert.Equal(1, handler.Calls);
+    }
+
     private sealed class PendingHandler(Task<HttpResponseMessage> response) : HttpMessageHandler
     {
         public int Calls { get; private set; }

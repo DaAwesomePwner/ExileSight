@@ -20,13 +20,16 @@ public static class ShopRegistration
         var lifetime = services.GetRequiredService<IHostApplicationLifetime>();
         var league = new ShopLeague(() => settings.Snapshot.Prices.League,
             () => prices.GetLeaguesAsync(cancellationToken: lifetime.ApplicationStopping));
-        return new VaalasyncFeature(new ShopModel(new HistoryStore(Path.Combine(paths.GetGameDirectory("poe1"), "vaalasync")),
+        var model = new ShopModel(new HistoryStore(Path.Combine(paths.GetGameDirectory("poe1"), "vaalasync")),
             () => league.Current)
         {
             ResolveLeagueAsync = league.ResolveAsync,
             SeedPrice = (item, effectiveLeague) => ListingPrices.FindAsync(prices, effectiveLeague, item),
-            ReportFailure = type => services.GetRequiredService<ILogger<ShopModel>>().LogWarning("Shop executor failed: {ExceptionType}", type)
-        });
+            ReportFailure = diagnostic => services.GetRequiredService<ILogger<ShopModel>>().LogWarning("Shop diagnostic: {Diagnostic}", diagnostic)
+        };
+        lifetime.ApplicationStopping.Register(() =>
+            model.StopAndFlushHistoryAsync(TimeSpan.FromSeconds(2)).GetAwaiter().GetResult());
+        return new VaalasyncFeature(model);
     }
     private static ShopView? view;
     public static void Register(IServiceProvider services, FeatureViews views) => views.Register<ShopModel>(model =>

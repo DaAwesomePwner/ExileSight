@@ -41,11 +41,12 @@ public sealed class PriceService(IAppPaths paths, IClock clock, PriceTransport t
     /// <summary>A configured league always wins; otherwise prefer a current softcore challenge league.</summary>
     public async Task<LeagueResult> GetLeaguesAsync(string? configuredLeague = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         Task<LeagueResult> request;
         lock (leagueSync)
         {
             if (leagueRequest is null || leagueRequest.IsCompleted)
-                leagueRequest = DiscoverLeaguesAsync(cancellationToken);
+                leagueRequest = DiscoverLeaguesAsync(CancellationToken.None);
             request = leagueRequest;
         }
         var result = await request.WaitAsync(cancellationToken).ConfigureAwait(false);

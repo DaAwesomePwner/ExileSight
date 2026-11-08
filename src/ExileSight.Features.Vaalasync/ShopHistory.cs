@@ -7,11 +7,23 @@ public sealed partial class ShopModel
     private sealed record ReadHistory(ParsedItem Item, string League, Guid Listing);
     private long readRevision;
 
-    private async Task<ReadHistory?> RecordReadAsync(ParsedItem source, Task<string> resolution, Task previous, long read, DateTimeOffset time)
+    public async Task<string> ResolveHistoryLeagueAsync()
+    {
+        try { return await ResolveLeagueAsync().WaitAsync(historyStopping.Token).ConfigureAwait(false); }
+        catch (Exception error)
+        {
+            var resolved = league();
+            if (string.IsNullOrWhiteSpace(resolved)) resolved = "Standard";
+            ReportSafely("League unconfirmed; recording history with fallback (" + error.GetType().Name + ").");
+            return resolved;
+        }
+    }
+
+    private async Task<ReadHistory?> RecordReadAsync(ParsedItem source, Task previous, long read, DateTimeOffset time)
     {
         try
         {
-            var resolved = await resolution.ConfigureAwait(false);
+            var resolved = await ResolveHistoryLeagueAsync().ConfigureAwait(false);
             await previous.ConfigureAwait(false);
             var current = ShopNote.Parse(source.Note);
             var id = current is null ? Guid.Empty : history.Observe(source.Name,
@@ -19,7 +31,6 @@ public sealed partial class ShopModel
             NotifyChanged();
             return new(source, resolved, id);
         }
-        catch (OperationCanceledException) { return null; }
         catch (Exception error)
         {
             lock (sync)
@@ -43,7 +54,11 @@ public sealed partial class ShopModel
         try
         {
             await previous.ConfigureAwait(false);
-            if (await selected.ConfigureAwait(false) is not { } read) return;
+            if (await selected.ConfigureAwait(false) is not { } read)
+            {
+                ReportSafely("Sent price history dropped: the read observation could not be saved.");
+                return;
+            }
             if (read.Listing == Guid.Empty)
                 history.Observe(read.Item.Name, read.Item.BaseType ?? "", read.Item.ItemLevel,
                     read.League, price, time, kind);
@@ -51,8 +66,9 @@ public sealed partial class ShopModel
         }
         catch (Exception error)
         {
-            ReportSafely(error);
-            lock (sync) status += " — history could not be saved.";
+            ReportSafely("Sent price history could not be saved; entry dropped (" + error.GetType().Name + ").");
+            lock (sync)
+                if (ReferenceEquals(currentRead, selected)) status += " — history could not be saved.";
         }
         NotifyChanged();
     }
@@ -63,9 +79,11 @@ public sealed partial class ShopModel
         catch (Exception error) { ReportSafely(error); }
     }
 
-    private void ReportSafely(Exception error)
+    private void ReportSafely(Exception error) => ReportSafely(error.GetType().Name);
+
+    private void ReportSafely(string diagnostic)
     {
-        try { ReportFailure(error.GetType().Name); }
+        try { ReportFailure(diagnostic); }
         catch (Exception) { /* Diagnostics must not change input or history outcomes. */ }
     }
 }

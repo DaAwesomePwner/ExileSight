@@ -12,6 +12,7 @@ public sealed partial class ShopModel
     private async Task PrepareAsync(ParsedItem source, long expectedRevision, Task<ReadHistory?> read)
     {
         if (await read.ConfigureAwait(false) is not { } resolved) return;
+        lock (sync) { if (stoppingHistory) return; }
         if (ShopNote.Parse(source.Note) is null)
             await SeedAsync(source, resolved.League, expectedRevision).ConfigureAwait(false);
     }
