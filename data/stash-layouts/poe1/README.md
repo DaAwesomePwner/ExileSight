@@ -166,10 +166,18 @@ about y107–131, so this captures their full height. Currency cells start at
 against their own tab's cells and TagBounds, not against other tabs. Multi-page
 tabs require a sub-tab rectangle. A tab with one shipped page skips stage two.
 
-The second signature selects among sibling pages. Both regions use Geometry.Fit,
+The second signature selects among sibling pages only when every shipped page
+of that tab has valid header and sub-tab signatures at this resolution. A partial
+set is Unknown, even if its single closest reference passes the distance threshold.
+The matched tab header shows a teaching reminder until all pages are learned;
+obsolete references cannot substitute for missing shipped pages.
+
+Both regions use Geometry.Fit,
 independently of calibration. If currently drawn tags overlap the sub-tab region
 (for example Essence tags after opening Currency), they are hidden and capture
-waits until the next tick. Header/menu overlap or failed capture shows a blocked
+waits until the next tick. If the overlapping tags belong to the matched tab itself,
+keep them visible and report “sub-tab area blocked by tags”; recalibrate to clear
+the region. Do not hide/restore these tags repeatedly. Header/menu overlap or failed capture shows a blocked
 notice and does not count toward hiding tags. No capture exclusion flags are used.
 
 After a patch, measure the header and the complete sub-tab button row, update

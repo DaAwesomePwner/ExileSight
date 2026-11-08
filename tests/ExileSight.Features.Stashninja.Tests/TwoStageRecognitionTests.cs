@@ -33,16 +33,46 @@ public sealed class TwoStageRecognitionTests
             refs.ToDictionary(p => p.Key, p => p.Value.Signature)));
         var other = refs.First().Value.Signature.Select(v => -v).ToArray();
         refs["essence/general"] = new(new(2000, 837), "essence/general", other, null);
+        string[] shipped = ["currency/0", "currency/1", "essence/general"];
+        var partial = new Dictionary<string, PageReferenceStore.Entry> { ["currency/0"] = refs["currency/0"] };
+        Assert.Null(PageMatcher.MatchPage("currency", refs["currency/1"].SubSignature!, partial, shipped));
+        Assert.Null(PageMatcher.MatchPage("currency", refs["currency/0"].SubSignature!, partial, shipped));
+        Assert.False(PageMatcher.AllSiblingsTaught("currency", partial, shipped));
+        partial["currency/1"] = refs["currency/1"] with { SubSignature = null };
+        Assert.Null(PageMatcher.MatchPage("currency", refs["currency/1"].SubSignature!, partial, shipped));
+        Assert.False(PageMatcher.AllSiblingsTaught("currency", partial, shipped));
+        // An obsolete page must not substitute for a missing shipped page.
+        partial["currency/retired"] = refs["currency/1"] with { Page = "currency/retired" };
+        Assert.False(PageMatcher.AllSiblingsTaught("currency", partial, shipped));
+        Assert.True(PageMatcher.AllSiblingsTaught("currency", refs, shipped));
         foreach (var page in new[] { "currency/0", "currency/1" })
         {
             Assert.Equal("currency", PageMatcher.MatchTab(refs[page].Signature, refs));
-            Assert.Equal(page, PageMatcher.MatchPage("currency", refs[page].SubSignature!, refs, true));
+            Assert.Equal(page, PageMatcher.MatchPage("currency", refs[page].SubSignature!, refs, shipped));
         }
-        Assert.Null(PageMatcher.MatchPage("currency", other, refs, true));
+        Assert.Null(PageMatcher.MatchPage("currency", other, refs, shipped));
         refs["currency/1"] = refs["currency/0"] with { Page = "currency/1" };
-        Assert.Null(PageMatcher.MatchPage("currency", refs["currency/0"].SubSignature!, refs, true));
-        Assert.Equal("essence/general", PageMatcher.MatchPage("essence", null, refs, false));
+        Assert.Null(PageMatcher.MatchPage("currency", refs["currency/0"].SubSignature!, refs, shipped));
+        Assert.Equal("essence/general", PageMatcher.MatchPage("essence", null, refs, shipped));
     }
+    [Theory]
+    [InlineData(true, "currency", "currency", SubTabCaptureAction.Block)]
+    [InlineData(true, "essence", "currency", SubTabCaptureAction.HideWrongTags)]
+    [InlineData(true, "currency", null, SubTabCaptureAction.Block)]
+    [InlineData(true, null, "currency", SubTabCaptureAction.Block)]
+    [InlineData(false, "currency", "currency", SubTabCaptureAction.Sample)]
+    public void SubTabOverlapDecisionKeepsOwnTags(bool overlaps, string? drawnTab, string? matchedTab, SubTabCaptureAction expected)
+    {
+        var state = new RecognitionState();
+        for (var tick = 0; tick < 12; tick++)
+        {
+            Assert.Equal(expected, SubTabCapture.Decide(overlaps, drawnTab, matchedTab));
+            if (expected != SubTabCaptureAction.Block) continue;
+            Assert.Equal(RecognitionAction.None, state.Observe(null, "currency/0", captureSucceeded: false));
+            Assert.False(state.Hidden); // Repeated blocked ticks cannot enter a hide/show cycle.
+        }
+    }
+
     [Theory]
     [InlineData(false, true, false, false)]
     [InlineData(true, true, false, true)]

@@ -72,10 +72,11 @@ public sealed partial class StashView
         if (!recognitionTimer.IsEnabled || references is null) return;
         if (recognitionResolution != ClientResolution) { recognitionResolution = ClientResolution; ResetRecognition(); }
         var sample = SampleRegion();
-        if (sample is null) { CaptureBlocked(); return; }
+        if (sample.Signature is null) { CaptureBlocked(sample.Notice); return; }
         var taught = references.Get(ClientResolution)
             .Where(p => model.Layouts.Any(l => l.TabId + "/" + l.Page == p.Key)).ToDictionary(p => p.Key, p => p.Value);
-        var matchedTab = PageMatcher.MatchTab(sample, taught);
+        var matchedTab = PageMatcher.MatchTab(sample.Signature, taught);
+        var shipped = model.Layouts.Select(l => l.TabId + "/" + l.Page).ToArray();
         string? match = null;
         if (matchedTab is not null)
         {
@@ -83,11 +84,19 @@ public sealed partial class StashView
             double[]? subSample = null;
             if (siblings)
             {
+                if (!PageMatcher.AllSiblingsTaught(matchedTab, taught, shipped))
+                {
+                    var unknown = recognition.Observe(null, layout is null ? null : layout.TabId + "/" + layout.Page);
+                    if (unknown == RecognitionAction.Hide) { surface.Hide(); Invalidate(); }
+                    ShowRecognitionNotice($"Teach all {matchedTab} pages (calibrate or Remember each) for auto-detect");
+                    return;
+                }
                 if (!region!.SubTabs.TryGetValue(matchedTab, out var sub)) { CaptureBlocked(); return; }
-                subSample = SampleRegion(sub, hideOverlappingTags: true);
-                if (subSample is null) { CaptureBlocked(); return; }
+                var captured = SampleRegion(sub, matchedTab);
+                subSample = captured.Signature;
+                if (subSample is null) { CaptureBlocked(captured.Notice); return; }
             }
-            match = PageMatcher.MatchPage(matchedTab, subSample, taught, siblings);
+            match = PageMatcher.MatchPage(matchedTab, subSample, taught, shipped);
         }
         ClearCaptureNotice();
         var action = recognition.Observe(match, layout is null ? null : layout.TabId + "/" + layout.Page);
@@ -102,11 +111,15 @@ public sealed partial class StashView
         if (captureNotice is not null && status.Text == captureNotice) status.Text = beforeCaptureNotice ?? "";
         beforeCaptureNotice = captureNotice = null;
     }
-    private void CaptureBlocked()
+    private void CaptureBlocked(string? message = null)
     {
         recognition.Observe(null, null, captureSucceeded: false);
+        ShowRecognitionNotice(message ?? "Page not recognised — header blocked");
+    }
+    private void ShowRecognitionNotice(string message)
+    {
         if (status.Text != captureNotice) beforeCaptureNotice = status.Text;
-        SetStatus("Page not recognised — header blocked");
+        SetStatus(message);
         captureNotice = status.Text;
     }
 }

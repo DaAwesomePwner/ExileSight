@@ -39,6 +39,7 @@ public sealed class TagSurface
         layout = null; tags = []; drawn = null; drawnTags = [];
         canvas.Children.Clear();
     }
+    public string? VisibleTabId => window.RequestedVisible ? layout?.TabId : null;
     public bool Overlaps(ExileSight.Features.Stashninja.Geometry.Bounds region)
     {
         if (!window.RequestedVisible || layout is null) return false;
