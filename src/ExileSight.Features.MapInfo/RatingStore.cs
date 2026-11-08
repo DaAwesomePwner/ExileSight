@@ -35,14 +35,14 @@ public sealed class RatingStore
         { ratings.Clear(); readOnly = true; Notice = "Ratings unavailable; original file preserved read-only. Restart after repairing it."; }
     }
     private static bool ValidId(string id) => !string.IsNullOrWhiteSpace(id) && id.Length <= 128;
-    public int Get(string id) { lock (sync) return ratings.GetValueOrDefault(id); }
+    public int? Get(string id) { lock (sync) return ratings.TryGetValue(id, out var rank) ? rank : null; }
     public int Cycle(string id)
     {
         lock (sync)
         {
             if (readOnly) throw new IOException(Notice);
             if (!ValidId(id)) throw new ArgumentException("Invalid mod ID.", nameof(id));
-            var next = new Dictionary<string, int>(ratings) { [id] = (Get(id) + 1) % 4 };
+            var next = new Dictionary<string, int>(ratings) { [id] = ((Get(id) ?? 0) + 1) % 4 };
             if (next.Count > MaxEntries) throw new IOException("Rating count limit reached.");
             var bytes = JsonSerializer.SerializeToUtf8Bytes(new { schema = 1, ratings = next });
             if (bytes.Length > MaxBytes) throw new IOException("Rating size limit reached.");

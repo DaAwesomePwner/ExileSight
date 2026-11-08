@@ -35,7 +35,7 @@ public sealed class ModelAndStorageTests
         InvalidOrFutureStoreIsPreserved(new string(' ', RatingStore.MaxBytes + 1));
     }
     [Fact]
-    public void OmniRoutingAndHoldReleaseKeepUnknownAtRankThree()
+    public void OmniRoutingAndHoldReleaseKeepUnknownDistinct()
     {
         var model = new MapInfoModel(new RatingStore(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())));
         var handler = new MapInfoHandler(model, EmptyPackReader.Instance);
@@ -44,7 +44,8 @@ public sealed class ModelAndStorageTests
         Assert.True(handler.Matches(item, new(Game.PoE1)));
         model.Hold(1); Assert.Null(model.Current);
         handler.Handle(item, new(Game.PoE1), OmniPressKind.Short);
-        Assert.Equal(3, Assert.Single(model.Current!.Mods).Rank);
+        Assert.Null(Assert.Single(model.Current!.Mods).Rank);
+        Assert.True(model.Current.Mods[0].IsUnknown);
         model.Close(); model.Hold(2); Assert.NotNull(model.Current);
         model.Release(1); Assert.NotNull(model.Current);
         model.Release(2); Assert.Null(model.Current);

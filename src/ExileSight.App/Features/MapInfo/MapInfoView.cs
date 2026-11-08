@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using ExileSight.App.Ui;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
@@ -22,7 +23,8 @@ public sealed class MapInfoView(PassiveOverlayInput passive, IGameWindow game,
         ShowActivated = false, Focusable = false, Topmost = true, AllowsTransparency = true,
         Background = Brushes.Transparent, Width = 1, Height = 1
     };
-    private readonly StackPanel panel = new() { Width = 410 };
+    private readonly ScrollViewer scroll = new() { VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+        HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
     private MapInfoModel? model;
     private nint handle;
     private int originX, originY;
@@ -32,12 +34,12 @@ public sealed class MapInfoView(PassiveOverlayInput passive, IGameWindow game,
     public void Start(MapInfoModel viewModel)
     {
         model = viewModel;
-        window.Resources.MergedDictionaries.Add(new ResourceDictionary
-        { Source = new Uri("/ExileSight.App;component/Features/ItemInfo/OverlayTheme.xaml", UriKind.Relative) });
-        window.Content = new Border
+        window.Content = scroll;
+        scroll.AddHandler(Button.ClickEvent, new RoutedEventHandler((_, args) =>
         {
-            Background = (Brush)window.FindResource("OverlayBackground"), Padding = new Thickness(10), Child = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }
-        };
+            if (args.OriginalSource is Button { Tag: string id }) model.Cycle(id);
+            else if (window.IsVisible) Guard(Position);
+        }));
         handle = new WindowInteropHelper(window).EnsureHandle();
         styler.Apply(handle);
         styler.SetClickThrough(handle, false);
@@ -59,20 +61,13 @@ public sealed class MapInfoView(PassiveOverlayInput passive, IGameWindow game,
         var client = state.ClientRect;
         if (!state.Found || !state.IsForeground || state.IsMinimized || !settings.Snapshot.Overlay.Enabled || client.Width <= 0 || client.Height <= 0)
         { Close(); return; }
-        panel.Children.Clear();
-        panel.Children.Add(Label(result.Name, Brushes.White));
-        panel.Children.Add(Label($"Quantity: {result.Quantity?.ToString() ?? "?"}%   Rarity: {result.Rarity?.ToString() ?? "?"}%   Pack size: {result.PackSize?.ToString() ?? "?"}%", Brushes.Gold));
-        panel.Children.Add(Label("Click a modifier to cycle danger 0–3", Brushes.LightGray));
-        foreach (var row in result.Mods)
-        {
-            var text = $"[{row.Rank}] {row.Area}{(row.Area is null ? "" : ": ")}{row.Text}";
-            var brush = row.Rank switch { 0 => Brushes.LightGray, 1 => Brushes.Yellow, 2 => Brushes.Orange, _ => Brushes.OrangeRed };
-            var button = new Button { Content = Label(text, brush), Focusable = false, IsEnabled = row.Id is not null,
-                HorizontalContentAlignment = HorizontalAlignment.Left, Background = Brushes.Transparent, Margin = new Thickness(0, 2, 0, 0) };
-            if (row.Id is { } id) button.Click += (_, _) => model!.Cycle(id);
-            panel.Children.Add(button);
-        }
-        if (model!.Notice is { } notice) panel.Children.Add(Label(notice, Brushes.Orange));
+        var sections = settings.Snapshot.Features.Sections;
+        var thresholds = sections.TryGetValue("mapinfo", out var section) && section.TryGetValue("settings", out var value)
+            ? MapInfoSettings.Read(value) : new MapInfoSettings();
+        var card = MapCardBuilder.Build(new(result, thresholds, model!.Notice), CardTheme.Default);
+        card.Width = double.NaN; // Let a visible scrollbar reserve space without clipping the text.
+        scroll.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+        scroll.Content = card;
         if (!window.IsVisible)
         { var cursor = HookHost.CursorPosition(); originX = cursor.X; originY = cursor.Y; }
         Position();
@@ -85,16 +80,16 @@ public sealed class MapInfoView(PassiveOverlayInput passive, IGameWindow game,
         var client = game.Current.ClientRect;
         if (client.Width <= 0 || client.Height <= 0) throw new InvalidOperationException("Game client has no drawable area");
         scale = OverlayRules.Scale(client.Height, settings.Snapshot.Overlay.ScaleOverride);
-        panel.Measure(new Size(410, double.PositiveInfinity));
-        var bounds = PopupPlacement.Place(client, styler.GetWorkArea(client), originX, originY,
-            430, panel.DesiredSize.Height + 20, scale, 12);
+        var card = (FrameworkElement)scroll.Content;
+        card.Measure(new Size(CardTheme.Default.CardWidth, double.PositiveInfinity));
+        var bounds = PopupPlacement.PlaceCard(client, styler.GetWorkArea(new(originX, originY, 1, 1)), originX, originY,
+            CardTheme.Default.CardWidth, Math.Min(card.DesiredSize.Height, client.Height * .8 / scale), scale,
+            settings.Snapshot.Overlay.ToCardPlacementOptions());
         styler.Position(handle, bounds);
         var dpi = VisualTreeHelper.GetDpi(window);
         ((FrameworkElement)window.Content).LayoutTransform = new ScaleTransform(
             OverlayRefresh.ContentScale(scale, dpi.DpiScaleX), OverlayRefresh.ContentScale(scale, dpi.DpiScaleY));
     }
-    private static TextBlock Label(string text, Brush color) => new()
-    { Text = text, Foreground = color, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2) };
     private void Guard(Action action) => OverlayFailureGuard.Run(action, Close,
         error => logger.LogWarning("Map panel failed: {ExceptionType}", error.GetType().Name));
     private void DpiChanged(object sender, DpiChangedEventArgs args)
@@ -126,7 +121,8 @@ public sealed class MapInfoView(PassiveOverlayInput passive, IGameWindow game,
             else Position();
         });
     });
-    private void SettingsChanged(object? sender, SettingsChangedEventArgs args) => EnvironmentChanged(sender, args);
+    private void SettingsChanged(object? sender, SettingsChangedEventArgs args) => window.Dispatcher.BeginInvoke(() =>
+    { if (!disposed && window.IsVisible && model?.Current is { } result) Guard(() => Open(result)); });
     public void Dispose()
     {
         disposed = true;
