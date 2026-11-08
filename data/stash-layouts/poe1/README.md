@@ -40,33 +40,47 @@ Game-specific geometry and names live in JSON; a patch does not require C# edits
    accepting it. This is a **dev-only** Python helper, not shipped app code. Install
    ImageMagick with `magick` on PATH; the helper reads the image dimensions itself.
    No images are committed.
-4. Use a distinct tabId/page for every page. At least two distinct cell centers are
+4. After measuring/authoring, run `python3 tools/stash-layouts/normalize.py` from
+   the repository root (standard library only). It aligns connected centres within
+   3 reference pixels to one row/column centre, using the extrema midpoint rounded
+   to the nearest half-pixel. Cells linked by widths **and** heights within 15% use
+   common median dimensions, capped at the smallest aligned pitch to avoid overlap.
+   Distinct size classes (such as larger resonators) remain separate. Origins may
+   use quarter-pixels to centre half-pixel dimensions exactly; the schema allows this.
+   The helper refuses ambiguous chains spanning over 6 pixels, centre moves over
+   3 pixels (Euclidean), overlaps, out-of-bounds boxes and non-idempotent results.
+   Inspect these cases against the measurement notes rather than relaxing the limits.
+   It changes geometry only and reports the largest centre move per page. Re-running
+   is idempotent; `python3 tools/stash-layouts/normalize.py --check` checks without
+   writing. Shipped-layout tests enforce centre spreads at most 0.5 pixels and
+   identical dimensions within each size class. Geometry changes require recalibration.
+5. Use a distinct tabId/page for every page. At least two distinct cell centers are
    needed for calibration. Runtime validation rejects missing provenance, duplicate
    cells/pages, unknown categories, nonfinite numbers and out-of-bounds geometry.
-5. Update `tests/ExileSight.Features.Stashninja.Tests/fixtures/measured-names.json`.
+6. Update `tests/ExileSight.Features.Stashninja.Tests/fixtures/measured-names.json`.
    Compare every candidate against an appropriate independent GitHub icon and record
    its pinned repo/path in `referenceIcon`. If none exists, record a concrete
    `noReferenceIcon` reason. Drop mismatches; do not trust an earlier `high` mark alone.
    Record API IDs when available, but never remove a confirmed cell solely for lacking
    a price. Check exact spelling in Standard and the current challenge league
    (discover it through poe.ninja `poe1/api/data/index-state`).
-6. Update attribution and the Unmapped list below. Tests derive expected pages and
+7. Update attribution and the Unmapped list below. Tests derive expected pages and
    cells from the layout files and evidence fixture; layout edits need no C# test edit.
-7. Run `dotnet build ExileSight.slnx -warnaserror` and
+8. Run `dotnet build ExileSight.slnx -warnaserror` and
    `dotnet test tests/ExileSight.Features.Stashninja.Tests`.
-8. Launch the built app; layout files are copied to `data/stash-layouts/poe1` beside it.
+9. Launch the built app; layout files are copied to `data/stash-layouts/poe1` beside it.
    Press Ctrl+Shift+N or long-press omni and choose **Price stash tab…**. Select the
    tab/page, then Load. Unsupported tabs show a clear no-layout message.
-9. Choose any two distinct empty cells in the calibration selectors.
-   Click Calibrate, then those cell centers in order. Esc cancels and restores Highlight. Clicks pass through to the game: use empty
-   cells and ensure no item is held. This observes physical clicks; it sends no input.
-   Calibration fits uniform scale/translation, rejects inconsistent clicks, and is
-   stored atomically under `%APPDATA%/ExileSight/poe1/stashninja/calibration.json`.
-   Calibration uses a cached SHA-256 geometry fingerprint and a SHA-256 key per
-   client resolution, bounded to 1000 entries and 1 MiB. Old unhashed stores are
-   preserved as `.corrupt` files and require recalibration. Moving/resizing
-   during calibration cancels it. Default placement scales by client height and
-   compensates for black bars wider than 21:9.
+10. Choose any two distinct empty cells in the calibration selectors.
+    Click Calibrate, then those cell centers in order. Esc cancels and restores Highlight. Clicks pass through to the game: use empty
+    cells and ensure no item is held. This observes physical clicks; it sends no input.
+    Calibration fits uniform scale/translation, rejects inconsistent clicks, and is
+    stored atomically under `%APPDATA%/ExileSight/poe1/stashninja/calibration.json`.
+    Calibration uses a cached SHA-256 geometry fingerprint and a SHA-256 key per
+    client resolution, bounded to 1000 entries and 1 MiB. Old unhashed stores are
+    preserved as `.corrupt` files and require recalibration. Moving/resizing
+    during calibration cancels it. Default placement scales by client height and
+    compensates for black bars wider than 21:9.
 
 Profiles are configurable through the feature setting `stashninja.profiles`, an array
 of `{ "Name": "Valuable", "Minimum": 10, "High": 100, "LowColor": "#99DDFF",
