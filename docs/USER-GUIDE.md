@@ -79,6 +79,9 @@ the game is foreground. Unless noted, a bound key is consumed by ExileSight.
 ### Omni and item info — CapsLock
 
 Omni is the shared item hotkey that selects a tool from copied item text.
+It uses advanced copy (Ctrl+Alt+C) by default. Turn off **Use advanced copy**
+in **Item rules › Omni key** to use plain copy. Item info needs advanced copy
+for tiers and roll ranges.
 Hover an item, tap **CapsLock** for at most 200 ms, then release to show the
 matching tool. Maps and priced items route to their specialized panels only on
 this short tap. Equipment opens item info, with tiers, rolls and other supported

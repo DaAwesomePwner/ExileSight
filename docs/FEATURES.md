@@ -13,7 +13,7 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 
 ### `omni`: Omni-key + context menu
 - **Trigger:** the omni-key (default CapsLock, which is blocked so the game never sees it) over an item.
-- **Actions:** `CopyItem`.
+- **Actions:** one `CopyItem` per press. Uses advanced copy (Ctrl+Alt+C) by default. Turn off **Use advanced copy** in Item rules › Omni key for plain copy.
 - **Behaviour:**
   - Parse the copied text and route it to the first matching handler by priority.
   - A short press opens the default handler, usually item-info. A long press (over about 200 ms) opens the context menu.
@@ -24,7 +24,7 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 
 ### `iteminfo`: Item-info tooltip
 - **Trigger:** the omni handler for gear, jewels and flasks; no separate item-info hotkey is registered.
-- **Actions:** none beyond the omni copy.
+- **Actions:** none beyond the omni copy, which uses advanced copy (Ctrl+Alt+C) by default. **Use advanced copy** switches it back to plain copy.
 - **Behaviour:**
   - A compact tooltip near the cursor showing:
     - each mod's tier and roll position within its range, color-coded

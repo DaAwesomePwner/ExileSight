@@ -24,7 +24,7 @@ public sealed class OmniTests
         var copies = 0;
         var handler = new Handler(1, (_, _) => true);
         var host = new FeatureHost([module, new HandlerFeature(handler)], (_, _) => null, (_, _, _) => { },
-            (_, _, action) => { Assert.IsType<GameAction.CopyItem>(action); copies++; return new(ActionOutcome.Success, CopiedText: Fixture); }, dispatch: action => action());
+            (_, _, action) => { Assert.True(Assert.IsType<GameAction.CopyItem>(action).Advanced); copies++; return new(ActionOutcome.Success, CopiedText: Fixture); }, dispatch: action => action());
         var opened = 0;
         module.Menu.Opened += _ => opened++;
         var command = Assert.IsAssignableFrom<IPressCommandHandler>(Assert.Single(host.Commands));
