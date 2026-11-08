@@ -10,11 +10,13 @@ public sealed record ActionLogEntry(DateTimeOffset Timestamp, string? Hotkey, st
     public bool Sent => Outcome == "Success";
     public string Result => Sent ? "Sent" : string.IsNullOrEmpty(Reason) ? Outcome : Reason;
 }
-public sealed record ActionLogSnapshot(IReadOnlyList<ActionLogEntry> Entries, int Skipped, bool Truncated);
+public sealed record ActionLogSnapshot(IReadOnlyList<ActionLogEntry> Entries, int Skipped, bool Truncated, string? Note = null, bool Missing = false);
 
 /// <summary>Reads at most 1 MiB and the last 200 physical lines; never blocks the UI dispatcher.</summary>
 public static class ActionLogReader
 {
+    private static ActionLogSnapshot MissingFile() => new([], 0, false,
+        "actions.log does not exist yet. Open log folder opens its folder when available.", true);
     public const int MaximumBytes = 1024 * 1024;
     public static Task<ActionLogSnapshot> ReadAsync(string path) => Task.Run(() => Read(path));
     public static ActionLogSnapshot Read(string path)
@@ -60,7 +62,9 @@ public static class ActionLogReader
             }
             return new(entries, skipped, start > 0);
         }
-        catch (FileNotFoundException) { return new([], 0, false); }
-        catch (DirectoryNotFoundException) { return new([], 0, false); }
+        catch (FileNotFoundException) { return MissingFile(); }
+        catch (DirectoryNotFoundException) { return MissingFile(); }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+        { return new([], 0, false, "Could not read actions.log (" + error.GetType().Name + "). Try again after access is restored."); }
     }
 }

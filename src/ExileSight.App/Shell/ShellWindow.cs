@@ -26,7 +26,7 @@ public sealed class ShellWindow : Window
     private readonly ExileSight.Features.Guide.GuidePageState guidePageState = new();
     private readonly DispatcherTimer refreshTimer = new() { Interval = TimeSpan.FromSeconds(10) };
     private OverlayPageHost? overlayPage;
-    private ComboBox? LeagueBox => page != "Home" ? null : ShellViewState.Find<ComboBox>(Content as DependencyObject).FirstOrDefault();
+    private ComboBox? LeagueBox => ShellViewState.LeagueBox(Content as DependencyObject, displayed?.Page);
     public ShellWindow(IServiceProvider services)
     {
         this.services = services; source = new(services);

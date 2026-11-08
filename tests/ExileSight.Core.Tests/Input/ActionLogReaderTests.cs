@@ -46,7 +46,34 @@ public sealed class ActionLogReaderTests : IDisposable
         Assert.Equal(1, result.Skipped);
     }
     [Fact]
-    public void MissingFileIsEmpty() => Assert.Empty(ActionLogReader.Read(path).Entries);
+    public void MissingFileIsEmpty()
+    {
+        var snapshot = ActionLogReader.Read(path);
+        Assert.Empty(snapshot.Entries);
+        Assert.True(snapshot.Missing);
+        Assert.Contains("does not exist", snapshot.Note);
+    }
+    [Fact]
+    public void SharingViolationReturnsErrorNote()
+    {
+        using var locked = new FileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+        var snapshot = ActionLogReader.Read(path);
+        Assert.Empty(snapshot.Entries);
+        Assert.False(snapshot.Missing);
+        Assert.Contains("IOException", snapshot.Note);
+    }
+    [Fact]
+    public void UnreadableDirectoryReturnsErrorNote()
+    {
+        var snapshot = ActionLogReader.Read(Path.GetTempPath());
+        Assert.Empty(snapshot.Entries);
+        Assert.False(snapshot.Missing);
+        Assert.Contains("Could not read", snapshot.Note);
+    }
+    [Fact]
+    public void SharedPathRetainsExistingWriterLocation() => Assert.Equal(
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ExileSight", "logs", "actions.log"),
+        ActionLogPath.Default);
     [Theory]
     [InlineData("[]")]
     [InlineData("{\"timestamp\":false}")]

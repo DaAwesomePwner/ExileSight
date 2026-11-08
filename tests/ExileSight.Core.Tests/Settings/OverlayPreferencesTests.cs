@@ -1,7 +1,7 @@
 using ExileSight.Core.Overlay;
 using ExileSight.Core.Settings;
 using Xunit;
-namespace ExileSight.Core.Tests.Input;
+namespace ExileSight.Core.Tests.Settings;
 
 public sealed class OverlayPreferencesTests : IDisposable
 {

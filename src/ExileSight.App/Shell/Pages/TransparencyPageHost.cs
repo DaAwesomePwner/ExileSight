@@ -8,9 +8,7 @@ namespace ExileSight.App.Shell.Pages;
 
 public sealed class TransparencyPageHost : ContentControl
 {
-    // Matches the existing FileActionAudit writer, which does not use the portable settings root.
-    public static string LogPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "ExileSight", "logs", "actions.log");
+    public static string LogPath => ActionLogPath.Default;
     public TransparencyPageHost(ActionLogSnapshot snapshot, string path)
     {
         Content = TransparencyPageBuilder.Build(snapshot, CardTheme.Default);

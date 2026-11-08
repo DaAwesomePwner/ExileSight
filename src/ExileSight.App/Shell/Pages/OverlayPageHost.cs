@@ -21,7 +21,7 @@ public sealed class OverlayPageHost : ContentControl
         AddHandler(Selector.SelectionChangedEvent, new SelectionChangedEventHandler((_, _) => Dirty = true));
         AddHandler(ToggleButton.CheckedEvent, new RoutedEventHandler(Changed));
         AddHandler(ToggleButton.UncheckedEvent, new RoutedEventHandler(Changed));
-        PreviewMouseMove += (_, _) => { if (IsMouseCaptureWithin) Dirty = true; };
+        AddHandler(OverlayPreview.PositionChangedEvent, new RoutedEventHandler((_, _) => Dirty = true));
         AddHandler(Button.ClickEvent, new RoutedEventHandler(Clicked));
     }
     private T Find<T>(string name) where T : FrameworkElement => ShellViewState.Find<T>(Content as DependencyObject).First(e => e.Name == name);

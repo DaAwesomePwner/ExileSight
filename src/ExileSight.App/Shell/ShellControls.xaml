@@ -118,4 +118,54 @@
             </Trigger></ControlTemplate.Triggers>
         </ControlTemplate></Setter.Value></Setter>
     </Style>
+    <Style TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton">
+            <Border x:Name="FocusFrame" BorderThickness="1" BorderBrush="Transparent" Padding="{TemplateBinding Padding}" Background="Transparent">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="24" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <Border x:Name="GlyphBorder" Width="16" Height="16" VerticalAlignment="Top" Margin="0,2,0,0"
+                            Background="{DynamicResource AppNav}" BorderBrush="{DynamicResource OverlayBorder}" BorderThickness="1" CornerRadius="8">
+                        <TextBlock x:Name="Mark" Text="●" Visibility="Collapsed" Foreground="{DynamicResource Accent}"
+                                   FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ContentPresenter Grid.Column="1" RecognizesAccessKey="True" VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter TargetName="Mark" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="GlyphBorder" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="GlyphBorder" Property="BorderBrush" Value="{DynamicResource Accent}" /></Trigger>
+                <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="FocusFrame" Property="BorderBrush" Value="{DynamicResource Accent}" /></Trigger>
+                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="FocusFrame" Property="Opacity" Value="0.5" /></Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="CheckBox">
+            <Border x:Name="FocusFrame" BorderThickness="1" BorderBrush="Transparent" Padding="{TemplateBinding Padding}" Background="Transparent">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="24" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <Border x:Name="GlyphBorder" Width="16" Height="16" VerticalAlignment="Top" Margin="0,2,0,0"
+                            Background="{DynamicResource AppNav}" BorderBrush="{DynamicResource OverlayBorder}" BorderThickness="1" CornerRadius="3">
+                        <TextBlock x:Name="Mark" Text="✓" Visibility="Collapsed" Foreground="{DynamicResource Accent}"
+                                   FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ContentPresenter Grid.Column="1" RecognizesAccessKey="True" VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter TargetName="Mark" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="GlyphBorder" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="GlyphBorder" Property="BorderBrush" Value="{DynamicResource Accent}" /></Trigger>
+                <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="FocusFrame" Property="BorderBrush" Value="{DynamicResource Accent}" /></Trigger>
+                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="FocusFrame" Property="Opacity" Value="0.5" /></Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
 </ResourceDictionary>

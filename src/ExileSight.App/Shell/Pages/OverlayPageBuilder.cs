@@ -35,7 +35,9 @@ public static class OverlayPageBuilder
         settings.Children.Add(new CheckBox { Name = "AutoScale", Content = "Auto · scale with game client height", IsChecked = model.Settings.ScaleOverride is null,
             Foreground = t.OverlayForeground, Margin = new Thickness(0, 4, 0, 12) });
         settings.Children.Add(Text("Fixed scale (0.8–1.5)", t));
-        settings.Children.Add(Field("Scale", (model.Settings.ScaleOverride ?? 1).ToString(CultureInfo.CurrentCulture), t));
+        var scale = Field("Scale", (model.Settings.ScaleOverride ?? 1).ToString(CultureInfo.CurrentCulture), t);
+        scale.IsEnabled = model.Settings.ScaleOverride is not null;
+        settings.Children.Add(scale);
         settings.Children.Add(Text("Density", t, 14, true));
         settings.Children.Add(Choices("Density", ["Comfortable", "Compact"], (int)model.Settings.Density));
         settings.Children.Add(Text("Colours", t, 14, true));
