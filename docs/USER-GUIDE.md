@@ -58,10 +58,11 @@ copied after your hotkey. It does not read game memory, inject code, inspect the
 screen, or change the game window or game files.
 
 Every game action follows your own physical key press or overlay click, and each
-invocation can perform only one game action: copy an item, paste a search, set an
-already-open price note, or send one chat message/command. Timers, log events and
-price downloads only update local displays; they never send game input. Actions
-are refused when the game is not foreground. A failed action needs a fresh gesture.
+invocation can perform only one game action: copy an item, paste a search, set a
+listing amount or price note in an already-open dialog, or send one chat
+message/command. Timers, log events and price downloads only update local displays;
+they never send game input. Actions are refused when the game is not foreground.
+A failed action needs a fresh gesture.
 
 The Action Gate is the single input sender that enforces one game action per
 physical gesture. It attempts to preserve and restore your clipboard. Diagnostics
@@ -118,15 +119,39 @@ no item: calibration clicks reach the game. Calibration is saved per layout and
 resolution. A physical **Highlight** click pastes one search; loading prices does
 not. Searches over the game's supported limit are disabled.
 
-### Shop repricing / vaalasync — omni on a priced item
+### Shop repricing / vaalasync — omni
 
 Vaalasync is the shop repricing and local price-history tool.
 
 There is no separate default key. Tap CapsLock over an item with a `~b/o` or
-`~price` note. Open the game's note box yourself, then click one price button to
-paste the new note. Read the item with omni again before another repricing attempt.
-If the result says the note was possibly set or the paste was unconfirmed, check
-it in game before trying again.
+`~price` note to show price buttons. Async listing mode is the default:
+
+1. Open the game's **Set Item Price** dialog yourself and focus its amount field;
+   the current value is pre-selected.
+2. Click one ExileSight price button. It shows amount + currency and sends only
+   Ctrl+A, Ctrl+V of the amount, with no Enter or clicks.
+3. Pick the currency in the game's dropdown, then click **LIST ITEM** yourself.
+   ExileSight's currency reminder is display-only.
+
+Async amounts must be positive whole numbers until decimal support is confirmed
+in game: a dropped dot could turn 4.5 into 45. Suggestions round to whole numbers;
+custom amounts must already be whole numbers. Display and paste use the same
+invariant format, without thousands separators and with a dot for decimals.
+
+For an unpriced item, hold CapsLock and choose **Set listing price…**. Only the
+custom amount is available, seeded from a poe.ninja estimate when known. The
+panel says **No current price**; an estimate is not a current listing price.
+
+For legacy note mode, set `features.sections.vaalasync.listingMode` to `"note"`
+in your active profile, then restart. Set it to `"async"` to return to the default.
+You can also use **Use legacy note mode** under **History / custom price / record
+purchase**; this also applies after restart. In note mode, open the game's note
+box yourself, then click one price button to paste the full note with Ctrl+A,
+Ctrl+V, Enter. Note mode allows decimals.
+
+Read the item with omni again before another repricing attempt. If the result
+says the price was possibly set or the paste was unconfirmed, check it in game
+before trying again.
 
 **History / custom price / record purchase** opens the local history tools.
 Whisper matches are possible sale evidence, not confirmed sales; buyer names and
@@ -154,13 +179,21 @@ includes an example. Invalid or oversized searches are disabled, not truncated.
 
 Hold **Tab** for the passive timer list. Tab still reaches the game.
 **Ctrl+Shift+T** toggles the editor: add named countdowns or stopwatches, then
-start, pause, reset or delete them. Names use the panel's mouse keyboard.
+start, pause, reset or delete them. Click a row to select it even while timers
+are running; selection does not take keyboard focus from the game. Names use the
+panel's mouse keyboard.
 Optional completion toasts never send input. Running timers include time while
 the app is closed; pausing stops them.
 
 ### Map tracker — Ctrl+Shift+M; Ctrl+Shift+K for kills
 
 Open history with **Ctrl+Shift+M** and explicitly select the recording league.
+The picker lists current poe.ninja leagues, with the current softcore challenge
+league first. It shares the price service's cache and at least one-hour request
+throttle. If the list is unavailable or stale, a note appears with the saved league
+plus Standard and Hardcore. Your saved league stays selected. Type SSF/Ruthless
+league names yourself; poe.ninja does not list them.
+
 Confirm your character in the viewer for death counting; names offered from the
 log are only candidates. Runs begun before confirmation have unknown deaths.
 The tracker follows new map instances from the log, recording time, portals and
@@ -250,6 +283,9 @@ information. Review files before sharing them. The app never edits your game log
 - **Overlay missing:** focus the game and use Windowed or Windowed Fullscreen.
   Check that `overlay.enabled` is true. In the tray Debug panel, inspect game-window,
   overlay, settings and input status. Try a fresh hotkey press over a supported item.
+- **Key seems ignored:** the Debug panel's input section shows timing details
+  without copied item or chat text. Include these details with the key and steps
+  when reporting a missed press.
 - **Wrong size or position / DPI:** overlays follow the client area and monitor DPI.
   `overlay.scaleOverride` replaces automatic scaling; set it to `null` to restore
   automatic sizing, then restart. Recalibrate stash tags for a changed resolution.

@@ -58,7 +58,7 @@ public interface IFeature
 
 Registration finishes before input starts. Manifests declare actions, packs, services, HTTP hosts and browser hosts separately. Features cannot use `System.Net`; App supplies shared services. Architecture tests validate manifests, declared actions and network boundaries. README transparency-table generation remains a Phase 5 deliverable.
 
-The hook pipeline attaches feature identity when issuing an intent token; features cannot claim another owner. The issuer can be installed only once. `GatePolicy` combines built-in CopyItem/SendChatCommand permissions with per-feature manifest declarations and validates the token's owner and action. PasteSearch and SetPriceNote are available only through declaring features.
+The hook pipeline attaches feature identity when issuing an intent token; features cannot claim another owner. The issuer can be installed only once. `GatePolicy` combines built-in CopyItem/SendChatCommand permissions with per-feature manifest declarations and validates the token's owner and action. PasteSearch, SetPriceNote and SetListingAmount are available only through declaring features.
 
 Features may declare default bindings for their own commands. A persisted binding with the same ID wins, including an explicitly disabled binding. Omni declares blocked CapsLock by default, spends its token on CopyItem once at key-down and classifies the token-free release as long only after 200 ms. A missing release does not dispatch a handler. One host-owned router selects the first matching handler by descending priority, with registration order breaking ties. Routing and long-press menus run on a serial token-free queue off the input worker.
 
