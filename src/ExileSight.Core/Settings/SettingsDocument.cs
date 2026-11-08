@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ExileSight.Core.Overlay;
 using System.Text.Json.Serialization;
 using ExileSight.Platform.Abstractions.Input;
 
@@ -61,9 +62,8 @@ public sealed class PersistedBinding : ExtensibleSettings
     public string? FeatureCommand { get; set; }
 }
 
-public enum CardPlacementMode { BesideCursor, Docked }
-public enum OverlayDensity { Comfortable, Compact }
-public enum OverlayContrast { Standard, HighContrast }
+public enum OverlayDensity { Comfortable = 0, Compact = 1 }
+public enum OverlayContrast { Standard = 0, HighContrast = 1 }
 
 public sealed class OverlaySettings : ExtensibleSettings
 {
@@ -72,8 +72,8 @@ public sealed class OverlaySettings : ExtensibleSettings
     public double? ScaleOverride { get; set; }
     public CardPlacementMode PlacementMode { get; set; } = CardPlacementMode.BesideCursor;
     /// <summary>Card top-left as fractions of the full client, then clamped to visible space.</summary>
-    public double DockedX { get; set; } = .5;
-    public double DockedY { get; set; } = .5;
+    public double DockedX { get; set; } = CardPlacementOptions.DefaultDockedPosition.X;
+    public double DockedY { get; set; } = CardPlacementOptions.DefaultDockedPosition.Y;
     public OverlayDensity Density { get; set; } = OverlayDensity.Comfortable;
     public OverlayContrast Contrast { get; set; } = OverlayContrast.Standard;
 

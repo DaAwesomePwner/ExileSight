@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ExileSight.Core.Overlay;
 using ExileSight.Platform.Abstractions.Storage;
 
 namespace ExileSight.Core.Settings;

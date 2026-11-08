@@ -1,4 +1,3 @@
-using ExileSight.Core.Settings;
 using ExileSight.Platform.Abstractions.Window;
 
 namespace ExileSight.Core.Overlay;
@@ -26,22 +25,22 @@ public static class PopupPlacement
     /// is horizontal only; the top aligns with the cursor. Dock fractions anchor the top-left
     /// in the full client before clamping. Legacy Place callers retain their existing behavior.</summary>
     public static PixelRect PlaceCard(PixelRect client, PixelRect workArea, int cursorX, int cursorY,
-        double width, double height, double scale, OverlaySettings settings)
+        double width, double height, double scale, CardPlacementOptions options)
     {
-        ArgumentNullException.ThrowIfNull(settings);
-        if (!Enum.IsDefined(settings.PlacementMode))
-            throw new ArgumentOutOfRangeException(nameof(settings));
-        if (!double.IsFinite(settings.DockedX) || settings.DockedX < 0 || settings.DockedX > 1 ||
-            !double.IsFinite(settings.DockedY) || settings.DockedY < 0 || settings.DockedY > 1)
-            throw new ArgumentOutOfRangeException(nameof(settings));
+        ArgumentNullException.ThrowIfNull(options);
+        if (!Enum.IsDefined(options.PlacementMode))
+            throw new ArgumentOutOfRangeException(nameof(options));
+        if (!double.IsFinite(options.DockedX) || options.DockedX < 0 || options.DockedX > 1 ||
+            !double.IsFinite(options.DockedY) || options.DockedY < 0 || options.DockedY > 1)
+            throw new ArgumentOutOfRangeException(nameof(options));
         // Reuse the established dimension validation, rounding, size cap and offscreen fallback.
         var sized = Place(client, workArea, cursorX, cursorY, width, height, scale);
         var area = Available(client, workArea);
         double x, y;
-        if (settings.PlacementMode == CardPlacementMode.Docked)
+        if (options.PlacementMode == CardPlacementMode.Docked)
         {
-            x = client.X + Math.Round(client.Width * settings.DockedX);
-            y = client.Y + Math.Round(client.Height * settings.DockedY);
+            x = client.X + Math.Round(client.Width * options.DockedX);
+            y = client.Y + Math.Round(client.Height * options.DockedY);
         }
         else
         {

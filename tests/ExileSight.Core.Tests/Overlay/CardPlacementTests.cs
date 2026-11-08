@@ -8,6 +8,21 @@ namespace ExileSight.Core.Tests.Overlay;
 public sealed class CardPlacementTests
 {
     [Theory]
+    [InlineData(1920, 1152)]
+    [InlineData(2560, 1536)]
+    public void DefaultDockFitsAboveCentreAndClearOfMinimap(int width, int expectedX)
+    {
+        PixelRect client = new(0, 0, width, 1080);
+        var settings = new OverlaySettings { PlacementMode = CardPlacementMode.Docked };
+        var card = PopupPlacement.PlaceCard(client, client, 0, 0, 300, 400, 1,
+            new() { PlacementMode = settings.PlacementMode, DockedX = settings.DockedX, DockedY = settings.DockedY });
+        Assert.Equal(new(expectedX, 162, 300, 400), card);
+        Assert.True(card.X > width / 2);
+        Assert.True(card.X + card.Width <= width * .8);
+        Assert.True(card.Y >= 0 && card.Y + card.Height <= client.Height);
+    }
+
+    [Theory]
     [InlineData(600, 288)]
     [InlineData(960, 648)] // Exact centre opens left (D-106).
     [InlineData(1100, 1112)]
@@ -47,7 +62,7 @@ public sealed class CardPlacementTests
     public void DockUsesClientFractionsAcrossResolutions(int width, int height, int x, int y)
     {
         PixelRect client = new(0, 0, width, height);
-        var settings = new OverlaySettings { PlacementMode = CardPlacementMode.Docked, DockedX = .25, DockedY = .25 };
+        var settings = new CardPlacementOptions { PlacementMode = CardPlacementMode.Docked, DockedX = .25, DockedY = .25 };
         Assert.Equal(new(x, y, 300, 400),
             PopupPlacement.PlaceCard(client, client, -999, -999, 300, 400, 1, settings));
     }
@@ -58,7 +73,7 @@ public sealed class CardPlacementTests
     [InlineData(1, 1, -300, 440)]
     public void DockClampsToNegativeMonitorIntersection(double x, double y, int expectedX, int expectedY)
     {
-        var settings = new OverlaySettings { PlacementMode = CardPlacementMode.Docked, DockedX = x, DockedY = y };
+        var settings = new CardPlacementOptions { PlacementMode = CardPlacementMode.Docked, DockedX = x, DockedY = y };
         Assert.Equal(new(expectedX, expectedY, 300, 400),
             PopupPlacement.PlaceCard(new(-1800, -200, 1920, 1080), new(-1920, -240, 1920, 1080),
                 0, 0, 300, 400, 1, settings));

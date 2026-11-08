@@ -1,5 +1,6 @@
 using System.Text.Json;
 using ExileSight.Core.Settings;
+using ExileSight.Core.Overlay;
 using Xunit;
 
 namespace ExileSight.Core.Tests.Settings;
@@ -64,7 +65,7 @@ public sealed class OverlaySettingsTests : IDisposable
         using var store = Open();
         Assert.Throws<JsonException>(() => store.Update("overlay", s => s.Overlay.DockedX = fraction));
         Assert.Throws<JsonException>(() => store.Update("overlay", s => s.Overlay.DockedY = fraction));
-        Assert.Equal(.5, store.Snapshot.Overlay.DockedX);
+        Assert.Equal(.6, store.Snapshot.Overlay.DockedX);
     }
 
     [Theory]
@@ -108,6 +109,49 @@ public sealed class OverlaySettingsTests : IDisposable
         Assert.Throws<JsonException>(() => store.Update("overlay", s => s.Overlay.PlacementMode = (CardPlacementMode)99));
         Assert.Throws<JsonException>(() => store.Update("overlay", s => s.Overlay.Density = (OverlayDensity)99));
         Assert.Throws<JsonException>(() => store.Update("overlay", s => s.Overlay.Contrast = (OverlayContrast)99));
+    }
+
+    [Theory]
+    [InlineData("{\"placementMode\":99}")]
+    [InlineData("{\"density\":99}")]
+    [InlineData("{\"contrast\":99}")]
+    [InlineData("{\"dockedX\":1.01}")]
+    [InlineData("{\"dockedY\":-0.01}")]
+    [InlineData("{\"dockedX\":\"NaN\"}")]
+    public void InvalidOverlayOnDiskIsQuarantinedAndRecovers(string overlay)
+    {
+        Directory.CreateDirectory(root);
+        var path = Path.Combine(root, "settings.json");
+        var invalid = "{\"schemaVersion\":1,\"overlay\":" + overlay + "}";
+        // Exercise both recovery paths with the same invalid source bytes.
+        foreach (var hasBackup in new[] { false, true })
+        {
+            File.WriteAllText(path, invalid);
+            if (hasBackup)
+                File.WriteAllText(path + ".bak",
+                    """{"schemaVersion":1,"overlay":{"dockedX":0.3},"general":{"language":"fr"}}""");
+            using (var store = Open())
+            {
+                Assert.Equal(!hasBackup, store.LoadedDefaults);
+                Assert.Equal(hasBackup ? "fr" : "en", store.Snapshot.General.Language);
+                Assert.Equal(hasBackup ? .3 : .6, store.Snapshot.Overlay.DockedX);
+                Assert.NotEmpty(store.Warnings);
+                var quarantined = Assert.Single(Directory.GetFiles(root, "*.corrupt-*"));
+                Assert.Equal(invalid, File.ReadAllText(quarantined));
+            }
+            foreach (var file in Directory.GetFiles(root)) File.Delete(file);
+        }
+    }
+
+    [Fact]
+    public void PersistedEnumNumbersRemainStable()
+    {
+        Assert.Equal(0, (int)CardPlacementMode.BesideCursor);
+        Assert.Equal(1, (int)CardPlacementMode.Docked);
+        Assert.Equal(0, (int)OverlayDensity.Comfortable);
+        Assert.Equal(1, (int)OverlayDensity.Compact);
+        Assert.Equal(0, (int)OverlayContrast.Standard);
+        Assert.Equal(1, (int)OverlayContrast.HighContrast);
     }
 
     public void Dispose() { if (Directory.Exists(root)) Directory.Delete(root, true); }
