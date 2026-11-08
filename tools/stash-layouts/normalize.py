@@ -45,6 +45,14 @@ def normalize(layout):
     for group in components(range(len(cells)), lambda i, j: all(
             max(cells[i][s], cells[j][s]) <= min(cells[i][s], cells[j][s]) * 1.15
             for s in ('w', 'h'))):
+        for dimension in ('w', 'h'):
+            values = [cells[i][dimension] for i in group]
+            if max(values) > min(values) * 1.15:
+                ids = ', '.join(cells[i]['id'] for i in group)
+                raise ValueError(
+                    f"{layout['tabId']}/{layout['page']}: ambiguous size class "
+                    f"{dimension} span {min(values)}..{max(values)} "
+                    f"({(max(values) / min(values) - 1) * 100:.2f}% > 15%): {ids}")
         sizes = [half(median(cells[i][s] for i in group)) for s in ('w', 'h')]
         # Frame measurements can exceed the pitch (notably Essence). Cap the
         # common box at the smallest pitch on an aligned row/column, not per cell.
@@ -83,7 +91,7 @@ def main():
     args = parser.parse_args()
     pending = []
     for path in sorted(args.directory.glob('*.layout.json')):
-        original = json.loads(path.read_text())
+        original = json.loads(path.read_text(encoding='utf-8'))
         normalized, move = normalize(original)
         if normalize(normalized)[0] != normalized:
             raise ValueError(f'{path.name}: normalization is not idempotent; inspect size classes')
@@ -95,7 +103,7 @@ def main():
     if args.check and pending:
         parser.exit(1, 'Layouts need normalization\n')
     for path, normalized in pending:
-        path.write_text(json.dumps(normalized, indent=2, ensure_ascii=False) + '\n')
+        path.write_text(json.dumps(normalized, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
 
 
 if __name__ == '__main__':
