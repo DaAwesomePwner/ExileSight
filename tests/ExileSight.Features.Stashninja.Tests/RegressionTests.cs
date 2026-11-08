@@ -57,4 +57,25 @@ public sealed class RegressionTests
         model.BuildMenu(new ParsedItem())[0].Execute(); Assert.Same(l, model.SelectedLayout);
         var empty = new StashModel(); empty.Open(); Assert.Null(empty.SelectedLayout);
     }
+    [Fact] public void AmbiguousMatchesPreferLastLoadedThenStableTabAndPageOrder()
+    {
+        var atlas = Fixture() with { TabId = "currency", Page = "atlas" };
+        var general = Fixture() with { TabId = "currency", Page = "general" };
+        var other = Fixture() with { TabId = "other", Page = "a" };
+        var unmatched = Fixture() with { TabId = "unmatched", Cells =
+            [Fixture().Cells[0] with { ItemName = "Unknown" }, Fixture().Cells[1]] };
+        var item = ItemTextParser.Parse("Item Class: Stackable Currency\nRarity: Currency\nChaos Orb\n--------\nStack Size: 1/20", Game.PoE1).Item!;
+        foreach (var layouts in new[] { new[] { other, general, atlas, unmatched }, new[] { unmatched, atlas, general, other } })
+        {
+            var model = new StashModel { Layouts = layouts };
+            model.BuildMenu(item)[0].Execute(); Assert.Same(atlas, model.SelectedLayout);
+            model.RememberLoaded(general);
+            model.BuildMenu(item)[0].Execute(); Assert.Same(general, model.SelectedLayout);
+            model.RememberLoaded(other);
+            model.BuildMenu(item)[0].Execute(); Assert.Same(other, model.SelectedLayout);
+            model.RememberLoaded(unmatched);
+            model.BuildMenu(item)[0].Execute(); Assert.Same(atlas, model.SelectedLayout);
+        }
+    }
+
 }

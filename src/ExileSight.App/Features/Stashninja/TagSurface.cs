@@ -40,7 +40,7 @@ public sealed class TagSurface
         canvas.Children.Clear();
     }
     public void Hide()
-    { Clear(); if (window.RequestedVisible) host.SetVisible(window, false); }
+    { if (window.RequestedVisible) host.SetVisible(window, false); }
     private static bool SameTags(PriceTag[] a, PriceTag[] b) => a.Length == b.Length &&
         a.Zip(b).All(p => p.First.Cell == p.Second.Cell && p.First.Text == p.Second.Text &&
             p.First.Color == p.Second.Color && p.First.Sparkline.SequenceEqual(p.Second.Sparkline));

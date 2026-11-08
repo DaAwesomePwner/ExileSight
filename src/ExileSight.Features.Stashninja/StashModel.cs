@@ -17,18 +17,26 @@ public sealed class StashModel : IItemMenuProvider
     public SearchResult Search => Volatile.Read(ref search);
     public void SetSearch(SearchResult value) => Volatile.Write(ref search, value);
     private Layout? lastLoaded;
-    public Layout? SelectedLayout { get; private set; }
-    public void RememberLoaded(Layout layout) => lastLoaded = layout;
+    private Layout? selectedLayout;
+    // Hotkey/item-menu dispatch can run off the UI thread; layout snapshots are immutable.
+    public Layout? SelectedLayout => Volatile.Read(ref selectedLayout);
+    public void RememberLoaded(Layout layout) => Volatile.Write(ref lastLoaded, layout);
     public void Open() => Open(null);
     private void Open(ParsedItem? item)
     {
         static string Normalize(string value) => new(value.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
         bool Matches(string? value) => !string.IsNullOrWhiteSpace(value) && item is not null &&
             (Normalize(value) == Normalize(item.Name) || Normalize(value) == Normalize(item.BaseType ?? ""));
-        SelectedLayout = (item is null ? null : Layouts.FirstOrDefault(l =>
-            l.Cells.Any(c => Matches(c.ItemName) || Matches(c.NinjaId)))) ?? lastLoaded ??
-            Layouts.FirstOrDefault(l => l.TabId == "currency" && l.Page == "general") ?? Layouts.FirstOrDefault();
-        SetSearch(new(null, "Load prices first")); Opened?.Invoke();
+        var previous = Volatile.Read(ref lastLoaded);
+        var ordered = Layouts.OrderBy(l => l.TabId, StringComparer.Ordinal)
+            .ThenBy(l => l.Page, StringComparer.Ordinal).ToArray();
+        var matches = item is null ? [] : ordered.Where(l =>
+            l.Cells.Any(c => Matches(c.ItemName) || Matches(c.NinjaId))).ToArray();
+        var selected = (previous is not null && matches.Contains(previous) ? previous : matches.FirstOrDefault()) ?? previous ??
+            ordered.FirstOrDefault(l => l.TabId == "currency" && l.Page == "general") ?? ordered.FirstOrDefault();
+        Volatile.Write(ref selectedLayout, selected);
+        // The view invalidates search only when it actually changes/reloads the page.
+        Opened?.Invoke();
     }
     public IReadOnlyList<ItemMenuEntry> BuildMenu(ParsedItem item) => [new("Price stash tab…", () => Open(item))];
     public void Register(IFeatureContext context)

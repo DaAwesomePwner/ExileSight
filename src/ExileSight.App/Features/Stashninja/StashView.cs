@@ -8,6 +8,7 @@ using ExileSight.Core.Pricing;
 using ExileSight.Core.Settings;
 using ExileSight.Features.Stashninja;
 using ExileSight.Platform.Abstractions.Storage;
+using ExileSight.Platform.Abstractions.Time;
 using ExileSight.Platform.Abstractions.Window;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -42,6 +43,10 @@ public sealed class StashView : StackPanel
     private Layout? layout;
     private PriceOverview? overview;
     private int generation;
+    private DateTimeOffset freshUntil;
+    private string? loadedLeagueSetting;
+    private string? LeagueSetting => services.GetRequiredService<ISettingsStore<SettingsDocument>>().Snapshot.Prices.League;
+    private void SetStatus(string message) => status.Text = layout is null ? message : $"{layout.TabId}/{layout.Page}: {message}";
     public StashView(StashModel model, IServiceProvider services, FeatureViews views)
     {
         this.model = model; this.services = services;
@@ -67,7 +72,7 @@ public sealed class StashView : StackPanel
                 first.Cell.Id == second.Cell.Id)
             { status.Text = "Choose two distinct empty cells before calibrating"; return; }
             calibration.Cancel(); Invalidate();
-            calibration.Start(layout, first.Cell, second.Cell, message => status.Text = message, Refresh);
+            calibration.Start(layout, first.Cell, second.Cell, SetStatus, Refresh);
         };
         Children.Add(calibrate);
         Children.Add(highlight); views.Bind(highlight, "stashninja:highlight");
@@ -83,8 +88,13 @@ public sealed class StashView : StackPanel
             var selected = model.SelectedLayout;
             Dispatcher.BeginInvoke(async () =>
             {
-                tab.SelectedItem = selected is null ? null : selected.TabId + "/" + selected.Page;
-                var loading = Load();
+                var page = selected is null ? null : selected.TabId + "/" + selected.Page;
+                if (tab.SelectedItem as string != page) tab.SelectedItem = page;
+                if (tab.SelectedItem is { } choice) tab.ScrollIntoView(choice);
+                var reuse = selected is not null && selected == layout && overview is not null &&
+                    services.GetRequiredService<IClock>().UtcNow < freshUntil && loadedLeagueSetting == LeagueSetting;
+                var loading = reuse ? Task.CompletedTask : Load();
+                if (reuse) Refresh();
                 if (!window!.RequestedVisible) host.SetVisible(window, true);
                 await loading;
             });
@@ -108,7 +118,7 @@ public sealed class StashView : StackPanel
     }
     private void Invalidate() { model.SetSearch(new(null, "Load prices first")); highlight.IsEnabled = false; }
     private void Clear()
-    { generation++; layout = null; overview = null; calibration.Cancel(); firstCell.ItemsSource = secondCell.ItemsSource = null; Invalidate(); surface.Clear(); }
+    { generation++; freshUntil = default; layout = null; overview = null; calibration.Cancel(); firstCell.ItemsSource = secondCell.ItemsSource = null; Invalidate(); surface.Clear(); }
     private async Task Load()
     {
         Clear(); var request = generation;
@@ -119,22 +129,25 @@ public sealed class StashView : StackPanel
         var choices = layout.Cells.Select(c => new CellChoice(c, $"{c.ItemName ?? c.NinjaId} ({c.Id})")).ToArray();
         firstCell.ItemsSource = choices; secondCell.ItemsSource = choices;
         var selected = layout;
-        status.Text = "Loading cached prices…";
+        SetStatus("Loading cached prices…");
         try
         {
-            var settings = services.GetRequiredService<ISettingsStore<SettingsDocument>>().Snapshot.Prices;
+            var configuredLeague = LeagueSetting;
             var prices = services.GetRequiredService<PriceService>();
-            var league = await prices.GetLeaguesAsync(settings.League);
+            var league = await prices.GetLeaguesAsync(configuredLeague);
             var results = await Task.WhenAll(selected.Cells.Select(c => c.Category).Append("Currency").Distinct()
                 .Select(category => prices.GetAsync(league.DefaultLeague, category, TimeSpan.FromHours(1))));
             if (request != generation) return;
             overview = new(results.Where(r => r.Overview is not null).SelectMany(r => r.Overview!.Items).ToArray(),
                 results.Select(r => r.Overview?.ChaosPerDivine).FirstOrDefault(r => r is > 0));
+            loadedLeagueSetting = configuredLeague;
+            freshUntil = results.Any(r => r.IsStale || r.Overview is null || r.UpdatedAt is null)
+                ? default : results.Min(r => r.UpdatedAt!.Value).AddHours(1);
             Refresh();
             if (results.Any(r => r.IsStale || r.Overview is null)) status.Text += " — prices stale or incomplete";
         }
         catch (Exception e) when (e is HttpRequestException or IOException or System.Text.Json.JsonException or TaskCanceledException)
-        { if (request == generation) { Invalidate(); status.Text = "Prices unavailable; try again"; } }
+        { if (request == generation) { Invalidate(); SetStatus("Prices unavailable; try again"); } }
     }
     private void Refresh()
     {
@@ -144,6 +157,6 @@ public sealed class StashView : StackPanel
         surface.Show(layout, tags);
         var search = Tags.Search(tags, selected.Minimum); model.SetSearch(search);
         highlight.Content = $"Highlight above {selected.Minimum}c"; highlight.IsEnabled = search.Text is not null;
-        status.Text = search.Status + $" — {tags.Length}/{layout.Cells.Length} cells priced";
+        SetStatus(search.Status + $" — {tags.Length}/{layout.Cells.Length} cells priced");
     }
 }
