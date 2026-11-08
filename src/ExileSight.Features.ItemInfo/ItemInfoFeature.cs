@@ -7,6 +7,8 @@ namespace ExileSight.Features.ItemInfo;
 
 public sealed class ItemInfoViewModel : INotifyPropertyChanged
 {
+    public ItemInfoResult? LastCopied { get; private set; }
+    public ItemCardComparison? LastComparison { get; private set; }
     public ItemCard? Card { get; private set; }
     public string? Notice { get; private set; }
     public ItemInfoResult? Current { get; private set; }
@@ -16,6 +18,8 @@ public sealed class ItemInfoViewModel : INotifyPropertyChanged
         Card = card ?? ItemCardBuilder.Build(result);
         Notice = notice;
         Current = result;
+        LastCopied = result;
+        LastComparison = Card.Compare;
         PropertyChanged?.Invoke(this, new(nameof(Current)));
     }
     public void Close()

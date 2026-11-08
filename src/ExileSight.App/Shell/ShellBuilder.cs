@@ -31,6 +31,7 @@ public static class ShellBuilder
         FrameworkElement page = model.Page switch
         {
             "Act guide" => guidePage ?? Features.Guide.GuidePageBuilder.Build(new(null), t),
+            "Item rules" => settingsPage ?? Pages.ItemRulesPageBuilder.Build(new(ExileSight.Features.ItemInfo.ItemInfoSettings.Default, new()), t),
             "Overlay" => settingsPage ?? Pages.OverlayPageBuilder.Build(new(new(), new()), t),
             "Transparency" => settingsPage ?? Pages.TransparencyPageBuilder.Build(new([], 0, false), t),
             "Home" => HomeBuilder.Build(model, t, narrow),

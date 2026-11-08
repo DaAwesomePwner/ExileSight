@@ -26,6 +26,7 @@ public sealed class ShellWindow : Window
     private readonly ExileSight.Features.Guide.GuidePageState guidePageState = new();
     private readonly DispatcherTimer refreshTimer = new() { Interval = TimeSpan.FromSeconds(10) };
     private OverlayPageHost? overlayPage;
+    private ItemRulesPageHost? itemRulesPage;
     private ComboBox? LeagueBox => ShellViewState.LeagueBox(Content as DependencyObject, displayed?.Page);
     public ShellWindow(IServiceProvider services)
     {
@@ -45,7 +46,7 @@ public sealed class ShellWindow : Window
     {
         if (IsVisible && WindowState != WindowState.Minimized) refreshTimer.Start(); else refreshTimer.Stop();
     }
-    private bool CanReplace(bool changed, bool layoutChanged) => !(overlayPage is { Dirty: true } || overlayPage?.IsKeyboardFocusWithin == true) && ShellRefreshPolicy.ShouldRebuild(changed, layoutChanged,
+    private bool CanReplace(bool changed, bool layoutChanged) => !(itemRulesPage is { Dirty: true } || itemRulesPage?.IsKeyboardFocusWithin == true || overlayPage is { Dirty: true } || overlayPage?.IsKeyboardFocusWithin == true) && ShellRefreshPolicy.ShouldRebuild(changed, layoutChanged,
         LeagueBox?.IsKeyboardFocusWithin == true || LeagueBox?.IsDropDownOpen == true, LeagueBox?.Text, displayed?.League);
     private async void Refresh()
     {
@@ -73,6 +74,10 @@ public sealed class ShellWindow : Window
                 narrow = nextNarrow; displayed = next;
                 FrameworkElement? settingsPage = null;
                 overlayPage = null;
+                itemRulesPage = null;
+                if (next.Page == "Item rules") settingsPage = itemRulesPage = new(
+                    services.GetRequiredService<ISettingsStore<SettingsDocument>>(),
+                    source.Model<ExileSight.Features.ItemInfo.ItemInfoViewModel>(), source.RuleTranslations());
                 if (next.Page == "Overlay")
                 {
                     var rect = services.GetRequiredService<IGameWindow>().Current.ClientRect;

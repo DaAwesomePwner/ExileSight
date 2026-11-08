@@ -6,14 +6,14 @@ using ExileSight.Platform.Abstractions.Input;
 namespace ExileSight.App.Shell.Pages;
 
 // Settings-only adapter inside one validated store transaction. No input authority.
-internal sealed class OverlaySettingsContext(SettingsDocument document) : IFeatureContext
+internal sealed class OverlaySettingsContext(SettingsDocument document, string sectionId) : IFeatureContext
 {
-    public JsonElement? ReadSetting(string key) => document.Features.Sections.TryGetValue("mapinfo", out var section)
+    public JsonElement? ReadSetting(string key) => document.Features.Sections.TryGetValue(sectionId, out var section)
         && section.TryGetValue(key, out var value) ? value : null;
     public void WriteSetting(string key, JsonElement value)
     {
-        if (!document.Features.Sections.TryGetValue("mapinfo", out var section))
-            document.Features.Sections["mapinfo"] = section = [];
+        if (!document.Features.Sections.TryGetValue(sectionId, out var section))
+            document.Features.Sections[sectionId] = section = [];
         section[key] = value;
     }
     public ActionResult Execute(IntentToken? token, GameAction action) => throw new NotSupportedException();

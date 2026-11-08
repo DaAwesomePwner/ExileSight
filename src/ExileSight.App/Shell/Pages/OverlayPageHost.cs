@@ -34,7 +34,7 @@ public sealed class OverlayPageHost : ContentControl
     private void Reload()
     {
         var document = store.Snapshot;
-        Content = OverlayPageBuilder.Build(new(document.Overlay, MapInfoSettings.Load(new OverlaySettingsContext(document)), aspect), CardTheme.Default);
+        Content = OverlayPageBuilder.Build(new(document.Overlay, MapInfoSettings.Load(new OverlaySettingsContext(document, "mapinfo")), aspect), CardTheme.Default);
         Find<TextBox>("Scale").IsEnabled = document.Overlay.ScaleOverride is not null;
         Dirty = false;
     }
@@ -56,7 +56,7 @@ public sealed class OverlayPageHost : ContentControl
             store.Update("overlay", document =>
             {
                 preferences.Apply(document.Overlay);
-                thresholds.Save(new OverlaySettingsContext(document));
+                thresholds.Save(new OverlaySettingsContext(document, "mapinfo"));
             });
             Dirty = false; Find<TextBlock>("OverlayNotice").Text = "Changes saved.";
         }

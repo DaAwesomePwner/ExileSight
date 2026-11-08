@@ -21,6 +21,9 @@ public sealed class ShellSource(IServiceProvider services)
     public Task<ShellModel> ReadAsync(string page) => Task.Run(() => Read(page));
     internal T? Model<T>() where T : class => services.GetRequiredService<FeatureHost>().Overlays
         .Select(o => o.ViewModel).OfType<T>().FirstOrDefault();
+    internal string[] RuleTranslations() => services.GetRequiredService<PackStartup>().Packs
+        .TryGet<ExileSight.Core.DataPacks.PackDocument>("poe1/stats")?.CreateCopy().Translations?
+        .Where(t => !t.Hidden).SelectMany(t => t.English).Select(v => v.Text).Distinct().Order().ToArray() ?? [];
     private ShellModel Read(string page)
     {
         var settings = services.GetRequiredService<ISettingsStore<SettingsDocument>>().Snapshot;
