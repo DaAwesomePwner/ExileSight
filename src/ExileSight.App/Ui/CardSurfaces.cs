@@ -45,14 +45,27 @@ public static partial class CardPrimitives
 
     public static Border VerdictBand(UniqueVerdictModel model, CardTheme theme)
     {
-        var known = model.AverageRoll is { } value && double.IsFinite(value);
-        var text = Text(known ? "Average roll " + model.AverageRoll!.Value.ToString("0",
-            System.Globalization.CultureInfo.InvariantCulture) + "%" : "", theme, "TextSecondary", 12);
+        var roll = new RollBarModel(model.AverageRoll, CardTone.High);
+        var row = new Grid();
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        row.Children.Add(Text("Average roll", theme, "TextSecondary", 12));
+        var bar = RollBar(roll, theme, stretch: true);
+        bar.Margin = new Thickness(12, 0, 8, 0);
+        Grid.SetColumn(bar, 1);
+        row.Children.Add(bar);
+        var number = RollLabel(roll, theme);
+        number.FontWeight = FontWeights.Bold;
+        number.Foreground = theme.OverlayForeground;
+        number.HorizontalAlignment = HorizontalAlignment.Right;
+        Grid.SetColumn(number, 2);
+        row.Children.Add(number);
         return new Border
         {
             Background = theme.OverlayRaised, CornerRadius = new CornerRadius(4),
             VerticalAlignment = VerticalAlignment.Top, Padding = new Thickness(8, 6, 8, 6),
-            Child = text, Visibility = known ? Visibility.Visible : Visibility.Collapsed
+            Child = row
         };
     }
 

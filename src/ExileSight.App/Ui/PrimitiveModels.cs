@@ -8,6 +8,6 @@ public sealed record TierPillModel(PillKind Kind, int? Tier = null, CardTone Ton
 public sealed record RollBarModel(double? Position, CardTone Tone);
 public sealed record StatTileModel(string Label, string? Value, CardTone? Tone = null);
 public sealed record VerdictModel(int Wanted, int Unwanted);
-/// <param name="AverageRoll">Mean roll percentage, or null when no ranged mods are known.</param>
+/// <param name="AverageRoll">Mean roll fraction, clamped to [0, 1]; null or NaN means unknown, as for RollBarModel.</param>
 public sealed record UniqueVerdictModel(double? AverageRoll);
 

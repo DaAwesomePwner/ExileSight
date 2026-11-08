@@ -31,8 +31,8 @@ public static partial class CardPrimitives
     }
 
     /// <summary>
-    /// Content-sized with a 26 px minimum. Mod rows should use Auto pill columns with
-    /// the same SharedSizeGroup in a shared-size scope, preserving alignment across rows.
+    /// P7-T11: place pills in an Auto mod-row column; TierPillWidth keeps every row
+    /// aligned and fits ench/T12 with padding. Labels remain centred within that width.
     /// </summary>
     public static FrameworkElement TierPill(TierPillModel model, CardTheme theme)
     {
@@ -48,7 +48,7 @@ public static partial class CardPrimitives
         {
             PillKind.Crafted => CardTone.Crafted, PillKind.Unique => CardTone.Unique, _ => model.Tone
         };
-        var grid = new Grid { MinWidth = 26, Height = 18, HorizontalAlignment = HorizontalAlignment.Left };
+        var grid = new Grid { Width = theme.TierPillWidth, Height = 18, HorizontalAlignment = HorizontalAlignment.Left };
         grid.Children.Add(new Rectangle
         {
             RadiusX = 3, RadiusY = 3,
@@ -67,11 +67,11 @@ public static partial class CardPrimitives
     }
 
     /// <summary>Track only; pair with RollLabel in the row's separate percent column.</summary>
-    public static FrameworkElement RollBar(RollBarModel model, CardTheme theme)
+    public static FrameworkElement RollBar(RollBarModel model, CardTheme theme, bool stretch = false)
     {
         var position = RollPosition(model);
         var known = position.HasValue;
-        var grid = new Grid { Width = 40, Height = 6, VerticalAlignment = VerticalAlignment.Center };
+        var grid = new RollTrack(position) { Width = stretch ? double.NaN : 40, Height = 6, VerticalAlignment = VerticalAlignment.Center };
         grid.Children.Add(new Rectangle
         {
             RadiusX = 3, RadiusY = 3, Fill = known ? theme["RollTrack"] : null,
@@ -84,6 +84,16 @@ public static partial class CardPrimitives
             Fill = theme.Tone(model.Tone), HorizontalAlignment = HorizontalAlignment.Left
         });
         return grid;
+    }
+
+    private sealed class RollTrack(double? position) : Grid
+    {
+        protected override Size ArrangeOverride(Size arrangeSize)
+        {
+            if (position.HasValue && Children.Count > 1)
+                ((Rectangle)Children[1]).Width = arrangeSize.Width * position.Value;
+            return base.ArrangeOverride(arrangeSize);
+        }
     }
 
     public static TextBlock RollLabel(RollBarModel model, CardTheme theme) =>

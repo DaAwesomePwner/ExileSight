@@ -16,6 +16,7 @@ public sealed class CardTheme
     public FontFamily TextFont { get; }
     public FontFamily NumberFont { get; }
     public double CardWidth => 300;
+    public double TierPillWidth => 36;
     public Thickness CardPadding => new(12, 10, 12, 10);
     public double BodySize => 13;
     public double LabelSize => 11;

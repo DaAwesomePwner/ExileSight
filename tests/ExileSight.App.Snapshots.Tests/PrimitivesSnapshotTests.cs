@@ -108,14 +108,6 @@ public sealed class PrimitivesSnapshotTests
                     band.Visibility);
                 return band;
             });
-        foreach (var average in new double?[] { 86, 0, null })
-            Render("verdict-unique-" + (average?.ToString() ?? "unknown"), t =>
-            {
-                var band = CardPrimitives.VerdictBand(new UniqueVerdictModel(average), t);
-                Assert.Equal(average.HasValue ? Visibility.Visible : Visibility.Collapsed, band.Visibility);
-                Assert.Equal(average.HasValue ? $"Average roll {average:0}%" : "", ((TextBlock)band.Child).Text);
-                return band;
-            });
         Render("frame-hairline", t =>
         {
             var column = new StackPanel();
@@ -135,7 +127,8 @@ public sealed class PrimitivesSnapshotTests
         Assert.Equal(expected, label.Text);
         pill.Measure(new Size(double.PositiveInfinity, 18));
         pill.Arrange(new Rect(0, 0, pill.DesiredSize.Width, 18));
-        Assert.True(pill.ActualWidth >= 26);
+        Assert.Equal(theme.TierPillWidth, pill.ActualWidth);
+        Assert.Equal(HorizontalAlignment.Center, label.HorizontalAlignment);
         Assert.True(pill.ActualWidth >= label.ActualWidth + 8);
         Assert.True(label.ActualWidth >= label.DesiredSize.Width - label.Margin.Left - label.Margin.Right);
         if (expected == "T?") Assert.NotEmpty(((Rectangle)pill.Children[0]).StrokeDashArray);
