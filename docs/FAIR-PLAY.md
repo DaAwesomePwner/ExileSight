@@ -37,6 +37,8 @@ GGG says new OAuth app registrations are currently closed, and that reverse-engi
 - References are taught by the user and captured locally, automatically after page calibration or with **Remember this page**. Store them only on the user’s machine; ship and commit no game images.
 - Declare screen-read purposes in the feature manifest and generated README transparency table. Calibration-free grid location remains a possible later follow-up, outside this approval.
 
+Windows drawn over the game (notifications or other overlays) can appear in the sampled region. Samples never leave the PC; only the reduced signature is stored locally.
+
 ## Forbidden
 
 - Opening a handle to the game process (`OpenProcess`, `ReadProcessMemory`, `WriteProcessMemory`, `VirtualAllocEx`, `CreateRemoteThread`), injecting DLLs, or using `SetWindowsHookEx` with any hook type that targets a thread rather than the low-level hooks `WH_KEYBOARD_LL` and `WH_MOUSE_LL`.

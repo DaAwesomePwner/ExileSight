@@ -75,6 +75,8 @@ Features contribute WPF-free tooltip sections and local item-menu entries for a 
 
 ## Display-only stash screen reading (1.1, D-104)
 
+Only App types in `ExileSight.App.Features.Stashninja` consume `IScreenSampler`, apart from its DI registration and platform implementation/contract. An architecture test guards this boundary.
+
 `IScreenSampler` is the platform boundary for GDI `BitBlt` capture in Windows; recognition logic stays WPF-free. Capture is limited to the game client rectangle while the game is foreground and the stash overlay is open. No DXGI capture, DirectX/Vulkan hooks or Windows.Graphics.Capture are allowed. Exclusive fullscreen may not capture; recommend Windowed Fullscreen.
 
 The user teaches page references, captured locally after calibration or with **Remember this page**. References remain on the user’s machine; no game images ship or are committed. Recognition only switches overlay price tags; sampling and recognition cannot obtain an `IntentToken` or send game input. The manifest declares the screen-read purpose. Calibration-free grid location is outside D-104 and may be considered later.

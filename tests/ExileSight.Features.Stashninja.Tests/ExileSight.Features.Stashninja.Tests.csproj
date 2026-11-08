@@ -6,6 +6,7 @@
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <None Include="fixtures/*.json" Link="fixtures/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../data/stash-layouts/poe1/recognition.json" Link="layouts/recognition.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../data/stash-layouts/poe1/*.layout.json" Link="layouts/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

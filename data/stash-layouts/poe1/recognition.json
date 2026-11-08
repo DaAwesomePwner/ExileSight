@@ -1,0 +1,9 @@
+{
+  "referenceResolution": { "width": 2000, "height": 837 },
+  "x": 24, "y": 30, "width": 480, "height": 90,
+  "provenance": {
+    "author": "ExileSight",
+    "method": "header strip above the minimum shipped cell edge (121.75); derived from existing layout measurements; validate tab and sub-tab coverage in game",
+    "date": "2026-11-08"
+  }
+}

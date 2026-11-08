@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ExileSight.App.Features.Stashninja;
 
-public sealed class StashView : StackPanel
+public sealed partial class StashView : StackPanel
 {
     private readonly StashModel model;
     private readonly IServiceProvider services;
@@ -54,6 +54,7 @@ public sealed class StashView : StackPanel
         var store = new CalibrationStore(Path.Combine(services.GetRequiredService<IAppPaths>().GetGameDirectory("poe1"), "stashninja"));
         surface = new(host, services.GetRequiredService<IGameWindow>(), store);
         calibration = new(services.GetRequiredService<PassiveOverlayInput>(), services.GetRequiredService<IGameWindow>(), store);
+        InitializeRecognition(store);
         Background = Brushes.Black;
         Children.Add(new TextBlock { Text = "Stash prices — select tab/page", Foreground = Brushes.White });
         foreach (var l in model.Layouts) tab.Items.Add(l.TabId + "/" + l.Page);
@@ -72,12 +73,13 @@ public sealed class StashView : StackPanel
                 first.Cell.Id == second.Cell.Id)
             { status.Text = "Choose two distinct empty cells before calibrating"; return; }
             calibration.Cancel(); Invalidate();
-            calibration.Start(layout, first.Cell, second.Cell, SetStatus, Refresh);
+            calibration.Start(layout, first.Cell, second.Cell, SetStatus, () => { Refresh(); UpdatePolling(); }, TeachPage);
+            UpdatePolling();
         };
         Children.Add(calibrate);
         Children.Add(highlight); views.Bind(highlight, "stashninja:highlight");
         var close = new Button { Content = "Close", Focusable = false };
-        close.Click += (_, _) => { generation++; calibration.Cancel(); Invalidate(); surface.Hide(); host.SetVisible(window!, false); };
+        close.Click += (_, _) => { generation++; calibration.Cancel(); Invalidate(); surface.Hide(); host.SetVisible(window!, false); UpdatePolling(); };
         Children.Add(close); Children.Add(status);
         if (model.ProfileNotice is { } notice)
             Children.Add(new TextBlock { Text = notice, Foreground = Brushes.Orange, TextWrapping = TextWrapping.Wrap });
@@ -93,9 +95,11 @@ public sealed class StashView : StackPanel
                 if (tab.SelectedItem is { } choice) tab.ScrollIntoView(choice);
                 var reuse = selected is not null && selected == layout && overview is not null &&
                     services.GetRequiredService<IClock>().UtcNow < freshUntil && loadedLeagueSetting == LeagueSetting;
+                if (!window!.RequestedVisible) host.SetVisible(window, true);
+                ActivateRecognition();
                 var loading = reuse ? Task.CompletedTask : Load();
                 if (reuse) Refresh();
-                if (!window!.RequestedVisible) host.SetVisible(window, true);
+                UpdatePolling();
                 await loading;
             });
         };
@@ -106,7 +110,7 @@ public sealed class StashView : StackPanel
         window.PhysicalPlacement = Position;
         host.SetVisible(window, false);
         window.IsVisibleChanged += (_, _) =>
-        { if (!window.IsVisible) calibration.Cancel(); };
+        { if (!window.IsVisible) calibration.Cancel(); UpdatePolling(); };
     }
     private PixelRect Position(PixelRect client, double scale)
     {
@@ -154,7 +158,7 @@ public sealed class StashView : StackPanel
         if (calibration.IsActive || layout is null || overview is null || profile.SelectedIndex < 0) return;
         var selected = model.Profiles[profile.SelectedIndex];
         var tags = Tags.Build(layout, overview, selected);
-        surface.Show(layout, tags);
+        if (!recognitionHidden && window?.RequestedVisible == true) surface.Show(layout, tags);
         var search = Tags.Search(tags, selected.Minimum); model.SetSearch(search);
         highlight.Content = $"Highlight above {selected.Minimum}c"; highlight.IsEnabled = search.Text is not null;
         SetStatus(search.Status + $" — {tags.Length}/{layout.Cells.Length} cells priced");

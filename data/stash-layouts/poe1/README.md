@@ -151,3 +151,25 @@ None.
 ### delirium — 14 included, 4 omitted
 
 - No identifying ghost: (260,197); (260,251); (260,304); (260,358).
+
+## Recognition header runbook
+
+`recognition.json` is the single shared rectangle at the layouts' 2000×837
+reference resolution. Its bottom is 120, above the highest shipped cell at
+121.75. The rectangle is derived from the existing layout measurements, not
+Exile-UI data. It covers the header/tab strip and sub-tab controls; validate
+coverage on Windows with Currency General/Atlas/League and Fragment before
+release. Geometry.Fit maps it without page calibration. Runtime rejects overlap
+with calibrated tags or the top-right menu, including narrow clients.
+
+After game UI changes, measure the header spanning tab names and sub-tab controls,
+keep it above every cell, update the rectangle and provenance, and run recognition
+and shipped-layout tests. `RecognitionRegion.Load` is the runtime schema validator
+(required resolution, rectangle, provenance; finite in-bounds dimensions; no cell
+overlap). Changed region geometry invalidates old references. Users must re-teach;
+never add their captured pixels or signatures to the repository or shipped data.
+
+Default normalized mean absolute distance is below 0.30, with a minimum 0.08
+lead over the second-best page. These conservative synthetic-tested defaults need
+in-game validation across lighting/gamma settings. Flat or covered headers and
+similar tab names can remain unknown; use manual selection if necessary.
