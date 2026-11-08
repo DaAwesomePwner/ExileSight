@@ -103,10 +103,11 @@ public partial class App : Application
                 !ReferenceEquals(paths, host.Services.GetRequiredService<IAppPaths>()))
                 throw new InvalidOperationException("Production consumers must share App settings owners.");
             await Task.Run(() => host.StartAsync());
-            MainWindow = host.Services.GetRequiredService<DebugPanel>();
+            MainWindow = new Shell.ShellWindow(host.Services);
             MainWindow.Closing += CloseAsync;
-            tray = new TrayHome(new ShellTrayIconFactory(), trayDiagnostics, () => { MainWindow.Show(); MainWindow.Activate(); },
-                () => ShowSetup(), OpenSettingsFolder, async () => await StopAndShutdownAsync());
+            tray = new TrayHome(new ShellTrayIconFactory(), trayDiagnostics, () => Shell.DebugLauncher.Show(host.Services),
+                () => ShowSetup(), OpenSettingsFolder, async () => await StopAndShutdownAsync(),
+                () => { MainWindow.Show(); MainWindow.WindowState = WindowState.Normal; MainWindow.Activate(); });
             var general = settings.Snapshot.General;
             if (!general.FirstRunCompleted || await Task.Run(() => ClientLogDiscovery.Validate(general.ClientTxtPath, localPaths)) is not null)
             {
@@ -120,6 +121,7 @@ public partial class App : Application
             InputRegistration.StartProductionInput(host.Services);
             settingsDiagnostics.InputAttached = true;
             startupComplete = true;
+            MainWindow.Show();
         }
         catch (Exception error)
         {
