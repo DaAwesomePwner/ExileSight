@@ -11,5 +11,9 @@ public sealed class ProfileCatalog : VersionedDocument
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, WriteIndented = true)]
 [JsonSerializable(typeof(SettingsDocument))]
+[JsonSerializable(typeof(OverlaySettings))]
+[JsonSerializable(typeof(CardPlacementMode))]
+[JsonSerializable(typeof(OverlayDensity))]
+[JsonSerializable(typeof(OverlayContrast))]
 [JsonSerializable(typeof(ProfileCatalog))]
 public partial class SettingsJsonContext : JsonSerializerContext;

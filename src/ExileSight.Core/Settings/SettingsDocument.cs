@@ -61,10 +61,29 @@ public sealed class PersistedBinding : ExtensibleSettings
     public string? FeatureCommand { get; set; }
 }
 
+public enum CardPlacementMode { BesideCursor, Docked }
+public enum OverlayDensity { Comfortable, Compact }
+public enum OverlayContrast { Standard, HighContrast }
+
 public sealed class OverlaySettings : ExtensibleSettings
 {
     public bool Enabled { get; set; } = true;
+    // Keep legacy positive stored overrides valid; UI edits use SetUiScaleOverride.
     public double? ScaleOverride { get; set; }
+    public CardPlacementMode PlacementMode { get; set; } = CardPlacementMode.BesideCursor;
+    /// <summary>Card top-left as fractions of the full client, then clamped to visible space.</summary>
+    public double DockedX { get; set; } = .5;
+    public double DockedY { get; set; } = .5;
+    public OverlayDensity Density { get; set; } = OverlayDensity.Comfortable;
+    public OverlayContrast Contrast { get; set; } = OverlayContrast.Standard;
+
+    /// <summary>Auto is null; newly chosen fixed UI scales must be in 0.8–1.5.</summary>
+    public void SetUiScaleOverride(double? value)
+    {
+        if (value is double scale && (!double.IsFinite(scale) || scale < .8 || scale > 1.5))
+            throw new ArgumentOutOfRangeException(nameof(value));
+        ScaleOverride = value;
+    }
 }
 
 public sealed class FeatureSettings : ExtensibleSettings
