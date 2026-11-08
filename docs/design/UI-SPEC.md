@@ -145,18 +145,21 @@ Mockup: [ambient-hud](mockups/png/ambient-hud.png). All click-through unless not
 
 - **Act guide**, width 340: `Act N · step i of n`, act and total timers right-aligned, a 3-high progress
   bar, the current page's lines in 15/600, then `NEXT` + the next page's first line in Muted. Guide notices
-  (timing uncertain, guide complete, store notices) get one Muted line; league-start and bandit settings
-  leave the overlay (they are already in the guide's settings). Needs a structured guide snapshot (P7-T9).
+  (timing uncertain, guide complete, store notices) get one Muted line. The overlay shows at most 12 page
+  lines, each ellipsized, then `+N more lines`. Its controls (Back/Next, Reset run, League start, Bandit,
+  Import JSON, Export CSV, Remove custom guide) live on the desktop app's **Act guide** page (§7, D-110), so
+  the overlay stays click-through. Needs a structured guide snapshot (P7-T9).
 - **Timers** (Tab held), width 300: name, a 4-high bar, mono time. Under one minute turns orange; that is
-  the only colour change. Stopwatch has no bar.
+  the only colour change. Stopwatch has no bar. At most four rows, then `+N more`; long names ellipsize.
 - **Event toast**, existing `DefaultOverlayLayout.EventsToast` position and existing queue behaviour (one
   toast for 5 s, up to four pending): a 4-wide teal strip, the event's `DisplayName` in bold, then a Muted
   line with its category. No key hints: bindings can change, and muting is done in event settings.
 - **Omni long-press menu**, width 260, interactive: item name header, in-app actions first ("Set as
   equipped ›", "Set listing price…"), a hairline, then browser links marked `↗`. Number-key selection is
   backlog: omit the key badges until it exists.
-- **Chat wheel**, centred on the cursor: 8 pill slots on a 200 circle, centre shows the key and
-  "release"; the slot under the pointer direction is highlighted teal.
+- **Chat wheel**, centred on the cursor: 8 pill slots on a 200 circle. It opens after the key is released
+  and a slot is chosen by clicking, so the centre reads `choose / click` (D-111); the slot under the pointer
+  direction is highlighted teal.
 - **Search strings**, width 320, interactive: vendor chips (selected = teal), then the string list with
   the string itself in mono Faint on the right; multi-line entries show `wheel ↕ i/n`.
 
@@ -166,7 +169,7 @@ Mockups: [app-home](mockups/png/app-home.png), [app-item-rules](mockups/png/app-
 [app-overlay-settings](mockups/png/app-overlay-settings.png).
 
 One main window (normal activating WPF window, not an overlay) with a left nav: Home, Item rules,
-Map log, Sales, Overlay, Hotkeys, Transparency. It replaces the debug panel as `MainWindow`; tray
+Map log, Sales, Act guide, Overlay, Hotkeys, Transparency. It replaces the debug panel as `MainWindow`; tray
 left-click opens it, and the tray menu keeps Debug panel, Run setup again, Open settings folder and Exit.
 Map log and Sales open the existing `TrackerWindow` and `HistoryView` until they are rebuilt as pages
 (backlog). The window is resizable; below about 760 px wide the nav stacks above the content.
@@ -180,6 +183,10 @@ Map log and Sales open the existing `TrackerWindow` and `HistoryView` until they
   Transparency. Status and session mapping live in WPF-free, tested code.
 - **Hotkeys**: a read-only list of current bindings (the same data and names as Home's "Your keys"). Editing
   bindings in the app is backlog; until then it says where bindings are set today.
+- **Act guide**: the guide's management controls, moved off the click-through overlay (D-110): Back/Next,
+  Reset run, League start, Bandit, Import JSON, Export CSV and Remove custom guide, wired to the same
+  `GuideModel` operations and file dialogs as before, plus the current step's lines. It follows guide
+  progress while open and keeps its last status message across refreshes.
 - **Item rules**: five profile tabs (the existing `ItemInfoSettings` limit), the active one marked.
   A search box adds a rule by mod text taken from the stats pack translations; the stored rule text must
   normalize, through the same `ModRuleKey` rules, to what real item lines normalize to (templates carry
