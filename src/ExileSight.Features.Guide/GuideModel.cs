@@ -140,7 +140,7 @@ public sealed class GuideModel(GuideStore? store = null, IClock? clock = null)
         {
             progress?.Tick(clock.Milliseconds);
             return GuideSnapshot.Create(visible, progress, activeData, pack, leagueStart, bandit, store?.Notice, notice) with
-                { LeagueStart = leagueStart, Bandit = bandit };
+                { LeagueStart = leagueStart, Bandit = bandit, HasCustomGuide = custom is not null || customId is not null };
         }
     }
     public string Export() { lock (sync) { progress?.Tick(clock.Milliseconds); return progress?.Csv() ?? "act,seconds,uncertain\r\n"; } }

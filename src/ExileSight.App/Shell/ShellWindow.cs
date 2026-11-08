@@ -20,6 +20,7 @@ public sealed class ShellWindow : Window
     private bool narrow, refreshing, pending, closed;
     private ShellModel? displayed;
     private HistoryView? history;
+    private readonly ExileSight.Features.Guide.GuidePageState guidePageState = new();
     private readonly DispatcherTimer refreshTimer = new() { Interval = TimeSpan.FromSeconds(10) };
     private ComboBox? LeagueBox => ShellViewState.Find<ComboBox>(Content as DependencyObject).FirstOrDefault();
     public ShellWindow(IServiceProvider services)
@@ -28,7 +29,7 @@ public sealed class ShellWindow : Window
         Title = "ExileSight"; Width = 1280; Height = 820; MinWidth = 520; MinHeight = 480;
         Background = CardTheme.Default.AppBackground;
         Activated += (_, _) => Refresh();
-        refreshTimer.Tick += (_, _) => { if (page == "Home") Refresh(); };
+        refreshTimer.Tick += (_, _) => { if (page is "Home" or "Act guide") Refresh(); };
         IsVisibleChanged += (_, _) => UpdateTimer();
         StateChanged += (_, _) => UpdateTimer();
         Closed += (_, _) => { closed = true; refreshTimer.Stop(); };
@@ -56,13 +57,15 @@ public sealed class ShellWindow : Window
                 var next = await source.ReadAsync(requestedPage);
                 if (closed) return;
                 if (requestedPage != page) { pending = true; continue; }
+                if (requestedPage == "Act guide")
+                    next = next with { Guide = source.Model<ExileSight.Features.Guide.GuideModel>()?.StructuredSnapshot() };
                 var nextNarrow = ActualWidth > 0 && ActualWidth < 760;
                 // Recheck after the await: the user may have started editing during the read.
                 if (!CanReplace(displayed is null || !displayed.SameContent(next), narrow != nextNarrow)) continue;
                 var offsets = displayed?.Page == next.Page ? ShellViewState.Capture(Content as DependencyObject) : [];
                 narrow = nextNarrow; displayed = next;
                 var view = ShellBuilder.Build(next, CardTheme.Default, narrow, next.Page == "Act guide"
-                    ? new Features.Guide.GuidePageHost(source.Model<ExileSight.Features.Guide.GuideModel>()) : null);
+                    ? new Features.Guide.GuidePageHost(source.Model<ExileSight.Features.Guide.GuideModel>(), guidePageState) : null);
                 Content = view;
                 _ = Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
                 {

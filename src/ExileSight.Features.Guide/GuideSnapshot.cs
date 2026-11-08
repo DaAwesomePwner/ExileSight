@@ -7,6 +7,7 @@ public sealed record GuideSnapshot(bool Visible, int? Act, int Step, int StepCou
     TimeSpan ActTime, TimeSpan TotalTime, double Progress, IReadOnlyList<string> Lines,
     string? NextLine, string? Notice, bool Complete)
 {
+    public bool HasCustomGuide { get; init; }
     public bool LeagueStart { get; init; } = true;
     public string Bandit { get; init; } = "none";
     public string ProfileNotice => "Single default profile — shared across all characters. Reset for a new run.";

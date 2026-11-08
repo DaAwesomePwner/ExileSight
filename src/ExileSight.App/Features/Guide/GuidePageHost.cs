@@ -12,16 +12,16 @@ namespace ExileSight.App.Features.Guide;
 public sealed class GuidePageHost : ContentControl
 {
     private readonly GuideModel? model;
-    private string? status;
+    private readonly GuidePageState state;
 
-    public GuidePageHost(GuideModel? model)
+    public GuidePageHost(GuideModel? model, GuidePageState state)
     {
-        this.model = model;
+        this.model = model; this.state = state;
         AddHandler(Button.ClickEvent, new RoutedEventHandler(Clicked));
         Refresh();
     }
 
-    private void Refresh() => Content = GuidePageBuilder.Build(new(model?.StructuredSnapshot(), status), CardTheme.Default);
+    private void Refresh() => Content = GuidePageBuilder.Build(new(model?.StructuredSnapshot(), state.Status), CardTheme.Default);
 
     private void Clicked(object sender, RoutedEventArgs args)
     {
@@ -29,7 +29,7 @@ public sealed class GuidePageHost : ContentControl
         args.Handled = true;
         try
         {
-            status = null;
+            state.Status = null;
             switch (action)
             {
                 case GuidePageAction.Back: model.Navigate(-1); break;
@@ -43,9 +43,9 @@ public sealed class GuidePageHost : ContentControl
             }
         }
         catch (Exception e) when (e is RegexMatchTimeoutException or ArgumentException { InnerException: RegexMatchTimeoutException })
-        { status = "Invalid guide: parsing exceeded the time limit."; }
+        { state.Status = "Invalid guide: parsing exceeded the time limit."; }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
-        { status = "Guide operation failed: " + e.GetType().Name; }
+        { state.Status = "Guide operation failed: " + e.GetType().Name; }
         Refresh();
     }
 
