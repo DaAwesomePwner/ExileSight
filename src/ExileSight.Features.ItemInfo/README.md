@@ -5,7 +5,7 @@ pack contents. The parameterless feature supports missing packs. Registration pu
 an ItemInfoViewModel and a priority-100 omni handler; the router owns copying.
 No independent hotkey or input action is registered.
 
-Current changes notify the UI. The future tooltip host calls Close for mouse movement
+Current changes notify the UI. The reusable card host calls Close for mouse movement
 or Escape, and marshals notifications to its UI thread. No WPF dependency is needed here.
 
 Settings live in the feature-scoped profiles section. ItemInfoSettings.Save validates
@@ -48,12 +48,11 @@ and the three-defence local hybrid increase stat.
 Synthetic fixtures and unit tests are evidence of logic behavior, not recorded client
 compatibility. Ported algorithms name Exile-UI source locations in their file headers.
 
-The app registers the reusable tooltip through FeatureViews. Additional compiled-in
-features register ITooltipSectionProvider via IFeatureContext.RegisterTooltipSection.
-Sections use WPF-free text rows and semantic tones, ascending priority (iteminfo = 100),
-with registration order breaking ties. Null sections are omitted. Providers are passive:
-they receive a ParsedItem, never an IntentToken. Gear comparison can contribute rows
-without depending on the ItemInfo assembly; interactive controls require a future contract.
+The app registers the reusable card host through FeatureViews. Gear comparison
+registers IItemCardComparisonProvider via IFeatureContext.RegisterItemCardComparison.
+Providers contribute a WPF-free ItemCardComparison in registration order, receiving
+a ParsedItem and no IntentToken. Null comparisons are omitted and provider failures
+are logged and isolated. The old text-section contract has been removed.
 
 App startup reads bundled/cache packs on a background worker and publishes the adapter
 only after preparation. Refresh runs after local loading and a five-second delay, then
@@ -65,20 +64,27 @@ and does not prevent the other packs or the local reload from running. Unchanged
 pack versions and content hashes reuse the prepared adapter. The configurable composition argument defaults to poe1-packs-1.0.0; no releases
 were published when this wiring was implemented. PackLoader masks download failures,
 so diagnostics report an attempted check and retained local availability, not download
-success. The app tooltip shows unavailable/loading status until the next user copy rebuilds
-its rows; ready status is omitted. Each press calculates item info once and supplies
-the result through TooltipContext.Analysis. Provider failures are logged and isolated.
-The app-owned ItemInfo/OverlayTheme.xaml extends the common OverlayTheme with tone
-brush resources. Dispatcher open and DPI callbacks close/release leases on failures.
+success. The app card shows pack availability notices until the next user copy
+rebuilds it. A failing status provider does not discard the card. Each press
+calculates item info once and builds an ItemCard from that result. The host uses
+CardTheme and shared primitives; it has no feature-specific theme dictionary.
+Dispatcher open and DPI callbacks close/release leases on failures.
 
-### Structured card (P7-T5)
+### Structured card
 
 `ItemCardBuilder.Build(result, data, settings, comparison)` produces the passive,
-WPF-free card alongside the unchanged text sections. Pass the same data adapter used for `ItemInfoCalculator.Calculate`. Settings default
-to the validated settings retained on `ItemInfoResult`; an explicit settings argument
-can override card visibility. Recalculate first when changing highlight rules. The App can
-supply `GearCardBuilder.Build`'s Core comparison contract without feature-to-feature
-references. P7-T11 owns rendering and height truncation.
+WPF-free card. The calculator supplies cached per-line matches on ItemInfoResult;
+the optional data adapter is a fallback for results constructed without that context.
+Settings default to the validated settings retained on ItemInfoResult; an explicit
+settings argument can override card visibility. Recalculate first when changing
+highlight rules. The registered comparison providers supply GearCardBuilder's Core
+comparison contract without feature-to-feature references.
+
+The App's pure ItemCardView builder renders the model. It measures each section
+and mod row at the card's inner width and computes the height cap from those
+measurements, dropping Compare, then Slots/base, then trailing rows with a count.
+Base percentiles are right-aligned beside the slots; unidentified items show them
+on the subtitle line. Placement and dismissal remain in the reusable window host.
 
 Rows preserve advanced-copy order; `GameLineStart` is zero-based in the parsed
 mod list and `GameLineCount` spans a whole advanced-header group. Labels combine
@@ -100,7 +106,7 @@ means a question mark. White items omit the slots section. Copies without any mo
 rows cannot reveal their copy mode and never request advanced copy. Fixed unique
 implicit/enchant rows retain their `imp`/`ench` kind pills.
 
-`ItemInfoResult.Settings` is transient card-building context: it is ignored by JSON
+`ItemInfoResult.Settings` and `Matches` are transient card-building context: they are ignored by JSON
 serialization and by result equality/hashing. The six analysis fields retain their
 original record comparison semantics (including list identity). This keeps frozen
 calculator JSON comparisons independent of UI settings; recalculating highlights

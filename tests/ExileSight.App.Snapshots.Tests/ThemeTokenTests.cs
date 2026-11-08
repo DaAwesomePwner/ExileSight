@@ -46,7 +46,7 @@ public sealed class ThemeTokenTests
                 ["RollTrack"] = "#2A313C",
                 ["DangerRowBackground"] = "#221616",
             };
-            foreach (var source in new[] { "Overlay/OverlayTheme.xaml", "Features/ItemInfo/OverlayTheme.xaml", "Ui/AppTheme.xaml" })
+            foreach (var source in new[] { "Overlay/OverlayTheme.xaml", "Ui/AppTheme.xaml" })
             {
                 var dictionary = new ResourceDictionary
                 {
