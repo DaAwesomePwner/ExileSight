@@ -1,4 +1,5 @@
 using ExileSight.Core.Features;
+using ExileSight.Core.Pricing;
 using ExileSight.Features.MapTracker;
 using ExileSight.Platform.Abstractions.Storage;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +21,7 @@ public static class TrackerRegistration
             {
                 if (window is null)
                 {
-                    window = new TrackerWindow(model);
+                    window = new TrackerWindow(model, () => services.GetRequiredService<PriceService>().GetLeaguesAsync());
                     window.Closed += (_, _) => window = null;
                     window.Show();
                 }
@@ -30,6 +31,7 @@ public static class TrackerRegistration
                         window.WindowState = System.Windows.WindowState.Normal;
                     window.Activate();
                 }
+                _ = window.RefreshLeaguesAsync();
             });
             System.Windows.Application.Current.Exit += (_, _) => model.StopAsync().GetAwaiter().GetResult();
         });
