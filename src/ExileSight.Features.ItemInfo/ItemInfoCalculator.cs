@@ -29,7 +29,7 @@ public sealed class ItemInfoCalculator(IItemInfoData? data = null)
             explicitLines.All(m => m.Group is not null && m.AffixType != AffixType.Unknown));
         int? Count(AffixType type) => known ? explicitLines.Where(m => m.AffixType == type).Select(m => m.Group).Distinct().Count() : null;
         return new(item, rows, Count(AffixType.Prefix), Count(AffixType.Suffix),
-            DefenceCalculator.Calculate(item, data));
+            DefenceCalculator.Calculate(item, data)) { Settings = settings };
     }
 
     public static decimal? Roll(ModLine line, bool invert)
@@ -46,7 +46,7 @@ public sealed class ItemInfoCalculator(IItemInfoData? data = null)
         }
         catch (OverflowException) { return null; }
     }
-    private static InfoColor RollColor(decimal? roll) => roll switch
+    internal static InfoColor RollColor(decimal? roll) => roll switch
     {
         null => InfoColor.Unknown, >= 100 => InfoColor.Best, >= 75 => InfoColor.High,
         >= 25 => InfoColor.Medium, _ => InfoColor.Low

@@ -22,6 +22,7 @@ public static class ModLabels
     /// Uses an exact ordered combination when available, otherwise the first stat in caller-supplied
     /// (pack) order for hybrid mods. An unknown first stat,
     /// or no stats, uses the template fallback even if a later stat is known. Known lookups allocate nothing.
+    /// For hybrids, join the ordered stat IDs of ALL game lines before calling; otherwise combined labels cannot match.
     /// Pass matched StatValue.StatId values, not a translation ID or a mod ID.
     /// Supply the stat template or line text with copy suffixes such as (crafted) / (implicit)
     /// stripped. The fallback also strips recognized copy suffixes defensively.

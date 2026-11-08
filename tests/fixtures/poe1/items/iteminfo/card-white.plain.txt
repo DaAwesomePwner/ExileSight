@@ -1,0 +1,7 @@
+Item Class: Body Armours
+Rarity: Normal
+Synthetic Plate
+--------
+Armour: 100
+--------
+Item Level: 10

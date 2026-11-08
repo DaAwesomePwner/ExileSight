@@ -45,6 +45,11 @@ public sealed class GearModel
     {
         lock (sync) return ReplacementSlots(slot, candidate).Select(key => slots[key]).ToArray();
     }
+    // Capture slot identities and values under the same lock for structured compare headings.
+    internal Dictionary<GearSlot, EquippedGear> ReplacedBySlot(GearSlot slot, EquippedGear candidate)
+    {
+        lock (sync) return ReplacementSlots(slot, candidate).ToDictionary(key => key, key => slots[key]);
+    }
     // Both preview and mutation consume this exact set, including overwritten target slots.
     private GearSlot[] ReplacementSlots(GearSlot slot, EquippedGear gear)
     {

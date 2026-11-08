@@ -1,0 +1,14 @@
+Item Class: Rings
+Rarity: Rare
+Synthetic Card Ring
+Synthetic Ring
+--------
+Item Level: 80
+--------
+{ Implicit Modifier }
++20(10-30)% to Chaos Resistance (implicit)
+--------
+{ Prefix Modifier "Synthetic Life" (Tier: 1) }
++30(20-30) to maximum Life
+{ Suffix Modifier "Synthetic Craft" (Tier: 3) — Crafted }
++30(20-40)% to Fire Resistance (crafted)
