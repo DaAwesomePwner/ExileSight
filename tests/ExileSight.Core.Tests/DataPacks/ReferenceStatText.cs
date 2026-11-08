@@ -1,4 +1,5 @@
 // Frozen exhaustive matcher from 4ca85cc, used only as an equivalence oracle.
+// Corrected ignore-format validation and extraction alongside the production matcher.
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -91,6 +92,7 @@ internal static class ReferenceStatText
         var values = new List<StatValue>();
         for (var i = 0; i < entry.StatIds.Length; i++)
         {
+            if (variant.Formats[i] == "ignore") continue;
             decimal lo, hi;
             if (!pattern.Seen.Contains(i))
             {
@@ -133,6 +135,6 @@ internal static class ReferenceStatText
 
     private static bool Valid(StatVariant v, int count) =>
         v.Text.Length <= 16384 && v.Conditions.Length == count && v.Formats.Length == count && v.IndexHandlers.Length == count &&
-        v.Formats.All(f => f is "#" or "+#" or "ignored") &&
+        v.Formats.All(f => f is "#" or "+#" or "ignore") &&
         StatPattern.Placeholder.Matches(v.Text).All(m => int.TryParse(m.Groups[1].Value, out var i) && i < count);
 }
