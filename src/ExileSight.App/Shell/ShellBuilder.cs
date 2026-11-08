@@ -6,7 +6,7 @@ namespace ExileSight.App.Shell;
 
 public static class ShellBuilder
 {
-    public static FrameworkElement Build(ShellModel model, CardTheme t, bool narrow = false, FrameworkElement? guidePage = null)
+    public static FrameworkElement Build(ShellModel model, CardTheme t, bool narrow = false, FrameworkElement? guidePage = null, FrameworkElement? settingsPage = null)
     {
         var root = new DockPanel { Background = t.AppBackground, LastChildFill = true };
         root.Resources.MergedDictionaries.Add(new ResourceDictionary
@@ -31,6 +31,8 @@ public static class ShellBuilder
         FrameworkElement page = model.Page switch
         {
             "Act guide" => guidePage ?? Features.Guide.GuidePageBuilder.Build(new(null), t),
+            "Overlay" => settingsPage ?? Pages.OverlayPageBuilder.Build(new(new(), new()), t),
+            "Transparency" => settingsPage ?? Pages.TransparencyPageBuilder.Build(new([], 0, false), t),
             "Home" => HomeBuilder.Build(model, t, narrow),
             "Hotkeys" => HotkeysBuilder.Build(model, t),
             _ => PlaceholderBuilder.Build(model.Page, t)
