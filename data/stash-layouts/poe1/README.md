@@ -83,6 +83,9 @@ Game-specific geometry and names live in JSON; a patch does not require C# edits
     including filled cells, at 1080p/1440p/4K, windowed and borderless, with folders
     and ultrawide black bars. Confirm closed stash and unrelated pages refuse;
     changing page, focus or resolution during capture/search must discard the result.
+    Failed Auto-calibrate attempts must retain the last good calibration and loaded
+    tags, showing only the failure status. Foreground loss and page changes still
+    hide tags normally.
     Stable identified pages must never blink. On a real page change, tags can stay hidden through capture and identification.
     On refusal, choose any two distinct empty cells in the calibration selectors.
     Click Calibrate, then those cell centers in order. Esc cancels and restores Highlight. Clicks pass through to the game: use empty

@@ -65,6 +65,15 @@ public sealed partial class StashView
     private void ResetRecognition() => recognition.Reset();
     private void UpdatePolling()
     {
+        // Calibration temporarily owns capture. Preserve the accepted page and
+        // its tags while it runs; a failed attempt only changes the status.
+        // Foreground loss and active manual calibration still take the reset path.
+        if (autoCalibrating && Game.Current.Found && Game.Current.IsForeground &&
+            !Game.Current.IsMinimized && !calibration.IsActive)
+        {
+            recognitionTimer.Stop();
+            return;
+        }
         if (window is not null && Game.Current.Found && Game.Current.IsForeground && !Game.Current.IsMinimized && !calibration.IsActive && !autoCalibrating && autoDetect.IsChecked == true && region is not null)
             recognitionTimer.Start();
         else

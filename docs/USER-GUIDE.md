@@ -111,7 +111,7 @@ unknown page hides its tags.
 **Show stash prices automatically** defaults ON. Open Ctrl+Shift+N to turn it off;
 the choice is saved in your profile as `stashninja.automaticPrices`. The optional
 menu also provides price profiles, **Highlight**, **Auto-calibrate**, and manual
-calibration. Its page list follows automatic recognition. For a manual override,
+calibration. Failed Auto-calibrate attempts retain the last good calibration and the loaded page’s tags; only the status changes. Foreground loss and page changes still hide tags normally. Its page list follows automatic recognition. For a manual override,
 select a page and click **Load selected tab**. This pins the page even with automatic
 prices enabled, until the header changes or the stash closes; automatic mode then
 resumes. The status shows the automatic page, score and margin for reporting issues. Closing
