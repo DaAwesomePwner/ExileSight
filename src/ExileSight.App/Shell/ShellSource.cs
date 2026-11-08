@@ -13,7 +13,7 @@ using ExileSight.Platform.Abstractions.Window;
 using Microsoft.Extensions.DependencyInjection;
 namespace ExileSight.App.Shell;
 
-public sealed class ShellSource(IServiceProvider services)
+public sealed class ShellSource(IServiceProvider services) : IDisposable
 {
     private PriceCacheSnapshotReader? priceCache;
     private (string Path, DateTime Stamp, long Size)? runSignature;
@@ -21,6 +21,10 @@ public sealed class ShellSource(IServiceProvider services)
     public Task<ShellModel> ReadAsync(string page) => Task.Run(() => Read(page));
     internal T? Model<T>() where T : class => services.GetRequiredService<FeatureHost>().Overlays
         .Select(o => o.ViewModel).OfType<T>().FirstOrDefault();
+    private readonly Pages.ItemRulesTranslations translations = new(() => services.GetRequiredService<PackStartup>().Packs
+        .TryGet<ExileSight.Core.DataPacks.PackDocument>("poe1/stats")?.CreateCopy().Translations ?? [], services.GetRequiredService<PackStartup>().Packs);
+    internal Pages.ItemRulesTranslations RuleTranslations => translations;
+    public void Dispose() => translations.Dispose();
     private ShellModel Read(string page)
     {
         var settings = services.GetRequiredService<ISettingsStore<SettingsDocument>>().Snapshot;

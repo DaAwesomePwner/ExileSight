@@ -34,7 +34,7 @@ public sealed class OverlayPageHost : ContentControl
     private void Reload()
     {
         var document = store.Snapshot;
-        Content = OverlayPageBuilder.Build(new(document.Overlay, MapInfoSettings.Load(new OverlaySettingsContext(document)), aspect), CardTheme.Default);
+        Content = OverlayPageBuilder.Build(new(document.Overlay, MapInfoSettings.Load(new OverlaySettingsContext(document, "mapinfo")), aspect), CardTheme.Default);
         Find<TextBox>("Scale").IsEnabled = document.Overlay.ScaleOverride is not null;
         Dirty = false;
     }
@@ -56,11 +56,11 @@ public sealed class OverlayPageHost : ContentControl
             store.Update("overlay", document =>
             {
                 preferences.Apply(document.Overlay);
-                thresholds.Save(new OverlaySettingsContext(document));
+                thresholds.Save(new OverlaySettingsContext(document, "mapinfo"));
             });
             Dirty = false; Find<TextBlock>("OverlayNotice").Text = "Changes saved.";
         }
-        catch (Exception error) when (error is FormatException or OverflowException or ArgumentException or System.IO.IOException or InvalidOperationException)
+        catch (Exception error) when (error is System.Text.Json.JsonException or FormatException or OverflowException or ArgumentException or System.IO.IOException or InvalidOperationException)
         { Find<TextBlock>("OverlayNotice").Text = "Not saved. Use a scale of 0.8–1.5 and nonnegative percentages. " + error.GetType().Name; }
     }
 }
