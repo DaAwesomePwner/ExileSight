@@ -20,7 +20,7 @@ public sealed class OmniPress(IFeatureContext context, OmniMenu menu)
         menu.BeginPress(press.Id);
         pending = null;
         item = null;
-        var result = context.Execute(token, new GameAction.CopyItem());
+        var result = context.Execute(token, new GameAction.CopyItem(Advanced: OmniSettings.Load(context).UseAdvancedCopy));
         if (result.Outcome != ActionOutcome.Success || string.IsNullOrWhiteSpace(result.CopiedText)) return result;
         var parsed = ItemTextParser.Parse(result.CopiedText, Game.PoE1);
         if (parsed.Item is not null && !parsed.Warnings.Any(w => w.Severity == WarningSeverity.Error))
