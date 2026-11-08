@@ -18,7 +18,7 @@ internal static class DeclaredResources
         ["macros"] = ["active profile JSON (commands)"],
         ["mapinfo"] = ["poe1/mapinfo/ratings.json"],
         ["maptracker"] = ["active profile JSON (league)", "poe1/maptracker/{league-hash}.jsonl", "user-selected CSV export"],
-        ["omni"] = [],
+        ["omni"] = ["active profile JSON (use advanced copy)"],
         ["searchstr"] = [],
         ["stashninja"] = ["poe1/stashninja/calibration.json"],
         ["timers"] = ["poe1/timers/timers.json"],
