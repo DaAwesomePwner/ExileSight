@@ -37,7 +37,7 @@ public sealed class ShellWindow : Window
         refreshTimer.Tick += (_, _) => { if (page is "Home" or "Act guide") Refresh(); };
         IsVisibleChanged += (_, _) => UpdateTimer();
         StateChanged += (_, _) => UpdateTimer();
-        Closed += (_, _) => { closed = true; refreshTimer.Stop(); };
+        Closed += (_, _) => { closed = true; refreshTimer.Stop(); source.Dispose(); };
         SizeChanged += (_, _) => { if (narrow != (ActualWidth < 760)) Refresh(); };
         AddHandler(Button.ClickEvent, new RoutedEventHandler(Clicked));
         Refresh();
@@ -77,7 +77,7 @@ public sealed class ShellWindow : Window
                 itemRulesPage = null;
                 if (next.Page == "Item rules") settingsPage = itemRulesPage = new(
                     services.GetRequiredService<ISettingsStore<SettingsDocument>>(),
-                    source.Model<ExileSight.Features.ItemInfo.ItemInfoViewModel>(), source.RuleTranslationsAsync());
+                    source.Model<ExileSight.Features.ItemInfo.ItemInfoViewModel>(), source.RuleTranslations);
                 if (next.Page == "Overlay")
                 {
                     var rect = services.GetRequiredService<IGameWindow>().Current.ClientRect;

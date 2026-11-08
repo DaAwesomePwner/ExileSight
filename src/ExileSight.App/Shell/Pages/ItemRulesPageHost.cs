@@ -13,12 +13,29 @@ public sealed class ItemRulesPageHost : ContentControl
 {
     private readonly ISettingsStore<SettingsDocument> store;
     private readonly ItemInfoViewModel? source;
-    private readonly Task<string[]> loading;
-    private string[] translations = [];
+    private Task<string[]> loading;
+    private readonly ItemRulesTranslations? cache;
+    private string notice = "";
     private ItemRulesEditor editor = new(ItemInfoSettings.Default);
     private OmniSettings omni = OmniSettings.Default;
-    private bool building;
+    private bool building, watchingTranslations;
     public bool Dirty { get; private set; }
+    public ItemRulesPageHost(ISettingsStore<SettingsDocument> store, ItemInfoViewModel? source, ItemRulesTranslations translations)
+        : this(store, source, translations.LoadAsync())
+    {
+        cache = translations;
+        Loaded += (_, _) =>
+        {
+            if (watchingTranslations) return;
+            watchingTranslations = true; cache.Changed += TranslationsChanged; RefreshSearch();
+        };
+        Unloaded += (_, _) => { watchingTranslations = false; cache.Changed -= TranslationsChanged; };
+    }
+    private void TranslationsChanged() => Dispatcher.BeginInvoke(new Action(() => { if (watchingTranslations) RefreshSearch(); }));
+    private void RefreshSearch()
+    {
+        loading = cache!.LoadAsync(); Search(); _ = LoadSearch();
+    }
     public ItemRulesPageHost(ISettingsStore<SettingsDocument> store, ItemInfoViewModel? source, string[] translations)
         : this(store, source, Task.FromResult(translations)) { }
     public ItemRulesPageHost(ISettingsStore<SettingsDocument> store, ItemInfoViewModel? source, Task<string[]> translations)
@@ -35,16 +52,19 @@ public sealed class ItemRulesPageHost : ContentControl
     }
     private async Task LoadSearch()
     {
-        try { translations = await loading; Search(); }
-        catch (Exception error)
-        { Find<TextBlock>("SearchStatus").Text = "Mod search unavailable. " + error.GetType().Name; }
+        var requested = loading;
+        try { await requested.ConfigureAwait(false); }
+        catch (Exception) { /* Search presents the failure state; the next page build retries. */ }
+        await Dispatcher.InvokeAsync(() => { if (ReferenceEquals(requested, loading)) Search(); });
     }
+    private void Notice(string text) { notice = text; Find<TextBlock>("RulesNotice").Text = text; }
     private T Find<T>(string name) where T : FrameworkElement =>
         ShellViewState.Find<T>(Content as DependencyObject).First(e => e.Name == name);
     private void SourceChanged(object? sender, PropertyChangedEventArgs e) =>
         Dispatcher.BeginInvoke(new Action(UpdatePreview));
     private void Reload()
     {
+        notice = "";
         var document = store.Snapshot;
         editor = new(ItemInfoSettings.Load(new OverlaySettingsContext(document, "iteminfo")));
         omni = OmniSettings.Load(new OverlaySettingsContext(document, "omni"));
@@ -55,7 +75,7 @@ public sealed class ItemRulesPageHost : ContentControl
         building = true;
         Content = ItemRulesPageBuilder.Build(new(editor.Settings, omni, EditingProfile: editor.Editing, Rows: editor.Rows),
             CardTheme.Default);
-        building = false; Search(); UpdatePreview();
+        building = false; Notice(notice); Search(); UpdatePreview();
     }
     private void Capture()
     {
@@ -73,9 +93,12 @@ public sealed class ItemRulesPageHost : ContentControl
     }
     private void Search()
     {
-        Find<TextBox>("RuleSearch").IsEnabled = loading.IsCompletedSuccessfully;
-        Find<TextBlock>("SearchStatus").Text = !loading.IsCompleted ? "Loading mod search…" :
-            loading.IsFaulted ? "Mod search unavailable." : translations.Length == 0 ? "No stats translations available." : "";
+        var status = loading.Status;
+        var ready = status == TaskStatus.RanToCompletion;
+        var translations = ready ? loading.Result : [];
+        Find<TextBox>("RuleSearch").IsEnabled = ready;
+        Find<TextBlock>("SearchStatus").Text = ready ? (translations.Length == 0 ? "No stats translations available." : "") :
+            status is TaskStatus.Faulted or TaskStatus.Canceled ? "Mod search unavailable." : "Loading mod search…";
         var query = Find<TextBox>("RuleSearch").Text.Trim();
         Find<ListBox>("RuleResults").ItemsSource = query.Length < 2 ? [] : translations
             .Where(text => RuleText.Display(text).Contains(query, StringComparison.OrdinalIgnoreCase))
@@ -85,7 +108,7 @@ public sealed class ItemRulesPageHost : ContentControl
     {
         if (building) return;
         if (e.OriginalSource is TextBox { Name: "RuleSearch" }) { Search(); return; }
-        Capture(); Dirty = true; UpdatePreview();
+        Capture(); Dirty = true; Notice(""); UpdatePreview();
     }
     private void UpdatePreview()
     {
@@ -101,9 +124,8 @@ public sealed class ItemRulesPageHost : ContentControl
                 Mods = result.Mods.Select(m => m with { Highlight = settings.Evaluate(result.Item, m.Source) }).ToArray()
             }, settings: settings, comparison: snapshot?.Comparison);
             Find<ContentControl>("ItemPreview").Content = ItemRulesPageBuilder.Preview(card, CardTheme.Default);
-            Find<TextBlock>("RulesNotice").Text = "";
         }
-        catch (ArgumentException error) { Find<TextBlock>("RulesNotice").Text = error.Message; }
+        catch (ArgumentException error) { Notice(error.Message); }
     }
     private void Clicked(object sender, RoutedEventArgs e)
     {
@@ -123,10 +145,10 @@ public sealed class ItemRulesPageHost : ContentControl
                     settings.Save(new OverlaySettingsContext(document, "iteminfo"));
                     omni.Save(new OverlaySettingsContext(document, "omni"));
                 });
-                Dirty = false; Find<TextBlock>("RulesNotice").Text = "Changes saved.";
+                Dirty = false; Notice("Changes saved.");
             }
             catch (Exception error) when (error is ArgumentException or System.IO.IOException or InvalidOperationException or System.Text.Json.JsonException)
-            { Find<TextBlock>("RulesNotice").Text = "Not saved. " + error.Message; }
+            { Notice("Not saved. " + error.Message); }
             return;
         }
         if (action.StartsWith("Profile", StringComparison.Ordinal))
@@ -141,6 +163,6 @@ public sealed class ItemRulesPageHost : ContentControl
             editor.Add(selected.Template);
         }
         else editor.Remove(Guid.Parse(action[6..]));
-        Dirty = true; Rebuild();
+        Dirty = true; Notice(""); Rebuild();
     }
 }

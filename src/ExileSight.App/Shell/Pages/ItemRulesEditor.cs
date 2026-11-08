@@ -32,10 +32,17 @@ public sealed class ItemRulesEditor
     {
         var count = Math.Max(Settings.Profiles.Length, Math.Max((preview ? Editing : Settings.ActiveProfile) + 1,
             Array.FindLastIndex(rows, r => r.Count > 0) + 1));
-        var profiles = Enumerable.Range(0, count).Select(i => new HighlightProfile(
-            i < Settings.Profiles.Length ? Settings.Profiles[i].Name : $"Profile {i + 1}",
-            rows[i].SelectMany(r => RuleText.Create(r.Text, r.Match, r.Classes.Split(','), r.Implicit, r.Enchant))
-                .Distinct().ToArray())).ToArray();
+        var profiles = Enumerable.Range(0, count).Select(i =>
+        {
+            var name = i < Settings.Profiles.Length ? Settings.Profiles[i].Name : $"Profile {i + 1}";
+            try
+            {
+                return new HighlightProfile(name, rows[i].SelectMany(r =>
+                    RuleText.Create(r.Text, r.Match, r.Classes.Split(','), r.Implicit, r.Enchant)).Distinct().ToArray());
+            }
+            catch (ArgumentException error)
+            { throw new ArgumentException($"Profile {i + 1} ({name}): {error.Message}", error); }
+        }).ToArray();
         return (Settings with { Profiles = profiles, ActiveProfile = preview ? Editing : Settings.ActiveProfile }).Validate();
     }
 }
