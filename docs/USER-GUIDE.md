@@ -122,6 +122,7 @@ challenge league excluding SSF/Ruthless, with Standard as fallback; you can set
 Supported pages: Currency General, Atlas and League; Fragment General; Delve,
 Essence, Blight and Delirium. Coverage is partial; unknown cells are omitted and cells without a current price
 have no tag. Allflame is deferred. See the [coverage and update guide](../data/stash-layouts/poe1/README.md).
+The overlay tries **Auto-calibrate** once when loading a page without saved calibration while the game is foreground. It briefly hides its tags, checks the visible slot borders, and saves a confident fit. You can retry with **Auto-calibrate**. If the stash is closed, capture fails, or the grid is uncertain, use the manual fallback.
 Select two distinct **empty** cells far apart diagonally in the calibration selectors, click **Calibrate**,
 then click their centers in order with no item held. Esc cancels; clicks reach the game. Calibration is saved per layout and
 resolution. A physical **Highlight** click pastes one search; loading prices does
@@ -130,8 +131,7 @@ not. Searches over the game's supported limit are disabled.
 In 1.1, teach page references locally: capture follows page calibration automatically,
 or use **Remember this page**. References stay only on your machine; ExileSight
 ships no game images and commits none. Screen recognition only changes the overlay
-display and never sends input or obtains an IntentToken. You still calibrate the grid;
-calibration-free grid location is a possible later follow-up outside this decision.
+display and never sends input or obtains an IntentToken. D-104 also permits display-only grid auto-calibration; successful automatic and manual calibration both teach page references.
 
 **Remember this page** teaches the currently loaded tab/page at the current client
 resolution; successful calibration also teaches it. **Forget this page** removes

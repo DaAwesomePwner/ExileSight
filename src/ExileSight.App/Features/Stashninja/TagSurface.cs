@@ -16,6 +16,7 @@ public sealed class TagSurface
     private readonly IGameWindow game;
     private readonly CalibrationStore store;
     private readonly HostedOverlayWindow window;
+    private bool captureHidden, requested;
     private Layout? layout;
     private PriceTag[] tags = [];
     private (Layout Layout, ExileSight.Features.Stashninja.Transform Transform, Resolution Resolution, double Scale)? drawn;
@@ -32,11 +33,12 @@ public sealed class TagSurface
     public void Show(Layout? value, PriceTag[] prices)
     {
         layout = value; tags = prices; Draw();
-        if (window.RequestedVisible != (value is not null)) host.SetVisible(window, value is not null);
+        requested = value is not null;
+        host.SetVisible(window, requested && !captureHidden);
     }
     public void Clear()
     {
-        layout = null; tags = []; drawn = null; drawnTags = [];
+        requested = false; layout = null; tags = []; drawn = null; drawnTags = [];
         canvas.Children.Clear();
     }
     public string? VisibleTabId => window.RequestedVisible ? layout?.TabId : null;
@@ -49,8 +51,10 @@ public sealed class TagSurface
         return tags.Any(t => RecognitionRegion.Intersects(region,
             ExileSight.Features.Stashninja.Geometry.TagBounds(layout, t.Cell, transform)));
     }
+    public void SetCaptureHidden(bool value)
+    { captureHidden = value; host.SetVisible(window, requested && !captureHidden); }
     public void Hide()
-    { if (window.RequestedVisible) host.SetVisible(window, false); }
+    { requested = false; if (window.RequestedVisible) host.SetVisible(window, false); }
     private static bool SameTags(PriceTag[] a, PriceTag[] b) => a.Length == b.Length &&
         a.Zip(b).All(p => p.First.Cell == p.Second.Cell && p.First.Text == p.Second.Text &&
             p.First.Color == p.Second.Color && p.First.Sparkline.SequenceEqual(p.Second.Sparkline));

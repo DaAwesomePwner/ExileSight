@@ -56,7 +56,7 @@ Generated from compiled feature manifests and registered default bindings; suppl
 | maptracker | `SendChatCommand` | None | None | `HTTP: poe.ninja` | `active profile JSON (league)`<br>`poe1/maptracker/{league-hash}.jsonl`<br>`user-selected CSV export` | `Control+Shift+K → maptracker:kills (blocked)`<br>`Control+Shift+M → maptracker:viewer (blocked)` |
 | omni | `CopyItem` | None | None | `Browser: poedb.tw`<br>`Browser: www.craftofexile.com`<br>`Browser: www.pathofexile.com`<br>`Browser: www.poewiki.net` | None | `CapsLock → omni:press (blocked)` |
 | searchstr | `PasteSearch` | None | None | None | None | `F9 → searchstr:open (blocked)` |
-| stashninja | `PasteSearch` | `stash page recognition (game client area, display-only)` | None | `HTTP: poe.ninja` | `poe1/stashninja/calibration.json` | `Control+Shift+N → stashninja:open (blocked)` |
+| stashninja | `PasteSearch` | `stash page recognition and grid calibration (game client area, display-only)` | None | `HTTP: poe.ninja` | `poe1/stashninja/calibration.json` | `Control+Shift+N → stashninja:open (blocked)` |
 | timers | None | None | None | None | `poe1/timers/timers.json` | `Control+Shift+T → timers:toggle (blocked)`<br>`Tab → timers:hold (passed through)` |
 | vaalasync | `SetListingAmount`<br>`SetPriceNote` | None | None | `HTTP: poe.ninja` | `poe1/vaalasync/history.json` | None |
 

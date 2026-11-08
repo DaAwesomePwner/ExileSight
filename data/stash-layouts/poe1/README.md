@@ -78,7 +78,13 @@ Game-specific geometry and names live in JSON; a patch does not require C# edits
 9. Launch the built app; layout files are copied to `data/stash-layouts/poe1` beside it.
    Press Ctrl+Shift+N or long-press omni and choose **Price stash tab…**. Select the
    tab/page, then Load. Unsupported tabs show a clear no-layout message.
-10. Choose any two distinct empty cells in the calibration selectors.
+10. With the matching stash page visible, check automatic grid calibration on a fresh
+    resolution, or click **Auto-calibrate** to retry. Verify tag alignment on all cells,
+    including filled cells, at 1080p/1440p/4K, windowed and borderless, with folders
+    and ultrawide black bars. Confirm closed stash and unrelated pages refuse;
+    changing page, focus or resolution during capture/search must discard the result.
+    Tags should disappear only during the short capture, not the search.
+    On refusal, choose any two distinct empty cells in the calibration selectors.
     Click Calibrate, then those cell centers in order. Esc cancels and restores Highlight. Clicks pass through to the game: use empty
     cells and ensure no item is held. This observes physical clicks; it sends no input.
     Calibration fits uniform scale/translation, rejects inconsistent clicks, and is
