@@ -46,7 +46,7 @@ public static class Layouts
                 origin.Y + c.H > l.ReferenceResolution.Height) throw new JsonException("Cell outside screenshot");
         }
     }
-    public static readonly string[] Categories = ["Currency", "Fragment", "Scarab", "Fossil", "Resonator", "Essence", "Oil", "DeliriumOrb"];
+    public static readonly string[] Categories = ["Currency", "Fragment", "Scarab", "Fossil", "Resonator", "Essence", "Oil", "DeliriumOrb", "AllflameEmber"];
     public static bool Finite(params double[] values) => values.All(double.IsFinite);
     public static Point Origin(Layout l, Cell c)
     {

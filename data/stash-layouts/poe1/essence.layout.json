@@ -1,0 +1,952 @@
+{
+  "tabId": "essence",
+  "page": "general",
+  "referenceResolution": {
+    "width": 2000,
+    "height": 837
+  },
+  "cells": [
+    {
+      "id": "deafening-essence-of-greed",
+      "x": 34,
+      "y": 121,
+      "w": 40,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Greed"
+    },
+    {
+      "id": "deafening-essence-of-contempt",
+      "x": 34,
+      "y": 159,
+      "w": 40,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Contempt"
+    },
+    {
+      "id": "screaming-essence-of-contempt",
+      "x": 112,
+      "y": 159,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Contempt"
+    },
+    {
+      "id": "deafening-essence-of-hatred",
+      "x": 34,
+      "y": 200,
+      "w": 40,
+      "h": 36,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Hatred"
+    },
+    {
+      "id": "deafening-essence-of-woe",
+      "x": 34,
+      "y": 236,
+      "w": 40,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Woe"
+    },
+    {
+      "id": "shrieking-essence-of-woe",
+      "x": 76,
+      "y": 236,
+      "w": 36,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Woe"
+    },
+    {
+      "id": "deafening-essence-of-fear",
+      "x": 34,
+      "y": 274,
+      "w": 40,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Fear"
+    },
+    {
+      "id": "wailing-essence-of-fear",
+      "x": 150,
+      "y": 274,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Fear"
+    },
+    {
+      "id": "deafening-essence-of-anger",
+      "x": 34,
+      "y": 312,
+      "w": 40,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Anger"
+    },
+    {
+      "id": "deafening-essence-of-torment",
+      "x": 34,
+      "y": 350,
+      "w": 40,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Torment"
+    },
+    {
+      "id": "deafening-essence-of-sorrow",
+      "x": 38,
+      "y": 387,
+      "w": 36,
+      "h": 40,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Sorrow"
+    },
+    {
+      "id": "shrieking-essence-of-sorrow",
+      "x": 76,
+      "y": 387,
+      "w": 36,
+      "h": 40,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Sorrow"
+    },
+    {
+      "id": "weeping-essence-of-sorrow",
+      "x": 188,
+      "y": 387,
+      "w": 38,
+      "h": 40,
+      "category": "Essence",
+      "itemName": "Weeping Essence of Sorrow"
+    },
+    {
+      "id": "deafening-essence-of-rage",
+      "x": 34,
+      "y": 427,
+      "w": 40,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Rage"
+    },
+    {
+      "id": "shrieking-essence-of-rage",
+      "x": 75,
+      "y": 428,
+      "w": 37,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Rage"
+    },
+    {
+      "id": "screaming-essence-of-rage",
+      "x": 112,
+      "y": 428,
+      "w": 38,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Rage"
+    },
+    {
+      "id": "deafening-essence-of-suffering",
+      "x": 38,
+      "y": 465,
+      "w": 36,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Suffering"
+    },
+    {
+      "id": "deafening-essence-of-wrath",
+      "x": 34,
+      "y": 503,
+      "w": 40,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Wrath"
+    },
+    {
+      "id": "shrieking-essence-of-wrath",
+      "x": 76,
+      "y": 503,
+      "w": 36,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Wrath"
+    },
+    {
+      "id": "weeping-essence-of-wrath",
+      "x": 188,
+      "y": 503,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Weeping Essence of Wrath"
+    },
+    {
+      "id": "deafening-essence-of-doubt",
+      "x": 34,
+      "y": 541,
+      "w": 40,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Doubt"
+    },
+    {
+      "id": "shrieking-essence-of-loathing",
+      "x": 413,
+      "y": 121,
+      "w": 36,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Loathing"
+    },
+    {
+      "id": "deafening-essence-of-loathing",
+      "x": 451,
+      "y": 120,
+      "w": 35,
+      "h": 39,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Loathing"
+    },
+    {
+      "id": "shrieking-essence-of-zeal",
+      "x": 413,
+      "y": 159,
+      "w": 36,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Zeal"
+    },
+    {
+      "id": "deafening-essence-of-zeal",
+      "x": 451,
+      "y": 159,
+      "w": 35,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Zeal"
+    },
+    {
+      "id": "deafening-essence-of-anguish",
+      "x": 451,
+      "y": 200,
+      "w": 35,
+      "h": 36,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Anguish"
+    },
+    {
+      "id": "shrieking-essence-of-spite",
+      "x": 413,
+      "y": 236,
+      "w": 36,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Spite"
+    },
+    {
+      "id": "deafening-essence-of-spite",
+      "x": 451,
+      "y": 236,
+      "w": 36,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Spite"
+    },
+    {
+      "id": "shrieking-essence-of-scorn",
+      "x": 413,
+      "y": 274,
+      "w": 36,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Scorn"
+    },
+    {
+      "id": "deafening-essence-of-scorn",
+      "x": 451,
+      "y": 274,
+      "w": 35,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Scorn"
+    },
+    {
+      "id": "screaming-essence-of-envy",
+      "x": 373,
+      "y": 312,
+      "w": 37,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Envy"
+    },
+    {
+      "id": "shrieking-essence-of-envy",
+      "x": 413,
+      "y": 312,
+      "w": 36,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Envy"
+    },
+    {
+      "id": "deafening-essence-of-envy",
+      "x": 450,
+      "y": 312,
+      "w": 36,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Envy"
+    },
+    {
+      "id": "deafening-essence-of-misery",
+      "x": 451,
+      "y": 350,
+      "w": 35,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Misery"
+    },
+    {
+      "id": "deafening-essence-of-dread",
+      "x": 451,
+      "y": 387,
+      "w": 36,
+      "h": 40,
+      "category": "Essence",
+      "itemName": "Deafening Essence of Dread"
+    },
+    {
+      "id": "shrieking-essence-of-greed",
+      "x": 76,
+      "y": 122,
+      "w": 36,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Greed"
+    },
+    {
+      "id": "screaming-essence-of-greed",
+      "x": 112,
+      "y": 121,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Greed"
+    },
+    {
+      "id": "wailing-essence-of-greed",
+      "x": 150,
+      "y": 121,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Greed"
+    },
+    {
+      "id": "weeping-essence-of-greed",
+      "x": 188,
+      "y": 121,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Weeping Essence of Greed"
+    },
+    {
+      "id": "muttering-essence-of-greed",
+      "x": 226,
+      "y": 121,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Muttering Essence of Greed"
+    },
+    {
+      "id": "whispering-essence-of-greed",
+      "x": 266,
+      "y": 121,
+      "w": 33,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Whispering Essence of Greed"
+    },
+    {
+      "id": "wailing-essence-of-loathing",
+      "x": 334,
+      "y": 121,
+      "w": 39,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Loathing"
+    },
+    {
+      "id": "screaming-essence-of-loathing",
+      "x": 375,
+      "y": 121,
+      "w": 35,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Loathing"
+    },
+    {
+      "id": "shrieking-essence-of-contempt",
+      "x": 75,
+      "y": 159,
+      "w": 37,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Contempt"
+    },
+    {
+      "id": "wailing-essence-of-contempt",
+      "x": 150,
+      "y": 159,
+      "w": 38,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Contempt"
+    },
+    {
+      "id": "weeping-essence-of-contempt",
+      "x": 188,
+      "y": 159,
+      "w": 38,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Weeping Essence of Contempt"
+    },
+    {
+      "id": "muttering-essence-of-contempt",
+      "x": 226,
+      "y": 159,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Muttering Essence of Contempt"
+    },
+    {
+      "id": "whispering-essence-of-contempt",
+      "x": 264,
+      "y": 159,
+      "w": 36,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Whispering Essence of Contempt"
+    },
+    {
+      "id": "wailing-essence-of-zeal",
+      "x": 334,
+      "y": 159,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Zeal"
+    },
+    {
+      "id": "screaming-essence-of-zeal",
+      "x": 372,
+      "y": 159,
+      "w": 38,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Zeal"
+    },
+    {
+      "id": "shrieking-essence-of-hatred",
+      "x": 76,
+      "y": 200,
+      "w": 36,
+      "h": 36,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Hatred"
+    },
+    {
+      "id": "screaming-essence-of-hatred",
+      "x": 112,
+      "y": 200,
+      "w": 38,
+      "h": 36,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Hatred"
+    },
+    {
+      "id": "wailing-essence-of-hatred",
+      "x": 150,
+      "y": 200,
+      "w": 38,
+      "h": 36,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Hatred"
+    },
+    {
+      "id": "weeping-essence-of-hatred",
+      "x": 188,
+      "y": 200,
+      "w": 38,
+      "h": 36,
+      "category": "Essence",
+      "itemName": "Weeping Essence of Hatred"
+    },
+    {
+      "id": "muttering-essence-of-hatred",
+      "x": 226,
+      "y": 200,
+      "w": 38,
+      "h": 36,
+      "category": "Essence",
+      "itemName": "Muttering Essence of Hatred"
+    },
+    {
+      "id": "whispering-essence-of-hatred",
+      "x": 264,
+      "y": 200,
+      "w": 36,
+      "h": 36,
+      "category": "Essence",
+      "itemName": "Whispering Essence of Hatred"
+    },
+    {
+      "id": "wailing-essence-of-anguish",
+      "x": 334,
+      "y": 200,
+      "w": 38,
+      "h": 36,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Anguish"
+    },
+    {
+      "id": "screaming-essence-of-anguish",
+      "x": 372,
+      "y": 200,
+      "w": 38,
+      "h": 36,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Anguish"
+    },
+    {
+      "id": "shrieking-essence-of-anguish",
+      "x": 413,
+      "y": 200,
+      "w": 36,
+      "h": 36,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Anguish"
+    },
+    {
+      "id": "whispering-essence-of-woe",
+      "x": 264,
+      "y": 236,
+      "w": 36,
+      "h": 36,
+      "category": "Essence",
+      "itemName": "Whispering Essence of Woe"
+    },
+    {
+      "id": "wailing-essence-of-spite",
+      "x": 334,
+      "y": 236,
+      "w": 38,
+      "h": 36,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Spite"
+    },
+    {
+      "id": "screaming-essence-of-woe",
+      "x": 112,
+      "y": 236,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Woe"
+    },
+    {
+      "id": "wailing-essence-of-woe",
+      "x": 150,
+      "y": 236,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Woe"
+    },
+    {
+      "id": "weeping-essence-of-woe",
+      "x": 188,
+      "y": 236,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Weeping Essence of Woe"
+    },
+    {
+      "id": "muttering-essence-of-woe",
+      "x": 226,
+      "y": 236,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Muttering Essence of Woe"
+    },
+    {
+      "id": "screaming-essence-of-spite",
+      "x": 375,
+      "y": 236,
+      "w": 35,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Spite"
+    },
+    {
+      "id": "shrieking-essence-of-fear",
+      "x": 76,
+      "y": 274,
+      "w": 36,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Fear"
+    },
+    {
+      "id": "screaming-essence-of-fear",
+      "x": 112,
+      "y": 274,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Fear"
+    },
+    {
+      "id": "weeping-essence-of-fear",
+      "x": 188,
+      "y": 274,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Weeping Essence of Fear"
+    },
+    {
+      "id": "muttering-essence-of-fear",
+      "x": 226,
+      "y": 274,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Muttering Essence of Fear"
+    },
+    {
+      "id": "screaming-essence-of-scorn",
+      "x": 375,
+      "y": 274,
+      "w": 35,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Scorn"
+    },
+    {
+      "id": "shrieking-essence-of-anger",
+      "x": 76,
+      "y": 312,
+      "w": 36,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Anger"
+    },
+    {
+      "id": "screaming-essence-of-anger",
+      "x": 112,
+      "y": 312,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Anger"
+    },
+    {
+      "id": "wailing-essence-of-anger",
+      "x": 150,
+      "y": 312,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Anger"
+    },
+    {
+      "id": "weeping-essence-of-anger",
+      "x": 188,
+      "y": 312,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Weeping Essence of Anger"
+    },
+    {
+      "id": "muttering-essence-of-anger",
+      "x": 226,
+      "y": 312,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Muttering Essence of Anger"
+    },
+    {
+      "id": "shrieking-essence-of-torment",
+      "x": 76,
+      "y": 350,
+      "w": 36,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Torment"
+    },
+    {
+      "id": "screaming-essence-of-torment",
+      "x": 112,
+      "y": 350,
+      "w": 38,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Torment"
+    },
+    {
+      "id": "wailing-essence-of-torment",
+      "x": 150,
+      "y": 350,
+      "w": 38,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Torment"
+    },
+    {
+      "id": "weeping-essence-of-torment",
+      "x": 188,
+      "y": 350,
+      "w": 38,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Weeping Essence of Torment"
+    },
+    {
+      "id": "muttering-essence-of-torment",
+      "x": 226,
+      "y": 350,
+      "w": 38,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Muttering Essence of Torment"
+    },
+    {
+      "id": "screaming-essence-of-misery",
+      "x": 375,
+      "y": 350,
+      "w": 35,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Misery"
+    },
+    {
+      "id": "shrieking-essence-of-misery",
+      "x": 413,
+      "y": 350,
+      "w": 36,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Misery"
+    },
+    {
+      "id": "screaming-essence-of-sorrow",
+      "x": 112,
+      "y": 387,
+      "w": 38,
+      "h": 40,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Sorrow"
+    },
+    {
+      "id": "wailing-essence-of-sorrow",
+      "x": 150,
+      "y": 387,
+      "w": 38,
+      "h": 40,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Sorrow"
+    },
+    {
+      "id": "muttering-essence-of-sorrow",
+      "x": 226,
+      "y": 390,
+      "w": 38,
+      "h": 36,
+      "category": "Essence",
+      "itemName": "Muttering Essence of Sorrow"
+    },
+    {
+      "id": "screaming-essence-of-dread",
+      "x": 375,
+      "y": 390,
+      "w": 35,
+      "h": 35,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Dread"
+    },
+    {
+      "id": "shrieking-essence-of-dread",
+      "x": 413,
+      "y": 387,
+      "w": 36,
+      "h": 40,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Dread"
+    },
+    {
+      "id": "wailing-essence-of-rage",
+      "x": 150,
+      "y": 427,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Rage"
+    },
+    {
+      "id": "weeping-essence-of-rage",
+      "x": 188,
+      "y": 427,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Weeping Essence of Rage"
+    },
+    {
+      "id": "essence-of-insanity",
+      "x": 451,
+      "y": 427,
+      "w": 35,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Essence of Insanity"
+    },
+    {
+      "id": "shrieking-essence-of-suffering",
+      "x": 76,
+      "y": 465,
+      "w": 36,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Suffering"
+    },
+    {
+      "id": "screaming-essence-of-suffering",
+      "x": 112,
+      "y": 465,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Suffering"
+    },
+    {
+      "id": "wailing-essence-of-suffering",
+      "x": 150,
+      "y": 465,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Suffering"
+    },
+    {
+      "id": "weeping-essence-of-suffering",
+      "x": 188,
+      "y": 465,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Weeping Essence of Suffering"
+    },
+    {
+      "id": "essence-of-horror",
+      "x": 451,
+      "y": 465,
+      "w": 35,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Essence of Horror"
+    },
+    {
+      "id": "screaming-essence-of-wrath",
+      "x": 112,
+      "y": 503,
+      "w": 38,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Wrath"
+    },
+    {
+      "id": "wailing-essence-of-wrath",
+      "x": 150,
+      "y": 503,
+      "w": 38,
+      "h": 37,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Wrath"
+    },
+    {
+      "id": "essence-of-delirium",
+      "x": 450,
+      "y": 503,
+      "w": 36,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Essence of Delirium"
+    },
+    {
+      "id": "shrieking-essence-of-doubt",
+      "x": 75,
+      "y": 541,
+      "w": 37,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Shrieking Essence of Doubt"
+    },
+    {
+      "id": "screaming-essence-of-doubt",
+      "x": 112,
+      "y": 540,
+      "w": 38,
+      "h": 39,
+      "category": "Essence",
+      "itemName": "Screaming Essence of Doubt"
+    },
+    {
+      "id": "wailing-essence-of-doubt",
+      "x": 150,
+      "y": 540,
+      "w": 38,
+      "h": 39,
+      "category": "Essence",
+      "itemName": "Wailing Essence of Doubt"
+    },
+    {
+      "id": "weeping-essence-of-doubt",
+      "x": 188,
+      "y": 541,
+      "w": 38,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Weeping Essence of Doubt"
+    },
+    {
+      "id": "essence-of-hysteria",
+      "x": 450,
+      "y": 541,
+      "w": 36,
+      "h": 38,
+      "category": "Essence",
+      "itemName": "Essence of Hysteria"
+    }
+  ],
+  "folderOffsets": {},
+  "provenance": {
+    "author": "ExileSight contributors; owner-provided screenshot",
+    "method": "measured from screenshot at 2000x837",
+    "date": "2026-11-08"
+  }
+}
