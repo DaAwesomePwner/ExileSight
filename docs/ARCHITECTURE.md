@@ -62,13 +62,13 @@ The hook pipeline attaches feature identity when issuing an intent token; featur
 
 Features may declare default bindings for their own commands. A persisted binding with the same ID wins, including an explicitly disabled binding. Omni declares blocked CapsLock by default, spends its token on CopyItem once at key-down and classifies the token-free release as long only after 200 ms. A missing release does not dispatch a handler. One host-owned router selects the first matching handler by descending priority, with registration order breaking ties. Routing and long-press menus run on a serial token-free queue off the input worker.
 
-Features contribute WPF-free tooltip sections and local item-menu entries for a `ParsedItem`. Tooltip sections sort by ascending priority; menu providers retain registration order. Provider failures are isolated, and the host stamps menu-entry ownership. Menu contributions receive no intent token. GearCmp contributes comparisons to the tooltip and Set as equipped/character selection to the omni long-press menu.
+Features contribute WPF-free item-card comparisons (`IItemCardComparisonProvider`) and local item-menu entries for a `ParsedItem`. Both keep registration order. Provider failures are isolated, and the host stamps menu-entry ownership. Menu contributions receive no intent token. GearCmp contributes the item card's Compare section and the Set as equipped/character selection entries in the omni long-press menu.
 
 ## Overlays
 
 - Overlays use **game-client coordinates** and client-height scaling, with 1080p as the baseline and an optional user scale override. Per-monitor DPI v2 and multi-monitor positioning are supported.
 - Feature logic and view models stay WPF-free; App creates and styles the overlay windows. Item-info and omni windows are prepared before presentation, then shown or hidden as needed.
-- Item-info uses the shared `OverlayTheme` dictionary. Its tooltip is click-through and closes on movement beyond the scaled threshold or Esc; it has no interactive equipped button.
+- Item-info draws the item card (UI-SPEC §3) with `CardTheme` brushes from `Ui/Tokens.xaml`. The card is click-through and closes on movement beyond the scaled threshold or Esc; it has no interactive equipped button.
 - A shared passive hook-to-UI channel is interested only while an observing overlay is visible. It coalesces mouse moves, queues clicks/Esc separately and uses visibility epochs to reject old observations after reopening. Its dispatcher drain cannot issue game input.
 - Interactive overlay buttons redeem tokens only by pairing WPF mouse-up with a hook-observed, non-injected left click on the same owned HWND, within 4 px and 500 ms of physical mouse-up. The gesture also requires matching down/up within 4 px and 1.5 s. A UI-built z-order snapshot chooses the topmost matching overlay; redemption is single-use and resolves a host-registered feature command.
 - Overlay open/close paths use failure guards and cleanup; diagnostics record exception types without copied item or chat text.

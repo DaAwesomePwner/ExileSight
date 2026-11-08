@@ -62,6 +62,8 @@ and a final Muted row `+N more mods`.
 **Mod row** (24 high): columns 12 · 12 · * · 36 · 40 · 30 · 20, gap 5. The tier column is 36 so every
 pill label fits with padding, including `ench` at the §8 label size (owner decision, 2026-11-08); all pills
 share that one width (`TierPillWidth`) with the label centred.
+The card has no column header row (MOD / TIER / ROLL / ILVL); the pill, bar and numbers explain
+themselves, and a header row would take height from the mod rows (owner decision, 2026-11-08).
 
 1. Slot letter: `P` prefix, `S` suffix, `I` implicit, `?` unknown (Faint text).
 2. Highlight mark: `◆` wanted (teal), `✕` unwanted (orange), else empty. An unwanted row's label is Secondary.
