@@ -45,7 +45,7 @@ public sealed class HistoryView : Window
         purchase.Click += async (_, _) =>
         {
             if (string.IsNullOrWhiteSpace(item.Text) || ShopNote.Parse(note.Text) is not { } parsed) { status.Text = "Enter item and valid price."; return; }
-            try { model.History.RecordPurchase(item.Text, model.League, parsed, DateTimeOffset.UtcNow); await Refresh(); }
+            try { var league = await model.ResolveHistoryLeagueAsync(); model.History.RecordPurchase(item.Text, league, parsed, DateTimeOffset.UtcNow); await Refresh(); }
             catch (Exception error) { status.Text = "Could not save: " + error.GetType().Name; }
         };
         panel.Children.Add(purchase); panel.Children.Add(status);

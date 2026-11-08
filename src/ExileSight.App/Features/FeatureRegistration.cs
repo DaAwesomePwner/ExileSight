@@ -60,6 +60,7 @@ public static class FeatureRegistration
         services.AddSingleton<PassiveOverlayInput>();
         services.AddSingleton<ItemInfo.ItemInfoTooltip>();
         services.AddHostedService<FeatureLogPump>();
+        services.AddHostedService<Vaalasync.ShopHistoryService>();
         return services;
     }
     public static void StartFeatureViews(this IServiceProvider services)

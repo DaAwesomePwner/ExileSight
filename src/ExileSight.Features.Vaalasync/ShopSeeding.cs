@@ -9,11 +9,19 @@ public sealed partial class ShopModel
     public void SaveListingMode(bool useNotes) => context!.WriteSetting("listingMode",
         JsonSerializer.SerializeToElement(useNotes ? "note" : "async"));
 
-    private async Task SeedAsync(ParsedItem source, long expectedRevision)
+    private async Task PrepareAsync(ParsedItem source, long expectedRevision, Task<ReadHistory?> read)
+    {
+        if (await read.ConfigureAwait(false) is not { } resolved) return;
+        lock (sync) { if (stoppingHistory) return; }
+        if (ShopNote.Parse(source.Note) is null)
+            await SeedAsync(source, resolved.League, expectedRevision).ConfigureAwait(false);
+    }
+
+    private async Task SeedAsync(ParsedItem source, string resolvedLeague, long expectedRevision)
     {
         try
         {
-            var seed = await SeedPrice(source).ConfigureAwait(false);
+            var seed = await SeedPrice(source, resolvedLeague).ConfigureAwait(false);
             if (seed is null || ShopNote.Parse(seed.ToString()) is null) return;
             lock (sync)
             {
@@ -23,7 +31,7 @@ public sealed partial class ShopModel
                 currency = seed.Currency;
                 custom = GameAction.FormatAmount(NoteMode ? seed.Amount : WholeAmount(seed.Amount));
             }
-            Changed?.Invoke();
+            NotifyChanged();
         }
         catch (Exception error)
         {

@@ -35,18 +35,35 @@ public sealed class PriceService(IAppPaths paths, IClock clock, PriceTransport t
         return overview;
     }
 
+    private readonly object leagueSync = new();
+    private Task<LeagueResult>? leagueRequest;
+
     /// <summary>A configured league always wins; otherwise prefer a current softcore challenge league.</summary>
     public async Task<LeagueResult> GetLeaguesAsync(string? configuredLeague = null, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Task<LeagueResult> request;
+        lock (leagueSync)
+        {
+            if (leagueRequest is null || leagueRequest.IsCompleted)
+                leagueRequest = DiscoverLeaguesAsync(CancellationToken.None);
+            request = leagueRequest;
+        }
+        var result = await request.WaitAsync(cancellationToken).ConfigureAwait(false);
+        return string.IsNullOrWhiteSpace(configuredLeague) ? result : result with { DefaultLeague = configuredLeague };
+    }
+
+    private async Task<LeagueResult> DiscoverLeaguesAsync(CancellationToken cancellationToken)
     {
         var result = await cache.GetAsync(PriceEndpoints.Leagues, json => ParseLeagues(json),
             TimeSpan.FromHours(1), cancellationToken).ConfigureAwait(false);
         IReadOnlyList<string> leagues = [];
         try { if (result.Json is not null) leagues = ParseLeagues(result.Json); }
-        catch (JsonException) { return new([], configuredLeague ?? "Standard", true, "Set your league; cached league list is invalid."); }
+        catch (JsonException) { return new([], "Standard", true, "Set your league; cached league list is invalid."); }
         var preferred = leagues.FirstOrDefault(l => !l.Contains("Hardcore", StringComparison.OrdinalIgnoreCase) &&
             !l.Contains("Ruthless", StringComparison.OrdinalIgnoreCase) &&
             !l.Contains("SSF", StringComparison.OrdinalIgnoreCase) && l != "Standard");
-        return new(leagues, string.IsNullOrWhiteSpace(configuredLeague) ? preferred ?? "Standard" : configuredLeague,
+        return new(leagues, preferred ?? "Standard",
             result.IsStale, result.Diagnostic ?? (leagues.Count == 0 ? "Set your league; league list is unavailable." : null));
     }
     private static IReadOnlyList<string> ParseLeagues(string json)

@@ -1,4 +1,5 @@
 using System.IO;
+using Microsoft.Extensions.Hosting;
 using ExileSight.Core.Pricing;
 using Microsoft.Extensions.Logging;
 using ExileSight.Core.Features;
@@ -15,13 +16,18 @@ public static class ShopRegistration
     {
         var paths = services.GetRequiredService<IAppPaths>();
         var settings = services.GetRequiredService<ISettingsStore<SettingsDocument>>();
-        return new VaalasyncFeature(new ShopModel(new HistoryStore(Path.Combine(paths.GetGameDirectory("poe1"), "vaalasync")),
-            () => string.IsNullOrWhiteSpace(settings.Snapshot.Prices.League) ? "Standard" : settings.Snapshot.Prices.League)
+        var prices = services.GetRequiredService<PriceService>();
+        var lifetime = services.GetRequiredService<IHostApplicationLifetime>();
+        var league = new ShopLeague(() => settings.Snapshot.Prices.League,
+            () => prices.GetLeaguesAsync(cancellationToken: lifetime.ApplicationStopping));
+        var model = new ShopModel(new HistoryStore(Path.Combine(paths.GetGameDirectory("poe1"), "vaalasync")),
+            () => league.Current)
         {
-            SeedPrice = item => ListingPrices.FindAsync(services.GetRequiredService<PriceService>(),
-                settings.Snapshot.Prices.League, item),
-            ReportFailure = type => services.GetRequiredService<ILogger<ShopModel>>().LogWarning("Shop executor failed: {ExceptionType}", type)
-        });
+            ResolveLeagueAsync = league.ResolveAsync,
+            SeedPrice = (item, effectiveLeague) => ListingPrices.FindAsync(prices, effectiveLeague, item),
+            ReportFailure = diagnostic => services.GetRequiredService<ILogger<ShopModel>>().LogWarning("Shop diagnostic: {Diagnostic}", diagnostic)
+        };
+        return new VaalasyncFeature(model);
     }
     private static ShopView? view;
     public static void Register(IServiceProvider services, FeatureViews views) => views.Register<ShopModel>(model =>

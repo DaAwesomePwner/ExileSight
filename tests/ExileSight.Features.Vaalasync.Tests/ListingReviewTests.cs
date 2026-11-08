@@ -20,7 +20,7 @@ public sealed class ListingReviewTests : IDisposable
     {
         setting = JsonSerializer.SerializeToElement(notes ? "note" : "async");
         var model = new ShopModel(new(directory), () => "Standard")
-        { SeedPrice = _ => Task.FromResult(seed is null ? null : new ShopNote("~b/o", seed.Value, "chaos")) };
+        { SeedPrice = (_, _) => Task.FromResult(seed is null ? null : new ShopNote("~b/o", seed.Value, "chaos")) };
         _ = new FeatureHost([new VaalasyncFeature(model)], (_, _) => setting, (_, _, value) => setting = value,
             (_, _, action) => { sent.Add(action); return new(ActionOutcome.Success); });
         model.Handle(Item(amount), new(Game.PoE1), OmniPressKind.Short);
