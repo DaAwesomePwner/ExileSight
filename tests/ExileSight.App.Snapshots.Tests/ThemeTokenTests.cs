@@ -46,6 +46,8 @@ public sealed class ThemeTokenTests
                 ["RollTrack"] = "#2A313C",
                 ["DangerRowBackground"] = "#221616",
             };
+            // Load the shared tokens first so a cold process initialises WPF's application package.
+            _ = CardTheme.Default;
             foreach (var source in new[] { "Overlay/OverlayTheme.xaml", "Ui/AppTheme.xaml" })
             {
                 var dictionary = new ResourceDictionary
