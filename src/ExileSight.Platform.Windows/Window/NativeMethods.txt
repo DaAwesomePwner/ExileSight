@@ -20,3 +20,13 @@ WINEVENT_SKIPOWNPROCESS
 
 MonitorFromRect
 GetMonitorInfo
+
+GetDC
+ReleaseDC
+CreateCompatibleDC
+DeleteDC
+CreateDIBSection
+SelectObject
+DeleteObject
+BitBlt
+GdiFlush
