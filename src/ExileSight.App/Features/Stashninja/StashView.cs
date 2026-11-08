@@ -47,7 +47,9 @@ public sealed partial class StashView : StackPanel
     private DateTimeOffset freshUntil;
     private string? loadedLeagueSetting;
     private string? LeagueSetting => services.GetRequiredService<ISettingsStore<SettingsDocument>>().Snapshot.Prices.League;
-    private void SetStatus(string message) => status.Text = layout is null ? message : $"{layout.TabId}/{layout.Page}: {message}";
+    private void SetStatus(string message) => status.Text =
+        (layout is null ? message : $"{layout.TabId}/{layout.Page}: {message}") +
+        (autoDetect.IsChecked == true && automaticStatus.Length > 0 ? $" — {automaticStatus}" : "");
     public StashView(StashModel model, IServiceProvider services, FeatureViews views)
     {
         this.model = model; this.services = services;
@@ -62,7 +64,7 @@ public sealed partial class StashView : StackPanel
         foreach (var l in model.Layouts) tab.Items.Add(l.TabId + "/" + l.Page);
         Children.Add(tab);
         var load = new Button { Content = "Load selected tab", Focusable = false };
-        load.Click += async (_, _) => await Load(); Children.Add(load);
+        load.Click += async (_, _) => await LoadManual(); Children.Add(load);
         foreach (var p in model.Profiles) profile.Items.Add(p.Name);
         profile.SelectedIndex = 0; profile.SelectionChanged += (_, _) => { calibration.Cancel(); Refresh(); }; Children.Add(profile);
         Children.Add(new TextBlock { Text = "Choose two empty calibration cells (clicks reach game):", Foreground = Brushes.White });
@@ -82,7 +84,12 @@ public sealed partial class StashView : StackPanel
         InitializeAutoCalibration();
         Children.Add(highlight); views.Bind(highlight, "stashninja:highlight");
         var close = new Button { Content = "Close", Focusable = false };
-        close.Click += (_, _) => { generation++; calibration.Cancel(); Invalidate(); surface.Hide(); host.SetVisible(window!, false); UpdatePolling(); };
+        close.Click += (_, _) =>
+        {
+            calibration.Cancel();
+            if (autoDetect.IsChecked != true) { generation++; Invalidate(); surface.Hide(); }
+            host.SetVisible(window!, false); UpdatePolling();
+        };
         Children.Add(close); Children.Add(status);
         if (model.ProfileNotice is { } notice)
             Children.Add(new TextBlock { Text = notice, Foreground = Brushes.Orange, TextWrapping = TextWrapping.Wrap });
@@ -90,7 +97,7 @@ public sealed partial class StashView : StackPanel
         tab.SelectionChanged += (_, _) => Clear();
         model.Opened += () =>
         {
-            var selected = model.SelectedLayout;
+            var selected = automaticPage ?? model.SelectedLayout;
             Dispatcher.BeginInvoke(async () =>
             {
                 var page = selected is null ? null : selected.TabId + "/" + selected.Page;
@@ -112,6 +119,7 @@ public sealed partial class StashView : StackPanel
         window = (HostedOverlayWindow)Window.GetWindow(this);
         window.PhysicalPlacement = Position;
         host.SetVisible(window, false);
+        UpdatePolling();
         window.IsVisibleChanged += (_, _) =>
         { if (!window.IsVisible) { autoEpoch++; calibration.Cancel(); } UpdatePolling(); };
     }
@@ -162,7 +170,8 @@ public sealed partial class StashView : StackPanel
         if (calibration.IsActive || layout is null || overview is null || profile.SelectedIndex < 0) return;
         var selected = model.Profiles[profile.SelectedIndex];
         var tags = Tags.Build(layout, overview, selected);
-        if (!recognitionHidden && window?.RequestedVisible == true) surface.Show(layout, tags);
+        if (autoDetect.IsChecked == true ? automaticPage == layout && !recognitionHidden :
+            window?.RequestedVisible == true) surface.Show(layout, tags);
         var search = Tags.Search(tags, selected.Minimum); model.SetSearch(search);
         highlight.Content = $"Highlight above {selected.Minimum}c"; highlight.IsEnabled = search.Text is not null;
         SetStatus(search.Status + $" — {tags.Length}/{layout.Cells.Length} cells priced" +

@@ -7,6 +7,13 @@ namespace ExileSight.Features.Stashninja;
 
 public sealed class StashModel : IItemMenuProvider
 {
+    private IFeatureContext? context;
+    public bool AutomaticPrices { get; private set; } = true;
+    public void SetAutomaticPrices(bool enabled)
+    {
+        context?.WriteSetting("automaticPrices", System.Text.Json.JsonSerializer.SerializeToElement(enabled));
+        AutomaticPrices = enabled;
+    }
     private SearchResult search = new(null, "Load prices first");
     public event Action? Opened;
     public Layout[] Layouts { get; init; } = [];
@@ -41,6 +48,8 @@ public sealed class StashModel : IItemMenuProvider
     public IReadOnlyList<ItemMenuEntry> BuildMenu(ParsedItem item) => [new("Price stash tab…", () => Open(item))];
     public void Register(IFeatureContext context)
     {
+        this.context = context;
+        AutomaticPrices = context.ReadSetting("automaticPrices")?.ValueKind != System.Text.Json.JsonValueKind.False;
         var saved = context.ReadSetting("profiles");
         if (saved is not null)
         {

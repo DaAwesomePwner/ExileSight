@@ -31,7 +31,7 @@ public sealed class ScreenReadTests
     public void StashninjaDeclaresDisplayOnlyPageRecognition()
     {
         var manifest = new StashninjaFeature().Manifest;
-        Assert.Equal("stash page recognition and grid calibration (game client area, display-only)", Assert.Single(manifest.ScreenReads));
+        Assert.Equal("automatic stash watch, page recognition and grid calibration (foreground game client, display-only)", Assert.Single(manifest.ScreenReads));
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public sealed class ScreenReadTests
             var host = FeatureInventory.Read(root, scratch);
             var table = TransparencyTable.Generate(host, root);
             Assert.Contains("| Feature | Game actions | Screen reads |", table);
-            Assert.Contains("| stashninja | `PasteSearch` | `stash page recognition and grid calibration (game client area, display-only)` |", table);
+            Assert.Contains("| stashninja | `PasteSearch` | `automatic stash watch, page recognition and grid calibration (foreground game client, display-only)` |", table);
             Assert.Contains("| omni | `CopyItem` | None |", table);
             Assert.False(Directory.Exists(scratch));
         }

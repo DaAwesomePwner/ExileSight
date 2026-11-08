@@ -7,11 +7,32 @@ internal static class GridFixture
             110 + i / 6 * 53, 34, 38, "Currency", ItemName: "fixture")).ToArray(),
         [], new("synthetic", "measured from screenshot at 1000x600", new(2026, 11, 8)));
 
-    public static byte[] Render(Layout layout, Resolution size, Transform transform, double brightness, double gamma, bool grid = true)
+    public static Cell[] DistractorCells(Layout layout) =>
+        Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts"))
+            .Where(l => l.TabId == layout.TabId && l.Page != layout.Page)
+            .SelectMany(l => Enumerable.Range(0, Math.Min(24, l.Cells.Length))
+                .Select(i => l.Cells[i * l.Cells.Length / Math.Min(24, l.Cells.Length)])
+                .Where(c => !layout.Cells.Any(own => own.X < c.X + c.W && own.X + own.W > c.X &&
+                    own.Y < c.Y + c.H && own.Y + own.H > c.Y)).Take(2)).ToArray();
+
+    public static GridSample Crop(byte[] pixels, Resolution size, GridArea area)
+    {
+        var crop = new byte[area.Width * area.Height * 4];
+        for (var row = 0; row < area.Height; row++)
+            Buffer.BlockCopy(pixels, ((area.Y + row) * size.Width + area.X) * 4,
+                crop, row * area.Width * 4, area.Width * 4);
+        return new(area.X, area.Y, area.Width, area.Height, crop);
+    }
+
+    public static byte[] Render(Layout layout, Resolution size, Transform transform, double brightness, double gamma, bool grid = true, bool distractors = false)
     {
         var pixels = new byte[size.Width * size.Height * 4];
         var random = new Random(104);
         var boxes = layout.Cells.Select(c => (P: transform.Apply(Layouts.Origin(layout, c)), W: c.W * transform.Scale, H: c.H * transform.Scale)).ToArray();
+        // Unpriced frames at competing sibling probe locations, inside the grid.
+        if (distractors && layout.TabId == "currency")
+            boxes = boxes.Concat(DistractorCells(layout).Select(c =>
+                (P: transform.Apply(new(c.X, c.Y)), W: c.W * transform.Scale, H: c.H * transform.Scale))).ToArray();
         for (var y = 0; y < size.Height; y++)
         for (var x = 0; x < size.Width; x++)
         {

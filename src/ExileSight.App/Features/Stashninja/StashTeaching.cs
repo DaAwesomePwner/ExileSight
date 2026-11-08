@@ -7,21 +7,21 @@ namespace ExileSight.App.Features.Stashninja;
 
 public sealed partial class StashView
 {
-    private (double[]? Signature, string? Notice) SampleRegion(Geometry.Bounds? sub = null, string? matchedTab = null)
+    private (double[]? Signature, string? Notice) SampleRegion(Geometry.Bounds? sub = null, string? matchedTab = null, bool passive = false)
     {
         var state = Game.Current;
-        if (window?.IsVisible != true || !window.RequestedVisible || !state.IsForeground || state.IsMinimized || calibration.IsActive || region is null) return (null, null);
+        if (!state.IsForeground || state.IsMinimized || calibration.IsActive || region is null) return (null, null);
         var resolution = ClientResolution;
         if (resolution.Width <= 0 || resolution.Height <= 0) return (null, null);
         var b = region.Map(resolution, sub);
         var rect = new PixelRect((int)Math.Ceiling(b.X), (int)Math.Ceiling(b.Y), (int)Math.Floor(b.Width) - 1, (int)Math.Floor(b.Height) - 1);
         var sampled = new Geometry.Bounds(rect.X, rect.Y, rect.Width, rect.Height);
         var menu = Position(state.ClientRect, host.EffectiveScale);
-        if (RecognitionRegion.Intersects(sampled, new(menu.X - state.ClientRect.X, menu.Y - state.ClientRect.Y, menu.Width, menu.Height))) return (null, null);
+        if (window?.IsVisible == true && RecognitionRegion.Intersects(sampled, new(menu.X - state.ClientRect.X, menu.Y - state.ClientRect.Y, menu.Width, menu.Height))) return (null, null);
         var decision = SubTabCapture.Decide(surface.Overlaps(sampled), surface.VisibleTabId, matchedTab);
         if (decision != SubTabCaptureAction.Sample)
         {
-            if (decision == SubTabCaptureAction.HideWrongTags)
+            if (!passive && decision == SubTabCaptureAction.HideWrongTags)
             {
                 recognitionHidden = true; surface.Hide(); Invalidate();
                 // Let WPF/composition remove the old tags before sampling on the next tick.
@@ -48,7 +48,7 @@ public sealed partial class StashView
         try
         {
             references.Save(ClientResolution, layout.TabId + "/" + layout.Page, header.Signature, subSignature);
-            autoDetect.IsChecked = RecognitionState.EnableAfterTeach(explicitTeach, userDetectionPreference, autoDetect.IsChecked == true);
+            // Teaching is optional and does not change the persisted automatic-display preference.
             ResetRecognition(); UpdatePolling(); SetStatus(successMessage);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { SetStatus("Could not save page reference"); }

@@ -83,7 +83,7 @@ Game-specific geometry and names live in JSON; a patch does not require C# edits
     including filled cells, at 1080p/1440p/4K, windowed and borderless, with folders
     and ultrawide black bars. Confirm closed stash and unrelated pages refuse;
     changing page, focus or resolution during capture/search must discard the result.
-    Tags should disappear only during the short capture, not the search.
+    Stable identified pages must never blink. On a real page change, tags can stay hidden through capture and identification.
     On refusal, choose any two distinct empty cells in the calibration selectors.
     Click Calibrate, then those cell centers in order. Esc cancels and restores Highlight. Clicks pass through to the game: use empty
     cells and ensure no item is held. This observes physical clicks; it sends no input.
@@ -160,47 +160,44 @@ None.
 
 ## Recognition region runbook
 
-`recognition.json` contains a shared header rectangle and tab-specific `subTabs`
-rectangles at 2000×837. The shared header (x24–504, y30–120) ends above the
-highest shipped cell (121.75). It identifies the tab, comparing the best page
-reference per tab; sibling pages do not compete for the tab margin.
+Automatic prices default ON and need no teaching or menu. Every 450 ms, compare
+the shared header signature against the identification baseline; Currency/Fragment
+also compare their sub-tab strip (y100–138) with tags visible. Their cells start
+at y142 or below. Stable pages cause no full reads and no capture hides. Signature
+change threshold is .04 normalized mean absolute distance. Missing/blocked samples
+with no detected change need one second of consecutive Unknown before hiding.
 
-Currency and Fragment each have a sub-tab rectangle at x24–504, y100–138.
-The owner's screenshot review puts Currency General/Atlas/League buttons at
-about y107–131, so this captures their full height. Currency cells start at
-142 or below, and Fragment cells at 152.5 or below. These rectangles are checked
-against their own tab's cells and TagBounds, not against other tabs. Multi-page
-tabs require a sub-tab rectangle. A tab with one shipped page skips stage two.
+Unidentified scenes use sparse fixed-transform border pre-checks, no scale or
+translation search: eight 33×33 patches per layout, at most 69,696 pixels for all
+eight pages. The profile scans a ±12px normal band for coherent borders, requiring
+17/19 supported tangent samples. Score ≥12.5 gates full capture/identification.
+After the initial immediate check, unidentified scenes have a minimum 1800 ms
+interval even if the header changes every tick. Header checks remain 450 ms. A
+supported stash waits at most 1.8 s for the gate, plus capture/scoring/price loading.
 
-The second signature selects among sibling pages only when every shipped page
-of that tab has valid header and sub-tab signatures at this resolution. A partial
-set is Unknown, even if its single closest reference passes the distance threshold.
-The matched tab header shows a teaching reminder until all pages are learned;
-obsolete references cannot substitute for missing shipped pages.
+Local identification compares every layout within ±3 px / ±0.3% scale, with
+refinement (≤559 evaluations per layout). Require coherent score ≥25/255,
+≥75% supported search probes and runner-up margin ≥3. Independent neighboring
+tangent probes reject noise. If needed, at most two qualifying uncalibrated
+candidates get the broad ±3% height / ±5% scale search (≤40,000 evaluations each).
+Only one fully admitted wider-search batch is allowed per header baseline, and each layout has a
+separate 30-second cooldown. Reservations are consumed before work, even on failure
+or cancellation; watcher resets do not clear them. A fully admitted batch consumes
+the baseline and requires a real header change to retry. If any top candidate is
+cooling down, keep the baseline available for later attempts while retaining each
+layout’s 30-second cooldown. Save a successful calibration per geometry/resolution. Offsets
+outside the ±12 px sparse band need Ctrl+Shift+N → Auto-calibrate or manual calibration.
 
-Both regions use Geometry.Fit,
-independently of calibration. If currently drawn tags overlap the sub-tab region
-(for example Essence tags after opening Currency), they are hidden and capture
-waits until the next tick. If the overlapping tags belong to the matched tab itself,
-keep them visible and report “sub-tab area blocked by tags”; recalibrate to clear
-the region. Do not hide/restore these tags repeatedly. Header/menu overlap or failed capture shows a blocked
-notice and does not count toward hiding tags. No capture exclusion flags are used.
+Menu Load pins a manual selection until the header changes or the stash closes.
+Status includes automatic score/margin. Remember/Forget references remain optional
+and are not used for automatic identity. Keep the header above all cells after
+patches, and keep each sub-tab rectangle clear of its tab's cells.
 
-After a patch, measure the header and the complete sub-tab button row, update
-rectangles and provenance, then run recognition and shipped-layout tests. Keep
-the header above all cells and each sub-tab region clear of its own tab's cells.
-`RecognitionRegion.Load` validates finite, in-bounds rectangles, provenance,
-required sibling regions and cell overlap. Geometry comes from owner measurements,
-never Exile-UI data. Validate Currency siblings and Fragment on Windows before release.
-
-The version-2 local store holds header and optional sub-tab signatures per page
-and resolution. Both rectangles are included in its fingerprint; version-1 or
-changed-geometry references are ignored with a notice. Re-teach pages locally;
-never commit or ship user pixels or signatures.
-
-Normalized mean absolute distance must be below 0.30 at both stages. The tab
-margin is at least 0.08 against other tabs; the sibling-page margin is at least
-0.06 within the matched tab. Synthetic button-patch and gamma-shift tests cover
-these conservative defaults; in-game validation remains necessary. Repeated
-matches do not refresh status. Calibration teaching respects an explicit off
-choice; clicking Remember this page explicitly enables auto-detect.
+Tests include noise, gamma, filled cells, unpriced frames at two unique cell/probe locations per competing currency sibling,
+±2px offsets at 1920×1080 and 3440×1440, ambiguous geometry, unrelated grids,
+first-use offsets beyond 3px, backoff and pin transitions. Windows validation must
+cover real thresholds, sparse GDI call overhead, stable-page flicker, close/reopen,
+foreground/resolution changes, price-response races and manual controls. Only
+a genuine change or qualifying gate causes full capture; tags may hide through
+that transition's 32ms compositor delay, capture and off-thread scoring.
+No screenshots or signatures may be committed; samples stay on the PC.
