@@ -59,12 +59,14 @@ Sections top to bottom; a section with nothing known is dropped, not shown empty
 then the Slots + base row; mod rows are never dropped. If rows alone still don't fit, show as many as fit
 and a final Muted row `+N more mods`.
 
-**Mod row** (24 high): columns 12 · 12 · * · 26 · 40 · 30 · 20, gap 5.
+**Mod row** (24 high): columns 12 · 12 · * · 36 · 40 · 30 · 20, gap 5. The tier column is 36 so every
+pill label fits with padding, including `ench` at the §8 label size (owner decision, 2026-11-08); all pills
+share that one width (`TierPillWidth`) with the label centred.
 
 1. Slot letter: `P` prefix, `S` suffix, `I` implicit, `?` unknown (Faint text).
 2. Highlight mark: `◆` wanted (teal), `✕` unwanted (orange), else empty. An unwanted row's label is Secondary.
 3. Short label (§9), single line, ellipsis if it doesn't fit. Crafted mods: label in Crafted colour.
-4. Tier pill: `T1`…`Tn` coloured by tier tone; `imp` outlined for implicits; `cr` Crafted; `U` Unique;
+4. Tier pill (36 wide, label centred): `T1`…`Tn` coloured by tier tone; `imp` outlined for implicits; `cr` Crafted; `U` Unique;
    `ench` outlined for enchants; `T?` when unknown (dashed `TooltipUnknown` border, Muted text).
 5. Roll bar 40×6, fill width = roll position, coloured by roll tone; dashed empty track when unknown.
 6. Roll %, right-aligned; `—` when unknown.
