@@ -1,0 +1,110 @@
+<!doctype html>
+<!-- Reference mockup for docs/design/UI-SPEC.md (ExileSight home). Static, sample values only.
+     Design changes need owner approval. After editing, re-render the PNG: docs/design/render-mockups.sh -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ExileSight home</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0;background:#0F1216}
+a{color:#6FD1C6}a:hover{color:#9BE7DE}
+.mono{font-family:'JetBrains Mono',Consolas,monospace;font-feature-settings:'tnum'}
+.nav{display:flex;align-items:center;gap:10px;height:36px;padding:0 12px;border-radius:6px;color:#B7BEC8;font-size:14px;text-decoration:none}
+.nav:hover{background:#171B21;color:#E8EAED}
+.nav.on{background:#18272A;color:#E8EAED}
+.panel{background:#14181E;border:1px solid #232933;border-radius:8px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.cap{font-size:11px;font-weight:600;letter-spacing:0.12em;color:#8E97A4}
+.tile{background:#14181E;border:1px solid #232933;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.dot{width:8px;height:8px;border-radius:4px;display:inline-block}
+.kbd{display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:4px;border:1px solid #343C48;border-bottom-width:2px;background:#1A1F27;font:600 12px 'JetBrains Mono',Consolas,monospace;color:#E8EAED;white-space:nowrap}
+.hk{display:grid;grid-template-columns:150px minmax(0,1fr);column-gap:14px;align-items:center;min-height:34px;border-bottom:1px solid #1E232B}
+.big{font:600 26px 'JetBrains Mono',Consolas,monospace;font-feature-settings:'tnum'}
+.btn{height:36px;padding:0 14px;border-radius:6px;border:1px solid #343C48;background:#1A1F27;color:#E8EAED;font:500 13px Inter,'Segoe UI',sans-serif;cursor:pointer}
+.btn:hover{border-color:#6FD1C6}
+</style>
+<style>body{background:#0E1013}</style>
+</head>
+<body>
+<div style="width: 100%; min-height: 820px; box-sizing: border-box; background: #0F1216; color: #E8EAED; font-family: Inter, 'Segoe UI', sans-serif; display: flex; flex-wrap: wrap;">
+
+  <nav style="flex: 1 1 200px; max-width: 240px; box-sizing: border-box; padding: 20px 14px; border-right: 1px solid #1E232B; display: flex; flex-direction: column; gap: 4px; background: #0C0F12;" aria-label="Sections">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 4px 12px 18px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6FD1C6" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="3.2"></circle><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"></path></svg>
+      <span style="font-weight: 700; font-size: 16px; letter-spacing: -0.01em;">ExileSight</span>
+    </div>
+    <a class="nav on" href="app-home.html">Home</a>
+    <a class="nav" href="app-item-rules.html">Item rules</a>
+    <a class="nav" href="#">Map log</a>
+    <a class="nav" href="#">Sales</a>
+    <a class="nav" href="app-overlay-settings.html">Overlay</a>
+    <a class="nav" href="#">Hotkeys</a>
+    <a class="nav" href="app-overlay-settings.html">Transparency</a>
+    <div style="flex-grow: 1; min-height: 24px;"></div>
+    <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 6px; background: #14181E; font-size: 12px; color: #8E97A4;">
+      <span style="color: #E8EAED;">Version 1.0.2</span>
+      <span>Up to date · checked 2 h ago</span>
+    </div>
+  </nav>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 24px; display: flex; flex-direction: column; gap: 22px;">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 700;">Ready to play</h1>
+        <span style="font-size: 14px; color: #8E97A4;">Everything ExileSight needs is working.</span>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <label for="league" style="font-size: 13px; color: #8E97A4;">League</label>
+        <select id="league" style="height: 36px; padding: 0 10px; border-radius: 6px; border: 1px solid #343C48; background: #1A1F27; color: #E8EAED; font: 13px Inter, 'Segoe UI', sans-serif;"><option>[Current league]</option><option>Standard</option><option>Hardcore</option></select>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px;">
+      <div class="tile"><div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #8E97A4;"><span class="dot" style="background: #6FE3D5;"></span>Game</div><span style="font-weight: 600;">Path of Exile found</span><span class="mono" style="font-size: 12px; color: #8E97A4;">2560×1440 · borderless</span></div>
+      <div class="tile"><div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #8E97A4;"><span class="dot" style="background: #6FE3D5;"></span>Client.txt</div><span style="font-weight: 600;">Reading the log</span><span class="mono" style="font-size: 12px; color: #8E97A4;">last line 4 s ago</span></div>
+      <div class="tile"><div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #8E97A4;"><span class="dot" style="background: #F2994A;"></span>Prices</div><span style="font-weight: 600;">poe.ninja, 3 h old</span><span style="font-size: 12px; color: #8E97A4;">Offline? Using the saved copy.</span></div>
+      <div class="tile"><div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #8E97A4;"><span class="dot" style="background: #6FE3D5;"></span>Game data</div><span style="font-weight: 600;">Item and map packs</span><span class="mono" style="font-size: 12px; color: #8E97A4;">up to date</span></div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;">
+      <section class="panel" style="flex: 3 1 420px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;"><h2 class="cap" style="margin: 0;">YOUR KEYS</h2><a href="#" style="font-size: 13px;">Change</a></div>
+        <div style="display: flex; flex-direction: column;">
+          <div class="hk"><span><span class="kbd">CapsLock</span></span><span style="font-size: 14px;">Item or map card <span style="color: #8E97A4;">· hold for menu</span></span></div>
+          <div class="hk"><span><span class="kbd">F5</span></span><span style="font-size: 14px;">Go to hideout <span style="color: #8E97A4;">· hold for travel wheel</span></span></div>
+          <div class="hk"><span><span class="kbd">F6</span></span><span style="font-size: 14px;">Chat macro 1 <span style="color: #8E97A4;">· hold for chat wheel</span></span></div>
+          <div class="hk"><span><span class="kbd">F9</span></span><span style="font-size: 14px;">Search strings</span></div>
+          <div class="hk"><span><span class="kbd">Tab</span></span><span style="font-size: 14px;">Show timers while held</span></div>
+          <div class="hk"><span style="display: flex; gap: 4px;"><span class="kbd">Ctrl</span><span class="kbd">Shift</span><span class="kbd">M</span></span><span style="font-size: 14px;">Map log</span></div>
+          <div class="hk" style="border-bottom: 0;"><span style="display: flex; gap: 4px;"><span class="kbd">Ctrl</span><span class="kbd">Shift</span><span class="kbd">F10</span></span><span style="font-size: 14px;">Show or hide the act guide</span></div>
+        </div>
+      </section>
+
+      <section class="panel" style="flex: 2 1 300px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;"><h2 class="cap" style="margin: 0;">LAST SESSION</h2><span style="font-size: 12px; color: #6B7480;">yesterday · 2 h 41 m</span></div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;">
+          <div style="display: flex; flex-direction: column; gap: 2px;"><span class="big">14</span><span style="font-size: 12px; color: #8E97A4;">maps run</span></div>
+          <div style="display: flex; flex-direction: column; gap: 2px;"><span class="big">4:12</span><span style="font-size: 12px; color: #8E97A4;">average map</span></div>
+          <div style="display: flex; flex-direction: column; gap: 2px;"><span class="big" style="color: #F2994A;">2</span><span style="font-size: 12px; color: #8E97A4;">deaths</span></div>
+          <div style="display: flex; flex-direction: column; gap: 2px;"><span class="big" style="color: #6FE3D5;">41</span><span style="font-size: 12px; color: #8E97A4;">divine marked sold</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-size: 12px; color: #8E97A4;">Map time, last 14</span>
+          <div style="display: flex; align-items: flex-end; gap: 4px; height: 48px;">
+            <div style="flex: 1; height: 60%; background: #2F4A60; border-radius: 2px;"></div><div style="flex: 1; height: 72%; background: #2F4A60; border-radius: 2px;"></div><div style="flex: 1; height: 55%; background: #2F4A60; border-radius: 2px;"></div><div style="flex: 1; height: 90%; background: #F2994A; border-radius: 2px;"></div><div style="flex: 1; height: 58%; background: #2F4A60; border-radius: 2px;"></div><div style="flex: 1; height: 50%; background: #2F4A60; border-radius: 2px;"></div><div style="flex: 1; height: 62%; background: #2F4A60; border-radius: 2px;"></div><div style="flex: 1; height: 48%; background: #2F4A60; border-radius: 2px;"></div><div style="flex: 1; height: 66%; background: #2F4A60; border-radius: 2px;"></div><div style="flex: 1; height: 100%; background: #F2994A; border-radius: 2px;"></div><div style="flex: 1; height: 54%; background: #2F4A60; border-radius: 2px;"></div><div style="flex: 1; height: 47%; background: #2F4A60; border-radius: 2px;"></div><div style="flex: 1; height: 52%; background: #2F4A60; border-radius: 2px;"></div><div style="flex: 1; height: 44%; background: #6AA8FF; border-radius: 2px;"></div>
+          </div>
+          <span style="font-size: 12px; color: #6B7480;">Orange: a death in that map · Blue: latest</span>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;"><button class="btn">Open map log</button><button class="btn">Open sales</button></div>
+      </section>
+    </div>
+
+    <footer style="margin-top: auto; padding-top: 8px; border-top: 1px solid #1E232B; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 12px; color: #6B7480;">
+      <span>This product isn’t affiliated with or endorsed by Grinding Gear Games in any way.</span>
+      <span>Reads Client.txt and copied item text only · <a href="app-overlay-settings.html">see everything it sent</a></span>
+    </footer>
+  </main>
+</div>
+</body>
+</html>

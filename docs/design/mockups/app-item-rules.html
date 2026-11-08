@@ -1,0 +1,115 @@
+<!doctype html>
+<!-- Reference mockup for docs/design/UI-SPEC.md (ExileSight item rules). Static, sample values only.
+     Design changes need owner approval. After editing, re-render the PNG: docs/design/render-mockups.sh -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ExileSight item rules</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0;background:#0F1216}
+a{color:#6FD1C6}a:hover{color:#9BE7DE}
+.mono{font-family:'JetBrains Mono',Consolas,monospace;font-feature-settings:'tnum'}
+.nav{display:flex;align-items:center;gap:10px;height:36px;padding:0 12px;border-radius:6px;color:#B7BEC8;font-size:14px;text-decoration:none}
+.nav:hover{background:#171B21;color:#E8EAED}
+.nav.on{background:#18272A;color:#E8EAED}
+.panel{background:#14181E;border:1px solid #232933;border-radius:8px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.cap{font-size:11px;font-weight:600;letter-spacing:0.12em;color:#8E97A4}
+.tab{height:34px;padding:0 14px;border-radius:6px;border:1px solid transparent;background:transparent;color:#B7BEC8;font:500 13px Inter,'Segoe UI',sans-serif;cursor:pointer;white-space:nowrap}
+.tab.on{background:#18272A;border-color:#2C4A4C;color:#E8EAED}
+.rule{display:grid;grid-template-columns:minmax(0,1fr) 170px 150px 36px;column-gap:12px;align-items:center;min-height:48px;border-bottom:1px solid #1E232B}
+.seg{display:inline-flex;border:1px solid #343C48;border-radius:6px;overflow:hidden}
+.seg button{height:30px;padding:0 12px;border:0;background:#1A1F27;color:#8E97A4;font:500 12px Inter,'Segoe UI',sans-serif;cursor:pointer}
+.seg .want{background:#173A39;color:#6FE3D5}
+.seg .avoid{background:#3A2614;color:#F2B27A}
+.scope{font-size:12px;color:#B7BEC8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icon{width:32px;height:32px;border-radius:6px;border:0;background:transparent;color:#6B7480;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.icon:hover{background:#1A1F27;color:#E8EAED}
+.card{width:300px;box-sizing:border-box;padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;background:#0F1217;border:1px solid #2E3540;border-radius:6px;font-size:13px;color:#E8EAED}
+.pill{display:inline-flex;align-items:center;justify-content:center;height:18px;min-width:24px;padding:0 4px;box-sizing:border-box;border-radius:3px;font:600 11px 'JetBrains Mono',Consolas,monospace;color:#0C0F14}
+.best{background:#6FE3D5}.high{background:#6AA8FF}.med{background:#AEB6C2}.low{background:#F2994A}
+.track{width:40px;height:6px;background:#2A313C;border-radius:3px;overflow:hidden}
+.fill{height:6px;border-radius:3px}
+.row{display:grid;grid-template-columns:12px 12px minmax(0,1fr) 26px 40px 30px 20px;column-gap:5px;align-items:center;height:24px}
+.chk{display:flex;align-items:center;gap:10px;font-size:13px;color:#E8EAED}
+.chk input{width:16px;height:16px;accent-color:#6FD1C6;margin:0}
+</style>
+<style>body{background:#0E1013}</style>
+</head>
+<body>
+<div style="width: 100%; min-height: 820px; box-sizing: border-box; background: #0F1216; color: #E8EAED; font-family: Inter, 'Segoe UI', sans-serif; display: flex; flex-wrap: wrap;">
+
+  <nav style="flex: 1 1 200px; max-width: 240px; box-sizing: border-box; padding: 20px 14px; border-right: 1px solid #1E232B; display: flex; flex-direction: column; gap: 4px; background: #0C0F12;" aria-label="Sections">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 4px 12px 18px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6FD1C6" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="3.2"></circle><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"></path></svg>
+      <span style="font-weight: 700; font-size: 16px; letter-spacing: -0.01em;">ExileSight</span>
+    </div>
+    <a class="nav" href="app-home.html">Home</a>
+    <a class="nav on" href="app-item-rules.html">Item rules</a>
+    <a class="nav" href="#">Map log</a>
+    <a class="nav" href="#">Sales</a>
+    <a class="nav" href="app-overlay-settings.html">Overlay</a>
+    <a class="nav" href="#">Hotkeys</a>
+    <a class="nav" href="app-overlay-settings.html">Transparency</a>
+  </nav>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 24px; display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <h1 style="margin: 0; font-size: 24px; font-weight: 700;">Item rules</h1>
+      <span style="font-size: 14px; color: #8E97A4;">Mark the mods you want and the ones you avoid. The item card’s top line counts them.</span>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;" role="tablist" aria-label="Profiles">
+      <button class="tab on" role="tab" aria-selected="true">ES caster</button>
+      <button class="tab" role="tab" aria-selected="false">Life attack</button>
+      <button class="tab" role="tab" aria-selected="false">Flipping</button>
+      <button class="tab" role="tab" aria-selected="false" style="color: #6B7480;">Profile 4</button>
+      <button class="tab" role="tab" aria-selected="false" style="color: #6B7480;">Profile 5</button>
+      <span style="font-size: 12px; color: #6B7480; margin-left: 8px;">Active in game: ES caster</span>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;">
+      <section class="panel" style="flex: 3 1 520px; padding: 8px 20px 16px;">
+        <div style="display: flex; gap: 10px; align-items: center; padding-top: 12px;">
+          <label for="addmod" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Add a mod</label>
+          <input id="addmod" placeholder="Add a mod: type “life”, “cold res”, “attack speed”…" style="flex-grow: 1; height: 38px; box-sizing: border-box; padding: 0 12px; border-radius: 6px; border: 1px solid #343C48; background: #0F1216; color: #E8EAED; font: 14px Inter, 'Segoe UI', sans-serif;">
+        </div>
+        <div class="rule" style="min-height: 32px;"><span class="cap">MOD</span><span class="cap">APPLIES TO</span><span class="cap">MARK</span><span></span></div>
+        <div class="rule"><span style="font-size: 14px;">+# to maximum Energy Shield</span><span class="scope">All items</span><span class="seg"><button class="want">Want</button><button>Avoid</button></span><button class="icon" aria-label="Remove rule">✕</button></div>
+        <div class="rule"><span style="font-size: 14px;">#% increased Energy Shield</span><span class="scope">Body armour, helmet, shield</span><span class="seg"><button class="want">Want</button><button>Avoid</button></span><button class="icon" aria-label="Remove rule">✕</button></div>
+        <div class="rule"><span style="font-size: 14px;">+#% to Cold Resistance</span><span class="scope">All items</span><span class="seg"><button class="want">Want</button><button>Avoid</button></span><button class="icon" aria-label="Remove rule">✕</button></div>
+        <div class="rule"><span style="font-size: 14px;">+# to maximum Life</span><span class="scope">Rings, amulets</span><span class="seg"><button class="want">Want</button><button>Avoid</button></span><button class="icon" aria-label="Remove rule">✕</button></div>
+        <div class="rule"><span style="font-size: 14px;">#% increased Stun and Block Recovery</span><span class="scope">All items</span><span class="seg"><button>Want</button><button class="avoid">Avoid</button></span><button class="icon" aria-label="Remove rule">✕</button></div>
+        <div class="rule" style="border-bottom: 0;"><span style="font-size: 14px;">#% reduced Light Radius</span><span class="scope">All items</span><span class="seg"><button>Want</button><button class="avoid">Avoid</button></span><button class="icon" aria-label="Remove rule">✕</button></div>
+      </section>
+
+      <aside class="panel" style="flex: 1 1 300px; align-items: flex-start;">
+        <div style="display: flex; flex-direction: column; gap: 2px;"><h2 class="cap" style="margin: 0;">PREVIEW</h2><span style="font-size: 12px; color: #6B7480;">Your last copied item, with these rules</span></div>
+        <div class="card">
+          <div style="display: flex; align-items: baseline; justify-content: space-between;"><div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-weight: 600;">Vaal Regalia</span><span style="font-size: 11px; color: #8E97A4;">Rare body armour</span></div><span class="mono" style="font-size: 11px; color: #8E97A4;">ilvl 86</span></div>
+          <div style="padding: 6px 8px; border-radius: 4px; background: #17202A; font-size: 12px; font-weight: 600; display: flex; gap: 10px;"><span style="color: #6FE3D5;">◆ 3 wanted</span><span style="color: #F2994A;">✕ 1 unwanted</span></div>
+          <div style="height: 1px; background: #262C35;"></div>
+          <div style="display: flex; flex-direction: column;">
+            <div class="row"><span class="mono" style="font-size: 10px; color: #6B7480;">P</span><span style="color: #6FE3D5; font-size: 10px;">◆</span><span>+ max ES</span><span class="pill high">T2</span><div class="track"><div class="fill high" style="width: 81%;"></div></div><span class="mono" style="font-size: 11px; color: #B7BEC8; text-align: right;">81%</span><span class="mono" style="font-size: 11px; color: #8E97A4; text-align: right;">75</span></div>
+            <div class="row"><span class="mono" style="font-size: 10px; color: #6B7480;">P</span><span style="color: #6FE3D5; font-size: 10px;">◆</span><span>% inc ES</span><span class="pill best">T1</span><div class="track"><div class="fill high" style="width: 95%;"></div></div><span class="mono" style="font-size: 11px; color: #B7BEC8; text-align: right;">95%</span><span class="mono" style="font-size: 11px; color: #8E97A4; text-align: right;">84</span></div>
+            <div class="row"><span class="mono" style="font-size: 10px; color: #6B7480;">S</span><span></span><span>Fire res</span><span class="pill high">T3</span><div class="track"><div class="fill med" style="width: 40%;"></div></div><span class="mono" style="font-size: 11px; color: #B7BEC8; text-align: right;">40%</span><span class="mono" style="font-size: 11px; color: #8E97A4; text-align: right;">48</span></div>
+            <div class="row"><span class="mono" style="font-size: 10px; color: #6B7480;">S</span><span style="color: #6FE3D5; font-size: 10px;">◆</span><span>Cold res</span><span class="pill best">T1</span><div class="track"><div class="fill best" style="width: 100%;"></div></div><span class="mono" style="font-size: 11px; color: #B7BEC8; text-align: right;">100%</span><span class="mono" style="font-size: 11px; color: #8E97A4; text-align: right;">84</span></div>
+            <div class="row" style="color: #9AA3AF;"><span class="mono" style="font-size: 10px; color: #6B7480;">S</span><span style="color: #F2994A; font-size: 10px;">✕</span><span>Stun recov</span><span class="pill med">T4</span><div class="track"><div class="fill low" style="width: 18%;"></div></div><span class="mono" style="font-size: 11px; color: #B7BEC8; text-align: right;">18%</span><span class="mono" style="font-size: 11px; color: #8E97A4; text-align: right;">30</span></div>
+          </div>
+        </div>
+        <div style="height: 1px; align-self: stretch; background: #232933;"></div>
+        <h2 class="cap" style="margin: 0;">CARD SHOWS</h2>
+        <label class="chk"><input type="checkbox" checked="checked">Compare with equipped</label>
+        <label class="chk"><input type="checkbox" checked="checked">Defence base percentile</label>
+        <label class="chk"><input type="checkbox" checked="checked">ilvl column</label>
+        <label class="chk"><input type="checkbox">Implicits</label>
+        <div style="height: 1px; align-self: stretch; background: #232933;"></div>
+        <h2 class="cap" style="margin: 0;">OMNI KEY</h2>
+        <label class="chk"><input type="checkbox" checked="checked">Use advanced copy (needed for tiers and rolls)</label>
+      </aside>
+    </div>
+  </main>
+</div>
+</body>
+</html>

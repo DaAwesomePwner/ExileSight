@@ -5,6 +5,7 @@ Read these before changing anything:
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - The current phase in [docs/ROADMAP.md](docs/ROADMAP.md)
 - The spec for your feature in [docs/FEATURES.md](docs/FEATURES.md)
+- For any UI work: [docs/design/UI-SPEC.md](docs/design/UI-SPEC.md), and open the mockup PNGs in [docs/design/mockups/png](docs/design/mockups/png) to compare your result against ([how](docs/design/README.md#how-to-compare-your-work))
 
 ## Hard rules
 
