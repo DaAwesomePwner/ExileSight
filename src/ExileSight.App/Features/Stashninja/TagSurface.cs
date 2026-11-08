@@ -34,7 +34,7 @@ public sealed class TagSurface
     {
         layout = value; tags = prices; Draw();
         requested = value is not null;
-        host.SetVisible(window, requested && !captureHidden);
+        UpdateVisibility();
     }
     public void Clear()
     {
@@ -51,8 +51,13 @@ public sealed class TagSurface
         return tags.Any(t => RecognitionRegion.Intersects(region,
             ExileSight.Features.Stashninja.Geometry.TagBounds(layout, t.Cell, transform)));
     }
+    private void UpdateVisibility()
+    {
+        var visible = requested && !captureHidden;
+        if (window.RequestedVisible != visible) host.SetVisible(window, visible);
+    }
     public void SetCaptureHidden(bool value)
-    { captureHidden = value; host.SetVisible(window, requested && !captureHidden); }
+    { captureHidden = value; UpdateVisibility(); }
     public void Hide()
     { requested = false; if (window.RequestedVisible) host.SetVisible(window, false); }
     private static bool SameTags(PriceTag[] a, PriceTag[] b) => a.Length == b.Length &&

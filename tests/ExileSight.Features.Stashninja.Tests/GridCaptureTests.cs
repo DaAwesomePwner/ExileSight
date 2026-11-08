@@ -1,39 +1,29 @@
-using ExileSight.App.Features.Stashninja;
-using ExileSight.Platform.Abstractions.Window;
 using Xunit;
 
 namespace ExileSight.Features.Stashninja.Tests;
 
 public sealed class GridCaptureTests
 {
-    private sealed class Game : IGameWindow
+    private sealed class Sampler(Action? after = null)
     {
-        public GameWindowState Current { get; set; } = new(true, 1, new(100, 200, 3000, 2000), 96, true, false, default);
-        public string? LastError => null;
-        public event EventHandler? Changed { add { } remove { } }
-        public void Start() { }
-        public void Dispose() { }
-    }
-    private sealed class Sampler(Action? after = null) : IScreenSampler
-    {
-        public List<PixelRect> Calls { get; } = [];
-        public ScreenSample? TrySample(PixelRect rect)
+        public List<GridArea> Calls { get; } = [];
+        public GridSample? TrySample(GridArea rect)
         {
-            Assert.InRange(rect.Width * rect.Height, 1, IScreenSampler.MaxPixels);
+            Assert.InRange(rect.Width * rect.Height, 1, 1_048_576);
             Calls.Add(rect);
             var data = new byte[rect.Width * rect.Height * 4];
             for (var y = 0; y < rect.Height; y++)
             for (var x = 0; x < rect.Width; x++)
             { data[(y * rect.Width + x) * 4] = (byte)((rect.X + x) % 256); data[(y * rect.Width + x) * 4 + 1] = (byte)((rect.Y + y) % 256); }
             after?.Invoke();
-            return new(rect.Width, rect.Height, data);
+            return new(rect.X, rect.Y, rect.Width, rect.Height, data);
         }
     }
     [Fact]
     public void TilesLargeRegionsAndPreservesPixelCoordinates()
     {
-        var game = new Game(); var sampler = new Sampler();
-        var result = GridCapture.Sample(sampler, game, game.Current, new(45, 63, 1300, 1000), () => true);
+        var sampler = new Sampler();
+        var result = GridSampling.Sample(new(45, 63, 1300, 1000), sampler.TrySample, () => true);
         Assert.NotNull(result); Assert.Equal(6, sampler.Calls.Count);
         for (var y = 0; y < result.Height; y++)
         for (var x = 0; x < result.Width; x++)
@@ -45,19 +35,20 @@ public sealed class GridCaptureTests
     [Fact]
     public void StopsCapturingWhenPageChangesOrForegroundIsLost()
     {
-        var game = new Game(); var allowed = true;
+        var allowed = true;
         var sampler = new Sampler(() => allowed = false);
-        Assert.Null(GridCapture.Sample(sampler, game, game.Current, new(0, 0, 1300, 1000), () => allowed));
+        Assert.Null(GridSampling.Sample(new(0, 0, 1300, 1000), sampler.TrySample, () => allowed));
         Assert.Single(sampler.Calls);
-        sampler = new Sampler(() => game.Current = game.Current with { IsForeground = false });
-        Assert.Null(GridCapture.Sample(sampler, game, game.Current, new(0, 0, 1300, 1000), () => true));
+        var foreground = true;
+        sampler = new Sampler(() => foreground = false);
+        Assert.Null(GridSampling.Sample(new(0, 0, 1300, 1000), sampler.TrySample, () => foreground));
         Assert.Single(sampler.Calls);
     }
     [Fact]
     public void OversizedCaptureDoesNotCallSampler()
     {
-        var game = new Game(); var sampler = new Sampler();
-        Assert.Null(GridCapture.Sample(sampler, game, game.Current, new(0, 0, 16384, 16384), () => true));
+        var sampler = new Sampler();
+        Assert.Null(GridSampling.Sample(new(0, 0, 16384, 16384), sampler.TrySample, () => true));
         Assert.Empty(sampler.Calls);
     }
 }

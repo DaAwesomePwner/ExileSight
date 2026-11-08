@@ -33,7 +33,7 @@ public sealed partial class StashView
         return sample is null || sample.Width < PageSignature.Columns || sample.Height < PageSignature.Rows
             ? (null, null) : (PageSignature.Create(sample.Width, sample.Height, sample.Bgra), null);
     }
-    private void TeachPage(bool explicitTeach = true)
+    private void TeachPage(bool explicitTeach = true, string successMessage = "Page remembered locally")
     {
         if (layout is null || references is null) { SetStatus("Load a page before teaching"); return; }
         var header = SampleRegion();
@@ -49,7 +49,7 @@ public sealed partial class StashView
         {
             references.Save(ClientResolution, layout.TabId + "/" + layout.Page, header.Signature, subSignature);
             autoDetect.IsChecked = RecognitionState.EnableAfterTeach(explicitTeach, userDetectionPreference, autoDetect.IsChecked == true);
-            ResetRecognition(); UpdatePolling(); SetStatus("Page remembered locally");
+            ResetRecognition(); UpdatePolling(); SetStatus(successMessage);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { SetStatus("Could not save page reference"); }
     }

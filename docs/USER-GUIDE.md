@@ -135,7 +135,9 @@ display and never sends input or obtains an IntentToken. D-104 also permits disp
 
 **Remember this page** teaches the currently loaded tab/page at the current client
 resolution; successful calibration also teaches it. **Forget this page** removes
-that resolution's reference. References live beside calibration in local
+that resolution's reference. To undo an automatic result, recalibrate manually with
+two empty cells, then use **Forget this page** to remove the recognition reference
+(manual calibration also teaches it). References live beside calibration in local
 `poe1/stashninja/references.json`; corrupt or outdated references are ignored with
 a notice. Version-1 references must be re-taught for the two-stage matcher.
 Re-teach after a resolution or recognition rectangle change.

@@ -43,14 +43,14 @@ public static class GridLocator
             return (luminance[iy * sample.Width + ix] * (1 - fx) + luminance[iy * sample.Width + ix + 1] * fx) * (1 - fy) +
                 (luminance[(iy + 1) * sample.Width + ix] * (1 - fx) + luminance[(iy + 1) * sample.Width + ix + 1] * fx) * fy;
         }
-        (double Score, double Coverage) Score(Transform t)
+        (double Score, double Coverage)? Score(Transform t)
         {
             double sum = 0; var supported = 0;
             foreach (var p in points)
             {
                 var x = p.X * t.Scale + t.X - sample.X; var y = p.Y * t.Scale + t.Y - sample.Y;
                 var d = Math.Max(3, 2 * t.Scale);
-                if (x < d || y < d || x >= sample.Width - d - 1 || y >= sample.Height - d - 1) return (-255, 0);
+                if (x < d || y < d || x >= sample.Width - d - 1 || y >= sample.Height - d - 1) return null;
                 // Dark frame against its two neighbours: interior artwork contributes little
                 // because probes stay close to the border and avoid corners.
                 var contrast = (p.Vertical ? Read(x - d, y) + Read(x + d, y) : Read(x, y - d) + Read(x, y + d)) / 2 - Read(x, y);
@@ -65,7 +65,11 @@ public static class GridLocator
         {
             if (evaluations >= MaxEvaluations || !t.IsValid || Math.Abs(t.X - start.X) > range + .001 ||
                 Math.Abs(t.Y - start.Y) > range + .001 || Math.Abs(t.Scale / start.Scale - 1) > ScaleRange + .000001) return;
-            var score = Score(t).Score; evaluations++;
+            var measured = Score(t); evaluations++;
+            // Missing image support is not a low score: exclude it from both the
+            // candidate pool and the confidence distribution.
+            if (measured is null) return;
+            var score = measured.Value.Score;
             if (coarse) { total += score; squared += score * score; coarseCount++; }
             pool.Add(new(t, score));
             if (pool.Count > 16) { pool.Sort((a, b) => b.Score.CompareTo(a.Score)); pool.RemoveRange(8, pool.Count - 8); }
@@ -75,6 +79,7 @@ public static class GridLocator
         for (var x = -10; x <= 10; x++)
         for (var y = -10; y <= 10; y++)
             Evaluate(new(start.Scale * (1 + s * .005), start.X + range * x / 10, start.Y + range * y / 10), true);
+        if (coarseCount == 0) return new(null, 0, "Grid lies outside the captured area", evaluations);
         foreach (var level in new[] { (Scale: .001, Shift: range / 50), (Scale: .0002, Shift: .15) })
         {
             var seeds = pool.OrderByDescending(c => c.Score).Take(8).ToArray();
@@ -88,8 +93,8 @@ public static class GridLocator
         var best = pool.MaxBy(c => c.Score);
         var mean = total / coarseCount; var deviation = Math.Sqrt(Math.Max(1, squared / coarseCount - mean * mean));
         var confidence = (best.Score - mean) / deviation;
-        if (best.Score < 8 || Score(best.Transform).Coverage < .75 || confidence < 2.5)
-            return new(null, confidence, "Grid confidence too low; use manual calibration", evaluations);
+        if (best.Score < 8 || Score(best.Transform)!.Value.Coverage < .75 || confidence < 2.5)
+            return new(null, confidence, "Grid confidence too low", evaluations);
         // Share the finite, positive uniform-transform consistency rules with manual calibration.
         var a = Geometry.Center(layout, layout.Cells[0]); var b = Geometry.Center(layout, layout.Cells[^1]);
         try { return new(Geometry.Calibrate(a, b, best.Transform.Apply(a), best.Transform.Apply(b)), confidence, "Grid located", evaluations); }

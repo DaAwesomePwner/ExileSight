@@ -42,7 +42,7 @@ public sealed partial class StashView
         try
         {
             var start = saved ?? Geometry.Fit(selected.ReferenceResolution, resolution);
-            var area = GridCapture.Bounds(selected, resolution, start);
+            var area = GridSampling.Bounds(selected, resolution, start);
             var menu = Position(initial.ClientRect, host.EffectiveScale);
             if (RecognitionRegion.Intersects(new(area.X, area.Y, area.Width, area.Height),
                 new(menu.X - initial.ClientRect.X, menu.Y - initial.ClientRect.Y, menu.Width, menu.Height)))
@@ -63,11 +63,10 @@ public sealed partial class StashView
             SetStatus("Locating grid…");
             var result = await Task.Run(() => GridLocator.Locate(selected, resolution, start, sample));
             if (!Current()) return;
-            if (result.Transform is null) { SetStatus(result.Reason + " — try two empty cells"); return; }
+            if (result.Transform is null) { SetStatus(result.Reason + "; use manual calibration"); return; }
             calibrationStore.Save(selected, resolution, result.Transform);
             Refresh();
-            SetStatus("Auto-calibration saved for this page and resolution");
-            TeachPage(explicitTeach: false);
+            TeachPage(explicitTeach: false, successMessage: "Auto-calibrated and remembered this page");
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
         { if (Current()) SetStatus("Auto-calibration unavailable; use manual calibration"); }
