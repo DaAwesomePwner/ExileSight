@@ -11,6 +11,25 @@ namespace ExileSight.Platform.Windows.Tests.Input;
 public sealed class ClipboardRoundTripTests
 {
     [WindowsOnlyFact]
+    public void WarmWorkerReusesNativeRestoreWindowAndRestoresUserData()
+    {
+        var clipboard = new WindowsClipboard();
+        var original = clipboard.Save();
+        using var worker = ClipboardWorker.Initialize();
+        var owner = ClipboardWorker.Owner;
+        Assert.NotNull(owner);
+        try
+        {
+            clipboard.SetText("first operation");
+            Assert.Same(owner, ClipboardWorker.Owner);
+            Assert.Equal("first operation", clipboard.GetText());
+            clipboard.SetText("second operation");
+            Assert.Same(owner, ClipboardWorker.Owner);
+            Assert.Equal("second operation", clipboard.GetText());
+        }
+        finally { clipboard.Restore(original); }
+    }
+    [WindowsOnlyFact]
     public void BinaryAndUnicodeFormatsSurviveAnActionPayload()
     {
         var clipboard = new WindowsClipboard();

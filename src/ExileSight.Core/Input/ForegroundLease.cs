@@ -7,6 +7,11 @@ internal sealed class ForegroundLease
     private Snapshot current = new(0, false, long.MinValue);
     internal void Publish(nint handle, bool focused, long timestamp) =>
         Volatile.Write(ref current, new(handle, focused, timestamp));
+    internal long Age(long now)
+    {
+        var timestamp = Volatile.Read(ref current).Timestamp;
+        return timestamp == long.MinValue ? -1 : now - timestamp;
+    }
     internal bool IsStale(long now)
     {
         var timestamp = Volatile.Read(ref current).Timestamp;

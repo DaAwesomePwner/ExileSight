@@ -30,6 +30,7 @@ public sealed class PressRouter(HotkeyDispatcher dispatcher, IClock clock, Func<
 
     public ActionResult Route(PhysicalPress press)
     {
+        InputTiming.Record(InputStage.PressQueueAge, clock.Milliseconds - press.Timestamp);
         try
         {
             if (press.Origin is { } original)

@@ -50,7 +50,9 @@ public sealed class InputDiagnostics(IActionGate gate, IClock clock, HotkeyConfi
                 new("Clipboard preservation", "Duplicated HGLOBAL formats; unsupported formats reported"),
                 new("Clipboard formats preserved", preserved.ToString()),
                 new("Clipboard formats skipped", skipped.ToString()),
-                new("Paste consumption", pasteStatus)
+                new("Paste consumption", pasteStatus),
+                new("Recent input timings (ms)", string.Join("\n", InputTiming.Shared.Snapshot(16)
+                    .Select(e => $"{e.Timestamp}: {e.Stage} {e.Milliseconds} ms {e.Outcome}")))
             ];
     }
 }

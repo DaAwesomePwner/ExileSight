@@ -74,12 +74,12 @@ public sealed class PressReleaseTests
         Assert.Equal(0, calls);
     }
     [Fact]
-    public void PassThroughClearsReleaseTrackingWithoutChangingExistingBlockPolicy()
+    public void StaleLeaseStillCompletesClaimedRelease()
     {
         var dispatcher = Create(new());
-        dispatcher.Observe(Key(10000), true);
+        var down = dispatcher.Observe(Key(10000), true);
         var up = dispatcher.Observe(Key(10100, false), true, passThrough: true);
-        Assert.False(up.Block);
-        Assert.Null(up.Press);
+        Assert.True(up.Block);
+        Assert.Same(down.Press, up.Press!.Origin);
     }
 }
