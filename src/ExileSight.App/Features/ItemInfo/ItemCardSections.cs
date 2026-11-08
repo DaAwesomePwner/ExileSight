@@ -30,16 +30,19 @@ internal static class ItemCardSections
             (card.Name.UniqueName is null || card.Name.BaseType is null ? "" : $" · {card.Name.BaseType}");
         var sub = CardPrimitives.Text(subtitle, theme, "TextMuted", 11);
         sub.TextTrimming = TextTrimming.CharacterEllipsis;
-        panel.Children.Add(sub);
+        sub.Tag = "subtitle";
+        if (card.Unidentified && card.Defences.Any(d => d.Percentile is not null))
+            panel.Children.Add(SideBySide(sub, Defences(card, theme, false)));
+        else panel.Children.Add(sub);
         return panel;
     }
 
     internal static FrameworkElement Slots(ItemCard card, CardTheme theme)
     {
-        var panel = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
+        FrameworkElement left = new Border();
         if (card.Slots is { } slots)
         {
-            var row = new StackPanel { Orientation = Orientation.Horizontal, Height = 18 };
+            var row = new StackPanel { Orientation = Orientation.Horizontal, Height = 18, Tag = "slot-pips" };
             void Pips(string label, ItemCardPips pips)
             {
                 row.Children.Add(CardPrimitives.Text(label + " ", theme, "TextSecondary", 11));
@@ -54,15 +57,50 @@ internal static class ItemCardSections
             Pips("P", slots.Prefixes); Pips("S", slots.Suffixes);
             if (slots.Prefixes.Open is int p && slots.Suffixes.Open is int s && p + s > 0)
                 row.Children.Add(CardPrimitives.Text($"{p + s} open", theme, "OverlayAccent", 11));
-            panel.Children.Add(row);
+            left = row;
         }
+        var panel = SideBySide(left, Defences(card, theme, true));
+        panel.Margin = new Thickness(0, 6, 0, 0);
+        return panel;
+    }
+
+    private static Grid SideBySide(FrameworkElement left, FrameworkElement right)
+    {
+        var row = new Grid();
+        row.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
+        row.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+        left.Margin = new Thickness(0, 0, 8, 0);
+        left.VerticalAlignment = VerticalAlignment.Top;
+        left.ClipToBounds = true;
+        right.HorizontalAlignment = HorizontalAlignment.Right;
+        right.VerticalAlignment = VerticalAlignment.Top;
+        Grid.SetColumn(right, 1);
+        row.Children.Add(left); row.Children.Add(right);
+        return row;
+    }
+
+    private static FrameworkElement Defences(ItemCard card, CardTheme theme, bool showBar)
+    {
+        var panel = new StackPanel { Tag = "base-percentiles", MaxWidth = 130 };
         foreach (var defence in card.Defences.Where(d => d.Percentile is not null))
         {
-            var row = new StackPanel { Orientation = Orientation.Horizontal, Height = 18 };
-            row.Children.Add(CardPrimitives.Text((defence.Name == "Energy Shield" ? "ES" : defence.Name) + " base  ", theme, "TextMuted", 11));
-            row.Children.Add(CardPrimitives.RollBar(new((double)defence.Percentile!.Value / 100, CardTone.High), theme));
-            row.Children.Add(CardPrimitives.Text("  " + Ordinal(defence.Percentile.Value),
-                theme, "TextSecondary", 11, true));
+            var row = new Grid { Height = 18 };
+            if (showBar) row.Width = 130;
+            row.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
+            row.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+            row.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+            var label = CardPrimitives.Text((defence.Name == "Energy Shield" ? "ES" : defence.Name) + " base", theme, "TextMuted", 11);
+            label.TextTrimming = TextTrimming.CharacterEllipsis;
+            label.Margin = new Thickness(0, 0, 4, 0);
+            row.Children.Add(label);
+            if (showBar)
+            {
+                var bar = CardPrimitives.RollBar(new((double)defence.Percentile!.Value / 100, CardTone.High), theme);
+                Grid.SetColumn(bar, 1); row.Children.Add(bar);
+            }
+            var number = CardPrimitives.Text(Ordinal(defence.Percentile!.Value), theme, "TextSecondary", 11, true);
+            number.Margin = new Thickness(4, 0, 0, 0);
+            Grid.SetColumn(number, 2); row.Children.Add(number);
             panel.Children.Add(row);
         }
         return panel;

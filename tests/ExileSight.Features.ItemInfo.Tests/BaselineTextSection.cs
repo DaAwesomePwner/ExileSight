@@ -1,15 +1,10 @@
 // Frozen 86cd546 baseline for cold-process latency comparison only.
-using ExileSight.Core.Features;
 using ExileSight.Core.Items;
 
 namespace ExileSight.Features.ItemInfo.Tests;
 
-public sealed class BaselineTextSection(Func<string?>? status = null) : ITooltipSectionProvider
+public static class BaselineTextSection
 {
-    public int Priority => 100;
-    public TooltipSection? Build(ParsedItem item) => null;
-    public TooltipSection? Build(TooltipContext context) => context.Analysis is ItemInfoResult result
-        ? Render(result, status?.Invoke()) : null;
     public static TooltipSection Render(ItemInfoResult result, string? status = null)
     {
         var rows = new List<TooltipRow>();
@@ -33,3 +28,9 @@ public sealed class BaselineTextSection(Func<string?>? status = null) : ITooltip
     }
     private static TooltipTone Tone(InfoColor color) => Enum.Parse<TooltipTone>(color.ToString());
 }
+
+// Retain only the old renderer's value types for the frozen latency baseline.
+public enum TooltipTone { Normal, Unknown, Low, Medium, High, Best, Crafted, Unique }
+public sealed record TooltipText(string Text, TooltipTone Tone = TooltipTone.Normal);
+public sealed record TooltipRow(IReadOnlyList<TooltipText> Text);
+public sealed record TooltipSection(string Id, string Title, IReadOnlyList<TooltipRow> Rows);

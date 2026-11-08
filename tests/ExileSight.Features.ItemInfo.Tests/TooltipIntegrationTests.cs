@@ -58,6 +58,7 @@ public sealed class TooltipIntegrationTests
         Assert.Equal(1, reads);
         var card = Assert.IsType<ItemCard>(feature.ViewModel.Card);
         Assert.NotEmpty(card.Rows);
+        Assert.All(card.Rows, row => Assert.Null(row.RequiredLevel));
         Assert.Equal("Comparison", card.Compare!.Note);
         Assert.Contains(card.Rows, row => row.LevelKind == CardLevelKind.Unknown);
         feature.ViewModel.Close();

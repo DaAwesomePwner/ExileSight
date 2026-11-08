@@ -53,6 +53,7 @@ public sealed class ItemCardSnapshotTests
             var view = ItemCardView.Build(model, theme, cap);
             height = (int)Math.Ceiling(Measure(view));
             Assert.True(height <= Math.Ceiling(cap));
+            view.Arrange(new Rect(0, 0, 300, height));
             var elements = Descendants(view).ToArray();
             var texts = elements.OfType<TextBlock>().ToArray();
             Assert.All(texts, text => Assert.NotSame(theme.TooltipUnknown, text.Foreground));
@@ -67,7 +68,27 @@ public sealed class ItemCardSnapshotTests
             {
                 var more = Assert.Single(texts, t => t.Text.EndsWith(" more mods", StringComparison.Ordinal));
                 var omitted = int.Parse(more.Text.Split(' ')[0].AsSpan(1));
-                Assert.Equal(model.Rows.Count - omitted, texts.Count(t => model.Rows.Any(r => r.Label == t.Text)));
+                var visible = model.Rows.Count - omitted;
+                Assert.InRange(visible, 1, model.Rows.Count - 1);
+                Assert.Equal(visible, texts.Count(t => model.Rows.Any(r => r.Label == t.Text)));
+                var prefix = model with { Compare = null, Slots = null, Defences = [], Rows = model.Rows.Take(visible).ToArray() };
+                Assert.True(Measure(ItemCardView.Build(prefix, theme)) + more.DesiredSize.Height <= cap);
+                var oneMore = prefix with { Rows = model.Rows.Take(visible + 1).ToArray() };
+                Assert.True(Measure(ItemCardView.Build(oneMore, theme)) + more.DesiredSize.Height > cap);
+            }
+            if (state is "rare" or "compact" or "high-contrast" or "plain" or "unidentified")
+            {
+                var left = Assert.Single(elements, e => Equals(e.Tag, state == "unidentified" ? "subtitle" : "slot-pips"));
+                var basis = Assert.Single(elements, e => Equals(e.Tag, "base-percentiles"));
+                var leftOrigin = left.TranslatePoint(new Point(), view);
+                var baseOrigin = basis.TranslatePoint(new Point(), view);
+                Assert.True(leftOrigin.X + left.ActualWidth <= baseOrigin.X - 7.9);
+                Assert.Equal(287, baseOrigin.X + basis.ActualWidth, 1);
+                Assert.Equal(leftOrigin.Y, baseOrigin.Y, 1);
+                if (left is Panel pips)
+                    foreach (var child in pips.Children.OfType<FrameworkElement>())
+                        Assert.True(child.TranslatePoint(new Point(), pips).X + child.ActualWidth <= pips.ActualWidth);
+                if (state == "unidentified") Assert.DoesNotContain(elements, e => Equals(e.Tag, "slots"));
             }
             if (state == "unique")
             {

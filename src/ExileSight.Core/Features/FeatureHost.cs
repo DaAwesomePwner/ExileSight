@@ -12,7 +12,6 @@ public sealed partial class FeatureHost
     private readonly List<IFeatureCommandHandler> commands = [];
     private readonly List<IItemMenuProvider> itemMenus = [];
     private readonly List<IItemCardComparisonProvider> cardComparisons = [];
-    private readonly List<ITooltipSectionProvider> tooltipSections = [];
     private readonly List<FeatureDefaultBinding> defaults = [];
     private readonly List<(string Owner, IOmniHandler Handler)> omni = [];
     private readonly Action<Action> post;
@@ -153,9 +152,6 @@ public sealed partial class FeatureHost
         public IReadOnlyList<IItemCardComparisonProvider> ItemCardComparisons => host.cardComparisons.AsReadOnly();
         public void RegisterItemCardComparison(IItemCardComparisonProvider provider)
         { Registering(); ArgumentNullException.ThrowIfNull(provider); host.cardComparisons.Add(provider); }
-        public IReadOnlyList<ITooltipSectionProvider> TooltipSections => host.tooltipSections.AsReadOnly();
-        public void RegisterTooltipSection(ITooltipSectionProvider provider)
-        { Registering(); host.tooltipSections.Add(provider); }
         public IReadOnlyList<IItemMenuProvider> ItemMenus => host.itemMenus.AsReadOnly();
         public void RegisterItemMenu(IItemMenuProvider provider)
         { Registering(); ArgumentNullException.ThrowIfNull(provider); host.itemMenus.Add(new OwnedItemMenuProvider(manifest.Id, provider)); }

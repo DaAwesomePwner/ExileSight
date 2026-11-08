@@ -94,9 +94,6 @@ public sealed class ProfileTests
         public JsonElement? ReadSetting(string key) => Value;
         public void WriteSetting(string key, JsonElement value) => Value = value;
         public void RegisterOmniHandler(IOmniHandler handler) => Handler = handler;
-        private readonly List<ITooltipSectionProvider> sections = [];
-        public IReadOnlyList<ITooltipSectionProvider> TooltipSections => sections;
-        public void RegisterTooltipSection(ITooltipSectionProvider provider) => sections.Add(provider);
         public void RegisterOverlay(object viewModel) => Overlay = viewModel;
         public void Subscribe<T>(Action<T> handler) where T : LogEvent => throw new NotSupportedException();
         public ActionResult Execute(IntentToken? token, GameAction action) => throw new NotSupportedException();

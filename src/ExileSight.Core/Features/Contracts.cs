@@ -45,8 +45,6 @@ public interface IFeatureContext
     void RegisterOverlay(object viewModel);
     void RegisterItemCardComparison(IItemCardComparisonProvider provider) => throw new NotSupportedException();
     IReadOnlyList<IItemCardComparisonProvider> ItemCardComparisons => [];
-    void RegisterTooltipSection(ITooltipSectionProvider provider) => throw new NotSupportedException();
-    IReadOnlyList<ITooltipSectionProvider> TooltipSections => [];
     void RegisterItemMenu(IItemMenuProvider provider) => throw new NotSupportedException();
     IReadOnlyList<IItemMenuProvider> ItemMenus => [];
     JsonElement? ReadSetting(string key);

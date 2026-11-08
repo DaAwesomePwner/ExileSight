@@ -6,18 +6,23 @@ namespace ExileSight.Core.Tests.Features;
 
 public sealed class TooltipTests
 {
-    private sealed class Section(int priority, string? id) : ITooltipSectionProvider
+    private sealed class Comparison(string? slot) : IItemCardComparisonProvider
     {
-        public int Priority => priority;
-        public TooltipSection? Build(ParsedItem item) => id is null ? null : new(id, id, []);
+        public ItemCardComparison? BuildComparison(ParsedItem item) => slot is null ? null :
+            new([new(slot, true, [])], slot);
     }
+
     [Fact]
-    public void SectionsAreStableAndInapplicableSectionsAreOmitted()
+    public void CardComparisonsKeepRegistrationOrderAndOmitNull()
     {
-        var result = TooltipSections.Build(new ParsedItem(),
-            [new Section(200, "gear"), new Section(100, "item"), new Section(100, "second"), new Section(0, null)]);
-        Assert.Equal(["item", "second", "gear"], result.Select(s => s.Id));
+        var result = ItemCardComparisons.Build(new ParsedItem(),
+            [new Comparison("left"), new Comparison(null), new Comparison("right")]);
+        Assert.NotNull(result);
+        Assert.Equal(["left", "right"], result.Slots.Select(slot => slot.Slot));
+        Assert.Equal("left · right", result.Note);
+        Assert.Null(ItemCardComparisons.Build(new ParsedItem(), [new Comparison(null)]));
     }
+
     [Theory]
     [InlineData(30, 0, 1, false)]
     [InlineData(31, 0, 1, true)]
