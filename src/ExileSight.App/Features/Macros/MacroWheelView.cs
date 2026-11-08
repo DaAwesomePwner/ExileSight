@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
-using System.Windows.Media;
+using ExileSight.App.Ui;
 using ExileSight.App.Overlay;
 using ExileSight.App.Input;
 using ExileSight.Core.Features;
@@ -26,7 +26,9 @@ public sealed class MacroWheelView : Canvas
     private readonly PassiveOverlayInput passive;
     private readonly IGameWindow game;
     private readonly ILogger<MacroWheelView> logger;
-    private readonly Button[] slots = new Button[8];
+    private Button[] slots = [];
+    private readonly Action<Button, int> wireSlot;
+    private readonly Action editCommands;
     private HostedOverlayWindow? window;
     private long presentedVersion;
     private WheelOrigin origin = new(0, 0);
@@ -44,14 +46,8 @@ public sealed class MacroWheelView : Canvas
         passive = services.GetRequiredService<PassiveOverlayInput>();
         game = services.GetRequiredService<IGameWindow>();
         logger = services.GetRequiredService<ILogger<MacroWheelView>>();
-        Background = Brushes.Black;
-        for (var i = 0; i < 8; i++)
+        wireSlot = (button, slot) =>
         {
-            var slot = i;
-            var button = slots[i] = new Button { Width = 96, Height = 46, Focusable = false };
-            var angle = i * Math.PI / 4 - Math.PI / 2;
-            SetLeft(button, 152 + Math.Cos(angle) * 142);
-            SetTop(button, 127 + Math.Sin(angle) * 116);
             button.PreviewMouseLeftButtonUp += (_, e) =>
             {
                 if (!model.IsCurrent(presentedVersion) || !button.IsMouseOver || !button.IsEnabled || window is null) return;
@@ -66,12 +62,8 @@ public sealed class MacroWheelView : Canvas
                 });
                 else Report(slot, new(ActionOutcome.MissingToken, "Overlay click did not match a physical gesture"));
             };
-            Children.Add(button);
-
-        }
-        var edit = new Button { Content = "Edit commands", Width = 108, Focusable = false };
-        SetLeft(edit, 146); SetTop(edit, 135); Children.Add(edit);
-        edit.Click += (_, _) =>
+        };
+        editCommands = () =>
         {
             Dismiss();
             var features = services.GetRequiredService<FeatureHost>();
@@ -107,13 +99,12 @@ public sealed class MacroWheelView : Canvas
         if (!state.Found || !state.IsForeground || state.IsMinimized) { model.Reset(); return; }
         presentedVersion = id;
         origin = captured;
-        for (var i = 0; i < 8; i++)
-        {
-            slots[i].Content = new TextBlock { Text = commands[i].Length == 0 ? "Empty" : commands[i],
-                TextTrimming = TextTrimming.CharacterEllipsis, TextWrapping = TextWrapping.Wrap };
-            slots[i].ToolTip = commands[i];
-            slots[i].IsEnabled = !string.IsNullOrWhiteSpace(commands[i]);
-        }
+        Children.Clear();
+        var content = MacroWheelBuilder.Build(new(commands), CardTheme.Default);
+        Children.Add(content);
+        slots = OnDemandControls.Buttons(content).Where(b => b.Tag is int).ToArray();
+        foreach (var button in slots) wireSlot(button, (int)button.Tag);
+        OnDemandControls.Buttons(content).Single(b => b.Tag is string).Click += (_, _) => editCommands();
         host.SetVisible(window, true);
         if (!window.IsVisible) model.Reset();
     }));
@@ -130,10 +121,20 @@ public sealed class MacroWheelView : Canvas
     private void Observed(PassiveInput input)
     {
         if (window?.IsVisible != true) return;
-        var origin = PointToScreen(new Point());
-        var end = PointToScreen(new Point(ActualWidth, ActualHeight));
-        var inside = input.X >= origin.X && input.X < end.X && input.Y >= origin.Y && input.Y < end.Y;
-        if (input.Message == 0x100 || (!inside && input.Message is 0x201 or 0x204 or 0x207 or 0x20b))
-            Guard(Dismiss);
+        Guard(() =>
+        {
+            if (input.Message == 0x200)
+            {
+                var point = PointFromScreen(new Point(input.X, input.Y));
+                var selected = MacroWheelBuilder.Direction(point);
+                foreach (var button in slots)
+                    MacroWheelBuilder.Highlight(button, (int)button.Tag == selected, CardTheme.Default);
+            }
+            var origin = PointToScreen(new Point());
+            var end = PointToScreen(new Point(ActualWidth, ActualHeight));
+            var inside = input.X >= origin.X && input.X < end.X && input.Y >= origin.Y && input.Y < end.Y;
+            if (input.Message == 0x100 || (!inside && input.Message is 0x201 or 0x204 or 0x207 or 0x20b))
+                Dismiss();
+        });
     }
 }
