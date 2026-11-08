@@ -114,7 +114,7 @@ menu also provides price profiles, **Highlight**, **Auto-calibrate**, and manual
 calibration. Failed Auto-calibrate attempts retain the last good calibration and the loaded page’s tags; only the status changes. Foreground loss and page changes still hide tags normally. Its page list follows automatic recognition. For a manual override,
 select a page and click **Load selected tab**. This pins the page even with automatic
 prices enabled, until the header changes or the stash closes; automatic mode then
-resumes. The status shows the automatic page, score and margin for reporting issues. Closing
+resumes. Currency pages are distinguished by the highlighted sub-tab button, without teaching. An ambiguous highlight is not accepted as a currency page. The status shows the automatic page, score and margin for reporting issues. Closing
 the menu does not stop the automatic watch.
 
 Supported pages: Currency General, Atlas and League; Fragment General; Delve,

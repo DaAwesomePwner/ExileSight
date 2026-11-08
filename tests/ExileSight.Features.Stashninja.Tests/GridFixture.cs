@@ -2,6 +2,7 @@ namespace ExileSight.Features.Stashninja.Tests;
 
 internal static class GridFixture
 {
+    public static CurrencyButtons Buttons => CurrencyButtons.Load(Path.Combine(AppContext.BaseDirectory, "layouts", "recognition.json"));
     public static Layout Layout => new("synthetic", "grid", new(1000, 600),
         Enumerable.Range(0, 30).Select(i => new Cell($"c{i}", 90 + i % 6 * 49,
             110 + i / 6 * 53, 34, 38, "Currency", ItemName: "fixture")).ToArray(),
@@ -45,7 +46,7 @@ internal static class GridFixture
                 var near = GridEvidence.Near(layout) * transform.Scale;
                 var far = GridEvidence.Far(layout) * transform.Scale;
                 var distance = Math.Min(Math.Min(Math.Abs(dx - near), Math.Abs(dx - b.W + far)),
-                    Math.Min(Math.Abs(dy - near), Math.Abs(dy - b.H + far)));
+                    Math.Min(Math.Abs(dy - GridEvidence.Near(layout, false) * transform.Scale), Math.Abs(dy - b.H + GridEvidence.Far(layout, false) * transform.Scale)));
                 value = .12 - .10 * Math.Max(0, 1 - distance / (1.5 * transform.Scale));
                 var border = Math.Min(Math.Min(Math.Abs(dx), Math.Abs(dx - b.W)), Math.Min(Math.Abs(dy), Math.Abs(dy - b.H)));
                 value += .02 * Math.Max(0, 1 - border / transform.Scale);
@@ -57,6 +58,21 @@ internal static class GridFixture
             var v = (byte)Math.Clamp(255 * brightness * Math.Pow(Math.Max(.001, value + random.Next(-2, 3) / 1000d), gamma), 0, 255);
             var p = (y * size.Width + x) * 4;
             pixels[p] = pixels[p + 1] = pixels[p + 2] = v; pixels[p + 3] = 255;
+        }
+        if (grid && layout.TabId == "currency")
+        {
+            var fit = Geometry.Fit(layout.ReferenceResolution, size);
+            foreach (var (page, b) in Buttons.Buttons)
+            {
+                var p = fit.Apply(new(b.X, b.Y));
+                for (var y = (int)p.Y; y < p.Y + b.Height * fit.Scale && y < size.Height; y++)
+                for (var x = (int)p.X; x < p.X + b.Width * fit.Scale && x < size.Width; x++)
+                {
+                    var v = (byte)(page == layout.Page ? 75 : 30);
+                    var index = (y * size.Width + x) * 4;
+                    pixels[index] = pixels[index + 1] = pixels[index + 2] = v;
+                }
+            }
         }
         return pixels;
     }

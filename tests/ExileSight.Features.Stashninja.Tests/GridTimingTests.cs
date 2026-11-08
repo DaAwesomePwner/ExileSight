@@ -1,0 +1,42 @@
+using System.Diagnostics;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace ExileSight.Features.Stashninja.Tests;
+
+[CollectionDefinition("Grid timing", DisableParallelization = true)]
+public sealed class GridTimingCollection;
+
+[Collection("Grid timing")]
+public sealed class GridTimingTests(ITestOutputHelper output)
+{
+    [Fact]
+    public void ReleaseLocalAndWideSearchMeetBudgets()
+    {
+        var layouts = Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts"));
+        var page = layouts.Single(l => l.TabId == "currency" && l.Page == "general");
+        var size = new Resolution(3440, 1440);
+        var fit = Geometry.Fit(page.ReferenceResolution, size);
+        var sample = new GridSample(0, 0, size.Width, size.Height, GridFixture.Render(page, size, fit, 1, 1));
+        var buttons = GridFixture.Buttons;
+        GridIdentification Local() => GridIdentifier.Identify(layouts, size, sample, _ => null,
+            reserveWideSearch: _ => new HashSet<Layout>(), buttons: buttons);
+        Local(); GridLocator.Locate(page, size, fit, sample); // JIT warm-up outside timings.
+        var watch = Stopwatch.StartNew();
+        var result = Local();
+        var localMs = watch.Elapsed.TotalMilliseconds;
+        Assert.Equal(page, result.Layout);
+        Assert.Equal(0, result.BroadSearches);
+        Assert.InRange(result.Evaluations, 1, layouts.Length * 559);
+        watch.Restart();
+        var wide = GridLocator.Locate(page, size, fit, sample);
+        var wideMs = watch.Elapsed.TotalMilliseconds;
+        Assert.NotNull(wide.Transform);
+        Assert.InRange(wide.Evaluations, 1, GridLocator.MaxEvaluations);
+        output.WriteLine($"Local all-eight: {localMs:F1} ms; wide: {wideMs:F1} ms; capture excluded");
+#if !DEBUG
+        Assert.InRange(localMs, 0, 150);
+        Assert.InRange(wideMs, 0, 600);
+#endif
+    }
+}

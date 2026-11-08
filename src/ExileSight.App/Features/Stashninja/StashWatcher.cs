@@ -57,7 +57,7 @@ public sealed partial class StashView
                 { RejectPage(now, step.Changed, header); return; }
             }
             var areas = model.Layouts.Select(l => GridSampling.Bounds(l, resolution, starts[l])).ToArray();
-            var x = areas.Min(a => a.X); var y = areas.Min(a => a.Y);
+            var x = areas.Min(a => a.X); var y = Math.Min(areas.Min(a => a.Y), (int)(94 * resolution.Height / 837d));
             var area = new GridArea(x, y, areas.Max(a => a.X + a.Width) - x, areas.Max(a => a.Y + a.Height) - y);
             var menu = Position(initial.ClientRect, host.EffectiveScale);
             if (window?.IsVisible == true && RecognitionRegion.Intersects(new(area.X, area.Y, area.Width, area.Height),
@@ -76,7 +76,7 @@ public sealed partial class StashView
                 if (!Current()) return;
                 var result = sample is null ? null : await Task.Run(() =>
                     GridIdentifier.Identify(model.Layouts, resolution, sample, l => saved[l], precheck,
-                        candidates => wideSearchBudget.Reserve(now, baselineHeader, candidates)));
+                        candidates => wideSearchBudget.Reserve(now, baselineHeader, candidates), currencyButtons));
                 if (!Current()) return;
                 if (result?.Layout is not { } identified || result.Transform is null || baselineHeader is null ||
                     (region!.SubTabs.ContainsKey(identified.TabId) && baselineSub[identified.TabId] is null))

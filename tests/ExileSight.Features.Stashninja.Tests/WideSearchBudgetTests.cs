@@ -27,7 +27,7 @@ public sealed class WideSearchBudgetTests
             var now = DateTimeOffset.UnixEpoch.AddMilliseconds(i * 450);
             if (policy.Tick(now, Header(0), null).Work != WatchWork.Precheck) continue;
             var result = GridIdentifier.Identify(layouts, size, new(0, 0, size.Width, size.Height, pixels),
-                _ => null, precheck, candidates => budget.Reserve(now, Header(0), candidates));
+                _ => null, precheck, candidates => budget.Reserve(now, Header(0), candidates), buttons: GridFixture.Buttons);
             Assert.Null(result.Layout);
             if (result.BroadSearches > 0) batches++;
             searches += result.BroadSearches;

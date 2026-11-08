@@ -32,8 +32,8 @@ public static class GridLocator
             {
                 probes.Add(new(p.X + GridEvidence.Near(layout), p.Y + cell.H * j / 4, true));
                 probes.Add(new(p.X + cell.W - GridEvidence.Far(layout), p.Y + cell.H * j / 4, true));
-                probes.Add(new(p.X + cell.W * j / 4, p.Y + GridEvidence.Near(layout), false));
-                probes.Add(new(p.X + cell.W * j / 4, p.Y + cell.H - GridEvidence.Far(layout), false));
+                probes.Add(new(p.X + cell.W * j / 4, p.Y + GridEvidence.Near(layout, false), false));
+                probes.Add(new(p.X + cell.W * j / 4, p.Y + cell.H - GridEvidence.Far(layout, false), false));
             }
         }
         var points = probes.ToArray(); var evaluations = 0;
@@ -49,24 +49,38 @@ public static class GridLocator
         }
         (double Score, double Coverage)? Score(Transform t, bool confirm = false)
         {
-            var cells = new double[count]; var supported = 0;
-            for (var i = 0; i < points.Length; i++)
+            Span<double> cells = stackalloc double[count]; cells.Clear(); var supported = 0;
+            for (var cellIndex = 0; cellIndex < count; cellIndex++)
+            for (var axis = 0; axis < 2; axis++)
             {
-                var p = points[i];
-                var x = p.X * t.Scale + t.X - sample.X; var y = p.Y * t.Scale + t.Y - sample.Y;
-                var extent = 8 * start.Scale;
-                if (x < extent || y < extent || x >= sample.Width - extent - 1 || y >= sample.Height - extent - 1) return null;
-                cells[i / 12] += Read(p.Vertical ? vertical : horizontal, x, y) / 12;
+                double best = double.NegativeInfinity;
+                for (var shift = confirm ? 0 : -2; shift <= (confirm ? 0 : 2); shift++)
+                {
+                    double sum = 0;
+                    for (var j = 0; j < 3; j++)
+                    for (var side = 0; side < 2; side++)
+                    {
+                        var p = points[cellIndex * 12 + j * 4 + axis * 2 + side];
+                        var x = p.X * t.Scale + t.X - sample.X + (axis == 0 ? shift * t.Scale : 0);
+                        var y = p.Y * t.Scale + t.Y - sample.Y + (axis == 1 ? shift * t.Scale : 0);
+                        var extent = Math.Max(2, Math.Round(3 * start.Scale)) + Math.Max(1, Math.Round(start.Scale));
+                        if (x < extent || y < extent || x >= sample.Width - extent - 1 || y >= sample.Height - extent - 1) { sum = double.NegativeInfinity; break; }
+                        sum += Math.Max(-30, Read(axis == 0 ? vertical : horizontal, x, y));
+                    }
+                    best = Math.Max(best, sum / 6 - 3 * Math.Abs(shift));
+                }
+                if (!double.IsFinite(best)) return null;
+                cells[cellIndex] += best / 2;
             }
             foreach (var cell in cells) if (cell > 6) supported++;
-            Array.Sort(cells);
+            cells.Sort();
             // Discard the strongest quarter: isolated artwork cannot carry a page.
             var kept = Math.Max(1, count - count / 4);
-            var mean = cells.Average();
-            var uncertainty = 1.5 * Math.Sqrt(cells.Average(c => (c - mean) * (c - mean)) / count);
-            return (cells.Take(kept).Average() - uncertainty, (double)supported / count);
+            double trimmed = 0; for (var i = 0; i < kept; i++) trimmed += cells[i];
+            return (trimmed / kept, (double)supported / count);
         }
         var range = local ? 3d : client.Height * TranslationRange;
+        var strictBest = new Candidate(start, double.NegativeInfinity);
         var pool = new List<Candidate>(); double total = 0, squared = 0; var coarseCount = 0;
         void Evaluate(Transform t, bool coarse)
         {
@@ -77,6 +91,8 @@ public static class GridLocator
             // candidate pool and the confidence distribution.
             if (measured is null) return;
             var score = measured.Value.Score;
+            var strictScore = Score(t, true)?.Score ?? double.NegativeInfinity;
+            if (strictScore > strictBest.Score) strictBest = new(t, strictScore);
             if (coarse) { total += score; squared += score * score; coarseCount++; }
             pool.Add(new(t, score));
             if (pool.Count > 16) { pool.Sort((a, b) => b.Score.CompareTo(a.Score)); pool.RemoveRange(8, pool.Count - 8); }
@@ -92,7 +108,7 @@ public static class GridLocator
             new[] { (Scale: .001, Shift: range / 50), (Scale: .0002, Shift: .15) };
         foreach (var level in levels)
         {
-            var seeds = pool.OrderByDescending(c => c.Score).Take(8).ToArray();
+            var seeds = pool.OrderByDescending(c => c.Score).Take(local ? 4 : 8).ToArray();
             var refinement = local ? 1 : 3;
             foreach (var seed in seeds)
             for (var s = -refinement; s <= refinement; s++)
@@ -101,11 +117,29 @@ public static class GridLocator
                 Evaluate(new(seed.Transform.Scale + start.Scale * s * level.Scale,
                     seed.Transform.X + x * level.Shift, seed.Transform.Y + y * level.Shift), false);
         }
-        var best = pool.MaxBy(c => c.Score);
+        var best = new Candidate(strictBest.Transform, Score(strictBest.Transform)!.Value.Score);
+        // Final joint fit has no per-cell offset freedom. Four 27-point steps
+        // retain the local 559-evaluation cap (343 + 108 + 108).
+        foreach (var step in new[] { (Shift: 1d, Scale: .003), (Shift: 1d, Scale: .001), (Shift: .3, Scale: .0002), (Shift: .1, Scale: .0001) })
+        {
+            var seed = best.Transform;
+            var strict = Score(seed, true)?.Score ?? double.NegativeInfinity;
+            for (var s = -1; s <= 1; s++)
+            for (var x = -1; x <= 1; x++)
+            for (var y = -1; y <= 1; y++)
+            {
+                var candidate = new Transform(seed.Scale + start.Scale * s * step.Scale, seed.X + x * step.Shift, seed.Y + y * step.Shift);
+                if (evaluations >= MaxEvaluations || Math.Abs(candidate.X - start.X) > range || Math.Abs(candidate.Y - start.Y) > range ||
+                    Math.Abs(candidate.Scale / start.Scale - 1) > (local ? .0032 : ScaleRange)) continue;
+                evaluations++;
+                var score = Score(candidate, true)?.Score ?? double.NegativeInfinity;
+                if (score > strict) { strict = score; best = new(candidate, Score(candidate)!.Value.Score); }
+            }
+        }
         var mean = total / coarseCount; var deviation = Math.Sqrt(Math.Max(1, squared / coarseCount - mean * mean));
         var confidence = (best.Score - mean) / deviation;
-        var verified = Score(best.Transform, confirm: true);
-        if (best.Score < 8 || Score(best.Transform)!.Value.Coverage < .65 || (!local && confidence < 2.5))
+        var verified = Score(best.Transform);
+        if ((local && (Math.Abs(best.Transform.X - start.X) >= range - .01 || Math.Abs(best.Transform.Y - start.Y) >= range - .01)) || best.Score < 20 || Score(best.Transform, true)!.Value.Score < 18 || Score(best.Transform)!.Value.Coverage < .65 || (!local && confidence < 2.5))
             return new(null, confidence, "Grid confidence too low", evaluations, verified?.Score ?? 0);
         // Share the finite, positive uniform-transform consistency rules with manual calibration.
         var a = Geometry.Center(layout, layout.Cells[0]); var b = Geometry.Center(layout, layout.Cells[^1]);

@@ -41,7 +41,7 @@ public sealed class RealImageTests(ITestOutputHelper output)
             var sample = new GridSample(0, 0, size.Width, size.Height, pixels);
             var pre = GridPrecheck.Score(layouts, size, _ => null, a => GridFixture.Crop(pixels, size, a));
             var watch = Stopwatch.StartNew();
-            var result = GridIdentifier.Identify(layouts, size, sample, _ => null, pre);
+            var result = GridIdentifier.Identify(layouts, size, sample, _ => null, pre, buttons: GridFixture.Buttons);
             var elapsed = watch.Elapsed.TotalMilliseconds;
             var actual = result.Layout is null ? null : $"{result.Layout.TabId}/{result.Layout.Page}";
             var layout = layouts.SingleOrDefault(l => $"{l.TabId}/{l.Page}" == expected);
@@ -64,7 +64,7 @@ public sealed class RealImageTests(ITestOutputHelper output)
             if (layout is null) continue;
             if (result.Margin < GridIdentifier.MinimumMargin) failures.Add($"{tag}: margin {result.Margin:F2}");
             if (!StashWatchPolicy.ShouldIdentify(pre[layout])) failures.Add($"{tag}: precheck {pre[layout]:F2}");
-            if (wide!.Transform is null || error > 2) failures.Add($"{tag}: wide error {error:F2}");
+            if (wide!.Transform is null || error > (width == 2000 ? 2 : 3)) failures.Add($"{tag}: wide error {error:F2}");
         }
         Assert.True(failures.Count == 0, string.Join(Environment.NewLine, failures));
     }

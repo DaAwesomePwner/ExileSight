@@ -16,6 +16,7 @@ public sealed partial class StashView
     private readonly CheckBox autoDetect = new() { Content = "Show stash prices automatically", Focusable = false,
         Foreground = System.Windows.Media.Brushes.White };
     private RecognitionRegion? region;
+    private CurrencyButtons? currencyButtons;
     private PageReferenceStore? references;
     private readonly RecognitionState recognition = new();
     private bool recognitionHidden { get => recognition.Hidden; set => recognition.Hidden = value; }
@@ -28,6 +29,7 @@ public sealed partial class StashView
         string? notice = null;
         try
         {
+            currencyButtons = CurrencyButtons.Load(Path.Combine(AppContext.BaseDirectory, "data", "stash-layouts", "poe1", "recognition.json"));
             region = RecognitionRegion.Load(Path.Combine(AppContext.BaseDirectory, "data", "stash-layouts", "poe1", "recognition.json"), model.Layouts);
             references = new(Path.Combine(services.GetRequiredService<IAppPaths>().GetGameDirectory("poe1"), "stashninja"), region.Fingerprint);
             notice = references.Notice;

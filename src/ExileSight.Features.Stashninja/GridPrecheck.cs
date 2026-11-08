@@ -24,7 +24,7 @@ public static class GridPrecheck
                 foreach (var vertical in new[] { true, false })
                 {
                     var p = start.Apply(new(origin.X + (vertical ? GridEvidence.Near(layout) : cell.W / 2),
-                        origin.Y + (vertical ? cell.H / 2 : GridEvidence.Near(layout))));
+                        origin.Y + (vertical ? cell.H / 2 : GridEvidence.Near(layout, false))));
                     var area = new GridArea((int)Math.Round(p.X) - 16, (int)Math.Round(p.Y) - 16, PatchSize, PatchSize);
                     if (area.X < 0 || area.Y < 0 || area.X + PatchSize > size.Width || area.Y + PatchSize > size.Height) continue;
                     var image = capture(area);
@@ -37,16 +37,18 @@ public static class GridPrecheck
                         return (image.Bgra[index] + 2 * image.Bgra[index + 1] + image.Bgra[index + 2]) / 4d;
                     }
                     double best = 0;
-                    for (var n = 4; n <= 28; n++)
+                    var flank = Math.Clamp((int)Math.Round(3 * start.Scale), 3, 8);
+                    for (var n = Math.Max(4, flank); n <= Math.Min(28, 32 - flank); n++)
                     {
-                        double sum = 0; var supported = 0;
+                        double left = 0, center = 0, right = 0; var supported = 0;
                         for (var t = 7; t <= 25; t++)
                         {
-                            var contrast = GridEvidence.Valley(Read(n - 3, t), Read(n, t), Read(n + 3, t));
-                            sum += contrast;
+                            var a = Read(n - flank, t); var b = Read(n, t); var c = Read(n + flank, t);
+                            var contrast = GridEvidence.Valley(a, b, c);
+                            left += a; center += b; right += c;
                             if (contrast > 8) supported++;
                         }
-                        if (supported >= 14) best = Math.Max(best, sum / 19);
+                        if (supported >= 17) best = Math.Max(best, GridEvidence.Valley(left / 19, center / 19, right / 19));
                     }
                     total += best;
                 }
