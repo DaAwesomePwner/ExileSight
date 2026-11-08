@@ -70,3 +70,24 @@ its rows; ready status is omitted. Each press calculates item info once and supp
 the result through TooltipContext.Analysis. Provider failures are logged and isolated.
 The app-owned ItemInfo/OverlayTheme.xaml extends the common OverlayTheme with tone
 brush resources. Dispatcher open and DPI callbacks close/release leases on failures.
+
+### Structured card (P7-T5)
+
+`ItemCardBuilder.Build(result, data, settings, comparison)` produces the passive,
+WPF-free card alongside the unchanged text sections. Pass the same validated
+settings and data adapter used for `ItemInfoCalculator.Calculate`. The App can
+supply `GearCardBuilder.Build`'s Core comparison contract without feature-to-feature
+references. P7-T11 owns rendering and height truncation.
+
+Rows preserve advanced-copy order; `GameLineStart` is zero-based in the parsed
+mod list and `GameLineCount` spans a whole advanced-header group. Labels combine
+ordered stat IDs from all its lines. Ambiguous stat signatures use the stripped
+text fallback. Hybrid roll position is the mean of its known line positions;
+unique average roll is the mean of known mod-row positions. Fixed unique lines
+are recognized only with advanced headers (plain copy cannot prove a fixed roll).
+A hybrid counts once in the verdict; if its lines conflict, Avoid takes precedence.
+
+`LevelKind` distinguishes blank/not-applicable from unknown. Null pip counts or
+maxima must draw unknown pips; `Open` never invents an open slot. Defence, slots,
+comparison and countable rows remain separate for view height handling. The four
+`Show*` settings default on, including when loading older profile JSON.

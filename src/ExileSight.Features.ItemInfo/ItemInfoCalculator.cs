@@ -46,7 +46,7 @@ public sealed class ItemInfoCalculator(IItemInfoData? data = null)
         }
         catch (OverflowException) { return null; }
     }
-    private static InfoColor RollColor(decimal? roll) => roll switch
+    internal static InfoColor RollColor(decimal? roll) => roll switch
     {
         null => InfoColor.Unknown, >= 100 => InfoColor.Best, >= 75 => InfoColor.High,
         >= 25 => InfoColor.Medium, _ => InfoColor.Low

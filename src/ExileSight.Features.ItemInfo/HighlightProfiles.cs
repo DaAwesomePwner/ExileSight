@@ -8,7 +8,9 @@ namespace ExileSight.Features.ItemInfo;
 // Rule precedence ported from Exile-UI modules/item-checker.ahk:43–75,2102–2126,2177–2193 (MIT).
 public sealed record HighlightRule(string Text, Highlight Match, string? ItemClass = null, bool Implicit = false, bool Enchant = false);
 public sealed record HighlightProfile(string Name, HighlightRule[] Rules);
-public sealed record ItemInfoSettings(HighlightProfile[] Profiles, int ActiveProfile = 0, string[]? InvertedLines = null)
+public sealed record ItemInfoSettings(HighlightProfile[] Profiles, int ActiveProfile = 0, string[]? InvertedLines = null,
+    bool ShowCompare = true, bool ShowDefenceBasePercentile = true,
+    bool ShowItemLevelColumn = true, bool ShowImplicits = true)
 {
     public static ItemInfoSettings Default => new([]);
     public ItemInfoSettings Validate()
