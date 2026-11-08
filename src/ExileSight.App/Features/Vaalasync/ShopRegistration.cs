@@ -27,8 +27,6 @@ public static class ShopRegistration
             SeedPrice = (item, effectiveLeague) => ListingPrices.FindAsync(prices, effectiveLeague, item),
             ReportFailure = diagnostic => services.GetRequiredService<ILogger<ShopModel>>().LogWarning("Shop diagnostic: {Diagnostic}", diagnostic)
         };
-        lifetime.ApplicationStopping.Register(() =>
-            model.StopAndFlushHistoryAsync(TimeSpan.FromSeconds(2)).GetAwaiter().GetResult());
         return new VaalasyncFeature(model);
     }
     private static ShopView? view;

@@ -6,8 +6,8 @@ public sealed partial class ShopModel
     private bool stoppingHistory;
     private TaskCompletionSource? sendFinished;
 
-    /// <summary>Called by ApplicationStopping before host disposal; never waits for network discovery.</summary>
-    public async Task StopAndFlushHistoryAsync(TimeSpan timeout)
+    /// <summary>Called by the hosted service before host disposal; never waits for network discovery.</summary>
+    public async Task StopAndFlushHistoryAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
     {
         Task activeSend;
         lock (sync)
@@ -17,7 +17,7 @@ public sealed partial class ShopModel
             activeSend = sending ? sendFinished!.Task : Task.CompletedTask;
         }
         historyStopping.Cancel();
-        try { await DrainHistoryAsync(activeSend).WaitAsync(timeout).ConfigureAwait(false); }
+        try { await DrainHistoryAsync(activeSend).WaitAsync(timeout, cancellationToken).ConfigureAwait(false); }
         catch (Exception error)
         {
             ReportSafely("Pending shop history not saved before shutdown; entries may be dropped (" +

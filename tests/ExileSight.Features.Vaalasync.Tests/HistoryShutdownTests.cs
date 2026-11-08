@@ -109,14 +109,18 @@ public sealed class HistoryShutdownTests : IDisposable
         Assert.Empty(model.History.Snapshot());
     }
 
-    [Fact]
-    public async Task ShutdownWaitsForAlreadyExecutingSendBeforeDraining()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ShutdownWaitsForActiveSendUnlessHostBudgetExpires(bool cancelHost)
     {
         var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         using var release = new ManualResetEventSlim();
         var pending = new TaskCompletionSource<string>();
+        var reports = new ConcurrentQueue<string>();
+        using var hostStop = new CancellationTokenSource();
         var model = new ShopModel(new(directory), () => "Standard")
-        { ResolveLeagueAsync = () => pending.Task };
+        { ResolveLeagueAsync = () => pending.Task, ReportFailure = reports.Enqueue };
         _ = new FeatureHost([new VaalasyncFeature(model)], (_, _) => null, (_, _, _) => { },
             (_, _, _) =>
             {
@@ -129,11 +133,19 @@ public sealed class HistoryShutdownTests : IDisposable
         try
         {
             await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
-            var stop = model.StopAndFlushHistoryAsync(TimeSpan.FromSeconds(5));
+            var stop = model.StopAndFlushHistoryAsync(TimeSpan.FromSeconds(5), hostStop.Token);
             Assert.False(stop.IsCompleted);
+            if (cancelHost)
+            {
+                hostStop.Cancel();
+                await stop.WaitAsync(TimeSpan.FromSeconds(1));
+                Assert.False(apply.IsCompleted);
+                Assert.Contains(reports, text => text.Contains("not saved before shutdown", StringComparison.Ordinal));
+            }
             release.Set();
             await stop;
             Assert.Equal(ActionOutcome.Success, (await apply).Outcome);
+            await model.StopAndFlushHistoryAsync(TimeSpan.FromSeconds(5));
             Assert.Equal(2, Assert.Single(new HistoryStore(directory).Snapshot()).Prices.Length);
         }
         finally { release.Set(); await apply; }
