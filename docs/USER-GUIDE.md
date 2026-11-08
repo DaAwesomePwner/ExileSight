@@ -102,7 +102,7 @@ are suggestions until you explicitly choose one.
 
 ### Price check / stashninja — Ctrl+Shift+N
 
-Stashninja is the stash-layout price-tag panel, inactive until supported layouts ship.
+Stashninja draws poe.ninja price tags over measured fixed stash cells.
 
 Open **Ctrl+Shift+N**, or choose **Price stash tab…** in the omni menu. Select a
 fixed tab/page and load its poe.ninja prices. Tags describe item types, not your
@@ -110,11 +110,11 @@ stash contents or quantities. The default price league is the current softcore
 challenge league excluding SSF/Ruthless, with Standard as fallback; you can set
 `prices.league` in your profile. Stale or incomplete prices are labelled.
 
-**This version ships no supported stash layouts.** Without a measured layout,
-the panel reports that none is available. See the
-[layout instructions](../data/stash-layouts/poe1/README.md) for that requirement.
-With a layout available, calibrate using two distinct **empty** cells while holding
-no item: calibration clicks reach the game. Calibration is saved per layout and
+Supported pages: Currency General, Atlas and League; Fragment General; Delve,
+Essence, Blight and Delirium. Coverage is partial; unknown or unlisted cells have
+no tag. Allflame is deferred. See the [coverage and update guide](../data/stash-layouts/poe1/README.md).
+Select two distinct **empty** cells in the calibration selectors, click **Calibrate**,
+then click their centers in order with no item held. Esc cancels; clicks reach the game. Calibration is saved per layout and
 resolution. A physical **Highlight** click pastes one search; loading prices does
 not. Searches over the game's supported limit are disabled.
 

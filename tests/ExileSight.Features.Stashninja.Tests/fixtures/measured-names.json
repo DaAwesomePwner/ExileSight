@@ -1,0 +1,884 @@
+[
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Scroll of Wisdom",
+    "ninjaId": "wisdom"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Portal Scroll",
+    "ninjaId": "portal"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Blacksmith's Whetstone",
+    "ninjaId": "whetstone"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Armourer's Scrap",
+    "ninjaId": "scrap"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Glassblower's Bauble",
+    "ninjaId": "bauble"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Gemcutter's Prism",
+    "ninjaId": "gcp"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Orb of Transmutation",
+    "ninjaId": "transmute"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Orb of Alteration",
+    "ninjaId": "alt"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Orb of Annulment",
+    "ninjaId": "annul"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Orb of Chance",
+    "ninjaId": "chance"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Exalted Orb",
+    "ninjaId": "exalted"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Mirror of Kalandra",
+    "ninjaId": "mirror"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Regal Orb",
+    "ninjaId": "regal"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Orb of Alchemy",
+    "ninjaId": "alch"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Chaos Orb",
+    "ninjaId": "chaos"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Blessed Orb",
+    "ninjaId": "blessed"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Orb of Augmentation",
+    "ninjaId": "aug"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Divine Orb",
+    "ninjaId": "divine"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Jeweller's Orb",
+    "ninjaId": "jewellers"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Orb of Fusing",
+    "ninjaId": "fusing"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Chromatic Orb",
+    "ninjaId": "chrome"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Orb of Scouring",
+    "ninjaId": "scour"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Vaal Orb",
+    "ninjaId": "vaal"
+  },
+  {
+    "page": "currency-general",
+    "category": "Currency",
+    "itemName": "Orb of Regret",
+    "ninjaId": "regret"
+  },
+  {
+    "page": "currency-atlas",
+    "category": "Currency",
+    "itemName": "Crusader's Exalted Orb",
+    "ninjaId": "crusaders-exalted-orb"
+  },
+  {
+    "page": "currency-atlas",
+    "category": "Currency",
+    "itemName": "Warlord's Exalted Orb",
+    "ninjaId": "warlords-exalted-orb"
+  },
+  {
+    "page": "currency-atlas",
+    "category": "Currency",
+    "itemName": "Redeemer's Exalted Orb",
+    "ninjaId": "redeemers-exalted-orb"
+  },
+  {
+    "page": "currency-atlas",
+    "category": "Currency",
+    "itemName": "Hunter's Exalted Orb",
+    "ninjaId": "hunters-exalted-orb"
+  },
+  {
+    "page": "currency-atlas",
+    "category": "Currency",
+    "itemName": "Orb of Conflict",
+    "ninjaId": "orb-of-conflict"
+  },
+  {
+    "page": "currency-atlas",
+    "category": "Currency",
+    "itemName": "Lesser Eldritch Ember",
+    "ninjaId": "lesser-eldritch-ember"
+  },
+  {
+    "page": "currency-atlas",
+    "category": "Currency",
+    "itemName": "Greater Eldritch Ember",
+    "ninjaId": "greater-eldritch-ember"
+  },
+  {
+    "page": "currency-atlas",
+    "category": "Currency",
+    "itemName": "Grand Eldritch Ember",
+    "ninjaId": "grand-eldritch-ember"
+  },
+  {
+    "page": "currency-atlas",
+    "category": "Currency",
+    "itemName": "Exceptional Eldritch Ember",
+    "ninjaId": "exceptional-eldritch-ember"
+  },
+  {
+    "page": "currency-atlas",
+    "category": "Currency",
+    "itemName": "Lesser Eldritch Ichor",
+    "ninjaId": "lesser-eldritch-ichor"
+  },
+  {
+    "page": "currency-atlas",
+    "category": "Currency",
+    "itemName": "Greater Eldritch Ichor",
+    "ninjaId": "greater-eldritch-ichor"
+  },
+  {
+    "page": "currency-atlas",
+    "category": "Currency",
+    "itemName": "Grand Eldritch Ichor",
+    "ninjaId": "grand-eldritch-ichor"
+  },
+  {
+    "page": "currency-atlas",
+    "category": "Currency",
+    "itemName": "Exceptional Eldritch Ichor",
+    "ninjaId": "exceptional-eldritch-ichor"
+  },
+  {
+    "page": "currency-league",
+    "category": "Currency",
+    "itemName": "Wild Crystallised Lifeforce",
+    "ninjaId": "wild-lifeforce"
+  },
+  {
+    "page": "currency-league",
+    "category": "Currency",
+    "itemName": "Vivid Crystallised Lifeforce",
+    "ninjaId": "vivid-lifeforce"
+  },
+  {
+    "page": "currency-league",
+    "category": "Currency",
+    "itemName": "Primal Crystallised Lifeforce",
+    "ninjaId": "primal-lifeforce"
+  },
+  {
+    "page": "currency-league",
+    "category": "Currency",
+    "itemName": "Sacred Crystallised Lifeforce",
+    "ninjaId": "sacred-lifeforce"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "Veritania's Crest",
+    "ninjaId": "veritanias-crest"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "Al-Hezmin's Crest",
+    "ninjaId": "al-hezmins-crest"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "Drox's Crest",
+    "ninjaId": "droxs-crest"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "Baran's Crest",
+    "ninjaId": "barans-crest"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "Offering to the Goddess",
+    "ninjaId": "offer"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "Ritual Splinter",
+    "ninjaId": "ritual-splinter"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "Crescent Splinter",
+    "ninjaId": "crescent-splinter"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "Ritual Vessel",
+    "ninjaId": "ritual-vessel"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "The Maven's Writ",
+    "ninjaId": "the-mavens-writ"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "Hivebrain Gland",
+    "ninjaId": "hivebrain-gland"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "Divine Vessel",
+    "ninjaId": "divine-vessel"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "Timeless Eternal Emblem",
+    "ninjaId": "timeless-eternal-emblem"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "Timeless Karui Emblem",
+    "ninjaId": "timeless-karui-emblem"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "Timeless Vaal Emblem",
+    "ninjaId": "timeless-vaal-emblem"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "Timeless Templar Emblem",
+    "ninjaId": "timeless-templar-emblem"
+  },
+  {
+    "page": "fragment-general",
+    "category": "Fragment",
+    "itemName": "Timeless Maraketh Emblem",
+    "ninjaId": "timeless-maraketh-emblem"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Jagged Fossil",
+    "ninjaId": "jagged-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Dense Fossil",
+    "ninjaId": "dense-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Frigid Fossil",
+    "ninjaId": "frigid-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Aberrant Fossil",
+    "ninjaId": "aberrant-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Scorched Fossil",
+    "ninjaId": "scorched-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Metallic Fossil",
+    "ninjaId": "metallic-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Pristine Fossil",
+    "ninjaId": "pristine-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Bound Fossil",
+    "ninjaId": "bound-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Corroded Fossil",
+    "ninjaId": "corroded-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Opulent Fossil",
+    "ninjaId": "opulent-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Deft Fossil",
+    "ninjaId": "deft-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Aetheric Fossil",
+    "ninjaId": "aetheric-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Serrated Fossil",
+    "ninjaId": "serrated-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Shuddering Fossil",
+    "ninjaId": "shuddering-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Tangled Fossil",
+    "ninjaId": "tangled-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Bloodstained Fossil",
+    "ninjaId": "bloodstained-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Gilded Fossil",
+    "ninjaId": "gilded-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Fundamental Fossil",
+    "ninjaId": "fundamental-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Sanctified Fossil",
+    "ninjaId": "sanctified-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Hollow Fossil",
+    "ninjaId": "hollow-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Glyphic Fossil",
+    "ninjaId": "glyphic-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Fossil",
+    "itemName": "Faceted Fossil",
+    "ninjaId": "faceted-fossil"
+  },
+  {
+    "page": "delve",
+    "category": "Resonator",
+    "itemName": "Primitive Chaotic Resonator",
+    "ninjaId": "primitive-chaotic-resonator"
+  },
+  {
+    "page": "delve",
+    "category": "Resonator",
+    "itemName": "Potent Chaotic Resonator",
+    "ninjaId": "potent-chaotic-resonator"
+  },
+  {
+    "page": "delve",
+    "category": "Resonator",
+    "itemName": "Powerful Chaotic Resonator",
+    "ninjaId": "powerful-chaotic-resonator"
+  },
+  {
+    "page": "delve",
+    "category": "Resonator",
+    "itemName": "Prime Chaotic Resonator",
+    "ninjaId": "prime-chaotic-resonator"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Greed",
+    "ninjaId": "deafening-essence-of-greed"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Contempt",
+    "ninjaId": "deafening-essence-of-contempt"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Screaming Essence of Contempt",
+    "ninjaId": "screaming-essence-of-contempt"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Hatred",
+    "ninjaId": "deafening-essence-of-hatred"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Woe",
+    "ninjaId": "deafening-essence-of-woe"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Shrieking Essence of Woe",
+    "ninjaId": "shrieking-essence-of-woe"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Fear",
+    "ninjaId": "deafening-essence-of-fear"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Wailing Essence of Fear",
+    "ninjaId": "wailing-essence-of-fear"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Anger",
+    "ninjaId": "deafening-essence-of-anger"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Torment",
+    "ninjaId": "deafening-essence-of-torment"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Sorrow",
+    "ninjaId": "deafening-essence-of-sorrow"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Shrieking Essence of Sorrow",
+    "ninjaId": "shrieking-essence-of-sorrow"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Weeping Essence of Sorrow",
+    "ninjaId": "weeping-essence-of-sorrow"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Rage",
+    "ninjaId": "deafening-essence-of-rage"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Shrieking Essence of Rage",
+    "ninjaId": "shrieking-essence-of-rage"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Screaming Essence of Rage",
+    "ninjaId": "screaming-essence-of-rage"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Suffering",
+    "ninjaId": "deafening-essence-of-suffering"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Wrath",
+    "ninjaId": "deafening-essence-of-wrath"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Shrieking Essence of Wrath",
+    "ninjaId": "shrieking-essence-of-wrath"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Weeping Essence of Wrath",
+    "ninjaId": "weeping-essence-of-wrath"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Doubt",
+    "ninjaId": "deafening-essence-of-doubt"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Shrieking Essence of Loathing",
+    "ninjaId": "shrieking-essence-of-loathing"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Loathing",
+    "ninjaId": "deafening-essence-of-loathing"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Shrieking Essence of Zeal",
+    "ninjaId": "shrieking-essence-of-zeal"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Zeal",
+    "ninjaId": "deafening-essence-of-zeal"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Anguish",
+    "ninjaId": "deafening-essence-of-anguish"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Shrieking Essence of Spite",
+    "ninjaId": "shrieking-essence-of-spite"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Spite",
+    "ninjaId": "deafening-essence-of-spite"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Shrieking Essence of Scorn",
+    "ninjaId": "shrieking-essence-of-scorn"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Scorn",
+    "ninjaId": "deafening-essence-of-scorn"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Screaming Essence of Envy",
+    "ninjaId": "screaming-essence-of-envy"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Shrieking Essence of Envy",
+    "ninjaId": "shrieking-essence-of-envy"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Envy",
+    "ninjaId": "deafening-essence-of-envy"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Misery",
+    "ninjaId": "deafening-essence-of-misery"
+  },
+  {
+    "page": "essence",
+    "category": "Essence",
+    "itemName": "Deafening Essence of Dread",
+    "ninjaId": "deafening-essence-of-dread"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Clear Oil",
+    "ninjaId": "clear-oil"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Sepia Oil",
+    "ninjaId": "sepia-oil"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Amber Oil",
+    "ninjaId": "amber-oil"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Verdant Oil",
+    "ninjaId": "verdant-oil"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Teal Oil",
+    "ninjaId": "teal-oil"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Azure Oil",
+    "ninjaId": "azure-oil"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Indigo Oil",
+    "ninjaId": "indigo-oil"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Tainted Oil",
+    "ninjaId": "tainted-oil"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Violet Oil",
+    "ninjaId": "violet-oil"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Crimson Oil",
+    "ninjaId": "crimson-oil"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Black Oil",
+    "ninjaId": "black-oil"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Opalescent Oil",
+    "ninjaId": "opalescent-oil"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Silver Oil",
+    "ninjaId": "silver-oil"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Golden Oil",
+    "ninjaId": "golden-oil"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Reflective Oil",
+    "ninjaId": "reflective-oil"
+  },
+  {
+    "page": "blight",
+    "category": "Oil",
+    "itemName": "Prismatic Oil",
+    "ninjaId": "prismatic-oil"
+  },
+  {
+    "page": "delirium",
+    "category": "Fragment",
+    "itemName": "Simulacrum Splinter",
+    "ninjaId": "simulacrum-splinter"
+  },
+  {
+    "page": "delirium",
+    "category": "Fragment",
+    "itemName": "Simulacrum",
+    "ninjaId": "simulacrum"
+  },
+  {
+    "page": "delirium",
+    "category": "DeliriumOrb",
+    "itemName": "Singular Delirium Orb",
+    "ninjaId": "singular-delirium-orb"
+  },
+  {
+    "page": "delirium",
+    "category": "DeliriumOrb",
+    "itemName": "Cartographer's Delirium Orb",
+    "ninjaId": "cartographers-delirium-orb"
+  },
+  {
+    "page": "delirium",
+    "category": "DeliriumOrb",
+    "itemName": "Armoursmith's Delirium Orb",
+    "ninjaId": "armoursmiths-delirium-orb"
+  },
+  {
+    "page": "delirium",
+    "category": "DeliriumOrb",
+    "itemName": "Thaumaturge's Delirium Orb",
+    "ninjaId": "thaumaturges-delirium-orb"
+  },
+  {
+    "page": "delirium",
+    "category": "DeliriumOrb",
+    "itemName": "Jeweller's Delirium Orb",
+    "ninjaId": "jewellers-delirium-orb"
+  },
+  {
+    "page": "delirium",
+    "category": "DeliriumOrb",
+    "itemName": "Whispering Delirium Orb",
+    "ninjaId": "whispering-delirium-orb"
+  },
+  {
+    "page": "delirium",
+    "category": "DeliriumOrb",
+    "itemName": "Fragmented Delirium Orb",
+    "ninjaId": "fragmented-delirium-orb"
+  },
+  {
+    "page": "delirium",
+    "category": "DeliriumOrb",
+    "itemName": "Blacksmith's Delirium Orb",
+    "ninjaId": "blacksmiths-delirium-orb"
+  },
+  {
+    "page": "delirium",
+    "category": "DeliriumOrb",
+    "itemName": "Fine Delirium Orb",
+    "ninjaId": "fine-delirium-orb"
+  },
+  {
+    "page": "delirium",
+    "category": "DeliriumOrb",
+    "itemName": "Diviner's Delirium Orb",
+    "ninjaId": "diviners-delirium-orb"
+  },
+  {
+    "page": "delirium",
+    "category": "DeliriumOrb",
+    "itemName": "Blighted Delirium Orb",
+    "ninjaId": "blighted-delirium-orb"
+  }
+]
