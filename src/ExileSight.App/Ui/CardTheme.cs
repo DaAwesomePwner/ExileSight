@@ -25,6 +25,32 @@ public sealed class CardTheme
     public double AppSectionSize => 18;
     public double AppBodySize => 14;
     public SolidColorBrush this[string key] => brushes[key];
+    public SolidColorBrush OverlayForeground => this["OverlayForeground"];
+    public SolidColorBrush OverlayBackground => this["OverlayBackground"];
+    public SolidColorBrush OverlayAccent => this["OverlayAccent"];
+    public SolidColorBrush TooltipBest => this["TooltipBest"];
+    public SolidColorBrush TooltipHigh => this["TooltipHigh"];
+    public SolidColorBrush TooltipMedium => this["TooltipMedium"];
+    public SolidColorBrush TooltipLow => this["TooltipLow"];
+    public SolidColorBrush TooltipCrafted => this["TooltipCrafted"];
+    public SolidColorBrush TooltipUnique => this["TooltipUnique"];
+    public SolidColorBrush TooltipUnknown => this["TooltipUnknown"];
+    public SolidColorBrush OverlayRaised => this["OverlayRaised"];
+    public SolidColorBrush OverlayBorder => this["OverlayBorder"];
+    public SolidColorBrush OverlayRule => this["OverlayRule"];
+    public SolidColorBrush TextSecondary => this["TextSecondary"];
+    public SolidColorBrush TextMuted => this["TextMuted"];
+    public SolidColorBrush TextFaint => this["TextFaint"];
+    public SolidColorBrush Danger1 => this["Danger1"];
+    public SolidColorBrush Danger2 => this["Danger2"];
+    public SolidColorBrush Danger3 => this["Danger3"];
+    public SolidColorBrush Accent => this["Accent"];
+    public SolidColorBrush AppBackground => this["AppBackground"];
+    public SolidColorBrush AppPanel => this["AppPanel"];
+    public SolidColorBrush AppNav => this["AppNav"];
+    public SolidColorBrush StatTileBackground => this["StatTileBackground"];
+    public SolidColorBrush RollTrack => this["RollTrack"];
+    public SolidColorBrush DangerRowBackground => this["DangerRowBackground"];
     public SolidColorBrush Tone(CardTone tone) => this["Tooltip" + tone];
 
     private CardTheme(Dictionary<string, SolidColorBrush> values, FontFamily text, FontFamily numbers)

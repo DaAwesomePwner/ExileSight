@@ -30,6 +30,10 @@ public static partial class CardPrimitives
         return text;
     }
 
+    /// <summary>
+    /// Content-sized with a 26 px minimum. Mod rows should use Auto pill columns with
+    /// the same SharedSizeGroup in a shared-size scope, preserving alignment across rows.
+    /// </summary>
     public static FrameworkElement TierPill(TierPillModel model, CardTheme theme)
     {
         var unknown = model.Kind == PillKind.Unknown ||
@@ -44,7 +48,7 @@ public static partial class CardPrimitives
         {
             PillKind.Crafted => CardTone.Crafted, PillKind.Unique => CardTone.Unique, _ => model.Tone
         };
-        var grid = new Grid { Width = 26, Height = 18, HorizontalAlignment = HorizontalAlignment.Left };
+        var grid = new Grid { MinWidth = 26, Height = 18, HorizontalAlignment = HorizontalAlignment.Left };
         grid.Children.Add(new Rectangle
         {
             RadiusX = 3, RadiusY = 3,
@@ -52,7 +56,10 @@ public static partial class CardPrimitives
             Stroke = outlined ? theme[unknown ? "TooltipUnknown" : "TextMuted"] : null,
             StrokeThickness = outlined ? 1 : 0, StrokeDashArray = unknown ? Dashes : null
         });
+        // §8 has no inverse-text token; reuse its darkest solid colour, AppNav,
+        // for contrast on filled pills rather than introducing an unspecified token.
         var text = Text(label, theme, outlined ? "TextMuted" : "AppNav", 11, true);
+        text.Margin = new Thickness(4, 0, 4, 0);
         text.FontWeight = FontWeights.SemiBold;
         text.HorizontalAlignment = HorizontalAlignment.Center;
         grid.Children.Add(text);
@@ -62,9 +69,8 @@ public static partial class CardPrimitives
     /// <summary>Track only; pair with RollLabel in the row's separate percent column.</summary>
     public static FrameworkElement RollBar(RollBarModel model, CardTheme theme)
     {
-        if (model.Position is { } position && (!double.IsFinite(position) || position < 0 || position > 1))
-            throw new ArgumentOutOfRangeException(nameof(model));
-        var known = model.Position.HasValue && model.Tone != CardTone.Unknown;
+        var position = RollPosition(model);
+        var known = position.HasValue;
         var grid = new Grid { Width = 40, Height = 6, VerticalAlignment = VerticalAlignment.Center };
         grid.Children.Add(new Rectangle
         {
@@ -74,16 +80,19 @@ public static partial class CardPrimitives
         });
         if (known) grid.Children.Add(new Rectangle
         {
-            Width = 40 * model.Position!.Value, Height = 6, RadiusX = 3, RadiusY = 3,
+            Width = 40 * position!.Value, Height = 6, RadiusX = 3, RadiusY = 3,
             Fill = theme.Tone(model.Tone), HorizontalAlignment = HorizontalAlignment.Left
         });
         return grid;
     }
 
     public static TextBlock RollLabel(RollBarModel model, CardTheme theme) =>
-        Text(model.Position.HasValue && model.Tone != CardTone.Unknown
-            ? model.Position.Value.ToString("0%", CultureInfo.InvariantCulture) : "—",
+        Text(RollPosition(model)?.ToString("0%", CultureInfo.InvariantCulture) ?? "—",
             theme, "TextSecondary", 11, true);
+
+    private static double? RollPosition(RollBarModel model) =>
+        model.Position is { } value && !double.IsNaN(value) && model.Tone != CardTone.Unknown
+            ? Math.Clamp(value, 0, 1) : null;
 
     public static FrameworkElement SlotPips(IEnumerable<SlotState> states, CardTheme theme)
     {

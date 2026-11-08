@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using ExileSight.App.Ui;
+using ExileSight.Features.ItemInfo;
 #endif
 
 namespace ExileSight.App.Snapshots.Tests;
@@ -58,6 +59,9 @@ public sealed class ThemeTokenTests
                     Assert.Equal((Color)ColorConverter.ConvertFromString(value), brush.Color);
                     Assert.True(brush.IsFrozen);
                     Assert.Equal(brush.Color, theme[key].Color);
+                    var accessor = typeof(CardTheme).GetProperty(key);
+                    Assert.NotNull(accessor);
+                    Assert.Same(theme[key], accessor.GetValue(theme));
                     Assert.Equal(brush.Color, CardTheme.Default[key].Color);
                     Assert.Same(CardTheme.Default[key], CardTheme.Default[key]);
                 }
@@ -65,6 +69,9 @@ public sealed class ThemeTokenTests
                 Assert.Equal("Segoe UI Variable, Segoe UI", theme.TextFont.Source);
                 Assert.Equal("Cascadia Mono, Consolas", theme.NumberFont.Source);
             }
+            foreach (var color in Enum.GetValues<InfoColor>())
+                Assert.Equal(Enum.Parse<CardTone>(color.ToString()), color.ToCardTone());
+            Assert.Equal(CardTone.Unknown, ((InfoColor)999).ToCardTone());
             return new Border { Width = 1, Height = 1 };
         }, "theme-validation");
 #endif

@@ -43,6 +43,19 @@ public static partial class CardPrimitives
         };
     }
 
+    public static Border VerdictBand(UniqueVerdictModel model, CardTheme theme)
+    {
+        var known = model.AverageRoll is { } value && double.IsFinite(value);
+        var text = Text(known ? "Average roll " + model.AverageRoll!.Value.ToString("0",
+            System.Globalization.CultureInfo.InvariantCulture) + "%" : "", theme, "TextSecondary", 12);
+        return new Border
+        {
+            Background = theme.OverlayRaised, CornerRadius = new CornerRadius(4),
+            VerticalAlignment = VerticalAlignment.Top, Padding = new Thickness(8, 6, 8, 6),
+            Child = text, Visibility = known ? Visibility.Visible : Visibility.Collapsed
+        };
+    }
+
     public static Border StatTile(StatTileModel model, CardTheme theme)
     {
         var column = new StackPanel();
