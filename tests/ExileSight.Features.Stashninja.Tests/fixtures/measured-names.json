@@ -249,7 +249,8 @@
     "ninjaId": "hunters-exalted-orb",
     "confidence": "confirmed",
     "referenceIcon": "https://github.com/Jxycee/Project-Vaal/blob/87ddd63b7abf9dc9f3e37897818447830ebfc166/public/data/wiki/2026-08-25/icons/items/hunters-exalted-orb.png",
-    "noReferenceIcon": null
+    "noReferenceIcon": null,
+    "promotedFrom": "verify"
   },
   {
     "page": "currency-atlas",
@@ -1995,7 +1996,8 @@
     "ninjaId": "essence-of-insanity",
     "confidence": "confirmed",
     "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/essence-of-insanity.png",
-    "noReferenceIcon": null
+    "noReferenceIcon": null,
+    "promotedFrom": "verify"
   },
   {
     "page": "essence",
@@ -2004,7 +2006,8 @@
     "ninjaId": "essence-of-horror",
     "confidence": "confirmed",
     "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/essence-of-horror.png",
-    "noReferenceIcon": null
+    "noReferenceIcon": null,
+    "promotedFrom": "verify"
   },
   {
     "page": "essence",
@@ -2013,7 +2016,8 @@
     "ninjaId": "essence-of-delirium",
     "confidence": "confirmed",
     "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/essence-of-delirium.png",
-    "noReferenceIcon": null
+    "noReferenceIcon": null,
+    "promotedFrom": "verify"
   },
   {
     "page": "essence",
@@ -2022,7 +2026,8 @@
     "ninjaId": "essence-of-hysteria",
     "confidence": "confirmed",
     "referenceIcon": "https://github.com/weo-soft/poeData/blob/2865669ab7b57116067db6c62ec3af2793befc10/public/assets/images/essences/essence-of-hysteria.png",
-    "noReferenceIcon": null
+    "noReferenceIcon": null,
+    "promotedFrom": "verify"
   },
   {
     "page": "delirium",

@@ -8,7 +8,8 @@ namespace ExileSight.Features.Stashninja.Tests;
 public sealed class ShippedLayoutTests
 {
     private sealed record NameEvidence(string Page, string Category, string ItemName, string? NinjaId,
-        string Confidence, string? ReferenceIcon, string? NoReferenceIcon);
+        string Confidence, string? ReferenceIcon, string? NoReferenceIcon, string? PromotedFrom = null);
+    private sealed record NinjaIdentity(string Category, string Id, string Name, string Source);
 
     [Fact]
     public void EveryShippedLayoutLoadsWithUniquePagesAndNonOverlappingCells()
@@ -38,6 +39,8 @@ public sealed class ShippedLayoutTests
     {
         var evidence = JsonSerializer.Deserialize<NameEvidence[]>(File.ReadAllText(
             Path.Combine(AppContext.BaseDirectory, "fixtures", "measured-names.json")), Layouts.Json)!;
+        var ninjaItems = JsonSerializer.Deserialize<NinjaIdentity[]>(File.ReadAllText(
+            Path.Combine(AppContext.BaseDirectory, "fixtures", "promoted-ninja-items.json")), Layouts.Json)!;
         var directory = Path.Combine(AppContext.BaseDirectory, "layouts");
         var layouts = Directory.GetFiles(directory, "*.layout.json").ToDictionary(
             path => Path.GetFileName(path)[..^".layout.json".Length],
@@ -50,6 +53,16 @@ public sealed class ShippedLayoutTests
             var entry = Assert.Single(evidence, e => e.Page == page &&
                 e.Category == cell.Category && e.ItemName == cell.ItemName);
             Assert.Contains(entry.Confidence, new[] { "high", "confirmed" });
+            if (entry.PromotedFrom is not null)
+            {
+                Assert.Equal("verify", entry.PromotedFrom);
+                Assert.Equal("confirmed", entry.Confidence);
+                Assert.False(string.IsNullOrWhiteSpace(entry.NinjaId));
+                var identity = Assert.Single(ninjaItems, item =>
+                    item.Category == cell.Category && item.Id == entry.NinjaId);
+                if (cell.NinjaId is not null) Assert.Equal(cell.NinjaId, identity.Id);
+                else Assert.Equal(cell.ItemName, identity.Name);
+            }
             var hasReference = !string.IsNullOrWhiteSpace(entry.ReferenceIcon);
             var hasReason = !string.IsNullOrWhiteSpace(entry.NoReferenceIcon);
             Assert.True(hasReference ^ hasReason,
