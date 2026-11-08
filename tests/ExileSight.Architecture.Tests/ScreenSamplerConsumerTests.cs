@@ -10,7 +10,7 @@ public sealed class ScreenSamplerConsumerTests
         foreach (var path in Repository.Files("*.cs").Where(Repository.IsProduction))
         {
             var code = BoundaryScanner.Code(File.ReadAllText(path));
-            if (!Regex.IsMatch(code, @"\bIScreenSampler\b")) continue;
+            if (!Regex.IsMatch(code, @"\bI?ScreenSampler\b")) continue;
             var relative = Repository.Relative(path);
             if (relative is "src/ExileSight.Platform.Abstractions/Window/IScreenSampler.cs" or
                 "src/ExileSight.Platform.Windows/Window/ScreenSampler.cs" or

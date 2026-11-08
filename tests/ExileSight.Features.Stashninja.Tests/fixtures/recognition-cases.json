@@ -1,7 +1,39 @@
 [
-  {"seed":17,"shift":0,"noise":0,"matches":true},
-  {"seed":17,"shift":30,"noise":0,"matches":true},
-  {"seed":17,"shift":0,"noise":3,"matches":true},
-  {"seed":29,"shift":0,"noise":0,"matches":false},
-  {"seed":71,"shift":0,"noise":0,"matches":false}
+  {
+    "seed": 17,
+    "shift": 0,
+    "noise": 0,
+    "matches": true
+  },
+  {
+    "seed": 17,
+    "shift": 30,
+    "noise": 0,
+    "matches": true
+  },
+  {
+    "seed": 17,
+    "shift": 0,
+    "noise": 3,
+    "matches": true
+  },
+  {
+    "seed": 29,
+    "shift": 0,
+    "noise": 0,
+    "matches": false
+  },
+  {
+    "seed": 71,
+    "shift": 0,
+    "noise": 0,
+    "matches": false
+  },
+  {
+    "seed": 17,
+    "shift": 0,
+    "noise": 0,
+    "gamma": 1.6,
+    "matches": true
+  }
 ]

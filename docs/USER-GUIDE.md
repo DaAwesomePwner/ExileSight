@@ -137,17 +137,21 @@ calibration-free grid location is a possible later follow-up outside this decisi
 resolution; successful calibration also teaches it. **Forget this page** removes
 that resolution's reference. References live beside calibration in local
 `poe1/stashninja/references.json`; corrupt or outdated references are ignored with
-a notice. Re-teach after a resolution or header layout change.
+a notice. Version-1 references must be re-taught for the two-stage matcher.
+Re-teach after a resolution or recognition rectangle change.
 
 **Auto-detect taught pages** defaults on when references exist for this resolution.
+Calibration teaching respects an explicit off choice; **Remember this page** enables it.
 While the menu is open and the game foreground, it checks the shared header strip
-about every 250 ms, pausing during calibration. Two consecutive confident matches
+about every 250 ms, pausing during calibration. The header identifies the tab;
+a separate full sub-tab row distinguishes sibling pages. Two consecutive confident matches
 switch the tags; three unknown checks hide them while keeping the menu open.
 A new confident match restores tags. Disable the toggle for manual selection.
 Tied or ambiguous references count as unknown. No item counts or contents are read.
 
-The header avoids price tags and the menu; capture is refused if calibration or
-menu placement would overlap it. Notifications and other windows drawn over the
+The header avoids price tags and the menu. Blocked or failed captures show a
+notice without counting toward hiding tags. If old tags overlap a sub-tab region,
+they are hidden first and sampling waits for the next tick. Notifications and other windows drawn over the
 game can still appear in the sampled region and disrupt recognition. Samples never
 leave the PC; only a reduced signature is stored, never the screenshot. Move
 covering windows away and teach again if needed. Closing the menu stops sampling.

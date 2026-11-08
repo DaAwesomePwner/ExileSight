@@ -39,6 +39,15 @@ public sealed class TagSurface
         layout = null; tags = []; drawn = null; drawnTags = [];
         canvas.Children.Clear();
     }
+    public bool Overlaps(ExileSight.Features.Stashninja.Geometry.Bounds region)
+    {
+        if (!window.RequestedVisible || layout is null) return false;
+        var client = game.Current.ClientRect;
+        var resolution = new Resolution(client.Width, client.Height);
+        var transform = store.Get(layout, resolution) ?? ExileSight.Features.Stashninja.Geometry.Fit(layout.ReferenceResolution, resolution);
+        return tags.Any(t => RecognitionRegion.Intersects(region,
+            ExileSight.Features.Stashninja.Geometry.TagBounds(layout, t.Cell, transform)));
+    }
     public void Hide()
     { if (window.RequestedVisible) host.SetVisible(window, false); }
     private static bool SameTags(PriceTag[] a, PriceTag[] b) => a.Length == b.Length &&

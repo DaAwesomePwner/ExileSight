@@ -42,6 +42,7 @@ public sealed partial class StashView : StackPanel
     private HostedOverlayWindow? window;
     private Layout? layout;
     private PriceOverview? overview;
+    private bool pricesIncomplete;
     private int generation;
     private DateTimeOffset freshUntil;
     private string? loadedLeagueSetting;
@@ -54,7 +55,7 @@ public sealed partial class StashView : StackPanel
         var store = new CalibrationStore(Path.Combine(services.GetRequiredService<IAppPaths>().GetGameDirectory("poe1"), "stashninja"));
         surface = new(host, services.GetRequiredService<IGameWindow>(), store);
         calibration = new(services.GetRequiredService<PassiveOverlayInput>(), services.GetRequiredService<IGameWindow>(), store);
-        InitializeRecognition(store);
+        InitializeRecognition();
         Background = Brushes.Black;
         Children.Add(new TextBlock { Text = "Stash prices — select tab/page", Foreground = Brushes.White });
         foreach (var l in model.Layouts) tab.Items.Add(l.TabId + "/" + l.Page);
@@ -73,7 +74,7 @@ public sealed partial class StashView : StackPanel
                 first.Cell.Id == second.Cell.Id)
             { status.Text = "Choose two distinct empty cells before calibrating"; return; }
             calibration.Cancel(); Invalidate();
-            calibration.Start(layout, first.Cell, second.Cell, SetStatus, () => { Refresh(); UpdatePolling(); }, TeachPage);
+            calibration.Start(layout, first.Cell, second.Cell, SetStatus, () => { Refresh(); UpdatePolling(); }, () => TeachPage(explicitTeach: false));
             UpdatePolling();
         };
         Children.Add(calibrate);
@@ -122,7 +123,7 @@ public sealed partial class StashView : StackPanel
     }
     private void Invalidate() { model.SetSearch(new(null, "Load prices first")); highlight.IsEnabled = false; }
     private void Clear()
-    { generation++; freshUntil = default; layout = null; overview = null; calibration.Cancel(); firstCell.ItemsSource = secondCell.ItemsSource = null; Invalidate(); surface.Clear(); }
+    { generation++; freshUntil = default; pricesIncomplete = false; layout = null; overview = null; calibration.Cancel(); firstCell.ItemsSource = secondCell.ItemsSource = null; Invalidate(); surface.Clear(); }
     private async Task Load()
     {
         Clear(); var request = generation;
@@ -147,8 +148,8 @@ public sealed partial class StashView : StackPanel
             loadedLeagueSetting = configuredLeague;
             freshUntil = results.Any(r => r.IsStale || r.Overview is null || r.UpdatedAt is null)
                 ? default : results.Min(r => r.UpdatedAt!.Value).AddHours(1);
+            pricesIncomplete = results.Any(r => r.IsStale || r.Overview is null);
             Refresh();
-            if (results.Any(r => r.IsStale || r.Overview is null)) status.Text += " — prices stale or incomplete";
         }
         catch (Exception e) when (e is HttpRequestException or IOException or System.Text.Json.JsonException or TaskCanceledException)
         { if (request == generation) { Invalidate(); SetStatus("Prices unavailable; try again"); } }
@@ -161,6 +162,7 @@ public sealed partial class StashView : StackPanel
         if (!recognitionHidden && window?.RequestedVisible == true) surface.Show(layout, tags);
         var search = Tags.Search(tags, selected.Minimum); model.SetSearch(search);
         highlight.Content = $"Highlight above {selected.Minimum}c"; highlight.IsEnabled = search.Text is not null;
-        SetStatus(search.Status + $" — {tags.Length}/{layout.Cells.Length} cells priced");
+        SetStatus(search.Status + $" — {tags.Length}/{layout.Cells.Length} cells priced" +
+            (pricesIncomplete ? " — prices stale or incomplete" : ""));
     }
 }

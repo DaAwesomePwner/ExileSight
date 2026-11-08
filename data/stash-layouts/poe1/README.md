@@ -152,24 +152,41 @@ None.
 
 - No identifying ghost: (260,197); (260,251); (260,304); (260,358).
 
-## Recognition header runbook
+## Recognition region runbook
 
-`recognition.json` is the single shared rectangle at the layouts' 2000×837
-reference resolution. Its bottom is 120, above the highest shipped cell at
-121.75. The rectangle is derived from the existing layout measurements, not
-Exile-UI data. It covers the header/tab strip and sub-tab controls; validate
-coverage on Windows with Currency General/Atlas/League and Fragment before
-release. Geometry.Fit maps it without page calibration. Runtime rejects overlap
-with calibrated tags or the top-right menu, including narrow clients.
+`recognition.json` contains a shared header rectangle and tab-specific `subTabs`
+rectangles at 2000×837. The shared header (x24–504, y30–120) ends above the
+highest shipped cell (121.75). It identifies the tab, comparing the best page
+reference per tab; sibling pages do not compete for the tab margin.
 
-After game UI changes, measure the header spanning tab names and sub-tab controls,
-keep it above every cell, update the rectangle and provenance, and run recognition
-and shipped-layout tests. `RecognitionRegion.Load` is the runtime schema validator
-(required resolution, rectangle, provenance; finite in-bounds dimensions; no cell
-overlap). Changed region geometry invalidates old references. Users must re-teach;
-never add their captured pixels or signatures to the repository or shipped data.
+Currency and Fragment each have a sub-tab rectangle at x24–504, y100–138.
+The owner's screenshot review puts Currency General/Atlas/League buttons at
+about y107–131, so this captures their full height. Currency cells start at
+142 or below, and Fragment cells at 152.5 or below. These rectangles are checked
+against their own tab's cells and TagBounds, not against other tabs. Multi-page
+tabs require a sub-tab rectangle. A tab with one shipped page skips stage two.
 
-Default normalized mean absolute distance is below 0.30, with a minimum 0.08
-lead over the second-best page. These conservative synthetic-tested defaults need
-in-game validation across lighting/gamma settings. Flat or covered headers and
-similar tab names can remain unknown; use manual selection if necessary.
+The second signature selects among sibling pages. Both regions use Geometry.Fit,
+independently of calibration. If currently drawn tags overlap the sub-tab region
+(for example Essence tags after opening Currency), they are hidden and capture
+waits until the next tick. Header/menu overlap or failed capture shows a blocked
+notice and does not count toward hiding tags. No capture exclusion flags are used.
+
+After a patch, measure the header and the complete sub-tab button row, update
+rectangles and provenance, then run recognition and shipped-layout tests. Keep
+the header above all cells and each sub-tab region clear of its own tab's cells.
+`RecognitionRegion.Load` validates finite, in-bounds rectangles, provenance,
+required sibling regions and cell overlap. Geometry comes from owner measurements,
+never Exile-UI data. Validate Currency siblings and Fragment on Windows before release.
+
+The version-2 local store holds header and optional sub-tab signatures per page
+and resolution. Both rectangles are included in its fingerprint; version-1 or
+changed-geometry references are ignored with a notice. Re-teach pages locally;
+never commit or ship user pixels or signatures.
+
+Normalized mean absolute distance must be below 0.30 at both stages. The tab
+margin is at least 0.08 against other tabs; the sibling-page margin is at least
+0.06 within the matched tab. Synthetic button-patch and gamma-shift tests cover
+these conservative defaults; in-game validation remains necessary. Repeated
+matches do not refresh status. Calibration teaching respects an explicit off
+choice; clicking Remember this page explicitly enables auto-detect.
