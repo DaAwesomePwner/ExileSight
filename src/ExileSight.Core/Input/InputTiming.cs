@@ -21,6 +21,17 @@ public sealed class InputTiming
     private int next, count;
     public static void Record(InputStage stage, long milliseconds, InputTimingOutcome outcome = InputTimingOutcome.Observed) =>
         Shared.Add(new(Environment.TickCount64, stage, milliseconds, outcome));
+    internal void RecordHook(HotkeyDispatcher dispatcher, PhysicalKey key, long now,
+        long cachedAge, bool reevaluated, bool allowed)
+    {
+        var delay = now - key.Timestamp;
+        if (!reevaluated && delay < 50 && !dispatcher.IsTimingRelevant(key)) return;
+        var timestamp = Environment.TickCount64;
+        Add(new(timestamp, InputStage.HookDelay, delay, InputTimingOutcome.Observed));
+        Add(new(timestamp, InputStage.LeaseAge, cachedAge, InputTimingOutcome.Observed));
+        if (reevaluated) Add(new(timestamp, InputStage.LeaseReevaluated, cachedAge,
+            allowed ? InputTimingOutcome.Success : InputTimingOutcome.Failed));
+    }
     public void Add(InputTimingEntry entry)
     {
         lock (sync)

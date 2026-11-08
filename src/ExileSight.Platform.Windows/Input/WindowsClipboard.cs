@@ -115,8 +115,7 @@ public sealed class WindowsClipboard : IClipboard
     });
     private void RestoreCore(ClipboardSnapshot? saved)
     {
-        using var temporary = ClipboardWorker.Owner is null ? new ClipboardOwner() : null;
-        var owner = ClipboardWorker.Owner ?? temporary!;
+        using var owner = new ClipboardOwner();
         ClipboardMemory.Open(owner.Handle);
         try
         {

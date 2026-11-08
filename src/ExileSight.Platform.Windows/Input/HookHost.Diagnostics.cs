@@ -10,12 +10,9 @@ public sealed partial class HookHost
     internal ApartmentState ActionWorkerApartment => (ApartmentState)Volatile.Read(ref workerApartment);
     private DispatchDecision ObserveWithFocus(PhysicalKey key)
     {
-        InputTiming.Record(InputStage.HookDelay, clock.Milliseconds - key.Timestamp);
         var focus = foreground.Evaluate();
-        InputTiming.Record(InputStage.LeaseAge, focus.CachedAge);
-        if (focus.Reevaluated)
-            InputTiming.Record(InputStage.LeaseReevaluated, focus.CachedAge,
-                focus.Allowed ? InputTimingOutcome.Success : InputTimingOutcome.Failed);
+        InputTiming.Shared.RecordHook(dispatcher, key, clock.Milliseconds,
+            focus.CachedAge, focus.Reevaluated, focus.Allowed);
         if (!focus.Allowed && focus.Reevaluated && staleNotice.RecordCandidate(dispatcher, key)) ready.Set();
         return dispatcher.Observe(key, true, !focus.Allowed);
     }

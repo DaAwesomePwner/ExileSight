@@ -84,6 +84,10 @@ public sealed class HotkeyDispatcher
         !key.Injected && key.Down && (uint)key.Key < 256 && (uint)key.Modifiers < 16 &&
         !held[key.Key] && configuration.Match(key.Key, key.Modifiers) is not null;
 
+    internal bool IsTimingRelevant(PhysicalKey key) =>
+        !key.Injected && (uint)key.Key < 256 && (uint)key.Modifiers < 16 &&
+        (blocked[key.Key] || pending[key.Key] is not null || configuration.Match(key.Key, key.Modifiers) is not null);
+
     internal DispatchDecision Observe(PhysicalKey key, bool active, bool passThrough = false)
     {
         if (key.Injected || (uint)key.Key >= 256 || (uint)key.Modifiers >= 16) return default;

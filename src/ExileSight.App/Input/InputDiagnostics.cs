@@ -52,7 +52,7 @@ public sealed class InputDiagnostics(IActionGate gate, IClock clock, HotkeyConfi
                 new("Clipboard formats skipped", skipped.ToString()),
                 new("Paste consumption", pasteStatus),
                 new("Recent input timings (ms)", string.Join("\n", InputTiming.Shared.Snapshot(16)
-                    .Select(e => $"{e.Timestamp}: {e.Stage} {e.Milliseconds} ms {e.Outcome}")))
+                    .Select(e => $"-{Math.Max(0, Environment.TickCount64 - e.Timestamp) / 1000.0:F1} s: {e.Stage} {e.Milliseconds} ms {e.Outcome}")))
             ];
     }
 }

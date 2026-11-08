@@ -1,8 +1,8 @@
 using System.Diagnostics;
-using ExileSight.Core.Input;
 using System.Runtime;
 using ExileSight.Core.DataPacks;
 using ExileSight.Core.Diagnostics;
+using ExileSight.Core.Input;
 using ExileSight.Features.ItemInfo;
 
 namespace ExileSight.App.DataPacks;

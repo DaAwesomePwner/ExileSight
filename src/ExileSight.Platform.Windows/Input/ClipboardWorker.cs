@@ -1,20 +1,11 @@
 namespace ExileSight.Platform.Windows.Input;
 
-/// <summary>Worker-owned native infrastructure, prepared before hooks accept production input.</summary>
-internal sealed class ClipboardWorker : IDisposable
+/// <summary>Warm native window creation before input starts without retaining a clipboard owner.</summary>
+internal static class ClipboardWorker
 {
-    [ThreadStatic] private static ClipboardOwner? owner;
-    internal static ClipboardOwner? Owner => owner;
-    private ClipboardWorker() { }
-    internal static ClipboardWorker Initialize()
+    internal static void Initialize()
     {
-        owner = new ClipboardOwner();
+        using var owner = new ClipboardOwner();
         ClipboardOwner.Pump();
-        return new();
-    }
-    public void Dispose()
-    {
-        owner?.Dispose();
-        owner = null;
     }
 }

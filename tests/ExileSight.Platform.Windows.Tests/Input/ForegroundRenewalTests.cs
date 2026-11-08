@@ -117,6 +117,27 @@ public sealed class ForegroundRenewalTests
         }
         finally { SynchronizationContext.SetSynchronizationContext(previous); }
     }
+    [Theory]
+    [InlineData(100)]
+    [InlineData(600)]
+    public void MinimizedGameCannotClaimAndClearsFocusedContext(int delay)
+    {
+        var clock = new Clock();
+        var config = new HotkeyConfiguration();
+        config.Replace([new("copy", 0x14, 0, true, new GameAction.CopyItem())], []);
+        var native = new NativeForeground(42, 7);
+        using var foreground = new HookForeground(new Window(), config, clock, () => native, _ => 7);
+        foreground.Start(); foreground.Refresh();
+        Assert.Contains("gameFocused", config.ActiveContexts);
+        native = native with { IsMinimized = true };
+        clock.Delay(delay);
+        Assert.False(foreground.Evaluate().Allowed);
+        Assert.DoesNotContain("gameFocused", config.ActiveContexts);
+        var dispatcher = new HotkeyDispatcher(new IntentRegistry(clock), config);
+        var down = dispatcher.Observe(new(0x14, true, false, 0, clock.Milliseconds), true);
+        Assert.False(down.Block);
+        Assert.Null(down.Press);
+    }
     private sealed class TooltipRoute : IFeature, IOmniHandler
     {
         public int Calls;

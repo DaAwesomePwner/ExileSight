@@ -70,7 +70,7 @@ public sealed partial class HookHost : IHotkeys
         try
         {
             Volatile.Write(ref workerApartment, (int)Thread.CurrentThread.GetApartmentState());
-            using var clipboardInfrastructure = ClipboardWorker.Initialize();
+            ClipboardWorker.Initialize();
             workerReady.Set();
             Consume();
         }

@@ -119,7 +119,7 @@ public sealed class FinalReviewRegressionTests
         Assert.False(decision.Block);
         Assert.Null(decision.Press);
         Assert.Equal("copy", notice.Take()!.Id);
-        Assert.Equal("hotkey ignored: focus state stale", StaleFocusNotice.Reason);
+        Assert.Equal("hotkey ignored: game not foreground (re-checked)", StaleFocusNotice.Reason);
         Assert.False(notice.RecordCandidate(dispatcher, key)); // no repeated diagnostic for held keys
         Assert.Null(notice.Take());
     }

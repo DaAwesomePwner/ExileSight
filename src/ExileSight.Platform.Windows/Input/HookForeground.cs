@@ -6,7 +6,7 @@ using Windows.Win32.Foundation;
 
 namespace ExileSight.Platform.Windows.Input;
 
-internal readonly record struct NativeForeground(nint Handle, uint ProcessId);
+internal readonly record struct NativeForeground(nint Handle, uint ProcessId, bool IsMinimized = false);
 internal readonly record struct ForegroundDecision(bool Allowed, long CachedAge, bool Reevaluated);
 
 /// <summary>Native focus freshness never depends on dispatching work to the UI.</summary>
@@ -47,7 +47,7 @@ internal sealed class HookForeground : IDisposable
         lease.Publish(identity.Handle, focused, clock.Milliseconds);
     }
     private static bool Matches(Identity identity, NativeForeground native) =>
-        identity.Handle != 0 && identity.ProcessId != 0 &&
+        !native.IsMinimized && identity.Handle != 0 && identity.ProcessId != 0 &&
         identity.Handle == native.Handle && identity.ProcessId == native.ProcessId;
     internal ForegroundDecision Evaluate()
     {
@@ -55,7 +55,7 @@ internal sealed class HookForeground : IDisposable
         var stale = lease.IsStale(clock.Milliseconds);
         // Fixed native queries only: no process enumeration, UI lock, timer, or worker wait.
         var native = probe();
-        if (stale) Refresh(native);
+        if (stale || native.IsMinimized) Refresh(native);
         return new(Matches(Volatile.Read(ref expected), native) &&
             lease.AllowsBlocking(clock.Milliseconds, native.Handle), age, stale);
     }
@@ -71,7 +71,8 @@ internal sealed class HookForeground : IDisposable
     {
         var handle = (nint)PInvoke.GetForegroundWindow().Value;
         var pid = ReadProcessId(handle);
-        return handle == (nint)PInvoke.GetForegroundWindow().Value ? new(handle, pid) : default;
+        var minimized = PInvoke.IsIconic(new HWND(handle));
+        return handle == (nint)PInvoke.GetForegroundWindow().Value ? new(handle, pid, minimized) : default;
     }
     public void Dispose() => window.Changed -= CaptureIdentity;
 }
