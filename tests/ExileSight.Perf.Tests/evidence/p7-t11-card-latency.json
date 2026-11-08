@@ -1,44 +1,179 @@
-[
-  {
-    "mode": "text",
-    "milliseconds": 25.6389,
-    "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
-    "runtime": "10.0.14",
-    "os": "Unix 26.7.2"
-  },
-  {
-    "mode": "card",
-    "milliseconds": 33.8375,
-    "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
-    "runtime": "10.0.14",
-    "os": "Unix 26.7.2"
-  },
-  {
-    "mode": "text",
-    "milliseconds": 25.6083,
-    "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
-    "runtime": "10.0.14",
-    "os": "Unix 26.7.2"
-  },
-  {
-    "mode": "card",
-    "milliseconds": 34.3251,
-    "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
-    "runtime": "10.0.14",
-    "os": "Unix 26.7.2"
-  },
-  {
-    "mode": "text",
-    "milliseconds": 25.8344,
-    "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
-    "runtime": "10.0.14",
-    "os": "Unix 26.7.2"
-  },
-  {
-    "mode": "card",
-    "milliseconds": 38.026,
-    "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
-    "runtime": "10.0.14",
-    "os": "Unix 26.7.2"
-  }
-]
+{
+  "beforeMatchReuse": [
+    {
+      "mode": "text",
+      "milliseconds": 25.6389,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "card",
+      "milliseconds": 33.8375,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "text",
+      "milliseconds": 25.6083,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "card",
+      "milliseconds": 34.3251,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "text",
+      "milliseconds": 25.8344,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "card",
+      "milliseconds": 38.026,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    }
+  ],
+  "afterMatchReuse": [
+    {
+      "mode": "text",
+      "milliseconds": 25.6552,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "card",
+      "milliseconds": 30.2596,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "text",
+      "milliseconds": 25.9712,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "card",
+      "milliseconds": 28.8792,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "text",
+      "milliseconds": 26.2527,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "card",
+      "milliseconds": 28.9715,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    }
+  ],
+  "exploratoryConcurrentVerification": [
+    {
+      "mode": "text",
+      "milliseconds": 25.7458,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "card",
+      "milliseconds": 26.5266,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "text",
+      "milliseconds": 25.4997,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "card",
+      "milliseconds": 26.8498,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "text",
+      "milliseconds": 25.8482,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "card",
+      "milliseconds": 29.2041,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    }
+  ],
+  "finalIsolated": [
+    {
+      "mode": "text",
+      "milliseconds": 25.43,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "card",
+      "milliseconds": 28.9852,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "text",
+      "milliseconds": 25.896,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "card",
+      "milliseconds": 27.0956,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "text",
+      "milliseconds": 25.5764,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    },
+    {
+      "mode": "card",
+      "milliseconds": 26.9458,
+      "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+      "runtime": "10.0.14",
+      "os": "Unix 26.7.2"
+    }
+  ],
+  "measurementNotes": "Final samples run sequentially after verification finished. Exploratory samples overlapping verification retained but excluded from final comparison. No WPF or GearCmp timing."
+}

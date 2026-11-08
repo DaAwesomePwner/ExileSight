@@ -2,10 +2,10 @@ using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Interop;
 using System.Windows.Media;
 using ExileSight.Core.Features;
+using ExileSight.App.Ui;
 using ExileSight.Core.Input;
 using ExileSight.Core.Overlay;
 using ExileSight.Core.Settings;
@@ -25,22 +25,21 @@ public sealed class ItemInfoTooltip(PassiveOverlayInput passive, IGameWindow gam
         ShowActivated = false, Focusable = false, Topmost = true, AllowsTransparency = true,
         Background = Brushes.Transparent, Width = 1, Height = 1
     };
-    private readonly StackPanel panel = new() { Width = 410 };
+    private readonly ContentControl content = new() { HorizontalContentAlignment = HorizontalAlignment.Stretch };
     private ItemInfoViewModel? model;
     private nint handle;
     private int originX, originY;
     private double scale;
     private bool disposed;
     private bool dpiPending;
+    private ItemCard? renderedCard;
+    private CardTheme? renderedTheme;
+    private string? renderedNotice;
+    private double renderedCap;
     public void Start(ItemInfoViewModel viewModel)
     {
         model = viewModel;
-        window.Resources.MergedDictionaries.Add(new ResourceDictionary
-        { Source = new Uri("/ExileSight.App;component/Features/ItemInfo/OverlayTheme.xaml", UriKind.Relative) });
-        window.Content = new Border
-        {
-            Background = (Brush)window.FindResource("OverlayBackground"), Padding = new Thickness(10), Child = panel
-        };
+        window.Content = content;
         handle = new WindowInteropHelper(window).EnsureHandle();
         styler.Apply(handle);
         styler.SetClickThrough(handle, true);
@@ -61,17 +60,6 @@ public sealed class ItemInfoTooltip(PassiveOverlayInput passive, IGameWindow gam
         var client = state.ClientRect;
         if (!state.Found || !state.IsForeground || state.IsMinimized || !settings.Snapshot.Overlay.Enabled || client.Width <= 0 || client.Height <= 0)
         { Close(); return; }
-        panel.Children.Clear();
-        foreach (var section in model!.Sections)
-        {
-            panel.Children.Add(new TextBlock { Text = section.Title, FontWeight = FontWeights.Bold, TextWrapping = TextWrapping.Wrap });
-            foreach (var row in section.Rows)
-            {
-                var text = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 3, 0, 0) };
-                foreach (var part in row.Text) text.Inlines.Add(new Run(part.Text) { Foreground = Color(part.Tone) });
-                panel.Children.Add(text);
-            }
-        }
         var cursor = HookHost.CursorPosition();
         originX = cursor.X; originY = cursor.Y;
         Position();
@@ -84,19 +72,24 @@ public sealed class ItemInfoTooltip(PassiveOverlayInput passive, IGameWindow gam
         var client = game.Current.ClientRect;
         if (client.Width <= 0 || client.Height <= 0) throw new InvalidOperationException("Game client has no drawable area");
         scale = OverlayRules.Scale(client.Height, settings.Snapshot.Overlay.ScaleOverride);
-        panel.Measure(new Size(410, double.PositiveInfinity));
-        var bounds = PopupPlacement.Place(client, styler.GetWorkArea(client), originX, originY,
-            430, panel.DesiredSize.Height + 20, scale, 12);
+        var overlay = settings.Snapshot.Overlay;
+        var theme = CardTheme.For(overlay.Density, overlay.Contrast);
+        var cap = client.Height * .8 / scale;
+        if (!ReferenceEquals(renderedCard, model!.Card) || !ReferenceEquals(renderedTheme, theme) ||
+            renderedCap != cap || renderedNotice != model.Notice)
+        {
+            content.Content = ItemCardView.Build(model.Card!, theme, cap, model.Notice);
+            renderedCard = model.Card; renderedTheme = theme; renderedCap = cap; renderedNotice = model.Notice;
+        }
+        var card = (FrameworkElement)content.Content;
+        card.Measure(new Size(theme.CardWidth, double.PositiveInfinity));
+        var bounds = PopupPlacement.PlaceCard(client, styler.GetWorkArea(new(originX, originY, 1, 1)), originX, originY,
+            theme.CardWidth, card.DesiredSize.Height, scale, overlay.ToCardPlacementOptions());
         styler.Position(handle, bounds);
         var dpi = VisualTreeHelper.GetDpi(window);
         ((FrameworkElement)window.Content).LayoutTransform = new ScaleTransform(
             OverlayRefresh.ContentScale(scale, dpi.DpiScaleX), OverlayRefresh.ContentScale(scale, dpi.DpiScaleY));
     }
-    private Brush Color(TooltipTone tone) => (Brush)window.FindResource(tone switch
-    {
-        TooltipTone.Normal => "OverlayForeground", TooltipTone.Best => "OverlayAccent",
-        _ => "Tooltip" + tone
-    });
     private void Guard(Action action) => OverlayFailureGuard.Run(action, Close,
         error => logger.LogWarning("Item tooltip failed: {ExceptionType}", error.GetType().Name));
     private void DpiChanged(object sender, DpiChangedEventArgs args)
@@ -114,7 +107,11 @@ public sealed class ItemInfoTooltip(PassiveOverlayInput passive, IGameWindow gam
         if (window.IsVisible && (input.Message == 0x100 || input.Message == 0x200 &&
             TooltipDismissal.MovedBeyond(input.X, input.Y, originX, originY, scale))) Close();
     }
-    private void Hide() { passive.Close(this); window.Hide(); }
+    private void Hide()
+    {
+        passive.Close(this); window.Hide();
+        content.Content = null; renderedCard = null; renderedTheme = null; renderedNotice = null;
+    }
     private void Close() { try { Hide(); } finally { if (model?.Current is not null) model.Close(); } }
     private void EnvironmentChanged(object? sender, EventArgs args) => window.Dispatcher.BeginInvoke(() =>
     {

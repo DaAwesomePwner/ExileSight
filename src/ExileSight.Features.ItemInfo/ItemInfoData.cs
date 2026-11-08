@@ -8,6 +8,8 @@ public interface IItemInfoData
     BaseEntry? FindBase(ParsedItem item);
     ModEntry? FindMod(ParsedItem item, IReadOnlyList<ModLine> group);
     StatMatch[] MatchLine(ModLine line);
+    ModEntry? FindMod(ParsedItem item, IReadOnlyList<ModLine> group,
+        IReadOnlyDictionary<ModLine, StatMatch[]> matches) => FindMod(item, group);
 }
 
 /// <summary>App injects already loaded packs; this adapter performs no IO.</summary>
@@ -51,12 +53,18 @@ public sealed class PackItemInfoData : IItemInfoData
 
     // Exile-UI modules/item-checker.ahk:1436–1463 (MIT): name, category, type, all text and spawn tags; first match.
     public ModEntry? FindMod(ParsedItem item, IReadOnlyList<ModLine> group)
+        => FindModCore(item, group, MatchLine);
+
+    public ModEntry? FindMod(ParsedItem item, IReadOnlyList<ModLine> group,
+        IReadOnlyDictionary<ModLine, StatMatch[]> perLine) => FindModCore(item, group, line => perLine[line]);
+
+    private ModEntry? FindModCore(ParsedItem item, IReadOnlyList<ModLine> group, Func<ModLine, StatMatch[]> match)
     {
         var basis = FindBase(item);
         if (basis is null || group.Count == 0) return null;
         var first = group[0];
         if (first.AffixName is null || first.AffixType == AffixType.Unknown) return null;
-        var matches = group.Select(MatchLine).ToArray();
+        var matches = group.Select(match).ToArray();
         var tags = ItemPackIdentity.SpawnTags(item, basis);
         return mods.FirstOrDefault(m => m.Name == first.AffixName &&
             m.AffixType.Equals(first.AffixType.ToString(), StringComparison.OrdinalIgnoreCase) &&

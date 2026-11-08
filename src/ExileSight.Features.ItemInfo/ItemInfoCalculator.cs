@@ -8,10 +8,13 @@ public sealed class ItemInfoCalculator(IItemInfoData? data = null)
     public ItemInfoResult Calculate(ParsedItem item, ItemInfoSettings? settings = null)
     {
         settings = (settings ?? ItemInfoSettings.Default).Validate();
+        var matches = new Dictionary<ModLine, ExileSight.Core.DataPacks.StatMatch[]>(ReferenceEqualityComparer.Instance);
+        if (data is not null)
+            foreach (var line in item.Mods) matches.TryAdd(line, data.MatchLine(line));
         var rows = item.Mods.Select(line =>
         {
             var group = line.Group is null ? [line] : item.Mods.Where(m => m.Group == line.Group).ToArray();
-            var matched = data?.FindMod(item, group);
+            var matched = data?.FindMod(item, group, matches);
             var roll = Roll(line, settings.InvertedLines?.Any(rule => ModRuleKey.Normalize(rule) == ModRuleKey.Normalize(line.Text)) == true);
             var crafted = line.Kind.HasFlag(ModKind.Crafted);
             var implicitMod = line.Kind.HasFlag(ModKind.Implicit);
@@ -29,7 +32,17 @@ public sealed class ItemInfoCalculator(IItemInfoData? data = null)
             explicitLines.All(m => m.Group is not null && m.AffixType != AffixType.Unknown));
         int? Count(AffixType type) => known ? explicitLines.Where(m => m.AffixType == type).Select(m => m.Group).Distinct().Count() : null;
         return new(item, rows, Count(AffixType.Prefix), Count(AffixType.Suffix),
-            DefenceCalculator.Calculate(item, data)) { Settings = settings };
+            DefenceCalculator.Calculate(item, data is null ? null : new MatchedData(data, matches))) { Settings = settings, Matches = data is null ? null : matches };
+    }
+
+    private sealed class MatchedData(IItemInfoData source,
+        IReadOnlyDictionary<ModLine, ExileSight.Core.DataPacks.StatMatch[]> matches) : IItemInfoData
+    {
+        public ExileSight.Core.DataPacks.BaseEntry? FindBase(ParsedItem item) => source.FindBase(item);
+        public ExileSight.Core.DataPacks.ModEntry? FindMod(ParsedItem item, IReadOnlyList<ModLine> group) =>
+            source.FindMod(item, group, matches);
+        public ExileSight.Core.DataPacks.StatMatch[] MatchLine(ModLine line) =>
+            matches.TryGetValue(line, out var found) ? found : source.MatchLine(line);
     }
 
     public static decimal? Roll(ModLine line, bool invert)

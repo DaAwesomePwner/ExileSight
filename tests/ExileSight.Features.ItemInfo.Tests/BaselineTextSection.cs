@@ -1,9 +1,10 @@
+// Frozen 86cd546 baseline for cold-process latency comparison only.
 using ExileSight.Core.Features;
 using ExileSight.Core.Items;
 
-namespace ExileSight.Features.ItemInfo;
+namespace ExileSight.Features.ItemInfo.Tests;
 
-public sealed class ItemInfoSection(Func<string?>? status = null) : ITooltipSectionProvider
+public sealed class BaselineTextSection(Func<string?>? status = null) : ITooltipSectionProvider
 {
     public int Priority => 100;
     public TooltipSection? Build(ParsedItem item) => null;

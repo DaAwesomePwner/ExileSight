@@ -26,8 +26,9 @@ public sealed class CardLatencyTests(ITestOutputHelper output)
         var card = Environment.GetEnvironmentVariable("EXILESIGHT_CARD_LATENCY_MODE") == "card";
         // Use a fresh test process per mode. No matcher or calculator warm-up.
         var watch = Stopwatch.StartNew();
-        var result = new ItemInfoCalculator(startup.Data).Calculate(item);
-        object presentation = card ? ItemCardBuilder.Build(result, startup.Data) : ItemInfoSection.Render(result);
+        var result = card ? new ItemInfoCalculator(startup.Data).Calculate(item)
+            : new BaselineCalculator(startup.Data).Calculate(item);
+        object presentation = card ? ItemCardBuilder.Build(result, startup.Data) : BaselineTextSection.Render(result);
         watch.Stop();
         var report = JsonSerializer.Serialize(new
         {

@@ -31,28 +31,41 @@ public sealed class TooltipFailureTests
         Assert.IsType<Win32Exception>(Assert.Single(errors));
     }
     [Fact]
-    public void ThrowingSectionDoesNotDiscardOtherSectionsOrRecalculateItem()
+    public void ThrowingComparisonDoesNotDiscardCardOrHealthyComparison()
     {
-        var analysis = new object();
         var errors = new List<Exception>();
-        var healthy = new Provider(analysis, false);
-        var sections = TooltipSections.Build(new TooltipContext(new ParsedItem(), analysis),
-            [new Provider(analysis, true), healthy], errors.Add);
+        var feature = new ItemInfoFeature { SectionError = errors.Add };
+        var healthy = new Provider(false);
+        var host = new FeatureHost([feature, new Provider(true), healthy], (_, _) => null, (_, _, _) => { });
+        Assert.True(host.Route(CalculatorTests.Hybrid(), new(Core.Games.Game.PoE1), OmniPressKind.Short));
         Assert.Single(errors);
-        Assert.Single(sections);
+        Assert.NotEmpty(feature.ViewModel.Card!.Rows);
+        Assert.Single(feature.ViewModel.Card.Compare!.Slots);
         Assert.Equal(1, healthy.Calls);
     }
-    private sealed class Provider(object expected, bool fail) : ITooltipSectionProvider
+    [Fact]
+    public void PackStatusFailureDoesNotDiscardCard()
+    {
+        var errors = new List<Exception>();
+        var feature = new ItemInfoFeature
+        { PackStatus = () => throw new InvalidOperationException(), SectionError = errors.Add };
+        var host = new FeatureHost([feature], (_, _) => null, (_, _, _) => { });
+        Assert.True(host.Route(CalculatorTests.Hybrid(), new(Core.Games.Game.PoE1), OmniPressKind.Short));
+        Assert.Single(errors);
+        Assert.NotEmpty(feature.ViewModel.Card!.Rows);
+        Assert.Null(feature.ViewModel.Notice);
+    }
+
+    private sealed class Provider(bool fail) : IFeature, IItemCardComparisonProvider
     {
         public int Calls { get; private set; }
-        public int Priority => 100;
-        public TooltipSection? Build(ParsedItem item) => throw new InvalidOperationException("Analysis was lost");
-        public TooltipSection Build(TooltipContext context)
+        public FeatureManifest Manifest { get; } = new(fail ? "broken" : "healthy", [Core.Games.Game.PoE1], [], [], [], "test");
+        public void Register(IFeatureContext context) => context.RegisterItemCardComparison(this);
+        public ItemCardComparison BuildComparison(ParsedItem item)
         {
             Calls++;
-            Assert.Same(expected, context.Analysis);
             if (fail) throw new InvalidOperationException();
-            return new("healthy", "Healthy", []);
+            return new([new("healthy", true, [])], "test");
         }
     }
 }

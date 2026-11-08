@@ -57,6 +57,7 @@ public static partial class CardPrimitives
         row.Children.Add(bar);
         var number = RollLabel(roll, theme);
         number.FontWeight = FontWeights.Bold;
+        number.FontSize = 12;
         number.Foreground = theme.OverlayForeground;
         number.HorizontalAlignment = HorizontalAlignment.Right;
         Grid.SetColumn(number, 2);
@@ -78,7 +79,7 @@ public static partial class CardPrimitives
                 ? "OverlayForeground" : "Tooltip" + model.Tone, 20, true));
         return new Border
         {
-            Background = theme["StatTileBackground"], CornerRadius = new CornerRadius(4),
+            Background = theme["OverlayRaised"], CornerRadius = new CornerRadius(4),
             Padding = new Thickness(8), Child = column
         };
     }

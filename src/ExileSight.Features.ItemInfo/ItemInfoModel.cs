@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using ExileSight.Core.Items;
+using ExileSight.Core.DataPacks;
 
 namespace ExileSight.Features.ItemInfo;
 
@@ -14,6 +15,9 @@ public sealed record ItemInfoResult(ParsedItem Item, IReadOnlyList<ModInfo> Mods
     /// <summary>Card-building context only; excluded from serialized analysis and result equality.</summary>
     [JsonIgnore]
     public ItemInfoSettings Settings { get; init; } = ItemInfoSettings.Default;
+
+    [JsonIgnore]
+    public IReadOnlyDictionary<ModLine, StatMatch[]>? Matches { get; init; }
 
     // Preserve the original record semantics for the six analysis fields, including list identity.
     public bool Equals(ItemInfoResult? other) => other is not null &&

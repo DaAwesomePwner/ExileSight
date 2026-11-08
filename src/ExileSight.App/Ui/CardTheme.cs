@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using ExileSight.Core.Settings;
 using System.Windows;
 using System.Windows.Media;
 
@@ -15,6 +16,27 @@ public sealed class CardTheme
     public static CardTheme Default => Shared.Value;
     public FontFamily TextFont { get; }
     public FontFamily NumberFont { get; }
+    public double RowHeight { get; private init; } = 28;
+    private static readonly Lazy<CardTheme[]> Variants = new(() =>
+        [Create(OverlayDensity.Comfortable, false), Create(OverlayDensity.Compact, false),
+         Create(OverlayDensity.Comfortable, true), Create(OverlayDensity.Compact, true)]);
+    public static CardTheme For(OverlayDensity density, OverlayContrast contrast) =>
+        Variants.Value[(density == OverlayDensity.Compact ? 1 : 0) +
+            (contrast == OverlayContrast.HighContrast ? 2 : 0)];
+    private static CardTheme Create(OverlayDensity density, bool highContrast)
+    {
+        var source = Default;
+        var values = source.brushes.ToDictionary();
+        if (highContrast)
+        {
+            values["TextSecondary"] = source.OverlayForeground;
+            values["TextMuted"] = source.TextSecondary;
+            values["OverlayRule"] = source.OverlayBorder;
+            values["OverlayBorder"] = source.TooltipUnknown;
+        }
+        return new(values, source.TextFont, source.NumberFont)
+        { RowHeight = density == OverlayDensity.Compact ? 24 : 28 };
+    }
     public double CardWidth => 300;
     public double TierPillWidth => 36;
     public Thickness CardPadding => new(12, 10, 12, 10);

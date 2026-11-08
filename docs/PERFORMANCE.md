@@ -220,31 +220,41 @@ Safe follow-ups: separate symbols, avoid redundant download formats, optionally
 offer a framework-dependent build. Do not trim WPF, remove packs or enable NativeAOT
 without compatibility evidence. Release packaging is unchanged.
 
-## P7-T11 item-card pre-integration latency
+## P7-T11 item-card latency and match reuse
 
-A Release macOS ARM64/.NET 10.0.14 probe at base `86cd546` uses verified local
-shipping packs, production `PackStartup` (including bulk-load reclamation), and
-`FirstUseFixture`. Each sample runs in a fresh test process with
-`DOTNET_GCConserveMemory=9`; no calculator or matcher warm-up occurs. The timed
-region calculates the item and builds either the existing text section or the
-P7-T5 card model. This differs from the earlier MatchLine/FindMod-only first-use
-measurement above and excludes WPF layout/rendering and GearCmp.
+Release macOS ARM64/.NET 10.0.14, verified local shipping packs, production
+`PackStartup` including bulk-load reclamation, and `FirstUseFixture`. Each sample
+runs in a fresh test process with `DOTNET_GCConserveMemory=9`, without calculator
+or matcher warm-up. The timed region calculates the item and builds either the
+old text section or the card model. This differs from the earlier
+MatchLine/FindMod-only first-use measurement and excludes WPF layout/rendering
+and GearCmp. The old calculator, defence helpers and text renderer are frozen
+from `86cd546` in test-only baseline classes; both modes share the production
+pack loader/adapter. The old production text renderer has been removed.
 
 | First-item presentation | Three fresh-process samples (ms) | Median (ms) |
 | --- | --- | ---: |
-| Existing calculator + text section | 25.64, 25.61, 25.83 | 25.64 |
-| Calculator + card model | 33.84, 34.33, 38.03 | 34.33 |
+| Initial old text baseline | 25.64, 25.61, 25.83 | 25.64 |
+| Initial card without match reuse | 33.84, 34.33, 38.03 | 34.33 |
+| Match reuse, before allocation reduction | 30.26, 28.88, 28.97 | 28.97 |
+| Final paired old text baseline | 25.43, 25.90, 25.58 | 25.58 |
+| Final card, match reuse + allocation reduction | 28.99, 27.10, 26.95 | 27.10 |
 
-The card median is 8.69 ms (34%) slower. Both pass the 500 ms ceiling; the
-no-regression requirement is **not satisfied**. These timings do not isolate
-matching from cold JIT and other card-building costs. Reusing per-line matches
-requires follow-up in the calculator/data/model/card-builder path, outside the
-P7-T11 worker's assigned production files. No production presentation change has
-been made in this measurement commit. Windows rendering and idle budgets remain
-unmeasured for the proposed view.
+The final residual is **+1.52 ms (5.9%)**, compared with the initial +8.69 ms
+(34%). Both pass the 500 ms ceiling; strict no-regression is not established.
+The calculator now captures each mod line's matches once, supplies them to
+FindMod and defence calculation, and attaches them as JSON-ignored, equality-neutral
+analysis context for the card builder. Tests verify that building the card adds
+no MatchLine calls. Temporary signature/roll arrays and LINQ enumerators were
+also removed from card construction. The remaining timing includes cold JIT,
+short-label table initialization and richer model construction; their individual
+contributions have not been isolated. No warm-up, artificial baseline delay,
+production timer or budget relaxation was introduced.
 
 Raw samples: `tests/ExileSight.Perf.Tests/evidence/p7-t11-card-latency.json`.
-Reproduce each mode in a separate process (set MODE to `text` or `card`):
+Final samples ran sequentially after verification finished. An exploratory batch
+that overlapped verification is retained separately and excluded from this table.
+Reproduce each mode in a separate process (replace MODE with `text` or `card`):
 
 ```sh
 DOTNET_GCConserveMemory=9 EXILESIGHT_REAL_PACKS=/path/to/verified/packs \
@@ -253,3 +263,12 @@ DOTNET_GCConserveMemory=9 EXILESIGHT_REAL_PACKS=/path/to/verified/packs \
   dotnet test tests/ExileSight.Features.ItemInfo.Tests -c Release \
   --filter FullyQualifiedName~CardLatencyTests
 ```
+
+The existing real-pack equivalence probe passes with match reuse. The separate
+production session-memory probe also passes its unchanged ceilings: committed
+memory after load/refresh 71.47/91.54 MB; natural committed after items/refresh
+37.91/32.39 MB; final retained heap 40.97 MB (29.99 MB above the initial sample).
+Raw data: `tests/ExileSight.Perf.Tests/evidence/p7-t11-session-memory.json`.
+That session probe exercises the calculator, not WPF or full card presentation;
+Windows private memory, idle CPU, rendered snapshots and in-game latency still
+require Windows validation. Snapshot rendering is cross-compiled on macOS only.

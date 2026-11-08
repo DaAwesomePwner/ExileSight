@@ -51,8 +51,10 @@ public sealed class ProfileTests
         feature.ViewModel.PropertyChanged += (_, _) => changes++;
         context.Handler.Handle(CalculatorTests.Hybrid(), new(Game.PoE1), OmniPressKind.Short);
         Assert.NotNull(feature.ViewModel.Current);
+        Assert.NotNull(feature.ViewModel.Card);
         feature.ViewModel.Close();
         Assert.Null(feature.ViewModel.Current);
+        Assert.Null(feature.ViewModel.Card);
         Assert.Equal(2, changes);
     }
 
@@ -68,6 +70,20 @@ public sealed class ProfileTests
         Assert.Contains(result.Mods, m => m.TierLabel == "Unique");
         Assert.Null(result.Prefixes);
         Assert.Null(result.UniqueDropTier);
+    }
+
+    [Fact]
+    public void RegisteredCardKeepsActiveProfileHighlights()
+    {
+        var context = new Context();
+        new ItemInfoSettings([new("Want", [new("+10 to Armour", Highlight.Desired)]),
+            new("Avoid", [new("+10 to Armour", Highlight.Undesired)])], 1).Save(context);
+        var feature = new ItemInfoFeature();
+        feature.Register(context);
+        context.Handler!.Handle(CalculatorTests.Hybrid(), new(Game.PoE1), OmniPressKind.Short);
+        Assert.Equal(Highlight.Undesired, feature.ViewModel.Card!.Rows[0].Highlight);
+        Assert.Equal(1, feature.ViewModel.Card.Verdict!.Unwanted);
+        Assert.Equal(0, feature.ViewModel.Card.Verdict.Wanted);
     }
 
     private sealed class Context : IFeatureContext

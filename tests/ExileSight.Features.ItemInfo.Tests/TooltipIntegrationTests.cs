@@ -48,7 +48,7 @@ public sealed class TooltipIntegrationTests
         Assert.Same(original, startup.Data);
     }
     [Fact]
-    public void RegisteredHandlerRendersMainSectionAndLaterContributors()
+    public void RegisteredHandlerBuildsCardAndLaterComparisons()
     {
         var reads = 0;
         var feature = new ItemInfoFeature { ReadData = () => { reads++; return null; } };
@@ -56,10 +56,10 @@ public sealed class TooltipIntegrationTests
         var item = ItemTextParser.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "fixtures/hybrid.txt")), Game.PoE1).Item!;
         Assert.True(host.Route(item, new(Game.PoE1), OmniPressKind.Short));
         Assert.Equal(1, reads);
-        Assert.Equal(["iteminfo", "extra"], feature.ViewModel.Sections.Select(s => s.Id));
-        var text = string.Join(" ", feature.ViewModel.Sections[0].Rows.SelectMany(r => r.Text).Select(t => t.Text));
-        Assert.Contains("ilvl unknown", text);
-        Assert.DoesNotContain("10000", text);
+        var card = Assert.IsType<ItemCard>(feature.ViewModel.Card);
+        Assert.NotEmpty(card.Rows);
+        Assert.Equal("Comparison", card.Compare!.Note);
+        Assert.Contains(card.Rows, row => row.LevelKind == CardLevelKind.Unknown);
         feature.ViewModel.Close();
         Assert.Null(feature.ViewModel.Current);
     }
@@ -88,11 +88,11 @@ public sealed class TooltipIntegrationTests
         Assert.Contains("poe1/bases: IOException", diagnostic);
         Assert.DoesNotContain("sensitive", diagnostic);
     }
-    private sealed class ExtraFeature : IFeature, ITooltipSectionProvider
+    private sealed class ExtraFeature : IFeature, IItemCardComparisonProvider
     {
         public FeatureManifest Manifest { get; } = new("extra", [Game.PoE1], [], [], [], "test");
         public int Priority => 200;
-        public void Register(IFeatureContext context) => context.RegisterTooltipSection(this);
-        public TooltipSection Build(ParsedItem item) => new("extra", "Comparison", []);
+        public void Register(IFeatureContext context) => context.RegisterItemCardComparison(this);
+        public ItemCardComparison BuildComparison(ParsedItem item) => new([new("test", true, [])], "Comparison");
     }
 }

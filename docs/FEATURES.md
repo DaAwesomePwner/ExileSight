@@ -22,15 +22,17 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 - **Reference:** `modules/omni-key.ahk` (`Omni_Context` around lines 268–340, context menu around lines 342–575).
 - **Done when:** routing is unit-tested with fixtures, and one key press results in at most one `CopyItem`.
 
-### `iteminfo`: Item-info tooltip
+### `iteminfo`: Item card
 - **Trigger:** the omni handler for gear, jewels and flasks; no separate item-info hotkey is registered.
 - **Actions:** none beyond the omni copy, which uses advanced copy (Ctrl+Alt+C) by default. **Use advanced copy** switches it back to plain copy.
 - **Behaviour:**
-  - A compact tooltip near the cursor showing:
-    - each mod's tier and roll position within its range, color-coded
+  - A click-through 300-unit card beside the cursor (or docked), showing:
+    - verdict counts, short mod labels in game order, tier pills and roll bars with numeric values
     - affix item-level requirement
-    - prefix and suffix counts
+    - prefix and suffix pips, including open slots
     - base percentile for defences
+  - Height is capped at 80% of the client: Compare drops first, then Slots/base, then trailing mods become “+N more mods”. No scrolling. Density and contrast follow Overlay settings.
+  - Plain copies show an advanced-copy hint; unidentified items hide mods; uniques show average roll and omit unknown drop tiers.
   - Up to 5 highlight profiles (desired and undesired mods, global or per item class). Unique drop tiers remain unknown.
   - Tiers come from advanced-copy headers. Defence percentiles use quality additive with local increased defence and forward-validated integer reversal; ambiguous results remain unknown, deliberately diverging from Exile-UI.
   - Closes on mouse move beyond a threshold or on Esc.
@@ -39,11 +41,11 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 - **Done when:** fixture tests cover every rarity and slot class, and the 🎮 gate shows tiers matching the game on 20 real items.
 
 ### `gearcmp`: Gear comparison
-- **Trigger:** choose **Set as equipped** in the omni long-press menu. The tooltip stays click-through. The slot is inferred from the item class; for rings the user picks left or right.
+- **Trigger:** choose **Set as equipped** in the omni long-press menu. The card stays click-through. The slot is inferred from the item class; for rings the user picks left or right.
 - **Actions:** none.
 - **Behaviour:**
   - Store equipped items in the default profile or an explicitly confirmed character profile. Client.txt names are in-memory candidates until confirmed in the omni menu; profile filenames are hashed.
-  - The item-info tooltip for the same slot shows stat deltas: life, resistances, attributes, copied weapon DPS, and defences. Unknown stats are omitted; hybrid stats expand to components.
+  - The item card for the same slot shows stat deltas: life, resistances, attributes, copied weapon DPS, and defences. Unknown stats are omitted; hybrid stats expand to components.
   - Preview and equip use the same replacement rule; bows retain quivers, and quivers pair only with bows.
 - **Reference:** `modules/item-checker.ahk` (`Iteminfo_GearParse` around lines 2354–2613, comparison around lines 865–1100). Exile-UI's inventory-pixel button placement is **not** ported (D-006).
 - **Done when:** delta maths is unit-tested and the stored gear survives a restart.

@@ -43,6 +43,8 @@ public interface IFeatureContext
     void SubscribeLog(Action<ClientLogEvent> handler, LogReplay? replay = null) =>
         throw new NotSupportedException("This host does not provide envelope subscriptions.");
     void RegisterOverlay(object viewModel);
+    void RegisterItemCardComparison(IItemCardComparisonProvider provider) => throw new NotSupportedException();
+    IReadOnlyList<IItemCardComparisonProvider> ItemCardComparisons => [];
     void RegisterTooltipSection(ITooltipSectionProvider provider) => throw new NotSupportedException();
     IReadOnlyList<ITooltipSectionProvider> TooltipSections => [];
     void RegisterItemMenu(IItemMenuProvider provider) => throw new NotSupportedException();
