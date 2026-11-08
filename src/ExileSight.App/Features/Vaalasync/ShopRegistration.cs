@@ -1,4 +1,5 @@
 using System.IO;
+using Microsoft.Extensions.Hosting;
 using ExileSight.Core.Pricing;
 using Microsoft.Extensions.Logging;
 using ExileSight.Core.Features;
@@ -16,7 +17,9 @@ public static class ShopRegistration
         var paths = services.GetRequiredService<IAppPaths>();
         var settings = services.GetRequiredService<ISettingsStore<SettingsDocument>>();
         var prices = services.GetRequiredService<PriceService>();
-        var league = new ShopLeague(() => settings.Snapshot.Prices.League, () => prices.GetLeaguesAsync());
+        var lifetime = services.GetRequiredService<IHostApplicationLifetime>();
+        var league = new ShopLeague(() => settings.Snapshot.Prices.League,
+            () => prices.GetLeaguesAsync(cancellationToken: lifetime.ApplicationStopping));
         return new VaalasyncFeature(new ShopModel(new HistoryStore(Path.Combine(paths.GetGameDirectory("poe1"), "vaalasync")),
             () => league.Current)
         {

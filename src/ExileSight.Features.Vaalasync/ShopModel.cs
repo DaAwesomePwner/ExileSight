@@ -11,17 +11,15 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
     public const string RearmMessage = "Price sent — finish listing manually; press omni again to reprice";
     private readonly object sync = new();
     private IFeatureContext? context;
-    private Guid listing;
-    private ParsedItem? item;
+    private Task<ReadHistory?>? currentRead;
+    private Task historyTail = Task.CompletedTask;
     private string currency = "chaos";
     public bool NoteMode { get; private set; }
     public Func<ParsedItem, string, Task<ShopNote?>> SeedPrice { get; set; } = (_, _) => Task.FromResult<ShopNote?>(null);
     public Func<Task<string>> ResolveLeagueAsync { get; set; } = () => Task.FromResult(league());
-    private string? itemLeague;
-    private long readRevision;
     private long revision;
     private string? currentCurrency;
-    public string Currency { get { lock (sync) return currency; } set { lock (sync) { currency = value; revision++; } Changed?.Invoke(); } }
+    public string Currency { get { lock (sync) return currency; } set { lock (sync) { currency = value; revision++; } NotifyChanged(); } }
     public string Instructions => NoteMode ? "Open the game’s note box before clicking a price." :
         "Open Set Item Price and focus its amount field. Choose the currency and click LIST ITEM yourself.";
     public IReadOnlyList<ItemMenuEntry> BuildMenu(ParsedItem value) => value.Game != Game.PoE1 || ShopNote.Parse(value.Note) is not null ? [] :
@@ -32,11 +30,10 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
     private string status = "Open Set Item Price and focus its amount field. Choose the currency and click LIST ITEM yourself.";
     public Action<string> ReportFailure { get; set; } = type => System.Diagnostics.Trace.TraceWarning("Shop executor failed: {0}", type);
     public HistoryStore History => history;
-    public string League => league();
     public string Status { get { lock (sync) return history.RecoveryNotice is { } notice ? notice + "\n" + status : status; } }
     public bool CanApply { get { lock (sync) return armed && !sending; } }
     public ShopNote? Note { get { lock (sync) return note; } }
-    public string Custom { get { lock (sync) return custom; } set { lock (sync) { custom = value; revision++; } Changed?.Invoke(); } }
+    public string Custom { get { lock (sync) return custom; } set { lock (sync) { custom = value; revision++; } NotifyChanged(); } }
     public event Action? Opened;
     public event Action? Changed;
     public int Priority => PricedItemPriority;
@@ -53,31 +50,31 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
     }
     public void Handle(ParsedItem item, OmniContext context, OmniPressKind press)
     {
-        long seedRevision, expectedRead;
+        long seedRevision;
+        Task<ReadHistory?> read;
         lock (sync)
         {
             if (sending) return; // Only a fresh read after the send completes may re-arm.
             var current = ShopNote.Parse(item.Note);
-            this.item = item;
             currentCurrency = current?.Currency;
             seedRevision = ++revision;
-            note = null;
+            note = current;
             estimate = null;
-            armed = false;
-            listing = Guid.Empty;
+            armed = true;
             currency = current?.Currency ?? "chaos";
             custom = "";
-            itemLeague = null;
-            expectedRead = ++readRevision;
-            status = "Resolving price league…";
+            status = Instructions;
+            read = RecordReadAsync(item, ResolveLeagueAsync(), historyTail, ++readRevision, DateTimeOffset.UtcNow);
+            currentRead = read;
+            historyTail = read;
         }
         Opened?.Invoke();
-        _ = PrepareAsync(item, seedRevision, expectedRead);
+        _ = PrepareAsync(item, seedRevision, read);
     }
     public ActionResult Apply(string choice, IntentToken? token)
     {
         ShopNote? next;
-        Guid selected;
+        Task<ReadHistory?> selected;
         lock (sync)
         {
             if (token is null) return new(ActionOutcome.MissingToken);
@@ -89,13 +86,13 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
                     ? "Async listing amounts must be a whole number." : "Enter a positive price up to 1,000,000.";
                 return new(ActionOutcome.Failed, status);
             }
-            selected = listing;
+            selected = currentRead!;
             revision++;
             sending = true;
             armed = false;
             status = NoteMode ? "Setting note…" : "Setting amount…";
         }
-        Changed?.Invoke();
+        NotifyChanged();
         ActionResult result;
         try { result = context!.Execute(token, NoteMode ? new GameAction.SetPriceNote(next.ToString()) : new GameAction.SetListingAmount(next.Amount)); }
         catch (Exception error)
@@ -110,29 +107,24 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
         var paste = string.IsNullOrWhiteSpace(result.PasteStatus) || result.PasteStatus == "Not applicable"
             ? null : result.PasteStatus;
         var message = $"{result.Outcome}: {result.Reason}";
+        string? historyKind = null;
         if (!rejectedBeforeInput)
         {
             var success = result.Outcome == ActionOutcome.Success;
             message = success ? RearmMessage : "Price possibly set — press omni again before repricing. " + message;
             if (paste is not null) message += " — " + paste;
             // PasteStatus already includes 'Sent' when supplied by ActionTransaction.
-            var kind = success ? paste ?? "Sent" : "Possibly set" + (paste is null ? "" : " — " + paste);
-            try
-            {
-                if (selected == Guid.Empty && item is { } source)
-                    history.Observe(source.Name, source.BaseType ?? "", source.ItemLevel, itemLeague!, next, DateTimeOffset.UtcNow, kind);
-                else history.Change(selected, next, DateTimeOffset.UtcNow, kind);
-            }
-            catch (IOException) { message += " — history could not be saved."; }
-            catch (UnauthorizedAccessException) { message += " — history access was denied."; }
+            historyKind = success ? paste ?? "Sent" : "Possibly set" + (paste is null ? "" : " — " + paste);
         }
         lock (sync)
         {
             sending = false;
             armed = rejectedBeforeInput;
             status = message;
+            if (historyKind is not null)
+                historyTail = RecordSendAsync(selected, historyTail, next, historyKind, DateTimeOffset.UtcNow);
         }
-        Changed?.Invoke();
+        NotifyChanged();
         return result;
     }
 }

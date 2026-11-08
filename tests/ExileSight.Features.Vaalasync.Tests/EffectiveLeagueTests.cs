@@ -17,7 +17,7 @@ public sealed class EffectiveLeagueTests : IDisposable
     [Theory]
     [InlineData(null, false, "Example Challenge")]
     [InlineData("Hardcore", false, "Hardcore")]
-    [InlineData(null, true, "Standard")]
+    [InlineData(null, true, "Example Challenge")]
     public void EstimatesAndNewListingsShareResolvedLeague(string? configured, bool stale, string expected)
     {
         var league = new ShopLeague(() => configured, () => Task.FromResult(Current with { IsStale = stale }));
@@ -45,20 +45,29 @@ public sealed class EffectiveLeagueTests : IDisposable
     }
 
     [Fact]
-    public async Task PendingDiscoveryDefersHistoryAndInputWithoutBlockingHandle()
+    public async Task PendingDiscoveryDefersHistoryButArmsAndSendsImmediately()
     {
         var pending = new TaskCompletionSource<LeagueResult>();
         var ready = new TaskCompletionSource();
         var league = new ShopLeague(() => null, () => pending.Task);
         var model = new ShopModel(new(directory), () => league.Current) { ResolveLeagueAsync = league.ResolveAsync };
-        model.Changed += () => { if (model.CanApply) ready.TrySetResult(); };
+        model.Changed += () => { if (model.History.Snapshot().Any(r => r.Prices.Length == 2)) ready.TrySetResult(); };
         model.Handle(Item("Note: ~b/o 12 chaos"), new(Game.PoE1), OmniPressKind.Short);
+        var sends = 0;
+        _ = new FeatureHost([new VaalasyncFeature(model)], (_, _) => null, (_, _, _) => { },
+            (_, _, _) => { sends++; return new(ActionOutcome.Success); });
+        Assert.True(model.CanApply);
+        Assert.Empty(model.History.Snapshot());
+        Assert.Equal(ActionOutcome.Success, model.Apply("plus1", new()).Outcome);
+        Assert.Equal(1, sends);
         Assert.False(model.CanApply);
         Assert.Empty(model.History.Snapshot());
-        Assert.Equal(ActionOutcome.Failed, model.Apply("plus1", new()).Outcome);
         pending.SetResult(Current);
         await ready.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.Equal("Example Challenge", Assert.Single(model.History.Snapshot()).League);
+        var row = Assert.Single(model.History.Snapshot());
+        Assert.Equal("Example Challenge", row.League);
+        Assert.Equal(new decimal[] { 12, 13 }, row.Prices.Select(p => p.Note.Amount));
+        Assert.False(model.CanApply);
     }
 
     [Fact]
@@ -77,7 +86,7 @@ public sealed class EffectiveLeagueTests : IDisposable
     }
 
     [Fact]
-    public async Task OfflineAndStaleDiscoveryDiscardPreviouslyDiscoveredSeason()
+    public async Task StaleDiscoveryRetainsCachedDefaultAndMissingDataUsesStandard()
     {
         var result = Current;
         var offline = false;
@@ -85,30 +94,82 @@ public sealed class EffectiveLeagueTests : IDisposable
             ? Task.FromException<LeagueResult>(new IOException()) : Task.FromResult(result));
         Assert.Equal("Example Challenge", await league.ResolveAsync());
         result = Current with { IsStale = true };
+        Assert.Equal("Example Challenge", await league.ResolveAsync());
+        offline = true;
+        Assert.Equal("Example Challenge", await league.ResolveAsync());
+        offline = false;
+        result = new([], "Standard", true, "Offline");
         Assert.Equal("Standard", await league.ResolveAsync());
         offline = true;
         Assert.Equal("Standard", await league.ResolveAsync());
     }
 
     [Fact]
-    public async Task OlderDiscoveryCannotRecordAnItemAfterANewerRead()
+    public async Task OverlappingReadsShareDiscoveryAndPreservePendingSend()
     {
-        var first = new TaskCompletionSource<string>();
-        var second = new TaskCompletionSource<string>();
+        var discovery = new TaskCompletionSource<LeagueResult>();
         var calls = 0;
         var ready = new TaskCompletionSource();
-        var model = new ShopModel(new(directory), () => "Standard")
-        { ResolveLeagueAsync = () => ++calls == 1 ? first.Task : second.Task };
-        model.Changed += () => { if (model.CanApply) ready.TrySetResult(); };
+        var league = new ShopLeague(() => null, () => { calls++; return discovery.Task; });
+        var model = new ShopModel(new(directory), () => league.Current) { ResolveLeagueAsync = league.ResolveAsync };
+        _ = new FeatureHost([new VaalasyncFeature(model)], (_, _) => null, (_, _, _) => { },
+            (_, _, _) => new(ActionOutcome.Success));
+        model.Changed += () =>
+        {
+            if (model.History.Snapshot().SingleOrDefault()?.Prices.Length == 3) ready.TrySetResult();
+        };
         model.Handle(Item("Note: ~b/o 1 chaos"), new(Game.PoE1), OmniPressKind.Short);
-        model.Handle(Item("Note: ~b/o 2 chaos"), new(Game.PoE1), OmniPressKind.Short);
-        first.SetResult("Old league");
-        Assert.Empty(model.History.Snapshot());
-        second.SetResult("Example Challenge");
+        model.Apply("plus1", new());
+        model.Handle(Item("Note: ~b/o 3 chaos"), new(Game.PoE1), OmniPressKind.Short);
+        Assert.True(model.CanApply);
+        Assert.Equal(1, calls);
+        discovery.SetResult(Current);
         await ready.Task.WaitAsync(TimeSpan.FromSeconds(5));
         var row = Assert.Single(model.History.Snapshot());
         Assert.Equal("Example Challenge", row.League);
-        Assert.Equal(2, Assert.Single(row.Prices).Note.Amount);
+        Assert.Equal(new decimal[] { 1, 2, 3 }, row.Prices.Select(p => p.Note.Amount));
+    }
+
+    [Fact]
+    public async Task UnpricedSendBeforeDiscoveryRecordsOnlyTheSendAndDoesNotRearm()
+    {
+        var pending = new TaskCompletionSource<string>();
+        var saved = new TaskCompletionSource();
+        var model = new ShopModel(new(directory), () => "Standard")
+        {
+            ResolveLeagueAsync = () => pending.Task,
+            SeedPrice = (_, _) => Task.FromResult<ShopNote?>(new("~b/o", 99, "chaos"))
+        };
+        _ = new FeatureHost([new VaalasyncFeature(model)], (_, _) => null, (_, _, _) => { },
+            (_, _, _) => new(ActionOutcome.Success));
+        model.Changed += () => { if (model.History.Snapshot().Length > 0) saved.TrySetResult(); };
+        model.Handle(Item(), new(Game.PoE1), OmniPressKind.Long);
+        model.Custom = "17";
+        Assert.Equal(ActionOutcome.Success, model.Apply("custom", new()).Outcome);
+        Assert.Empty(model.History.Snapshot());
+        pending.SetResult("Example Challenge");
+        await saved.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        var row = Assert.Single(model.History.Snapshot());
+        Assert.Equal("Example Challenge", row.League);
+        Assert.Equal(17, Assert.Single(row.Prices).Note.Amount);
+        Assert.Equal("17", model.Custom);
+        Assert.False(model.CanApply);
+    }
+
+    [Fact]
+    public void ThrowingSubscriberDoesNotChangeHistoryOrPreventInput()
+    {
+        var failures = new List<string>();
+        var model = new ShopModel(new(directory), () => "Standard") { ReportFailure = failures.Add };
+        _ = new FeatureHost([new VaalasyncFeature(model)], (_, _) => null, (_, _, _) => { },
+            (_, _, _) => new(ActionOutcome.Success));
+        model.Changed += () => throw new InvalidOperationException();
+        model.Handle(Item("Note: ~b/o 1 chaos"), new(Game.PoE1), OmniPressKind.Short);
+        Assert.True(model.CanApply);
+        Assert.DoesNotContain("unavailable", model.Status);
+        Assert.Equal(ActionOutcome.Success, model.Apply("plus1", new()).Outcome);
+        Assert.Equal(2, Assert.Single(model.History.Snapshot()).Prices.Length);
+        Assert.NotEmpty(failures);
     }
 
     public void Dispose() { if (Directory.Exists(directory)) Directory.Delete(directory, true); }

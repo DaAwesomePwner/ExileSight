@@ -5,6 +5,8 @@ namespace ExileSight.Features.Vaalasync;
 /// <summary>On-demand discovery uses the host's shared, persisted hourly price cache.</summary>
 public sealed class ShopLeague(Func<string?> configured, Func<Task<LeagueResult>> discover)
 {
+    private readonly object sync = new();
+    private Task<LeagueResult>? pending;
     private string fallback = "Standard";
     public string Current
     {
@@ -21,14 +23,20 @@ public sealed class ShopLeague(Func<string?> configured, Func<Task<LeagueResult>
         if (!string.IsNullOrWhiteSpace(value)) return value;
         try
         {
-            var result = await discover().ConfigureAwait(false);
-            // A stale seasonal name is not evidence of the current challenge league.
-            Volatile.Write(ref fallback, result is { IsStale: false, Diagnostic: null, Leagues.Count: > 0 }
+            Task<LeagueResult> request;
+            lock (sync)
+            {
+                if (pending is null || pending.IsCompleted) pending = discover();
+                request = pending;
+            }
+            var result = await request.ConfigureAwait(false);
+            Volatile.Write(ref fallback, result.Leagues.Count > 0
                 ? result.DefaultLeague : "Standard");
         }
+        catch (OperationCanceledException) { throw; }
         catch (Exception)
         {
-            Volatile.Write(ref fallback, "Standard");
+            // Retain the last known default when discovery itself fails.
         }
         return Current; // A setting changed while discovery was pending still wins.
     }
