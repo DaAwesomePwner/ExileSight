@@ -27,8 +27,9 @@ browser to inspect exact sizes and colours.
 1. Read the spec section for your surface in [UI-SPEC.md](UI-SPEC.md), then open its PNG.
 2. Build the view as a pure builder (`model + theme → FrameworkElement`) and add your own
    snapshot test class to the P7-T2 harness, one test per state with fixture models. Get the
-   renders from Windows: run the snapshot tests on the Windows host, or read the `ui-snapshots`
-   CI artifact from a manual workflow dispatch of your branch or from a PR.
+   renders from Windows: run the snapshot tests on the Windows host (the only sure route until
+   P7-T2's `workflow_dispatch` trigger is on `main`), or read the `ui-snapshots` CI artifact from a
+   manual dispatch of your branch or from a PR into `main` or `integration/**`.
 3. Compare side by side. Must match: section order, which values appear, column
    order and widths, colours (by token), unknown-value treatment, and what the
    view leaves out. May differ: sample values, font rendering (Segoe UI vs the

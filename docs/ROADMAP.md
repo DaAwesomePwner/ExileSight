@@ -80,9 +80,10 @@ Rules for every task below:
 - **Compare against the mockup.** Each view task adds its own snapshot test class (one file, owned by that
   task, under the P7-T2 project; there is no shared registry) and lists any difference from the mockup
   under `RISKS`. Reviewers check the renders against the PNG and the UI-SPEC §12 checklist.
-- **Renders come from Windows.** Run the snapshot tests on the Windows host for a task branch, or read the
-  `ui-snapshots` artifact from a manual CI dispatch of the branch or from CI on a PR. CI's push filter
-  (`main`, `integration/**`, `fixtures/**`) does not match task or `t3/*` branches.
+- **Renders come from Windows.** Run the snapshot tests on the Windows host for a task branch; until
+  P7-T2's `workflow_dispatch` trigger is on `main`, that is the only sure route. After that, a manual CI
+  dispatch of the branch also works, as does CI on a PR into `main` or `integration/**`. CI's push and PR
+  filters (`ci.yml`) match no task or `t3/*` branch.
 - **Views are testable.** Split each view into a window host and a pure builder (`model + theme →
   FrameworkElement`) with no live services (UI-SPEC §10).
 - **Fair play and speed are unchanged.** No new `GameAction` kind, hotkey, network host or screen read.
