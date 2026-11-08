@@ -1,0 +1,44 @@
+[
+  {
+    "mode": "text",
+    "milliseconds": 25.6389,
+    "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+    "runtime": "10.0.14",
+    "os": "Unix 26.7.2"
+  },
+  {
+    "mode": "card",
+    "milliseconds": 33.8375,
+    "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+    "runtime": "10.0.14",
+    "os": "Unix 26.7.2"
+  },
+  {
+    "mode": "text",
+    "milliseconds": 25.6083,
+    "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+    "runtime": "10.0.14",
+    "os": "Unix 26.7.2"
+  },
+  {
+    "mode": "card",
+    "milliseconds": 34.3251,
+    "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+    "runtime": "10.0.14",
+    "os": "Unix 26.7.2"
+  },
+  {
+    "mode": "text",
+    "milliseconds": 25.8344,
+    "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+    "runtime": "10.0.14",
+    "os": "Unix 26.7.2"
+  },
+  {
+    "mode": "card",
+    "milliseconds": 38.026,
+    "scope": "First calculator plus presentation model after production pack startup; excludes WPF",
+    "runtime": "10.0.14",
+    "os": "Unix 26.7.2"
+  }
+]

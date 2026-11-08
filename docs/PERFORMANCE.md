@@ -219,3 +219,37 @@ is 159.99 MB. Exact bytes are in distribution-sizes.json and publish-sizes.json.
 Safe follow-ups: separate symbols, avoid redundant download formats, optionally
 offer a framework-dependent build. Do not trim WPF, remove packs or enable NativeAOT
 without compatibility evidence. Release packaging is unchanged.
+
+## P7-T11 item-card pre-integration latency
+
+A Release macOS ARM64/.NET 10.0.14 probe at base `86cd546` uses verified local
+shipping packs, production `PackStartup` (including bulk-load reclamation), and
+`FirstUseFixture`. Each sample runs in a fresh test process with
+`DOTNET_GCConserveMemory=9`; no calculator or matcher warm-up occurs. The timed
+region calculates the item and builds either the existing text section or the
+P7-T5 card model. This differs from the earlier MatchLine/FindMod-only first-use
+measurement above and excludes WPF layout/rendering and GearCmp.
+
+| First-item presentation | Three fresh-process samples (ms) | Median (ms) |
+| --- | --- | ---: |
+| Existing calculator + text section | 25.64, 25.61, 25.83 | 25.64 |
+| Calculator + card model | 33.84, 34.33, 38.03 | 34.33 |
+
+The card median is 8.69 ms (34%) slower. Both pass the 500 ms ceiling; the
+no-regression requirement is **not satisfied**. These timings do not isolate
+matching from cold JIT and other card-building costs. Reusing per-line matches
+requires follow-up in the calculator/data/model/card-builder path, outside the
+P7-T11 worker's assigned production files. No production presentation change has
+been made in this measurement commit. Windows rendering and idle budgets remain
+unmeasured for the proposed view.
+
+Raw samples: `tests/ExileSight.Perf.Tests/evidence/p7-t11-card-latency.json`.
+Reproduce each mode in a separate process (set MODE to `text` or `card`):
+
+```sh
+DOTNET_GCConserveMemory=9 EXILESIGHT_REAL_PACKS=/path/to/verified/packs \
+  EXILESIGHT_CARD_LATENCY_MODE=MODE \
+  EXILESIGHT_CARD_LATENCY_REPORT=/tmp/card-latency.json \
+  dotnet test tests/ExileSight.Features.ItemInfo.Tests -c Release \
+  --filter FullyQualifiedName~CardLatencyTests
+```
