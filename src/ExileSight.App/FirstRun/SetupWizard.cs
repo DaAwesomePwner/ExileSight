@@ -59,7 +59,7 @@ public sealed class SetupWizard : Window
         switch (page)
         {
             case 0:
-                Text("ExileSight reads Client.txt read-only to show area changes and level-ups. It never changes game files. Clipboard text is read only after your own hotkey. Each key press can send one game action.");
+                Text("ExileSight reads Client.txt read-only to show area changes and level-ups. It never changes game files. Clipboard text is read only after your own hotkey. Each key press can send one game action. Stashninja can read a small header region of the foreground game while its menu is open, solely to switch displayed price tags. You teach page references locally; only reduced signatures are saved and samples never leave this PC.");
                 Text("Current hotkeys:\n" + string.Join("\n", settings.Snapshot.Hotkeys.Select(b =>
                     $"{b.Id}: {b.Modifiers} + {System.Windows.Input.KeyInterop.KeyFromVirtualKey(b.Key)} ({(b.Enabled ? "enabled" : "disabled")})")));
                 Text("Network hosts: GitHub and poe.ninja only. Nothing from pathofexile.com.\nThis product isn't affiliated with or endorsed by Grinding Gear Games in any way.");

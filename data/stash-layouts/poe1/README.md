@@ -151,3 +151,50 @@ None.
 ### delirium — 14 included, 4 omitted
 
 - No identifying ghost: (260,197); (260,251); (260,304); (260,358).
+
+## Recognition region runbook
+
+`recognition.json` contains a shared header rectangle and tab-specific `subTabs`
+rectangles at 2000×837. The shared header (x24–504, y30–120) ends above the
+highest shipped cell (121.75). It identifies the tab, comparing the best page
+reference per tab; sibling pages do not compete for the tab margin.
+
+Currency and Fragment each have a sub-tab rectangle at x24–504, y100–138.
+The owner's screenshot review puts Currency General/Atlas/League buttons at
+about y107–131, so this captures their full height. Currency cells start at
+142 or below, and Fragment cells at 152.5 or below. These rectangles are checked
+against their own tab's cells and TagBounds, not against other tabs. Multi-page
+tabs require a sub-tab rectangle. A tab with one shipped page skips stage two.
+
+The second signature selects among sibling pages only when every shipped page
+of that tab has valid header and sub-tab signatures at this resolution. A partial
+set is Unknown, even if its single closest reference passes the distance threshold.
+The matched tab header shows a teaching reminder until all pages are learned;
+obsolete references cannot substitute for missing shipped pages.
+
+Both regions use Geometry.Fit,
+independently of calibration. If currently drawn tags overlap the sub-tab region
+(for example Essence tags after opening Currency), they are hidden and capture
+waits until the next tick. If the overlapping tags belong to the matched tab itself,
+keep them visible and report “sub-tab area blocked by tags”; recalibrate to clear
+the region. Do not hide/restore these tags repeatedly. Header/menu overlap or failed capture shows a blocked
+notice and does not count toward hiding tags. No capture exclusion flags are used.
+
+After a patch, measure the header and the complete sub-tab button row, update
+rectangles and provenance, then run recognition and shipped-layout tests. Keep
+the header above all cells and each sub-tab region clear of its own tab's cells.
+`RecognitionRegion.Load` validates finite, in-bounds rectangles, provenance,
+required sibling regions and cell overlap. Geometry comes from owner measurements,
+never Exile-UI data. Validate Currency siblings and Fragment on Windows before release.
+
+The version-2 local store holds header and optional sub-tab signatures per page
+and resolution. Both rectangles are included in its fingerprint; version-1 or
+changed-geometry references are ignored with a notice. Re-teach pages locally;
+never commit or ship user pixels or signatures.
+
+Normalized mean absolute distance must be below 0.30 at both stages. The tab
+margin is at least 0.08 against other tabs; the sibling-page margin is at least
+0.06 within the matched tab. Synthetic button-patch and gamma-shift tests cover
+these conservative defaults; in-game validation remains necessary. Repeated
+matches do not refresh status. Calibration teaching respects an explicit off
+choice; clicking Remember this page explicitly enables auto-detect.

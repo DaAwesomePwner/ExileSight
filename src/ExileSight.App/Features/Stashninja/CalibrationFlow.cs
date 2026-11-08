@@ -14,7 +14,7 @@ public sealed class CalibrationFlow(PassiveOverlayInput passive, IGameWindow gam
         passive.Close(this);
         var previous = restore; restore = null; previous?.Invoke();
     }
-    public void Start(Layout layout, Cell first, Cell second, Action<string> status, Action completed)
+    public void Start(Layout layout, Cell first, Cell second, Action<string> status, Action completed, Action taught)
     {
         Cancel();
         var initial = game.Current.ClientRect;
@@ -38,7 +38,7 @@ public sealed class CalibrationFlow(PassiveOverlayInput passive, IGameWindow gam
             {
                 var transform = Geometry.Calibrate(a, Geometry.Center(layout, second), click, point);
                 store.Save(layout, resolution, transform);
-                Cancel(); status("Calibration saved for this tab/page and resolution");
+                Cancel(); status("Calibration saved for this tab/page and resolution"); taught();
             }
             catch (Exception e) when (e is ArgumentException or System.IO.IOException or UnauthorizedAccessException)
             { Cancel(); status("Calibration could not be saved: " + e.Message); }

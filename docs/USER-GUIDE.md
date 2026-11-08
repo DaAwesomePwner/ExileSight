@@ -133,6 +133,34 @@ ships no game images and commits none. Screen recognition only changes the overl
 display and never sends input or obtains an IntentToken. You still calibrate the grid;
 calibration-free grid location is a possible later follow-up outside this decision.
 
+**Remember this page** teaches the currently loaded tab/page at the current client
+resolution; successful calibration also teaches it. **Forget this page** removes
+that resolution's reference. References live beside calibration in local
+`poe1/stashninja/references.json`; corrupt or outdated references are ignored with
+a notice. Version-1 references must be re-taught for the two-stage matcher.
+Re-teach after a resolution or recognition rectangle change.
+
+**Auto-detect taught pages** defaults on when references exist for this resolution.
+Calibration teaching respects an explicit off choice; **Remember this page** enables it.
+While the menu is open and the game foreground, it checks the shared header strip
+about every 250 ms, pausing during calibration. The header identifies the tab;
+a separate full sub-tab row distinguishes sibling pages. Teach **every shipped page**
+of a multi-page tab at this resolution before auto-detect can select any of them.
+Until then, a matched header shows a teaching reminder and its page is unknown.
+Two consecutive confident matches
+switch the tags; three unknown checks hide them while keeping the menu open.
+A new confident match restores tags. Disable the toggle for manual selection.
+Tied or ambiguous references count as unknown. No item counts or contents are read.
+
+The header avoids price tags and the menu. Blocked or failed captures show a
+notice without counting toward hiding tags. If tags from a different tab overlap
+a sub-tab region, they are hidden first and sampling waits for the next tick.
+If the matched tab’s own tags overlap, they stay visible and a “sub-tab area blocked
+by tags” notice replaces sampling; adjust calibration to clear the region. Notifications and other windows drawn over the
+game can still appear in the sampled region and disrupt recognition. Samples never
+leave the PC; only a reduced signature is stored, never the screenshot. Move
+covering windows away and teach again if needed. Closing the menu stops sampling.
+
 ### Shop repricing / vaalasync — omni
 
 Vaalasync is the shop repricing and local price-history tool.

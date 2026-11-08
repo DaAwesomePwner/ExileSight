@@ -1,0 +1,29 @@
+{
+  "referenceResolution": {
+    "width": 2000,
+    "height": 837
+  },
+  "x": 24,
+  "y": 30,
+  "width": 480,
+  "height": 90,
+  "provenance": {
+    "author": "ExileSight",
+    "method": "header from shipped layout measurements; sub-tab bounds from owner 2000x837 screenshot review (buttons y107\u2013131), 2026-11-08",
+    "date": "2026-11-08"
+  },
+  "subTabs": {
+    "currency": {
+      "x": 24,
+      "y": 100,
+      "width": 480,
+      "height": 38
+    },
+    "fragment": {
+      "x": 24,
+      "y": 100,
+      "width": 480,
+      "height": 38
+    }
+  }
+}
