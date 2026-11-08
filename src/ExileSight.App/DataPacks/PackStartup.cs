@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime;
 using ExileSight.Core.DataPacks;
 using ExileSight.Core.Diagnostics;
+using ExileSight.Core.Input;
 using ExileSight.Features.ItemInfo;
 
 namespace ExileSight.App.DataPacks;
@@ -44,6 +45,8 @@ public sealed class PackStartup(
         Task.Run(() => LoadInBackgroundAsync(refreshResult, token), token);
     private async Task LoadInBackgroundAsync(string refreshResult, CancellationToken token)
     {
+        var loadStart = Stopwatch.GetTimestamp();
+        InputTiming.Record(InputStage.PackLoadStart, 0);
         var allocatedBefore = GC.GetTotalAllocatedBytes();
         try { await PrepareAsync(refreshResult, token).ConfigureAwait(false); }
         finally
@@ -62,13 +65,16 @@ public sealed class PackStartup(
                     // Explicit scheduling also covers a read delegate completing inline
                     // on a non-pool thread. No cancellation after the allocations occurred.
                     LastLoadReclaimOnThreadPool = Thread.CurrentThread.IsThreadPoolThread;
+                    InputTiming.Record(InputStage.PackReclaimStart, 0);
                     var clock = Stopwatch.StartNew();
                     GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
                     GC.Collect(2, GCCollectionMode.Aggressive, blocking: true, compacting: true);
                     LastLoadReclaimMilliseconds = clock.Elapsed.TotalMilliseconds;
+                    InputTiming.Record(InputStage.PackReclaimEnd, (long)LastLoadReclaimMilliseconds);
                     LastLoadCommittedBytes = GC.GetGCMemoryInfo().TotalCommittedBytes;
                 }).ConfigureAwait(false);
             }
+            InputTiming.Record(InputStage.PackLoadEnd, (long)Stopwatch.GetElapsedTime(loadStart).TotalMilliseconds);
         }
     }
     private async Task PrepareAsync(string refreshResult, CancellationToken token)

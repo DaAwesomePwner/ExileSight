@@ -1,3 +1,4 @@
+using ExileSight.Core.Input;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.Memory;
@@ -10,7 +11,12 @@ internal static class ClipboardMemory
     {
         fixed (char* value = name) return PInvoke.RegisterClipboardFormat(value);
     }
-    internal static void Open(HWND owner)
+    internal static void Open(HWND owner) => InputTiming.Measure(InputStage.ClipboardOpen, () =>
+    {
+        OpenCore(owner);
+        return true;
+    });
+    private static void OpenCore(HWND owner)
     {
         for (var i = 0; i < 20; i++)
         {

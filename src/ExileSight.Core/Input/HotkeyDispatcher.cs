@@ -84,10 +84,19 @@ public sealed class HotkeyDispatcher
         !key.Injected && key.Down && (uint)key.Key < 256 && (uint)key.Modifiers < 16 &&
         !held[key.Key] && configuration.Match(key.Key, key.Modifiers) is not null;
 
+    internal bool IsTimingRelevant(PhysicalKey key) =>
+        !key.Injected && (uint)key.Key < 256 && (uint)key.Modifiers < 16 &&
+        (blocked[key.Key] || pending[key.Key] is not null || configuration.Match(key.Key, key.Modifiers) is not null);
+
     internal DispatchDecision Observe(PhysicalKey key, bool active, bool passThrough = false)
     {
         if (key.Injected || (uint)key.Key >= 256 || (uint)key.Modifiers >= 16) return default;
-        if (passThrough) { Array.Clear(blocked); Array.Clear(pending); active = false; }
+        if (passThrough)
+        {
+            foreach (var pendingPress in pending)
+                if (pendingPress is not null) InputTiming.Record(InputStage.ReleaseCancelled, 0);
+            Array.Clear(blocked); Array.Clear(pending); active = false;
+        }
         if (!key.Down)
         {
             var block = blocked[key.Key];
@@ -98,7 +107,10 @@ public sealed class HotkeyDispatcher
         }
         var silence = key.Timestamp - lastDown[key.Key];
         if (held[key.Key] && blocked[key.Key] && silence > Math.Max(BlockedReleaseSilenceMilliseconds, releaseSilenceThreshold()))
-        { held[key.Key] = false; pending[key.Key] = null; }
+        {
+            if (pending[key.Key] is not null) InputTiming.Record(InputStage.ReleaseCancelled, 0);
+            held[key.Key] = false; pending[key.Key] = null;
+        }
         // Every real autorepeat extends the held interval, even when its context is inactive.
         lastDown[key.Key] = Math.Max(lastDown[key.Key], key.Timestamp);
         if (held[key.Key]) return new(blocked[key.Key], null);

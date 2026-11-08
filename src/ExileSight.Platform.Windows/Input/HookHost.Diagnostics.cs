@@ -10,9 +10,11 @@ public sealed partial class HookHost
     internal ApartmentState ActionWorkerApartment => (ApartmentState)Volatile.Read(ref workerApartment);
     private DispatchDecision ObserveWithFocus(PhysicalKey key)
     {
-        var stale = foreground.IsStale;
-        if (stale && staleNotice.RecordCandidate(dispatcher, key)) ready.Set();
-        return dispatcher.Observe(key, true, stale || !foreground.AllowsBlocking());
+        var focus = foreground.Evaluate();
+        InputTiming.Shared.RecordHook(dispatcher, key, clock.Milliseconds,
+            focus.CachedAge, focus.Reevaluated, focus.Allowed);
+        if (!focus.Allowed && focus.Reevaluated && staleNotice.RecordCandidate(dispatcher, key)) ready.Set();
+        return dispatcher.Observe(key, true, !focus.Allowed);
     }
     private void ReportIgnoredHotkey()
     {
