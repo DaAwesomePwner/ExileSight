@@ -12,6 +12,7 @@ public sealed partial class StashView
     private bool identifying;
     private int automaticEpoch;
     private StashWatchPolicy watchPolicy = new();
+    private readonly WideSearchBudget wideSearchBudget = new();
     private string automaticStatus = "";
 
     private double[]? WatchHeader() => SampleRegion(passive: true).Signature;
@@ -30,6 +31,7 @@ public sealed partial class StashView
         }
         var now = services.GetRequiredService<IClock>().UtcNow;
         var header = WatchHeader();
+        wideSearchBudget.ObserveHeader(header);
         var sub = automaticPage is null ? null : WatchSubTab(automaticPage);
         var step = watchPolicy.Tick(now, header, sub);
         if (step.Work == WatchWork.None) return;
@@ -73,7 +75,8 @@ public sealed partial class StashView
                     () => epoch == automaticEpoch && request == generation));
                 if (!Current()) return;
                 var result = sample is null ? null : await Task.Run(() =>
-                    GridIdentifier.Identify(model.Layouts, resolution, sample, l => saved[l], precheck));
+                    GridIdentifier.Identify(model.Layouts, resolution, sample, l => saved[l], precheck,
+                        candidates => wideSearchBudget.Reserve(now, baselineHeader, candidates)));
                 if (!Current()) return;
                 if (result?.Layout is not { } identified || result.Transform is null || baselineHeader is null ||
                     (region!.SubTabs.ContainsKey(identified.TabId) && baselineSub[identified.TabId] is null))

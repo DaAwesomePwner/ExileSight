@@ -139,9 +139,15 @@ was identified. A stable page never causes a periodic full read or recurring bli
 
 When no page is identified, sparse border checks at the saved calibration or default
 fit gate larger reads; they must score at least 12.5 before a full search starts.
-Repeated no-stash results slow these checks to 900, 1350, then 1800 ms, while the
-header stays on its 450 ms schedule. A header change resets the delay. Qualifying
-uncalibrated candidates can receive a wider first-use search (at most two pages).
+After the first immediate check, unidentified scenes are checked no more often than
+every 1.8 seconds, even when the moving world changes the header every tick. The
+header itself stays on its 450 ms schedule. Opening a supported stash waits at most
+1.8 seconds for this gate, then capture, scoring and price loading follow.
+Qualifying uncalibrated candidates can receive one wider-search batch per header
+baseline (at most two pages), with a separate 30-second cooldown for each page.
+Another batch requires a real header change; simply waiting does not repeat it.
+The sparse pre-check only covers a ±12 px band around predicted borders. For larger
+first-use offsets, use Ctrl+Shift+N → **Auto-calibrate** or manual calibration.
 Tags can hide during a genuine page-change capture/search. Unknown after a change
 hides tags immediately; otherwise missing or blocked baseline samples must remain
 Unknown for about one second. Screen checks never send input.

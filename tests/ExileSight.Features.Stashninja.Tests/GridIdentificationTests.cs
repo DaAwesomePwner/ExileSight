@@ -35,6 +35,12 @@ public sealed class GridIdentificationTests(ITestOutputHelper output)
         {
             var size = new Resolution(scene.Width, scene.Height);
             var fit = Geometry.Fit(layout.ReferenceResolution, size);
+            if (layout.TabId == "currency")
+            {
+                var frames = GridFixture.DistractorCells(layout);
+                Assert.NotEmpty(frames);
+                Assert.All(frames, c => Assert.True(c.Y >= 142));
+            }
             var pixels = GridFixture.Render(layout, size, fit with { X = fit.X + offset, Y = offset },
                 scene.Brightness, scene.Gamma, distractors: true);
             var precheck = GridPrecheck.Score(layouts, size, _ => null, area => GridFixture.Crop(pixels, size, area));
@@ -50,6 +56,25 @@ public sealed class GridIdentificationTests(ITestOutputHelper output)
             if (layout.TabId == "currency") Assert.True(result.Margin >= 10);
         }
     }
+    [Fact]
+    public void SiblingDistractorsActuallyIncreaseCompetingGridEvidence()
+    {
+        var layouts = Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts"));
+        var page = layouts.Single(l => l.TabId == "currency" && l.Page == "atlas");
+        var rival = layouts.Single(l => l.TabId == "currency" && l.Page == "league");
+        var size = new Resolution(1920, 1080);
+        var fit = Geometry.Fit(page.ReferenceResolution, size);
+        double Score(bool distractors)
+        {
+            var pixels = GridFixture.Render(page, size, fit, .8, 1.3, distractors: distractors);
+            return GridLocator.Locate(rival, size, fit,
+                new(0, 0, size.Width, size.Height, pixels), local: true).Score;
+        }
+        var plain = Score(false); var obstructed = Score(true);
+        output.WriteLine($"Competing league evidence: {plain:F2} -> {obstructed:F2}");
+        Assert.True(obstructed > plain + 5);
+    }
+
     [Fact]
     public void SparseGateRejectsFlatAndRecoversFirstUseOffset()
     {

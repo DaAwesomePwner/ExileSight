@@ -7,7 +7,8 @@ public static class GridIdentifier
 {
     public const double MinimumScore = 25, MinimumMargin = 3;
     public static GridIdentification Identify(IReadOnlyList<Layout> layouts, Resolution size, GridSample sample,
-        Func<Layout, Transform?> calibration, IReadOnlyDictionary<Layout, double>? precheck = null)
+        Func<Layout, Transform?> calibration, IReadOnlyDictionary<Layout, double>? precheck = null,
+        Func<IReadOnlyList<Layout>, IReadOnlySet<Layout>>? reserveWideSearch = null)
     {
         var candidates = layouts.Select(layout =>
         {
@@ -37,9 +38,11 @@ public static class GridIdentifier
                 precheck?.GetValueOrDefault(candidates[i].Layout) ?? 0)))
             .Where(c => StashWatchPolicy.ShouldIdentify(c.Score))
             .OrderByDescending(c => c.Score).Take(2).ToArray();
+        var allowed = reserveWideSearch?.Invoke(fallback.Select(c => candidates[c.Index].Layout).ToArray());
         foreach (var candidate in fallback)
         {
             var c = candidates[candidate.Index];
+            if (allowed is not null && !allowed.Contains(c.Layout)) continue;
             var result = GridLocator.Locate(c.Layout, size, c.Start, sample);
             evaluations += result.Evaluations; broad++;
             candidates[candidate.Index] = (c.Layout, c.Saved, c.Start, result);

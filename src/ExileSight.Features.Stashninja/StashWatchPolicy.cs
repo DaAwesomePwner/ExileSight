@@ -10,10 +10,9 @@ public sealed class StashWatchPolicy
     private double[]? header, subTab;
     private DateTimeOffset nextCheck, unknownSince;
     private bool unknown;
-    private int failures;
     public bool Identified { get; private set; }
     public bool Pinned { get; private set; }
-    public TimeSpan Interval => TimeSpan.FromMilliseconds(Math.Min(1800, 450 * (1 + failures)));
+    public TimeSpan Interval => TimeSpan.FromMilliseconds(1800);
     public static bool ShouldIdentify(double score) => score >= GridIdentifier.MinimumScore / 2;
     private static bool Changed(double[] a, double[] b) =>
         a.Length != b.Length || a.Zip(b).Average(p => Math.Abs(p.First - p.Second)) > ChangeThreshold;
@@ -25,9 +24,8 @@ public sealed class StashWatchPolicy
             return new(WatchWork.Unknown);
         var headerChanged = header is not null && Changed(header, currentHeader!);
         var changed = headerChanged || (Identified && !Pinned && subTab is not null && Changed(subTab, currentSubTab!));
-        if (changed)
+        if (changed && Identified)
         {
-            failures = 0; nextCheck = default;
             if (headerChanged) Pinned = false;
             return new(Identified ? WatchWork.Identify : WatchWork.Precheck, true);
         }
@@ -40,7 +38,7 @@ public sealed class StashWatchPolicy
     {
         header = (double[])headerSignature.Clone();
         subTab = subSignature is null ? null : (double[])subSignature.Clone();
-        Identified = true; Pinned = pinned; failures = 0; unknown = false;
+        Identified = true; Pinned = pinned; unknown = false;
     }
 
     // Returns true only on the displayed -> unknown transition.
@@ -52,7 +50,6 @@ public sealed class StashWatchPolicy
         Identified = false; Pinned = false;
         if (PageSignature.Valid(currentHeader)) header = (double[])currentHeader!.Clone();
         subTab = null;
-        failures = Math.Min(3, failures + 1);
         nextCheck = now + Interval;
         return hide;
     }

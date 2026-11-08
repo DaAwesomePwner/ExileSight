@@ -58,17 +58,48 @@ public sealed class WatchPolicyTests
     }
 
     [Fact]
-    public void NoStashBacksOffAndHeaderChangeResetsDelay()
+    public void NoStashBackoffSurvivesHeaderChanges()
     {
         var policy = new StashWatchPolicy();
         Assert.Equal(WatchWork.Precheck, policy.Tick(Start, Signature(), null).Work);
         for (var i = 0; i < 4; i++) policy.Unknown(Start, false, Signature());
         Assert.Equal(TimeSpan.FromSeconds(1.8), policy.Interval);
         Assert.Equal(WatchWork.None, policy.Tick(Start.AddSeconds(1), Signature(), null).Work);
-        Assert.Equal(WatchWork.Precheck, policy.Tick(Start.AddSeconds(1), Signature(.1), null).Work);
-        Assert.Equal(TimeSpan.FromMilliseconds(450), policy.Interval);
+        Assert.Equal(WatchWork.None, policy.Tick(Start.AddSeconds(1), Signature(.1), null).Work);
+        Assert.Equal(WatchWork.Precheck, policy.Tick(Start.AddSeconds(1.8), Signature(.2), null).Work);
+        Assert.Equal(TimeSpan.FromSeconds(1.8), policy.Interval);
         Assert.False(StashWatchPolicy.ShouldIdentify(12.49));
         Assert.True(StashWatchPolicy.ShouldIdentify(12.5));
+    }
+
+    [Fact]
+    public void MovingWorldCannotAcceleratePrechecksAndOpeningWaitsAtMostOneInterval()
+    {
+        var policy = new StashWatchPolicy();
+        var count = 0;
+        for (var i = 0; i < 100; i++)
+        {
+            var now = Start.AddMilliseconds(i * 450);
+            var header = Signature(i % 2 == 0 ? .2 : -.2);
+            if (policy.Tick(now, header, null).Work == WatchWork.Precheck)
+            {
+                count++;
+                policy.Unknown(now, false, header);
+            }
+            Assert.True(count <= Math.Ceiling(i * 450 / 1800d) + 1);
+        }
+        var opened = Start.AddMilliseconds(100 * 450);
+        DateTimeOffset? detected = null;
+        for (var i = 0; i <= 4; i++)
+        {
+            var now = opened.AddMilliseconds(i * 450);
+            if (policy.Tick(now, Signature(.8), null).Work != WatchWork.Precheck) continue;
+            Assert.True(StashWatchPolicy.ShouldIdentify(25));
+            policy.Accept(Signature(.8), null);
+            detected = now; break;
+        }
+        Assert.NotNull(detected);
+        Assert.True(detected - opened <= TimeSpan.FromSeconds(1.8));
     }
 
     [Fact]

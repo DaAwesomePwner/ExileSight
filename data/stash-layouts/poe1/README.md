@@ -171,22 +171,27 @@ Unidentified scenes use sparse fixed-transform border pre-checks, no scale or
 translation search: eight 33×33 patches per layout, at most 69,696 pixels for all
 eight pages. The profile scans a ±12px normal band for coherent borders, requiring
 17/19 supported tangent samples. Score ≥12.5 gates full capture/identification.
-Repeated no-stash results back off to 900, 1350, then 1800 ms; header checks remain
-450 ms and a header change resets the backoff.
+After the initial immediate check, unidentified scenes have a minimum 1800 ms
+interval even if the header changes every tick. Header checks remain 450 ms. A
+supported stash waits at most 1.8 s for the gate, plus capture/scoring/price loading.
 
 Local identification compares every layout within ±3 px / ±0.3% scale, with
 refinement (≤559 evaluations per layout). Require coherent score ≥25/255,
 ≥75% supported search probes and runner-up margin ≥3. Independent neighboring
 tangent probes reject noise. If needed, at most two qualifying uncalibrated
 candidates get the broad ±3% height / ±5% scale search (≤40,000 evaluations each).
-Save a successful calibration per geometry/resolution.
+Only one wider-search batch is allowed per header baseline, and each layout has a
+separate 30-second cooldown. Reservations are consumed before work, even on failure
+or cancellation; watcher resets do not clear them. Another batch requires a real
+header change. Save a successful calibration per geometry/resolution. Offsets
+outside the ±12 px sparse band need Ctrl+Shift+N → Auto-calibrate or manual calibration.
 
 Menu Load pins a manual selection until the header changes or the stash closes.
 Status includes automatic score/margin. Remember/Forget references remain optional
 and are not used for automatic identity. Keep the header above all cells after
 patches, and keep each sub-tab rectangle clear of its tab's cells.
 
-Tests include noise, gamma, filled cells, shared unpriced distractor frames,
+Tests include noise, gamma, filled cells, unpriced frames at two unique cell/probe locations per competing currency sibling,
 ±2px offsets at 1920×1080 and 3440×1440, ambiguous geometry, unrelated grids,
 first-use offsets beyond 3px, backoff and pin transitions. Windows validation must
 cover real thresholds, sparse GDI call overhead, stable-page flicker, close/reopen,
