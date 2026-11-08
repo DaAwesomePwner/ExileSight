@@ -1,9 +1,13 @@
 # Map tracker
 
 Ctrl+Shift+M opens the local history window. Select/confirm the recording league
-before mapping; the list comes from poe1/leagues, sorted by pack start date.
-You can enter a league missing from the historical pack. No unknown end date is
-interpreted as evidence that a league is current. The selection persists.
+before mapping. The picker lists current poe.ninja leagues, with the current
+softcore challenge league first. Discovery reuses the shared cached price-service
+request, throttled to at least one hour, when the viewer opens or is refreshed.
+Offline or stale results show the saved league plus Standard and Hardcore with
+a visible note. The saved league stays selected even when absent from the current
+list. The combo box stays editable so you can type SSF/Ruthless league names.
+The selection persists.
 
 Ctrl+Shift+K sends exactly one `/kills` through the Action Gate. Defaults yield
 to persisted bindings. No log, timer, copy, export or viewer click sends input.

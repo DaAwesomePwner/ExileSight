@@ -12,7 +12,7 @@ public sealed record TrackerLeagueChoices(string[] Leagues, string Text, string 
             ? result!.Leagues.OrderBy(name => name == result.DefaultLeague ? 0 : 1)
             : ["Standard", "Hardcore"];
         if (!string.IsNullOrWhiteSpace(savedLeague)) names = names.Append(savedLeague);
-        return new(names.Distinct(StringComparer.Ordinal).ToArray(), currentText,
+        return new(names.Distinct(StringComparer.OrdinalIgnoreCase).ToArray(), currentText,
             available ? "" : "Current leagues unavailable or stale (poe.ninja). Saved and permanent leagues are available; you can type a league.");
     }
 }

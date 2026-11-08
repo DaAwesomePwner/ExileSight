@@ -24,6 +24,17 @@ public sealed class LeagueChoicesTests
         Assert.Empty(choices.Note);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CaseOnlySavedOrTypedNamesDoNotDuplicateCanonicalSpelling(bool stale)
+    {
+        var choices = TrackerLeagueChoices.Build(Fixture() with { IsStale = stale }, "standard", "STANDARD");
+        Assert.Equal("Standard", Assert.Single(choices.Leagues,
+            name => name.Equals("standard", StringComparison.OrdinalIgnoreCase)));
+        Assert.Equal("STANDARD", choices.Text);
+    }
+
     [Fact]
     public void SavedLeagueAndUncommittedTypedVariantSurviveDiscovery()
     {
