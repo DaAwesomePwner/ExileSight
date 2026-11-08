@@ -8,21 +8,37 @@ namespace ExileSight.App.Ui;
 /// <summary>Immutable tokens loaded once without Application.Current or live services.</summary>
 public sealed class CardTheme
 {
-    private static readonly Lazy<CardTheme> Shared = new(() => FromDictionary(new ResourceDictionary
-    {
-        Source = new Uri("/ExileSight.App;component/Ui/Tokens.xaml", UriKind.Relative)
-    }));
+    private static readonly object Sync = new();
+    private static CardTheme? shared;
     private readonly FrozenDictionary<string, SolidColorBrush> brushes;
-    public static CardTheme Default => Shared.Value;
+    public static CardTheme Default
+    {
+        get
+        {
+            lock (Sync)
+            {
+                // LoadComponent initializes WPF's application resource package without an
+                // Application instance. A bare ResourceDictionary.Source can run before it.
+                // Publish only on success so a failed load can be retried by a later caller.
+                return shared ??= FromDictionary((ResourceDictionary)Application.LoadComponent(
+                    new Uri("/ExileSight.App;component/Ui/Tokens.xaml", UriKind.Relative)));
+            }
+        }
+    }
     public FontFamily TextFont { get; }
     public FontFamily NumberFont { get; }
     public double RowHeight { get; private init; } = 28;
-    private static readonly Lazy<CardTheme[]> Variants = new(() =>
-        [Create(OverlayDensity.Comfortable, false), Create(OverlayDensity.Compact, false),
-         Create(OverlayDensity.Comfortable, true), Create(OverlayDensity.Compact, true)]);
-    public static CardTheme For(OverlayDensity density, OverlayContrast contrast) =>
-        Variants.Value[(density == OverlayDensity.Compact ? 1 : 0) +
-            (contrast == OverlayContrast.HighContrast ? 2 : 0)];
+    private static CardTheme[]? variants;
+    public static CardTheme For(OverlayDensity density, OverlayContrast contrast)
+    {
+        lock (Sync)
+        {
+            variants ??= [Create(OverlayDensity.Comfortable, false), Create(OverlayDensity.Compact, false),
+                Create(OverlayDensity.Comfortable, true), Create(OverlayDensity.Compact, true)];
+            return variants[(density == OverlayDensity.Compact ? 1 : 0) +
+                (contrast == OverlayContrast.HighContrast ? 2 : 0)];
+        }
+    }
     private static CardTheme Create(OverlayDensity density, bool highContrast)
     {
         var source = Default;
