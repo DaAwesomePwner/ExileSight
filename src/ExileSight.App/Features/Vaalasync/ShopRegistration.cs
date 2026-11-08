@@ -15,11 +15,13 @@ public static class ShopRegistration
     {
         var paths = services.GetRequiredService<IAppPaths>();
         var settings = services.GetRequiredService<ISettingsStore<SettingsDocument>>();
+        var prices = services.GetRequiredService<PriceService>();
+        var league = new ShopLeague(() => settings.Snapshot.Prices.League, () => prices.GetLeaguesAsync());
         return new VaalasyncFeature(new ShopModel(new HistoryStore(Path.Combine(paths.GetGameDirectory("poe1"), "vaalasync")),
-            () => string.IsNullOrWhiteSpace(settings.Snapshot.Prices.League) ? "Standard" : settings.Snapshot.Prices.League)
+            () => league.Current)
         {
-            SeedPrice = item => ListingPrices.FindAsync(services.GetRequiredService<PriceService>(),
-                settings.Snapshot.Prices.League, item),
+            ResolveLeagueAsync = league.ResolveAsync,
+            SeedPrice = (item, effectiveLeague) => ListingPrices.FindAsync(prices, effectiveLeague, item),
             ReportFailure = type => services.GetRequiredService<ILogger<ShopModel>>().LogWarning("Shop executor failed: {ExceptionType}", type)
         });
     }

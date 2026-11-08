@@ -15,7 +15,10 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
     private ParsedItem? item;
     private string currency = "chaos";
     public bool NoteMode { get; private set; }
-    public Func<ParsedItem, Task<ShopNote?>> SeedPrice { get; set; } = _ => Task.FromResult<ShopNote?>(null);
+    public Func<ParsedItem, string, Task<ShopNote?>> SeedPrice { get; set; } = (_, _) => Task.FromResult<ShopNote?>(null);
+    public Func<Task<string>> ResolveLeagueAsync { get; set; } = () => Task.FromResult(league());
+    private string? itemLeague;
+    private long readRevision;
     private long revision;
     private string? currentCurrency;
     public string Currency { get { lock (sync) return currency; } set { lock (sync) { currency = value; revision++; } Changed?.Invoke(); } }
@@ -50,7 +53,7 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
     }
     public void Handle(ParsedItem item, OmniContext context, OmniPressKind press)
     {
-        long seedRevision;
+        long seedRevision, expectedRead;
         lock (sync)
         {
             if (sending) return; // Only a fresh read after the send completes may re-arm.
@@ -64,18 +67,12 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
             listing = Guid.Empty;
             currency = current?.Currency ?? "chaos";
             custom = "";
-            try
-            {
-                listing = current is null ? Guid.Empty : history.Observe(item.Name, item.BaseType ?? "", item.ItemLevel, league(), current, DateTimeOffset.UtcNow);
-                note = current;
-                armed = true;
-                status = Instructions;
-            }
-            catch (Exception error) when (error is IOException or UnauthorizedAccessException)
-            { status = "History unavailable; repricing disabled until the listing can be saved."; }
+            itemLeague = null;
+            expectedRead = ++readRevision;
+            status = "Resolving price league…";
         }
         Opened?.Invoke();
-        if (ShopNote.Parse(item.Note) is null) _ = SeedAsync(item, seedRevision);
+        _ = PrepareAsync(item, seedRevision, expectedRead);
     }
     public ActionResult Apply(string choice, IntentToken? token)
     {
@@ -123,7 +120,7 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
             try
             {
                 if (selected == Guid.Empty && item is { } source)
-                    history.Observe(source.Name, source.BaseType ?? "", source.ItemLevel, league(), next, DateTimeOffset.UtcNow, kind);
+                    history.Observe(source.Name, source.BaseType ?? "", source.ItemLevel, itemLeague!, next, DateTimeOffset.UtcNow, kind);
                 else history.Change(selected, next, DateTimeOffset.UtcNow, kind);
             }
             catch (IOException) { message += " — history could not be saved."; }

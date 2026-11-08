@@ -36,7 +36,7 @@ public sealed class ListingModeTests : IDisposable
     public void UnpricedMenuSeedsCustomAndDoesNotSendOrRecordUntilClick()
     {
         var model = new ShopModel(new(directory), () => "Standard")
-        { SeedPrice = _ => Task.FromResult<ShopNote?>(new("~b/o", 12, "chaos")) };
+        { SeedPrice = (_, _) => Task.FromResult<ShopNote?>(new("~b/o", 12, "chaos")) };
         var probe = new MenuProbe();
         var calls = 0;
         var host = new FeatureHost([new VaalasyncFeature(model), probe], (_, _) => null, (_, _, _) => { },
@@ -58,7 +58,7 @@ public sealed class ListingModeTests : IDisposable
     public async Task LateSeedCannotOverwriteCustomEdit()
     {
         var completion = new TaskCompletionSource<ShopNote?>();
-        var model = new ShopModel(new(directory), () => "Standard") { SeedPrice = _ => completion.Task };
+        var model = new ShopModel(new(directory), () => "Standard") { SeedPrice = (_, _) => completion.Task };
         _ = new FeatureHost([new VaalasyncFeature(model)], (_, _) => null, (_, _, _) => { });
         Assert.Single(model.BuildMenu(Item())).Execute();
         model.Custom = "77";
