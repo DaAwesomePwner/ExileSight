@@ -53,6 +53,23 @@ jobs:
           if ($env:CHANNEL -notin @('stable', 'beta') -or $env:APP_VERSION -cnotmatch $pattern) {
             throw 'Use X.Y.Z for stable or X.Y.Z-beta.N for beta, without leading zeroes.'
           }
+      - name: Extract changelog section for release notes
+        shell: pwsh
+        run: |
+          # Fail before building: every published version needs player-facing notes.
+          $lines = @(Get-Content CHANGELOG.md)
+          $heading = '^## ' + [regex]::Escape($env:APP_VERSION) + '\s*\z'
+          $start = -1
+          for ($i = 0; $i -lt $lines.Count; $i++) { if ($lines[$i] -match $heading) { $start = $i; break } }
+          if ($start -lt 0) { throw "CHANGELOG.md has no '## $env:APP_VERSION' section. Add it on main first." }
+          $body = @()
+          for ($i = $start + 1; $i -lt $lines.Count -and $lines[$i] -notmatch '^## '; $i++) { $body += $lines[$i] }
+          $section = ($body -join "`n").Trim()
+          if (-not $section) { throw "CHANGELOG.md section '## $env:APP_VERSION' is empty." }
+          New-Item -ItemType Directory -Force artifacts | Out-Null
+          [IO.File]::WriteAllText((Join-Path $PWD 'artifacts/RELEASE-NOTES.md'),
+            "ExileSight v$env:APP_VERSION ($env:CHANNEL)`n`n$section`n")
+          Get-Content artifacts/RELEASE-NOTES.md -Raw >> $env:GITHUB_STEP_SUMMARY
       - run: dotnet build ExileSight.slnx -c Release -warnaserror
       - run: dotnet test ExileSight.slnx -c Release --no-build
       - name: Generate and verify pinned packs
@@ -118,7 +135,6 @@ jobs:
           }
           $rows | Set-Content Releases/ASSET-SIZES.md
           $rows >> $env:GITHUB_STEP_SUMMARY
-          @("ExileSight v$env:APP_VERSION ($env:CHANNEL)", '', (Get-Content Releases/ATTRIBUTION.txt -Raw)) | Set-Content artifacts/RELEASE-NOTES.md
           $hashes = @(Get-ChildItem Releases -File | Sort-Object Name | ForEach-Object {
             "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($_.Name)"
           })
@@ -187,9 +203,25 @@ jobs:
             echo '::error::Could not check tag availability.'; exit 1
           fi
           rm tag-check.err
+          # Changes since the previous app release (stable: previous stable), then attribution.
+          prev="$(jq -r --arg stable "$([[ "$CHANNEL" == stable ]] && echo true || echo false)" '
+            add | map(select(.draft == false and (.tag_name | test("^v[0-9]")) and
+              ($stable == "false" or .prerelease == false))) |
+            max_by(.published_at) | .tag_name // empty' "$RUNNER_TEMP/release-window.json")"
+          prev_args=()
+          if [[ -n "$prev" ]]; then prev_args=(-f "previous_tag_name=$prev"); fi
+          notes="$RUNNER_TEMP/release-notes.md"
+          {
+            cat ../artifacts/RELEASE-NOTES.md
+            printf '\n'
+            gh api -X POST "repos/$GH_REPO/releases/generate-notes" -f "tag_name=$tag" \
+              -f "target_commitish=$GITHUB_SHA" "${prev_args[@]}" --jq .body
+            printf '\n## Attribution\n\n'
+            cat ATTRIBUTION.txt
+          } > "$notes"
           options=()
           if [[ "$CHANNEL" == beta ]]; then options+=(--prerelease); fi
           gh release create "$tag" --target "$GITHUB_SHA" --draft --latest=false \
-            --title "$tag" --notes-file ../artifacts/RELEASE-NOTES.md "${options[@]}"
+            --title "$tag" --notes-file "$notes" "${options[@]}"
           gh release upload "$tag" ./*
           gh release edit "$tag" --draft=false --latest=false

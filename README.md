@@ -6,7 +6,7 @@ A fair-play, Windows-native quality-of-life overlay for **Path of Exile**. You g
 
 > **This product isn't affiliated with or endorsed by Grinding Gear Games in any way.**
 
-**Status:** pre-alpha. Nothing is ready to download yet.
+**Status:** 1.0 for Path of Exile 1. Download the installer from [Releases](https://github.com/DaAwesomePwner/ExileSight/releases); installed copies update themselves. See the [changelog](CHANGELOG.md).
 
 ## What 1.0 will do (Path of Exile 1)
 
