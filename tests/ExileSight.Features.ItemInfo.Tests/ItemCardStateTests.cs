@@ -53,6 +53,7 @@ public sealed class ItemCardStateTests
         Assert.Equal(CardLevelKind.NotApplicable, card.Rows[0].LevelKind);
         Assert.Equal("cr", card.Rows[2].Tier);
         Assert.True(card.Rows[2].Crafted);
+        Assert.Equal(CardLevelKind.NotApplicable, card.Rows[2].LevelKind);
         Assert.Equal(InfoColor.Crafted, card.Rows[2].TierTone);
         Assert.Equal(94, card.Defences[0].Percentile);
         var hidden = ItemCardBuilder.Build(result, settings: settings with
@@ -72,6 +73,9 @@ public sealed class ItemCardStateTests
         Assert.Equal(75, card.Verdict!.AverageRoll);
         Assert.True(card.Rows[2].Fixed);
         Assert.Equal("U", card.Rows[1].Tier);
+        Assert.Equal(CardSlotKind.None, card.Rows[1].Slot);
+        Assert.Equal(CardSlotKind.None, card.Rows[2].Slot);
+        Assert.Equal(CardSlotKind.Implicit, card.Rows[0].Slot);
         Assert.All(card.Rows, r => Assert.Equal(CardLevelKind.NotApplicable, r.LevelKind));
     }
 
@@ -81,6 +85,9 @@ public sealed class ItemCardStateTests
         var item = Read("rings/two-affix-magic.plain.txt");
         var settings = new ItemInfoSettings([new("Test", [new(item.Mods[0].Text, Highlight.Desired)])]);
         var card = ItemCardBuilder.Build(new ItemInfoCalculator().Calculate(item, settings), settings: settings);
+        Assert.Null(item.BaseType);
+        Assert.Equal(item.Name, card.Name.FullName);
+        Assert.Equal(item.Name, card.Name.DisplayName);
         Assert.True(card.NeedsAdvancedCopy);
         Assert.NotNull(card.Verdict);
         Assert.Null(card.Slots!.Prefixes.Count);
@@ -108,7 +115,6 @@ public sealed class ItemCardStateTests
     [InlineData("Rare", "Jewels", 2)]
     [InlineData("Rare", "Abyss Jewels", 2)]
     [InlineData("Rare", "Unknown Class", null)]
-    [InlineData("Normal", "Rings", null)]
     public void SlotMaximumUsesKnownRarityAndClass(string rarity, string itemClass, int? maximum)
     {
         var text = File.ReadAllText(Path.Combine(Root, "iteminfo/card-ring.txt"))

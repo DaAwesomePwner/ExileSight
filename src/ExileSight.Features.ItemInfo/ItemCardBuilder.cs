@@ -10,10 +10,11 @@ public static class ItemCardBuilder
     public static ItemCard Build(ItemInfoResult result, IItemInfoData? data = null,
         ItemInfoSettings? settings = null, ItemCardComparison? comparison = null)
     {
-        settings = (settings ?? ItemInfoSettings.Default).Validate();
+        settings = (settings ?? result.Settings).Validate();
         var item = result.Item;
         var unique = item.Rarity == ItemRarity.Unique;
-        var advanced = result.Mods.Any(m => m.Source.Header is not null);
+        // With no mods, copy mode is unknowable and there is nothing to request ranges for.
+        var advanced = result.Mods.Any(m => !string.IsNullOrWhiteSpace(m.Source.Header));
         var rows = new List<ItemCardRow>();
         var seen = new HashSet<int>();
         if (!item.Unidentified)
@@ -33,9 +34,9 @@ public static class ItemCardBuilder
             ? rolls.Length == 0 ? null : new(0, 0, rolls.Average())
             : settings.Profiles.Length == 0 || wanted + unwanted == 0 ? null : new(wanted, unwanted, null);
         var max = Maximum(item);
-        return new(new(item.BaseType, unique ? item.Name : null, item.Rarity, item.ItemClass, item.ItemLevel),
-            item.Unidentified, !item.Unidentified && !advanced, verdict,
-            unique || item.Unidentified ? null : new(new(advanced ? result.Prefixes : null, max),
+        return new(new(item.BaseType, unique ? item.Name : null, item.Rarity, item.ItemClass, item.ItemLevel, item.Name),
+            item.Unidentified, !item.Unidentified && rows.Count > 0 && !advanced, verdict,
+            unique || item.Rarity == ItemRarity.Normal || item.Unidentified ? null : new(new(advanced ? result.Prefixes : null, max),
                 new(advanced ? result.Suffixes : null, max)),
             settings.ShowDefenceBasePercentile ? result.Defences : [],
             settings.ShowImplicits ? rows : rows.Where(r => r.Slot != CardSlotKind.Implicit).ToArray(),
@@ -50,7 +51,7 @@ public static class ItemCardBuilder
         var crafted = source.Kind.HasFlag(ModKind.Crafted);
         var enchant = source.Kind.HasFlag(ModKind.Enchant);
         var uniqueMod = unique || source.Kind.HasFlag(ModKind.Unique);
-        var slot = implicitMod ? CardSlotKind.Implicit : source.AffixType switch
+        var slot = implicitMod ? CardSlotKind.Implicit : uniqueMod ? CardSlotKind.None : source.AffixType switch
         {
             AffixType.Prefix => CardSlotKind.Prefix, AffixType.Suffix => CardSlotKind.Suffix, _ => CardSlotKind.Unknown
         };
@@ -69,7 +70,7 @@ public static class ItemCardBuilder
         var fixedLine = advanced && uniqueMod && lines.All(m => m.Source.Values.All(v => v.Minimum is null || v.Maximum is null));
         var levelKind = implicitMod || crafted || uniqueMod ? CardLevelKind.NotApplicable :
             advanced && first.RequiredLevel is not null ? CardLevelKind.Known : CardLevelKind.Unknown;
-        var tier = fixedLine ? "·" : implicitMod ? "imp" : enchant ? "ench" : crafted ? "cr" : uniqueMod ? "U" :
+        var tier = implicitMod ? "imp" : enchant ? "ench" : fixedLine ? "·" : crafted ? "cr" : uniqueMod ? "U" :
             advanced && source.Tier is int t ? $"T{t}" : "T?";
         var highlight = lines.Any(m => m.Highlight == Highlight.Undesired) ? Highlight.Undesired :
             lines.Any(m => m.Highlight == Highlight.Desired) ? Highlight.Desired : Highlight.None;

@@ -74,8 +74,9 @@ brush resources. Dispatcher open and DPI callbacks close/release leases on failu
 ### Structured card (P7-T5)
 
 `ItemCardBuilder.Build(result, data, settings, comparison)` produces the passive,
-WPF-free card alongside the unchanged text sections. Pass the same validated
-settings and data adapter used for `ItemInfoCalculator.Calculate`. The App can
+WPF-free card alongside the unchanged text sections. Pass the same data adapter used for `ItemInfoCalculator.Calculate`. Settings default
+to the validated settings retained on `ItemInfoResult`; an explicit settings argument
+can override card visibility. Recalculate first when changing highlight rules. The App can
 supply `GearCardBuilder.Build`'s Core comparison contract without feature-to-feature
 references. P7-T11 owns rendering and height truncation.
 
@@ -91,3 +92,10 @@ A hybrid counts once in the verdict; if its lines conflict, Avoid takes preceden
 maxima must draw unknown pips; `Open` never invents an open slot. Defence, slots,
 comparison and countable rows remain separate for view height handling. The four
 `Show*` settings default on, including when loading older profile JSON.
+
+The name model retains `FullName` for every rarity. Views use `DisplayName` (unique
+name, otherwise base type, otherwise full copied name) so plain magic copies never
+lose their title. `CardSlotKind.None` means a blank unique slot marker; `Unknown`
+means a question mark. White items omit the slots section. Copies without any mod
+rows cannot reveal their copy mode and never request advanced copy. Fixed unique
+implicit/enchant rows retain their `imp`/`ench` kind pills.

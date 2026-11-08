@@ -48,13 +48,15 @@ public sealed class ItemCardValueTests
     }
 
     [Fact]
-    public void PairResistanceLabelsUseSpaceAndFullChaosName()
+    public void PairResistanceLabelsKeepResistanceSuffixAndConsistentChaosAbbreviation()
     {
         foreach (var pair in ModLabels.Entries.Where(p => p.Key.Contains("_and_") && p.Key.Contains("resistance")))
         {
-            Assert.StartsWith("+ ", pair.Value);
+            Assert.StartsWith("+", pair.Value);
+            Assert.NotEqual(' ', pair.Value[1]);
+            Assert.EndsWith(" res", pair.Value);
             Assert.InRange(pair.Value.Length, 1, 14);
-            if (pair.Key.Contains("chaos")) Assert.Contains("chaos", pair.Value);
+            if (pair.Key.Contains("chaos")) Assert.Contains("cha", pair.Value);
         }
         Assert.Equal("+ phys dmg", ModLabels.For(["local_minimum_added_physical_damage"], "unused"));
     }

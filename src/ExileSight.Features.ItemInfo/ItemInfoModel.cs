@@ -8,4 +8,8 @@ public sealed record ModInfo(ModLine Source, string TierLabel, InfoColor TierCol
     decimal? RollPosition, InfoColor RollColor, int? RequiredLevel, Highlight Highlight);
 public sealed record DefenceInfo(string Name, decimal? Percentile);
 public sealed record ItemInfoResult(ParsedItem Item, IReadOnlyList<ModInfo> Mods,
-    int? Prefixes, int? Suffixes, IReadOnlyList<DefenceInfo> Defences, int? UniqueDropTier = null);
+    int? Prefixes, int? Suffixes, IReadOnlyList<DefenceInfo> Defences, int? UniqueDropTier = null)
+{
+    /// <summary>The validated settings used to calculate highlights and rolls.</summary>
+    public ItemInfoSettings Settings { get; init; } = ItemInfoSettings.Default;
+}

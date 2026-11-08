@@ -29,7 +29,7 @@ public sealed class ItemInfoCalculator(IItemInfoData? data = null)
             explicitLines.All(m => m.Group is not null && m.AffixType != AffixType.Unknown));
         int? Count(AffixType type) => known ? explicitLines.Where(m => m.AffixType == type).Select(m => m.Group).Distinct().Count() : null;
         return new(item, rows, Count(AffixType.Prefix), Count(AffixType.Suffix),
-            DefenceCalculator.Calculate(item, data));
+            DefenceCalculator.Calculate(item, data)) { Settings = settings };
     }
 
     public static decimal? Roll(ModLine line, bool invert)

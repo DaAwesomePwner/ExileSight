@@ -52,5 +52,17 @@ public sealed class GearCardTests : IDisposable
         Assert.All(card.Slots, s => { Assert.True(s.NothingEquipped); Assert.Empty(s.Deltas); });
     }
 
+    [Fact]
+    public void TwoHanderHeaderNamesBothReplacedHands()
+    {
+        var model = new GearModel(new GearStore(directory));
+        model.Equip(null, GearSlot.MainHand, new("One Hand Swords", new() { ["Physical DPS"] = 10 }));
+        model.Equip(null, GearSlot.OffHand, new("Shields", new() { ["Armour"] = 20 }));
+        var slot = Assert.Single(GearCardBuilder.Build(Fixture("card-weapon.txt"), model, _ => [])!.Slots);
+        Assert.Equal("main + off hand", slot.Slot);
+        Assert.Contains(new ItemCardDelta("Armour", DeltaDirection.Decrease, 20), slot.Deltas);
+        Assert.Contains(new ItemCardDelta("Physical DPS", DeltaDirection.Increase, 50), slot.Deltas);
+    }
+
     public void Dispose() { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
 }

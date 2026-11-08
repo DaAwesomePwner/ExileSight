@@ -13,11 +13,13 @@ public static class GearCardBuilder
         var candidate = GearStats.Read(item, match);
         var blocks = slots.Select(slot =>
         {
-            var replaced = model.Replaced(slot, candidate);
-            var deltas = replaced.Length == 0 ? [] : GearStats.Delta(candidate, replaced).OrderBy(p => p.Key)
+            var replaced = model.ReplacedBySlot(slot, candidate);
+            var deltas = replaced.Count == 0 ? [] : GearStats.Delta(candidate, replaced.Values).OrderBy(p => p.Key)
                 .Select(p => new ItemCardDelta(p.Key, p.Value > 0 ? DeltaDirection.Increase :
                     p.Value < 0 ? DeltaDirection.Decrease : DeltaDirection.Unchanged, Math.Abs(p.Value))).ToArray();
-            return new ItemCardCompareSlot(GearSlots.Label(slot), replaced.Length == 0, deltas);
+            var label = replaced.ContainsKey(GearSlot.MainHand) && replaced.ContainsKey(GearSlot.OffHand)
+                ? "main + off hand" : GearSlots.Label(slot);
+            return new ItemCardCompareSlot(label, replaced.Count == 0, deltas);
         }).ToArray();
         var character = model.Character is { } name ? "Character: " + name :
             "Default profile — confirm a character in the long-press menu";

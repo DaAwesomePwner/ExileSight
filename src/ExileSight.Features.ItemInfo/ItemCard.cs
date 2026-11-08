@@ -3,10 +3,13 @@ using ExileSight.Core.Items;
 
 namespace ExileSight.Features.ItemInfo;
 
-public enum CardSlotKind { Unknown, Prefix, Suffix, Implicit }
+public enum CardSlotKind { Unknown, Prefix, Suffix, Implicit, None }
 public enum CardLevelKind { Unknown, Known, NotApplicable }
 public sealed record ItemCardName(string? BaseType, string? UniqueName, ItemRarity Rarity,
-    string ItemClass, int? ItemLevel);
+    string ItemClass, int? ItemLevel, string FullName)
+{
+    public string DisplayName => UniqueName ?? BaseType ?? FullName;
+}
 public sealed record ItemCardVerdict(int Wanted, int Unwanted, decimal? AverageRoll);
 public sealed record ItemCardPips(int? Count, int? Maximum)
 {
