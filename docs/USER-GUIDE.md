@@ -111,8 +111,8 @@ challenge league excluding SSF/Ruthless, with Standard as fallback; you can set
 `prices.league` in your profile. Stale or incomplete prices are labelled.
 
 Supported pages: Currency General, Atlas and League; Fragment General; Delve,
-Essence, Blight and Delirium. Coverage is partial; unknown or unlisted cells have
-no tag. Allflame is deferred. See the [coverage and update guide](../data/stash-layouts/poe1/README.md).
+Essence, Blight and Delirium. Coverage is partial; unknown cells are omitted and cells without a current price
+have no tag. Allflame is deferred. See the [coverage and update guide](../data/stash-layouts/poe1/README.md).
 Select two distinct **empty** cells in the calibration selectors, click **Calibrate**,
 then click their centers in order with no item held. Esc cancels; clicks reach the game. Calibration is saved per layout and
 resolution. A physical **Highlight** click pastes one search; loading prices does

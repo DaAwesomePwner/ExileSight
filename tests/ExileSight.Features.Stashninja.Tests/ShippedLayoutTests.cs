@@ -1,12 +1,14 @@
 using System.Text.Json;
 using ExileSight.Features.Stashninja;
+using ExileSight.Core.Pricing;
 using Xunit;
 
 namespace ExileSight.Features.Stashninja.Tests;
 
 public sealed class ShippedLayoutTests
 {
-    private sealed record NameEvidence(string Page, string Category, string ItemName, string NinjaId);
+    private sealed record NameEvidence(string Page, string Category, string ItemName, string? NinjaId,
+        string Confidence, string? ReferenceIcon);
 
     [Fact]
     public void EveryShippedLayoutLoadsWithUniquePagesAndNonOverlappingCells()
@@ -33,7 +35,7 @@ public sealed class ShippedLayoutTests
     }
 
     [Fact]
-    public void ShippedCellsHaveExactNamesInRecordedPoeNinjaEvidence()
+    public void ShippedCellsHaveIndependentIdentityEvidence()
     {
         var evidence = JsonSerializer.Deserialize<NameEvidence[]>(File.ReadAllText(
             Path.Combine(AppContext.BaseDirectory, "fixtures", "measured-names.json")), Layouts.Json)!;
@@ -46,8 +48,42 @@ public sealed class ShippedLayoutTests
                 ? $"{layout.TabId}-{layout.Page}" : layout.TabId;
             var entry = Assert.Single(evidence, e => e.Page == page &&
                 e.Category == cell.Category && e.ItemName == cell.ItemName);
-            Assert.False(string.IsNullOrWhiteSpace(entry.NinjaId));
+            Assert.Contains(entry.Confidence, new[] { "high", "confirmed" });
+            if (entry.Confidence == "confirmed")
+            {
+                Assert.False(string.IsNullOrWhiteSpace(entry.NinjaId));
+                Assert.StartsWith("https://github.com/", entry.ReferenceIcon);
+            }
         }
+    }
+
+    [Theory]
+    [InlineData("currency", "general", 25)]
+    [InlineData("currency", "atlas", 13)]
+    [InlineData("currency", "league", 4)]
+    [InlineData("fragment", "general", 21)]
+    [InlineData("delve", "general", 29)]
+    [InlineData("essence", "general", 104)]
+    [InlineData("blight", "general", 16)]
+    [InlineData("delirium", "general", 14)]
+    public void MeasuredCoverageIncludesUnpricedHighConfidenceCells(string tab, string page, int count)
+    {
+        var layout = Assert.Single(Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts")),
+            l => l.TabId == tab && l.Page == page);
+        Assert.Equal(count, layout.Cells.Length);
+    }
+
+    [Fact]
+    public void MissingPriceOmitsOnlyTheTagNotTheMeasuredCell()
+    {
+        var layout = Assert.Single(Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts")),
+            l => l.TabId == "currency" && l.Page == "general");
+        Assert.Contains(layout.Cells, c => c.ItemName == "Scroll Fragment");
+        var prices = new PriceOverview([new("wisdom", "Scroll of Wisdom", "Currency",
+            null, 1, null, [], null, null)], null);
+        var tags = Tags.Build(layout, prices, new("test", 0, 10, "#FFFFFF", "#FFD700"));
+        Assert.Equal("Scroll of Wisdom", Assert.Single(tags).Name);
+        Assert.Contains(layout.Cells, c => c.ItemName == "Scroll Fragment");
     }
 
     [Fact]

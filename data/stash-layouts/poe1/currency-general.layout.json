@@ -221,6 +221,15 @@
       "h": 38,
       "category": "Currency",
       "itemName": "Orb of Regret"
+    },
+    {
+      "id": "scroll-fragment",
+      "x": 26,
+      "y": 143,
+      "w": 40,
+      "h": 37,
+      "category": "Currency",
+      "itemName": "Scroll Fragment"
     }
   ],
   "folderOffsets": {},

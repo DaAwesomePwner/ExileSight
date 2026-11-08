@@ -6,9 +6,11 @@ Images were downscaled by the chat tool from a 3440x1440 game client to 2000x837
 The latter pixels are the reference coordinate system; do not rescale JSON back to
 3440x1440. No screenshots or reference icons are redistributed.
 
-The S1-X1 identification table supplied independently identified `high` cells only.
-All `verify` and unknown cells were excluded, including entries whose tentative
-identities came from prohibited sources. No Exile-UI data or icons were consulted.
+The S1-X1 identification table supplied independently identified `high` cells.
+Every such cell is retained on shipped pages regardless of current price availability.
+Four `verify` Essence cells were subsequently confirmed by visual comparison of the
+owner screenshot's ghost silhouettes against pinned GitHub icons (see recheck).
+Other `verify` and unknown cells remain excluded. No Exile-UI data or icons were consulted.
 Frame rectangles were snapped using local pixel-intensity edge analysis with
 `tools/stash-layouts/snap.py`, then visually inspected over the source images.
 Rectangles use half-open bounds and no folder offsets.
@@ -31,9 +33,10 @@ Rectangles use half-open bounds and no folder offsets.
 
 Fetched once on 2026-11-08 with `ExileSight/1.1 layout-research` User-Agent from
 `https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Standard&type=TYPE`.
-Only item name/ID pairs are retained in the test fixture `measured-names.json`;
+Item names, available IDs and identity evidence are retained in `measured-names.json`;
 response image URLs were never fetched. The fixture records the API type, page,
-exact name and ID for each included cell. It is historical evidence, not a promise
+exact name, confidence and optional ID/reference icon for each included cell.
+A null ID means the high-confidence identity is retained without a current API entry. It is historical evidence, not a promise
 of price availability in every league. Refresh it alongside future layout changes.
 
 | TYPE | Response SHA-256 |
@@ -46,3 +49,25 @@ of price availability in every league. Refresh it alongside future layout change
 | Oil | `4f042f3da1a34739badda8157951217663f26580671e3898c45c913faf9b2995` |
 | DeliriumOrb | `aea82e75e08c38b2619af1cdc73c73a6bcd1f5469da96050bc40b97abf23f480` |
 | AllflameEmber | `cc20f3c9fe72822e4049068ffefa0289a85baf93b70604079599404063beaade` |
+
+## Fix-round verification
+
+The current challenge league was discovered as **Allflame** through
+`https://poe.ninja/poe1/api/data/index-state` on 2026-11-08. The same overview endpoint
+was fetched with `league=Allflame` for all eight supported pricing types. Standard
+responses above were reused from the local research cache. High-confidence cells
+no longer depend on either league's listing. Four independently confirmed Essence
+identities have exact API names; other uncertain cells remain excluded.
+
+| Allflame TYPE | Response SHA-256 |
+|---|---|
+| Currency | `5c70d1ee64e6addbbae3d94926ca81450cc38c2cd5381b22636310618060faf9` |
+| Fragment | `7b2a660948f4816079ed0ce6f1b2ca1323275d1dc4ba70b95b69cea1dd83bbe0` |
+| Fossil | `d6a76551c93e86de186c98dd324f481c08db2d6901a9d2909dc3fda2a6455ad9` |
+| Resonator | `150762a8cc955cf643e38a2d1fd176f7c0aa0c52445d2a2fca8c1ce8ea6ea3ae` |
+| Essence | `11711856a927f8d07ee3f10421ea8c4795d1b51e9cbaa192d62b5d93b6dcc581` |
+| Oil | `c8011b7486841c69d4c9afaba89ec7e7986168b0803ae7eb1a2e2ac564362116` |
+| DeliriumOrb | `9d070ed86526e6686c51c1a28a643cc3b91b72e24a9f9f5e2ba73d03643ae464` |
+| AllflameEmber | `15ea009c92dff8200c829bf4420d861b870f8d16b44f71fd83827705d1d2d8d3` |
+
+Index-state SHA-256: `1a15c7f1e5d50e8febe252ee2cda846decb0907b71b713c58fdee4d3ffe85f7c`.

@@ -239,6 +239,33 @@
       "h": 71,
       "category": "Resonator",
       "itemName": "Prime Chaotic Resonator"
+    },
+    {
+      "id": "prismatic-fossil",
+      "x": 188,
+      "y": 193,
+      "w": 44,
+      "h": 43,
+      "category": "Fossil",
+      "itemName": "Prismatic Fossil"
+    },
+    {
+      "id": "lucent-fossil",
+      "x": 342,
+      "y": 193,
+      "w": 44,
+      "h": 43,
+      "category": "Fossil",
+      "itemName": "Lucent Fossil"
+    },
+    {
+      "id": "fractured-fossil",
+      "x": 419,
+      "y": 244,
+      "w": 43,
+      "h": 42,
+      "category": "Fossil",
+      "itemName": "Fractured Fossil"
     }
   ],
   "folderOffsets": {},

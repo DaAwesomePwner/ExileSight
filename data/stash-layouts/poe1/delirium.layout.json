@@ -122,6 +122,15 @@
       "h": 42,
       "category": "DeliriumOrb",
       "itemName": "Blighted Delirium Orb"
+    },
+    {
+      "id": "skittering-delirium-orb",
+      "x": 383,
+      "y": 175,
+      "w": 41,
+      "h": 42,
+      "category": "DeliriumOrb",
+      "itemName": "Skittering Delirium Orb"
     }
   ],
   "folderOffsets": {},
