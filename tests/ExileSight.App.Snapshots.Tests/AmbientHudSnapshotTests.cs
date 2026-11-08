@@ -2,6 +2,7 @@ using Xunit;
 #if SNAPSHOT_WINDOWS
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using ExileSight.App.Features.Guide;
 using ExileSight.App.Features.Timers;
@@ -81,8 +82,34 @@ public sealed class AmbientHudSnapshotTests
             var card = TimersCardBuilder.Build(rows, t);
             card.Measure(new Size(300, double.PositiveInfinity));
             Assert.True(card.DesiredSize.Height <= 220);
+            Assert.Equal(300, card.Width);
+            card.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            Assert.Equal(300, card.DesiredSize.Width);
             return card;
         }, 300, 220);
+#endif
+    }
+
+    [WindowsOnlyFact]
+    public void GuideLongPageFitsRegion()
+    {
+#if SNAPSHOT_WINDOWS
+        Render("guide-long-page", t =>
+        {
+            var card = GuideCardBuilder.Build(Guide() with
+            {
+                Lines = Enumerable.Repeat(new string('W', 2048) + "\n" + new string('W', 2047), 100).ToArray(),
+                NextLine = new string('N', 4096), Notice = new string('X', 4096)
+            }, t);
+            card.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            Assert.Equal(340, card.DesiredSize.Width);
+            Assert.True(card.DesiredSize.Height <= 440);
+            var body = Assert.IsType<StackPanel>(Assert.IsType<Border>(card).Child);
+            Assert.Contains(body.Children.OfType<TextBlock>(), text => text.Text == "+88 more lines");
+            Assert.Equal(GuideCardBuilder.MaximumLines,
+                body.Children.OfType<TextBlock>().Count(text => text.FontSize == 15));
+            return card;
+        }, 340, 440);
 #endif
     }
 

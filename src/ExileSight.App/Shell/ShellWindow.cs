@@ -61,7 +61,8 @@ public sealed class ShellWindow : Window
                 if (!CanReplace(displayed is null || !displayed.SameContent(next), narrow != nextNarrow)) continue;
                 var offsets = displayed?.Page == next.Page ? ShellViewState.Capture(Content as DependencyObject) : [];
                 narrow = nextNarrow; displayed = next;
-                var view = ShellBuilder.Build(next, CardTheme.Default, narrow);
+                var view = ShellBuilder.Build(next, CardTheme.Default, narrow, next.Page == "Act guide"
+                    ? new Features.Guide.GuidePageHost(source.Model<ExileSight.Features.Guide.GuideModel>()) : null);
                 Content = view;
                 _ = Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
                 {

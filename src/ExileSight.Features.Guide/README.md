@@ -5,8 +5,17 @@ No game actions, network requests, or character names are stored.
 
 Defaults (persisted user bindings win): Ctrl+Shift+F12 = next, Ctrl+Shift+F11 = back,
 Ctrl+Shift+F10 = toggle. These function-key chords avoid chat word-selection shortcuts
-and the other features’ reserved defaults. Buttons are local actions; the overlay uses the shared NOACTIVATE host.
-Import/export use ordinary user-selected file dialogs. Imported content is always plain text.
+and the other features’ reserved defaults. The overlay is click-through and progress-only, using the shared NOACTIVATE host.
+Open **Act guide** in the desktop app's left navigation for Back/Next, Reset run,
+League start, Bandit, Import JSON, Export CSV and Remove custom guide. These are
+local actions. Import/export open ordinary user-selected file dialogs from that page,
+with the same size validation and operation notices. Imported content remains plain text.
+The page shows the full current step; the overlay shows at most 12 single-line entries
+with ellipses and a remaining-line count. NEXT and notices also fit one line.
+
+The old `Level N` header was removed from the overlay; level events still drive timing. The default-profile label moved to the desktop page, alongside
+league-start and bandit choices. These are available as structured snapshot fields;
+there is no preformatted string snapshot.
 
 One visibly labelled default profile is shared by all characters. Reset run before starting
 another character. League-start defaults to yes and bandit to none; changing either resets

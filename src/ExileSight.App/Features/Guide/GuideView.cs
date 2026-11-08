@@ -26,7 +26,6 @@ public sealed class GuideView
         panel = host.Register(content, DefaultOverlayLayout.Guide, clickThrough: true);
         host.SetVisible(panel, false);
         host.Changed += FocusChanged;
-        // Settings can re-show the window without changing model.Visible.
         panel.IsVisibleChanged += (_, _) => timer.IsEnabled = panel.IsVisible;
         timer.Tick += (_, _) => Refresh();
         model.VisibilityChanged += Present;

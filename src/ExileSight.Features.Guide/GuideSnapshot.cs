@@ -7,17 +7,17 @@ public sealed record GuideSnapshot(bool Visible, int? Act, int Step, int StepCou
     TimeSpan ActTime, TimeSpan TotalTime, double Progress, IReadOnlyList<string> Lines,
     string? NextLine, string? Notice, bool Complete)
 {
+    public bool LeagueStart { get; init; } = true;
+    public string Bandit { get; init; } = "none";
+    public string ProfileNotice => "Single default profile — shared across all characters. Reset for a new run.";
+
     internal static GuideSnapshot Create(bool visible, GuideProgress? progress, GuideData? data,
         GuideData? displayData, bool league, string bandit, string? storeNotice, string? notice)
     {
         if (progress is null || data is null || displayData is null)
             return new(visible, null, 0, 0, TimeSpan.Zero, TimeSpan.Zero, 0, [], null,
                 "Waiting for poe1/guide pack.", false);
-        var pages = data.Pages.Where(p => p.Condition is null || p.Condition.Kind switch
-        {
-            "league-start" => p.Condition.Values.Contains(league ? "yes" : "no"),
-            "bandit" => p.Condition.Values.Contains(bandit), _ => false
-        }).ToArray();
+        var pages = GuidePages.Select(data, league, bandit);
         var act = progress.Current.Act;
         var count = pages.Count(p => p.Act == act);
         var step = pages.Take(progress.Index + 1).Count(p => p.Act == act);

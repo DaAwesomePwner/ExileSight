@@ -139,25 +139,8 @@ public sealed class GuideModel(GuideStore? store = null, IClock? clock = null)
         lock (sync)
         {
             progress?.Tick(clock.Milliseconds);
-            return GuideSnapshot.Create(visible, progress, activeData, pack, leagueStart, bandit, store?.Notice, notice);
-        }
-    }
-    public (bool Visible, string Text) Snapshot()
-    {
-        lock (sync)
-        {
-            progress?.Tick(clock.Milliseconds);
-            var header = "Single default profile — shared across all characters. Reset for a new run.\n" +
-                $"League start: {(leagueStart ? "yes" : "no")} · Bandit: {bandit}\n";
-            if (progress is null) return (visible, header + "Waiting for poe1/guide pack.");
-            string Display(GuidePageData page) => string.Join("\n", page.Lines.Select(l => GuideDisplay.Line(l.Text, pack!)));
-            var elapsed = TimeSpan.FromMilliseconds(progress.ActMilliseconds.Sum());
-            var actTime = TimeSpan.FromMilliseconds(progress.ActMilliseconds[progress.Current.Act]);
-            return (visible, header + $"Act {progress.Current.Act} · Level {progress.Level} · Act {actTime:hh\\:mm\\:ss} · Total {elapsed:hh\\:mm\\:ss}\n" +
-                "Timers pause after 2 minutes without zone/level/manual activity.\n" +
-                (progress.Uncertain ? "Timing uncertain: log gap/source change.\n" : "") +
-                (progress.Complete ? "Guide complete\n" : "Current\n") + Display(progress.Current) +
-                "\n\nNext\n" + (progress.Next is { } next ? Display(next) : "End of guide") + "\n" + (store?.Notice ?? notice));
+            return GuideSnapshot.Create(visible, progress, activeData, pack, leagueStart, bandit, store?.Notice, notice) with
+                { LeagueStart = leagueStart, Bandit = bandit };
         }
     }
     public string Export() { lock (sync) { progress?.Tick(clock.Milliseconds); return progress?.Csv() ?? "act,seconds,uncertain\r\n"; } }

@@ -43,7 +43,7 @@ public static class TimersCardBuilder
         }
         if (rows.Count == 0) body.Children.Add(CardPrimitives.Text("No timers", theme, "TextMuted"));
         if (rows.Count > 4) body.Children.Add(CardPrimitives.Text($"+{rows.Count - 4} more", theme, "TextMuted"));
-        var card = CardPrimitives.CardFrame(body, theme);
+        var card = CardPrimitives.CardFrame(body, theme); card.Width = 300;
         card.HorizontalAlignment = HorizontalAlignment.Left; card.VerticalAlignment = VerticalAlignment.Top;
         return card;
     }

@@ -33,7 +33,7 @@ public sealed class GuideStoreTests : IDisposable
         var model = new GuideModel(store); model.Load(GuideTests.Data(), "v1");
         model.Navigate(1);
         Assert.Equal(1, new GuideStore(directory).Load()!.Index);
-        Assert.DoesNotContain("Could not save", model.Snapshot().Text);
+        Assert.DoesNotContain("Could not save", model.StructuredSnapshot().Notice ?? "");
         var path = Path.Combine(directory, "progress.json");
         var marker = new DateTime(2001, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         File.SetLastWriteTimeUtc(path, marker);
@@ -80,7 +80,7 @@ public sealed class GuideStoreTests : IDisposable
         Assert.Equal(next, store.ReadCustom(nextId));
         Assert.False(File.Exists(Path.Combine(directory, oldId + ".json")));
         var resumed = new GuideModel(new GuideStore(directory)); resumed.Load(GuideTests.Data(), "v1");
-        Assert.Contains("Second Lioneye's Watch", resumed.Snapshot().Text);
+        Assert.Contains("Second Lioneye's Watch", string.Join("\n", resumed.StructuredSnapshot().Lines));
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public sealed class GuideStoreTests : IDisposable
         model.Accept(GuideTests.Entry(new ExileSight.Core.Logs.CharacterLevelUp("Secret raw", null, "PrivateName", "Witch", 9)));
         var json = File.ReadAllText(Path.Combine(directory, "progress.json"));
         Assert.DoesNotContain("PrivateName", json); Assert.DoesNotContain("Secret raw", json);
-        Assert.Contains("Single default profile", model.Snapshot().Text);
+        Assert.Contains("Single default profile", model.StructuredSnapshot().ProfileNotice);
     }
     [Theory]
     [InlineData("{broken")]
@@ -118,7 +118,7 @@ public sealed class GuideStoreTests : IDisposable
         var model = new GuideModel(new GuideStore(directory)); model.Load(GuideTests.Data(), "v1");
         model.Import(Encoding.UTF8.GetBytes("[[[\"Custom areaidSyntheticTown1\"]]]"));
         var resumed = new GuideModel(new GuideStore(directory)); resumed.Load(GuideTests.Data(), "v1");
-        Assert.Contains("Custom Lioneye's Watch", resumed.Snapshot().Text);
+        Assert.Contains("Custom Lioneye's Watch", string.Join("\n", resumed.StructuredSnapshot().Lines));
     }
     [Fact]
     public void InapplicableConditionChangeDoesNotChangeSavedOptions()
@@ -126,7 +126,7 @@ public sealed class GuideStoreTests : IDisposable
         var model = new GuideModel(new GuideStore(directory)); model.Load(GuideTests.Data(), "v1");
         model.Import(Encoding.UTF8.GetBytes("""[[{"condition":["league-start","yes"],"lines":["areaidSyntheticTown1"]}]]"""));
         Assert.Throws<ArgumentException>(() => model.Reset(changeLeague: true));
-        Assert.Contains("League start: yes", model.Snapshot().Text);
+        Assert.True(model.StructuredSnapshot().LeagueStart);
     }
     [Fact]
     public void OutOfRangeSavedPageIsPreserved()

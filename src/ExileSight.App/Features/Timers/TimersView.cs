@@ -24,6 +24,7 @@ public sealed class TimersView
     private readonly TextBlock status = TimerEditor.Label("");
     private readonly TextBlock toastText = TimerEditor.Label("");
     private readonly TimerRows rows = new();
+    private TimerCardRow[] displayedTimers = [];
     private long toastUntil;
     private TimersVisibility visibility;
     private readonly Dictionary<HostedOverlayWindow, bool> requested = [];
@@ -157,7 +158,14 @@ public sealed class TimersView
     {
         rows.Refresh(model);
         if (visibility.Visible && !visibility.Interactive)
-            passiveContent.Child = TimersCardBuilder.Build(model.Snapshot()
-                .Select(r => new TimerCardRow(r.Name, r.Kind, model.Value(r.Id), r.Duration)).ToArray(), theme);
+        {
+            var next = model.Snapshot().Select(r => new TimerCardRow(r.Name, r.Kind,
+                TimeSpan.FromSeconds(Math.Floor(model.Value(r.Id).TotalSeconds)), r.Duration)).ToArray();
+            if (passiveContent.Child is null || displayedTimers.Length != next.Length || !displayedTimers.Take(4).SequenceEqual(next.Take(4)))
+            {
+                displayedTimers = next;
+                passiveContent.Child = TimersCardBuilder.Build(next, theme);
+            }
+        }
     }
 }
