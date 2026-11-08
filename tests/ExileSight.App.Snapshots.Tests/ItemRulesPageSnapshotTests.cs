@@ -68,6 +68,8 @@ public sealed class ItemRulesPageSnapshotTests
                 Assert.False(saved.ShowItemLevelColumn);
                 Assert.False(store.Snapshot.Features.Sections["omni"]["settings"].GetProperty("UseAdvancedCopy").GetBoolean());
                 Click("Profile4"); Click("SaveRules");
+                Assert.Equal(0, store.Snapshot.Features.Sections["iteminfo"]["profiles"].GetProperty("ActiveProfile").GetInt32());
+                Click("ActivateRules"); Click("SaveRules");
                 Assert.Equal(4, store.Snapshot.Features.Sections["iteminfo"]["profiles"].GetProperty("ActiveProfile").GetInt32());
                 store.Flush();
                 using var disk = new JsonSettingsStore<SettingsDocument>(new AppPaths(directory), Path.Combine(directory, "settings.json"),

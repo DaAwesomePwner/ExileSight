@@ -13,14 +13,17 @@ public sealed class ItemRulesPageHost : ContentControl
 {
     private readonly ISettingsStore<SettingsDocument> store;
     private readonly ItemInfoViewModel? source;
-    private readonly string[] translations;
-    private ItemInfoSettings settings = ItemInfoSettings.Default;
+    private readonly Task<string[]> loading;
+    private string[] translations = [];
+    private ItemRulesEditor editor = new(ItemInfoSettings.Default);
     private OmniSettings omni = OmniSettings.Default;
     private bool building;
     public bool Dirty { get; private set; }
     public ItemRulesPageHost(ISettingsStore<SettingsDocument> store, ItemInfoViewModel? source, string[] translations)
+        : this(store, source, Task.FromResult(translations)) { }
+    public ItemRulesPageHost(ISettingsStore<SettingsDocument> store, ItemInfoViewModel? source, Task<string[]> translations)
     {
-        this.store = store; this.source = source; this.translations = translations;
+        this.store = store; this.source = source; loading = translations;
         Reload();
         AddHandler(TextBoxBase.TextChangedEvent, new TextChangedEventHandler(Changed));
         AddHandler(ToggleButton.CheckedEvent, new RoutedEventHandler(Changed));
@@ -28,6 +31,13 @@ public sealed class ItemRulesPageHost : ContentControl
         AddHandler(Button.ClickEvent, new RoutedEventHandler(Clicked));
         Loaded += (_, _) => { if (source is not null) source.PropertyChanged += SourceChanged; UpdatePreview(); };
         Unloaded += (_, _) => { if (source is not null) source.PropertyChanged -= SourceChanged; };
+        _ = LoadSearch();
+    }
+    private async Task LoadSearch()
+    {
+        try { translations = await loading; Search(); }
+        catch (Exception error)
+        { Find<TextBlock>("SearchStatus").Text = "Mod search unavailable. " + error.GetType().Name; }
     }
     private T Find<T>(string name) where T : FrameworkElement =>
         ShellViewState.Find<T>(Content as DependencyObject).First(e => e.Name == name);
@@ -36,63 +46,70 @@ public sealed class ItemRulesPageHost : ContentControl
     private void Reload()
     {
         var document = store.Snapshot;
-        settings = ItemInfoSettings.Load(new OverlaySettingsContext(document, "iteminfo"));
+        editor = new(ItemInfoSettings.Load(new OverlaySettingsContext(document, "iteminfo")));
         omni = OmniSettings.Load(new OverlaySettingsContext(document, "omni"));
         Rebuild(); Dirty = false;
     }
     private void Rebuild()
     {
         building = true;
-        Content = ItemRulesPageBuilder.Build(new(settings, omni), CardTheme.Default);
-        building = false; UpdatePreview();
+        Content = ItemRulesPageBuilder.Build(new(editor.Settings, omni, EditingProfile: editor.Editing, Rows: editor.Rows),
+            CardTheme.Default);
+        building = false; Search(); UpdatePreview();
     }
     private void Capture()
     {
-        if (settings.Profiles.Length > 0)
+        editor.Capture(Find<StackPanel>("RuleRows").Children.OfType<WrapPanel>().Select(panel =>
         {
-            var rules = Find<StackPanel>("RuleRows").Children.OfType<WrapPanel>().SelectMany(panel =>
-            {
-                var row = (ItemRulesRow)panel.Tag;
-                var classes = panel.Children.OfType<TextBox>().Single().Text.Split(',');
-                var match = panel.Children.OfType<RadioButton>().FirstOrDefault(b => b.IsChecked == true)?.Tag;
-                return RuleText.Create(row.Text, match is Highlight h ? h : row.Match, classes, row.Implicit, row.Enchant);
-            }).ToArray();
-            var profiles = settings.Profiles.ToArray();
-            profiles[settings.ActiveProfile] = profiles[settings.ActiveProfile] with { Rules = rules };
-            settings = settings with { Profiles = profiles };
-        }
+            var row = (ItemRulesRow)panel.Tag;
+            var match = panel.Children.OfType<RadioButton>().FirstOrDefault(b => b.IsChecked == true)?.Tag;
+            return row with { Classes = panel.Children.OfType<TextBox>().Single().Text,
+                Match = match is Highlight h ? h : row.Match };
+        }));
         bool On(string name) => Find<CheckBox>(name).IsChecked == true;
-        settings = settings with { ShowCompare = On("Compare"), ShowDefenceBasePercentile = On("Defence"),
+        editor.Settings = editor.Settings with { ShowCompare = On("Compare"), ShowDefenceBasePercentile = On("Defence"),
             ShowItemLevelColumn = On("Level"), ShowImplicits = On("Implicits") };
         omni = new(On("Advanced"));
+    }
+    private void Search()
+    {
+        Find<TextBox>("RuleSearch").IsEnabled = loading.IsCompletedSuccessfully;
+        Find<TextBlock>("SearchStatus").Text = !loading.IsCompleted ? "Loading mod search…" :
+            loading.IsFaulted ? "Mod search unavailable." : translations.Length == 0 ? "No stats translations available." : "";
+        var query = Find<TextBox>("RuleSearch").Text.Trim();
+        Find<ListBox>("RuleResults").ItemsSource = query.Length < 2 ? [] : translations
+            .Where(text => RuleText.Display(text).Contains(query, StringComparison.OrdinalIgnoreCase))
+            .Take(100).Select(text => new ItemRulesSearchResult(text)).ToArray();
     }
     private void Changed(object sender, RoutedEventArgs e)
     {
         if (building) return;
-        if (e.OriginalSource is TextBox { Name: "RuleSearch" } search)
-        {
-            var query = search.Text.Trim();
-            Find<ListBox>("RuleResults").ItemsSource = query.Length < 2 ? [] : translations
-                .Where(text => text.Contains(query, StringComparison.OrdinalIgnoreCase)).Take(100).ToArray();
-            return;
-        }
+        if (e.OriginalSource is TextBox { Name: "RuleSearch" }) { Search(); return; }
         Capture(); Dirty = true; UpdatePreview();
     }
     private void UpdatePreview()
     {
-        var result = source?.LastCopied;
-        var card = result is null ? null : ItemCardBuilder.Build(result with
+        try
         {
-            Settings = settings,
-            Mods = result.Mods.Select(m => m with { Highlight = settings.Evaluate(result.Item, m.Source) }).ToArray()
-        }, settings: settings, comparison: source?.LastComparison);
-        Find<ContentControl>("ItemPreview").Content = ItemRulesPageBuilder.Preview(card, CardTheme.Default);
+            var settings = editor.Snapshot(preview: true);
+            // Read the atomically published pair once.
+            var snapshot = source?.LastCopy;
+            var result = snapshot?.Result;
+            var card = result is null ? null : ItemCardBuilder.Build(result with
+            {
+                Settings = settings,
+                Mods = result.Mods.Select(m => m with { Highlight = settings.Evaluate(result.Item, m.Source) }).ToArray()
+            }, settings: settings, comparison: snapshot?.Comparison);
+            Find<ContentControl>("ItemPreview").Content = ItemRulesPageBuilder.Preview(card, CardTheme.Default);
+            Find<TextBlock>("RulesNotice").Text = "";
+        }
+        catch (ArgumentException error) { Find<TextBlock>("RulesNotice").Text = error.Message; }
     }
     private void Clicked(object sender, RoutedEventArgs e)
     {
         if (e.OriginalSource is not Button { Tag: string action } ||
-            !(action is "SaveRules" or "DiscardRules" or "AddRule" || action.StartsWith("Profile", StringComparison.Ordinal) ||
-              action.StartsWith("Remove", StringComparison.Ordinal))) return;
+            !(action is "SaveRules" or "DiscardRules" or "AddRule" or "ActivateRules" ||
+              action.StartsWith("Profile", StringComparison.Ordinal) || action.StartsWith("Remove", StringComparison.Ordinal))) return;
         e.Handled = true;
         if (action == "DiscardRules") { Reload(); return; }
         Capture();
@@ -100,7 +117,7 @@ public sealed class ItemRulesPageHost : ContentControl
         {
             try
             {
-                settings.Validate();
+                var settings = editor.Snapshot();
                 store.Update("iteminfo", document =>
                 {
                     settings.Save(new OverlaySettingsContext(document, "iteminfo"));
@@ -108,35 +125,22 @@ public sealed class ItemRulesPageHost : ContentControl
                 });
                 Dirty = false; Find<TextBlock>("RulesNotice").Text = "Changes saved.";
             }
-            catch (Exception error) when (error is ArgumentException or System.IO.IOException or InvalidOperationException)
-            { Find<TextBlock>("RulesNotice").Text = "Not saved. " + error.GetType().Name; }
+            catch (Exception error) when (error is ArgumentException or System.IO.IOException or InvalidOperationException or System.Text.Json.JsonException)
+            { Find<TextBlock>("RulesNotice").Text = "Not saved. " + error.Message; }
             return;
         }
         if (action.StartsWith("Profile", StringComparison.Ordinal))
         {
-            var index = int.Parse(action[7..], System.Globalization.CultureInfo.InvariantCulture);
-            var profiles = settings.Profiles.ToList();
-            while (profiles.Count <= index) profiles.Add(new($"Profile {profiles.Count + 1}", []));
-            settings = settings with { Profiles = profiles.ToArray(), ActiveProfile = index };
+            editor.Editing = int.Parse(action[7..], System.Globalization.CultureInfo.InvariantCulture);
+            Rebuild(); return;
         }
-        else
+        if (action == "ActivateRules") editor.Activate();
+        else if (action == "AddRule")
         {
-            var profiles = settings.Profiles.Length == 0 ? [new HighlightProfile("Profile 1", [])] : settings.Profiles.ToArray();
-            var profile = profiles[settings.ActiveProfile];
-            if (action == "AddRule")
-            {
-                if (Find<ListBox>("RuleResults").SelectedItem is not string text) return;
-                profile = profile with { Rules = profile.Rules.Concat(RuleText.Create(text, Highlight.Desired)).Distinct().ToArray() };
-            }
-            else
-            {
-                var index = int.Parse(action[6..], System.Globalization.CultureInfo.InvariantCulture);
-                profile = profile with { Rules = ItemRulesRow.From(profile).Where((_, i) => i != index)
-                    .SelectMany(r => RuleText.Create(r.Text, r.Match, r.Classes.Split(','), r.Implicit, r.Enchant)).ToArray() };
-            }
-            profiles[settings.ActiveProfile] = profile;
-            settings = settings with { Profiles = profiles };
+            if (Find<ListBox>("RuleResults").SelectedItem is not ItemRulesSearchResult selected) return;
+            editor.Add(selected.Template);
         }
+        else editor.Remove(Guid.Parse(action[6..]));
         Dirty = true; Rebuild();
     }
 }

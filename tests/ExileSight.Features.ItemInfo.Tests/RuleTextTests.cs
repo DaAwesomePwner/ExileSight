@@ -2,6 +2,20 @@ using Xunit;
 namespace ExileSight.Features.ItemInfo.Tests;
 public sealed class RuleTextTests
 {
+    [Fact]
+    public void ClassesAreCanonicalAndUnknownClassesAreRejected()
+    {
+        var rules = RuleText.Create("+# to Armour", Highlight.Desired, ["body armours", "SHIELDS", "Shields"]);
+        Assert.Equal(new[] { "Body Armours", "Shields" }, rules.Select(r => r.ItemClass));
+        var error = Assert.Throws<ArgumentException>(() => RuleText.Create("+# to Armour", Highlight.Desired, ["Body Armour"]));
+        Assert.Contains("Body Armour", error.Message);
+    }
+    [Theory]
+    [InlineData("+{0} to maximum Life", "+# to maximum Life")]
+    [InlineData("+0 to maximum Life", "+# to maximum Life")]
+    [InlineData("{0}% increased Armour", "#% increased Armour")]
+    public void DisplayDoesNotExposeRepresentativeNumbers(string template, string expected) =>
+        Assert.Equal(expected, RuleText.Display(template));
     [Theory]
     [InlineData("+# to Armour\n#% increased Armour")]
     [InlineData("+{0} to Armour\n{1}% increased Armour")]
@@ -16,6 +30,21 @@ public sealed class RuleTextTests
         Assert.Equal(2, rules.Count(r => r.ItemClass == "Shields"));
     }
     [Fact]
+    public void PreviewPublishesOnePairAndRetainsPreviousSnapshot()
+    {
+        var source = new ItemInfoViewModel();
+        var first = new ItemInfoCalculator().Calculate(CalculatorTests.Hybrid());
+        var comparison = new ExileSight.Core.Features.ItemCardComparison([], "First");
+        source.Show(first, ItemCardBuilder.Build(first, comparison: comparison));
+        var snapshot = source.LastCopy!;
+        var second = first with { Prefixes = 0 };
+        source.Show(second);
+        Assert.Same(first, snapshot.Result);
+        Assert.Same(comparison, snapshot.Comparison);
+        Assert.Same(second, source.LastCopy!.Result);
+        Assert.Null(source.LastCopy.Comparison);
+    }
+    [Fact]
     public void ClosingOverlayKeepsPreviewInMemory()
     {
         var source = new ItemInfoViewModel();
@@ -25,6 +54,8 @@ public sealed class RuleTextTests
         Assert.Null(source.Current);
         Assert.Null(source.Card);
         Assert.Same(result, source.LastCopied);
+        Assert.Same(result, source.LastCopy!.Result);
+        Assert.Null(source.LastCopy.Comparison);
     }
     [Fact]
     public void HashAndIndexedPlaceholdersHaveSameIdentity()

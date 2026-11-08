@@ -17,23 +17,25 @@ public static class ItemRulesPageBuilder
         for (var i = 0; i < 5; i++)
         {
             var name = i < model.Settings.Profiles.Length ? model.Settings.Profiles[i].Name : $"Profile {i + 1}";
-            var tab = Button(name + (i == model.Settings.ActiveProfile ? " · active" : ""), $"Profile{i}", t);
-            if (i == model.Settings.ActiveProfile) tab.Background = t.RollTrack;
+            var tab = Button(name + (i == model.Settings.ActiveProfile ? " · Active in game" : ""), $"Profile{i}", t);
+            if (i == (model.EditingProfile ?? model.Settings.ActiveProfile)) tab.Background = t.RollTrack;
             tabs.Children.Add(tab);
         }
         root.Children.Add(tabs);
+        root.Children.Add(Button("Make this profile active in game", "ActivateRules", t));
         var columns = new WrapPanel();
         var editor = new StackPanel { Width = 540 };
         editor.Children.Add(Text("Add a mod · search the stats translations", t, muted: true));
         editor.Children.Add(Field("RuleSearch", "", t));
+        editor.Children.Add(new TextBlock { Name = "SearchStatus", Foreground = t.TextMuted });
         editor.Children.Add(new ListBox { Name = "RuleResults", Height = 100, Background = t.AppNav,
             Foreground = t.OverlayForeground, BorderBrush = t.OverlayBorder });
         editor.Children.Add(Button("Add selected mod", "AddRule", t));
         editor.Children.Add(Text("MOD · APPLIES TO · MARK", t, 12, true, true));
-        editor.Children.Add(Text("Classes: comma-separated exact names, e.g. Body Armours, Shields. Blank means all items.", t, 12, muted: true));
+        editor.Children.Add(Text("Classes: comma-separated class names, e.g. Body Armours, Shields. Blank means all items.", t, 12, muted: true));
         var rows = new StackPanel { Name = "RuleRows" };
-        if (model.Settings.Profiles.Length > 0)
-        foreach (var row in ItemRulesRow.From(model.Settings.Profiles[model.Settings.ActiveProfile]))
+        foreach (var row in model.Rows ?? (model.Settings.Profiles.Length > 0
+            ? ItemRulesRow.From(model.Settings.Profiles[model.EditingProfile ?? model.Settings.ActiveProfile]) : []))
             rows.Children.Add(BuildRow(row, rows.Children.Count, t));
         editor.Children.Add(rows);
         columns.Children.Add(Card(editor, t));
@@ -68,12 +70,12 @@ public static class ItemRulesPageBuilder
     private static FrameworkElement BuildRow(ItemRulesRow row, int index, CardTheme t)
     {
         var panel = new WrapPanel { Tag = row, Margin = new Thickness(0, 8, 0, 8) };
-        var label = Text(row.Text + (row.Implicit ? " (implicit)" : row.Enchant ? " (enchant)" : ""), t);
+        var label = Text(RuleText.Display(row.Text) + (row.Implicit ? " (implicit)" : row.Enchant ? " (enchant)" : ""), t);
         label.Width = 180; panel.Children.Add(label);
         var classes = Field("Classes", row.Classes, t); classes.Width = 160; panel.Children.Add(classes);
         foreach (var (labelText, value) in new[] { ("Want", Highlight.Desired), ("Avoid", Highlight.Undesired) })
             panel.Children.Add(Segment(labelText, value, row.Match, index, t));
-        panel.Children.Add(Button("×", $"Remove{index}", t));
+        panel.Children.Add(Button("×", $"Remove{row.Id}", t));
         return panel;
     }
     private static RadioButton Segment(string label, Highlight value, Highlight selected, int index, CardTheme t)

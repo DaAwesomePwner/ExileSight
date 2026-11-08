@@ -114,3 +114,5 @@ still changes the analysis rows themselves. Enchants always use `CardSlotKind.No
 because they never consume a prefix or suffix slot.
 
 RuleText converts stats translation placeholders (# and indexed braces) to representative numbers before ModRuleKey normalization. Multi-line templates expand per copied line and per selected item class. The desktop editor saves validated profiles and retains its last copied item only in memory for preview.
+
+The editor validates class scopes through the shared ItemClasses list (case-insensitive input, canonical stored names). Display placeholders are separate from matching text. Preview consumers read LastCopy once to obtain the atomically published item/comparison pair.

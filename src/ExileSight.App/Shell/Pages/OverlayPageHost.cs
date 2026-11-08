@@ -60,7 +60,7 @@ public sealed class OverlayPageHost : ContentControl
             });
             Dirty = false; Find<TextBlock>("OverlayNotice").Text = "Changes saved.";
         }
-        catch (Exception error) when (error is FormatException or OverflowException or ArgumentException or System.IO.IOException or InvalidOperationException)
+        catch (Exception error) when (error is System.Text.Json.JsonException or FormatException or OverflowException or ArgumentException or System.IO.IOException or InvalidOperationException)
         { Find<TextBlock>("OverlayNotice").Text = "Not saved. Use a scale of 0.8–1.5 and nonnegative percentages. " + error.GetType().Name; }
     }
 }

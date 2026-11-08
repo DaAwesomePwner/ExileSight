@@ -77,7 +77,7 @@ public sealed class ShellWindow : Window
                 itemRulesPage = null;
                 if (next.Page == "Item rules") settingsPage = itemRulesPage = new(
                     services.GetRequiredService<ISettingsStore<SettingsDocument>>(),
-                    source.Model<ExileSight.Features.ItemInfo.ItemInfoViewModel>(), source.RuleTranslations());
+                    source.Model<ExileSight.Features.ItemInfo.ItemInfoViewModel>(), source.RuleTranslationsAsync());
                 if (next.Page == "Overlay")
                 {
                     var rect = services.GetRequiredService<IGameWindow>().Current.ClientRect;
