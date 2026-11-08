@@ -17,7 +17,7 @@ public sealed class TrayHome : IDisposable
     private bool disposed;
     private readonly TrayDiagnostics diagnostics;
 
-    public TrayHome(ITrayIconFactory factory, TrayDiagnostics diagnostics, Action debug, Action setup, Action folder, Action exit)
+    public TrayHome(ITrayIconFactory factory, TrayDiagnostics diagnostics, Action debug, Action setup, Action folder, Action exit, Action? home = null)
     {
         this.diagnostics = diagnostics;
         Add("Debug panel", debug);
@@ -46,8 +46,8 @@ public sealed class TrayHome : IDisposable
                 icon = factory.Create(callbacks.Handle, broadcasts.Handle);
                 icon.Tooltip = "ExileSight";
                 icon.Icon = TrayIconImage.Application;
-                icon.LeftClick += (_, _) => Dispatch(debug);
-                icon.DoubleClick += (_, _) => Dispatch(debug);
+                icon.LeftClick += (_, _) => Dispatch(home ?? debug);
+                icon.DoubleClick += (_, _) => Dispatch(home ?? debug);
                 icon.RightClick += (_, _) => Dispatch(() => menu.IsOpen = true);
                 menu.Opened += MenuOpened;
                 try { icon.Show(); }
