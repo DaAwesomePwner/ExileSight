@@ -4,6 +4,8 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using ExileSight.Core.Overlay;
+using ExileSight.Core.Settings;
 using ExileSight.App.Features.MapInfo;
 using ExileSight.App.Ui;
 using ExileSight.Features.MapInfo;
@@ -13,6 +15,17 @@ namespace ExileSight.App.Snapshots.Tests;
 
 public sealed class MapCardSnapshotTests
 {
+    [WindowsOnlyFact]
+    public void PlacementSettingsMapDefaultsAndDockedFractions()
+    {
+#if SNAPSHOT_WINDOWS
+        Assert.Equal(new CardPlacementOptions(), new OverlaySettings().ToCardPlacementOptions());
+        var settings = new OverlaySettings { PlacementMode = CardPlacementMode.Docked, DockedX = .25, DockedY = .75 };
+        Assert.Equal(new CardPlacementOptions { PlacementMode = CardPlacementMode.Docked, DockedX = .25, DockedY = .75 },
+            settings.ToCardPlacementOptions());
+#endif
+    }
+
     [WindowsOnlyFact]
     public void FirstTime()
     {
@@ -60,7 +73,10 @@ public sealed class MapCardSnapshotTests
             if (name == "unknown-stats") Assert.Equal(4, texts.Count(t => t == "?"));
             if (name == "rated")
             {
-                var reveal = Descendants(card).OfType<Button>().Single(b => b.Content is TextBlock t && t.Text.StartsWith("+1 more"));
+                var reveal = Descendants(card).OfType<Button>().Single(b => b.Tag is null && Descendants(b).OfType<TextBlock>().Any(t => t.Text == "+1 more"));
+                var buttons = Descendants(card).OfType<Button>().ToArray();
+                Assert.True(reveal.Template.IsSealed);
+                Assert.All(buttons, b => Assert.Same(reveal.Template, b.Template));
                 reveal.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 Assert.Equal(Visibility.Collapsed, reveal.Visibility);
                 // Restore the folded state for the deterministic snapshot.

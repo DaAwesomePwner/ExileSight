@@ -1,10 +1,20 @@
 # Map info
 
-Omni-copy a map or Expedition Logbook to open the cursor-adjacent panel. Quantity,
-rarity and pack size are highlighted. Click a known modifier to cycle danger
-0 (neutral), 1 (caution), 2 (danger), 3 (highest); highest ratings sort first.
-Unmatched text is always shown as unknown at rank 3 and cannot be reclassified by
-clicking. Esc, clicking outside, or losing the game foreground closes the panel.
+Omni-copy a map or Expedition Logbook to open the map card, beside the cursor or
+at the configured docked position. Ratings have three states: unrated (never
+clicked), explicitly rated 0–3, and unknown (no matching map-data ID). Unknown
+mods cannot be rated. Clicking a known mod cycles unrated → 1 → 2 → 3 → 0 → 1 … .
+Rows sort as rated 3, unknown, rated 2, rated 1, unrated, then rated 0, preserving
+game order within each group. Only explicitly rated-0 rows fold; click the fold
+row to reveal them. Unrated rows always show with dashed pips. The first-time
+hint appears when the map has no explicit ratings; otherwise the danger band
+counts only rated-3 and rated-2 mods.
+
+Quantity, rarity and pack size turn teal at or above user thresholds, defaulting
+to 70%, 40% and 25%. Unknown values show `?`. `MapInfoSettings.Load`/`Save` stores
+nonnegative percentage thresholds in the mapinfo feature's `settings` section
+of the active profile; missing or invalid settings use defaults. Esc, clicking
+outside, or losing the game foreground closes the card.
 
 Optional hold: bind `mapinfo:hold` in hotkey settings (prefer pass-through). It
 shows the last omni-copied map/logbook until the matching key release. No default
