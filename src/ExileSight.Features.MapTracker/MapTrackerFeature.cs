@@ -1,4 +1,3 @@
-using ExileSight.Core.DataPacks;
 using ExileSight.Core.Features;
 using ExileSight.Core.Games;
 using ExileSight.Core.Logs;
@@ -10,16 +9,10 @@ public sealed class MapTrackerFeature(TrackerModel? model) : IFeature
 {
     public MapTrackerFeature() : this(null) { }
     public FeatureManifest Manifest { get; } = new("maptracker", [Game.PoE1], [ActionKind.SendChatCommand],
-        ["poe1/leagues"], [], "Local map history; /kills only on Ctrl+Shift+K. Viewer: Ctrl+Shift+M.");
+        [], ["poe.ninja"], "Local map history; /kills only on Ctrl+Shift+K. Viewer: Ctrl+Shift+M.", ["prices"]);
     public void Register(IFeatureContext context)
     {
         var tracker = model ?? throw new InvalidOperationException("Compose map tracker storage.");
-        void Refresh()
-        {
-            tracker.Leagues = context.Packs.TryGet<LeaguesData>("poe1/leagues")?.Data.Entries
-                .OrderByDescending(e => e.Start).Select(e => e.Name).ToArray() ?? [];
-        }
-        context.Packs.Changed += _ => Refresh(); Refresh();
         if (context.ReadSetting("league") is { ValueKind: System.Text.Json.JsonValueKind.String } saved)
             tracker.SelectLeague(saved.GetString()!);
         tracker.LeagueSelected += value => context.WriteSetting("league", System.Text.Json.JsonSerializer.SerializeToElement(value));

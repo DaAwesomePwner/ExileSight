@@ -7,4 +7,5 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
   </ItemGroup>
   <ItemGroup><None Include="../fixtures/poe1/logs/maptracker-session.txt" Link="session.txt" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup><None Include="../fixtures/poe1/poeninja/leagues.json" Link="leagues.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

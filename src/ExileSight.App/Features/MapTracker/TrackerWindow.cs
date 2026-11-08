@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using ExileSight.Features.MapTracker;
+using ExileSight.Core.Pricing;
 using Microsoft.Win32;
 namespace ExileSight.App.Features.MapTracker;
 
@@ -16,18 +17,28 @@ public sealed class TrackerWindow : Window
     private readonly DataGrid grid = new() { IsReadOnly = true, AutoGenerateColumns = false };
     private readonly TextBox notes = new() { MaxLength = 4096, MinWidth = 200, ToolTip = "Notes for selected run" };
     private readonly TextBlock summary = new() { Margin = new(8), TextWrapping = TextWrapping.Wrap };
+    private readonly Func<Task<LeagueResult>> discoverLeagues;
+    private readonly TextBlock leagueStatus = new() { TextWrapping = TextWrapping.Wrap, Margin = new(8) };
+    private bool refreshingLeagues, closed, leaguesPending;
+    private LeagueResult? pendingLeagues;
     private MapRun[] rows = [];
-    public TrackerWindow(TrackerModel model)
+    public TrackerWindow(TrackerModel model, Func<Task<LeagueResult>> discoverLeagues)
     {
         this.model = model; Title = "Map tracker — Ctrl+Shift+K: /kills"; Width = 1100; Height = 650;
-        league.ItemsSource = model.Leagues; league.Text = model.League;
+        this.discoverLeagues = discoverLeagues;
+        ApplyLeagues(null, model.League);
+        Closed += (_, _) => closed = true;
+        // Wait until focus/dropdown transitions finish; never disturb an active edit or selection.
+        league.LostKeyboardFocus += (_, _) => Dispatcher.BeginInvoke(TryApplyPendingLeagues);
+        league.DropDownClosed += (_, _) => Dispatcher.BeginInvoke(TryApplyPendingLeagues);
         var root = new DockPanel { Margin = new(10) }; Content = root;
         var filters = new WrapPanel(); DockPanel.SetDock(filters, Dock.Top); root.Children.Add(filters);
         foreach (var control in new FrameworkElement[] { new TextBlock { Text = "League " }, league,
             new TextBlock { Text = " Map " }, map, new TextBlock { Text = " Tier " }, tier, from, to }) filters.Children.Add(control);
         Button(filters, "Record in league", () => { model.SelectLeague(league.Text.Trim()); Refresh(); });
-        Button(filters, "Apply / Refresh", Refresh);
+        Button(filters, "Apply / Refresh", () => { Refresh(); _ = RefreshLeaguesAsync(); });
         Button(filters, "Export filtered CSV", Export);
+        DockPanel.SetDock(leagueStatus, Dock.Top); root.Children.Add(leagueStatus);
         var identities = new WrapPanel();
         DockPanel.SetDock(identities, Dock.Top); root.Children.Add(identities);
         var confirmationFeedback = new TextBlock { TextWrapping = TextWrapping.Wrap };
@@ -76,6 +87,39 @@ public sealed class TrackerWindow : Window
             "MechanicsText", "ModsText", "Notes", "Incomplete" })
             grid.Columns.Add(new DataGridTextColumn { Header = column.Replace("Text", ""), Binding = new System.Windows.Data.Binding(column) });
         Refresh();
+    }
+    public async Task RefreshLeaguesAsync()
+    {
+        if (refreshingLeagues || closed) return;
+        refreshingLeagues = true;
+        leagueStatus.Text = "Loading current leagues from poe.ninja… You can still type a league.";
+        LeagueResult? result = null;
+        try
+        {
+            // Cache reads can perform synchronous disk IO; keep those off the dispatcher too.
+            result = await Task.Run(discoverLeagues);
+        }
+        catch (Exception) { /* Preserve editing and show the offline fallback on discovery failure. */ }
+        finally { refreshingLeagues = false; }
+        if (closed) return;
+        pendingLeagues = result;
+        leaguesPending = true;
+        leagueStatus.Text = TrackerLeagueChoices.Build(result, model.League, league.Text).Note;
+        TryApplyPendingLeagues();
+    }
+    private void TryApplyPendingLeagues()
+    {
+        if (closed || !leaguesPending || league.IsDropDownOpen || league.IsKeyboardFocusWithin) return;
+        leaguesPending = false;
+        ApplyLeagues(pendingLeagues, league.Text);
+    }
+    private void ApplyLeagues(LeagueResult? result, string text)
+    {
+        var choices = TrackerLeagueChoices.Build(result, model.League, text);
+        league.ItemsSource = choices.Leagues;
+        // Replacing a selected item can clear Text. Restore only when needed, outside active editing.
+        if (league.Text != choices.Text) league.Text = choices.Text;
+        leagueStatus.Text = choices.Note;
     }
     private static void Button(Panel panel, string label, Action action)
     {

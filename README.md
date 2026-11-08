@@ -51,7 +51,7 @@ Generated from compiled feature manifests and registered default bindings; suppl
 | iteminfo | None | `poe1/bases`<br>`poe1/mods`<br>`poe1/stats` | None | `active profile JSON (highlight profiles)` | None |
 | macros | `SendChatCommand` | None | None | `active profile JSON (commands)` | `F5 → macros:travel (blocked)`<br>`F6 → macros:macro (blocked)` |
 | mapinfo | None | `poe1/mapmods` | None | `poe1/mapinfo/ratings.json` | None |
-| maptracker | `SendChatCommand` | `poe1/leagues` | None | `active profile JSON (league)`<br>`poe1/maptracker/{league-hash}.jsonl`<br>`user-selected CSV export` | `Control+Shift+K → maptracker:kills (blocked)`<br>`Control+Shift+M → maptracker:viewer (blocked)` |
+| maptracker | `SendChatCommand` | None | `HTTP: poe.ninja` | `active profile JSON (league)`<br>`poe1/maptracker/{league-hash}.jsonl`<br>`user-selected CSV export` | `Control+Shift+K → maptracker:kills (blocked)`<br>`Control+Shift+M → maptracker:viewer (blocked)` |
 | omni | `CopyItem` | None | `Browser: poedb.tw`<br>`Browser: www.craftofexile.com`<br>`Browser: www.pathofexile.com`<br>`Browser: www.poewiki.net` | None | `CapsLock → omni:press (blocked)` |
 | searchstr | `PasteSearch` | None | None | None | `F9 → searchstr:open (blocked)` |
 | stashninja | `PasteSearch` | None | `HTTP: poe.ninja` | `poe1/stashninja/calibration.json` | `Control+Shift+N → stashninja:open (blocked)` |

@@ -49,7 +49,6 @@ public sealed class TrackerModel(IRunStore store, IClock? suppliedClock = null, 
             if (tracker.FinalCheckpoint(elapsed) is { } final) Save(final);
         await writer.FlushAsync().ConfigureAwait(false);
     }
-    public string[] Leagues { get; set; } = [];
     public event Action<string>? LeagueSelected;
     public event Action? OpenRequested;
     public void Open() => OpenRequested?.Invoke();
