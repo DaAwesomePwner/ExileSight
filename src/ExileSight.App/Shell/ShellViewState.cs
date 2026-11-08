@@ -3,8 +3,10 @@ using System.Windows.Controls;
 using System.Windows.Media;
 namespace ExileSight.App.Shell;
 
-internal static class ShellViewState
+public static class ShellViewState
 {
+    public static ComboBox? LeagueBox(DependencyObject? root, string? displayedPage) => displayedPage == "Home"
+        ? Find<ComboBox>(root).FirstOrDefault(box => Equals(box.Tag, "League")) : null;
     internal static IEnumerable<T> Find<T>(DependencyObject? root) where T : DependencyObject
     {
         if (root is null) yield break;

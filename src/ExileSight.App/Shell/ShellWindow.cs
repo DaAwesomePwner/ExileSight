@@ -1,3 +1,6 @@
+using ExileSight.App.Shell.Pages;
+using ExileSight.Core.Input;
+using ExileSight.Platform.Abstractions.Window;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -22,7 +25,8 @@ public sealed class ShellWindow : Window
     private HistoryView? history;
     private readonly ExileSight.Features.Guide.GuidePageState guidePageState = new();
     private readonly DispatcherTimer refreshTimer = new() { Interval = TimeSpan.FromSeconds(10) };
-    private ComboBox? LeagueBox => ShellViewState.Find<ComboBox>(Content as DependencyObject).FirstOrDefault();
+    private OverlayPageHost? overlayPage;
+    private ComboBox? LeagueBox => ShellViewState.LeagueBox(Content as DependencyObject, displayed?.Page);
     public ShellWindow(IServiceProvider services)
     {
         this.services = services; source = new(services);
@@ -41,7 +45,7 @@ public sealed class ShellWindow : Window
     {
         if (IsVisible && WindowState != WindowState.Minimized) refreshTimer.Start(); else refreshTimer.Stop();
     }
-    private bool CanReplace(bool changed, bool layoutChanged) => ShellRefreshPolicy.ShouldRebuild(changed, layoutChanged,
+    private bool CanReplace(bool changed, bool layoutChanged) => !(overlayPage is { Dirty: true } || overlayPage?.IsKeyboardFocusWithin == true) && ShellRefreshPolicy.ShouldRebuild(changed, layoutChanged,
         LeagueBox?.IsKeyboardFocusWithin == true || LeagueBox?.IsDropDownOpen == true, LeagueBox?.Text, displayed?.League);
     private async void Refresh()
     {
@@ -59,13 +63,26 @@ public sealed class ShellWindow : Window
                 if (requestedPage != page) { pending = true; continue; }
                 if (requestedPage == "Act guide")
                     next = next with { Guide = source.Model<ExileSight.Features.Guide.GuideModel>()?.StructuredSnapshot() };
+                ActionLogSnapshot? actions = requestedPage == "Transparency"
+                    ? await ActionLogReader.ReadAsync(TransparencyPageHost.LogPath) : null;
+                if (closed || requestedPage != page) { pending = !closed; continue; }
                 var nextNarrow = ActualWidth > 0 && ActualWidth < 760;
                 // Recheck after the await: the user may have started editing during the read.
-                if (!CanReplace(displayed is null || !displayed.SameContent(next), narrow != nextNarrow)) continue;
+                if (!CanReplace(next.Page == "Transparency" || displayed is null || !displayed.SameContent(next), narrow != nextNarrow)) continue;
                 var offsets = displayed?.Page == next.Page ? ShellViewState.Capture(Content as DependencyObject) : [];
                 narrow = nextNarrow; displayed = next;
+                FrameworkElement? settingsPage = null;
+                overlayPage = null;
+                if (next.Page == "Overlay")
+                {
+                    var rect = services.GetRequiredService<IGameWindow>().Current.ClientRect;
+                    settingsPage = overlayPage = new(services.GetRequiredService<ISettingsStore<SettingsDocument>>(),
+                        rect.Width > 0 && rect.Height > 0 ? (double)rect.Width / rect.Height : 16d / 9);
+                }
+                if (actions is not null) settingsPage = new TransparencyPageHost(actions,
+                    TransparencyPageHost.LogPath);
                 var view = ShellBuilder.Build(next, CardTheme.Default, narrow, next.Page == "Act guide"
-                    ? new Features.Guide.GuidePageHost(source.Model<ExileSight.Features.Guide.GuideModel>(), guidePageState) : null);
+                    ? new Features.Guide.GuidePageHost(source.Model<ExileSight.Features.Guide.GuideModel>(), guidePageState) : null, settingsPage);
                 Content = view;
                 _ = Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
                 {
@@ -116,7 +133,7 @@ public sealed class ShellWindow : Window
         }
         if (!CanReplace(true, true))
         {
-            MessageBox.Show("Save or discard the league edit before changing pages.", "ExileSight"); return;
+            MessageBox.Show("Save or discard your edits before changing pages.", "ExileSight"); return;
         }
         page = target; Refresh();
     }
