@@ -31,7 +31,8 @@ public static class ShopCardMapping
         var pasted = !input.Armed && input.Status.Contains(ShopModel.RearmMessage, StringComparison.Ordinal)
             ? selectedAmount : null;
         // Strip only the redundant instruction, preserving recovery notices, paste diagnostics and currency reminders.
-        var status = input.Status.Replace(ShopModel.RearmMessage, "", StringComparison.Ordinal)
+        var status = input.Status.Replace(ShopModel.RearmMessage + " — ", "", StringComparison.Ordinal)
+            .Replace(ShopModel.RearmMessage, "", StringComparison.Ordinal)
             .Replace(input.Instructions, "", StringComparison.Ordinal).Trim();
         var notice = string.Join("\n", new[] { status, input.CurrencyReminder }.Where(s => !string.IsNullOrWhiteSpace(s)));
         return new(input.Name ?? "Shop pricer", input.Note?.DisplayAmount,

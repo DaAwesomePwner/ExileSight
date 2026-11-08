@@ -39,6 +39,8 @@ public sealed class ShopCardMappingTests
         Assert.Contains("Recovery notice", diagnostic.Notice);
         Assert.Contains("clipboard restored", diagnostic.Notice);
         Assert.DoesNotContain(ShopModel.RearmMessage, diagnostic.Notice);
+        Assert.DoesNotContain("— Sent", diagnostic.Notice);
+        Assert.Contains("Sent; clipboard restored", diagnostic.Notice);
     }
 
     [Theory]
