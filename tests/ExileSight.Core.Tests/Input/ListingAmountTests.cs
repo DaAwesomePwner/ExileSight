@@ -13,7 +13,7 @@ public sealed class ListingAmountTests
         try
         {
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("fr-FR");
-            Assert.Equal("1234.5", new GameAction.SetListingAmount(1234.5m).Text);
+            Assert.Equal("1234", new GameAction.SetListingAmount(1234m).Text);
             Assert.Equal(new KeyStroke[] { new(17,true), new(65,true), new(65,false),
                 new(86,true), new(86,false), new(17,false) }, ActionData.Sequence(new GameAction.SetListingAmount(90)));
         }
@@ -42,6 +42,9 @@ public sealed class ListingAmountTests
         Assert.Equal(ActionOutcome.NotForeground, h.Run(new GameAction.SetListingAmount(90)).Outcome);
         Assert.Equal(0, h.Sender.Calls);
     }
+    [Fact]
+    public void FractionalAmountsAreRejectedBeforeInput() =>
+        Assert.Throws<ArgumentOutOfRangeException>(() => new GameAction.SetListingAmount(4.5m));
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]

@@ -21,18 +21,12 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
     public string Currency { get { lock (sync) return currency; } set { lock (sync) { currency = value; revision++; } Changed?.Invoke(); } }
     public string Instructions => NoteMode ? "Open the game’s note box before clicking a price." :
         "Open Set Item Price and focus its amount field. Choose the currency and click LIST ITEM yourself.";
-    public string CurrencyReminder => NoteMode || currentCurrency == Currency ? "" : "Switch the game’s currency dropdown to " + Currency + ".";
-    public ShopNote? Suggest(string choice)
-    {
-        lock (sync) return ShopNote.Parse($"~b/o 1 {currency}") is null ? null :
-            note is null ? null : (note with { Currency = currency }).Suggest(choice, custom);
-    }
     public IReadOnlyList<ItemMenuEntry> BuildMenu(ParsedItem value) => value.Game != Game.PoE1 || ShopNote.Parse(value.Note) is not null ? [] :
         [new("Set listing price…", () => Handle(value, new(Game.PoE1), OmniPressKind.Long))];
-    private ShopNote? note;
+    private ShopNote? note, estimate;
     private string custom = "";
     private bool armed, sending;
-    private string status = "Open the game's note box yourself, then click one price.";
+    private string status = "Open Set Item Price and focus its amount field. Choose the currency and click LIST ITEM yourself.";
     public Action<string> ReportFailure { get; set; } = type => System.Diagnostics.Trace.TraceWarning("Shop executor failed: {0}", type);
     public HistoryStore History => history;
     public string League => league();
@@ -50,6 +44,7 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
     {
         context = value;
         NoteMode = value.ReadSetting("listingMode") is { ValueKind: System.Text.Json.JsonValueKind.String } mode && mode.GetString() == "note";
+        status = Instructions;
         foreach (var choice in new[] { "minus1", "plus1", "minus10", "plus10", "custom" })
             value.RegisterCommand(choice, NoteMode ? ActionKind.SetPriceNote : ActionKind.SetListingAmount, token => Apply(choice, token), CommandKind.OverlayOnly);
     }
@@ -60,19 +55,19 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
         {
             if (sending) return; // Only a fresh read after the send completes may re-arm.
             var current = ShopNote.Parse(item.Note);
-            var selected = current ?? new ShopNote("~b/o", 1, "chaos");
             this.item = item;
             currentCurrency = current?.Currency;
             seedRevision = ++revision;
             note = null;
+            estimate = null;
             armed = false;
             listing = Guid.Empty;
-            currency = selected.Currency;
-            custom = current is null ? selected.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
+            currency = current?.Currency ?? "chaos";
+            custom = "";
             try
             {
-                listing = current is null ? Guid.Empty : history.Observe(item.Name, item.BaseType ?? "", item.ItemLevel, league(), selected, DateTimeOffset.UtcNow);
-                note = selected;
+                listing = current is null ? Guid.Empty : history.Observe(item.Name, item.BaseType ?? "", item.ItemLevel, league(), current, DateTimeOffset.UtcNow);
+                note = current;
                 armed = true;
                 status = Instructions;
             }
@@ -93,7 +88,8 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
             next = Suggest(choice);
             if (next is null)
             {
-                status = "Enter a positive price up to 1,000,000.";
+                status = !NoteMode && choice == "custom" && ShopNote.ParseAmount(custom) is { } amount && amount != decimal.Truncate(amount)
+                    ? "Async listing amounts must be a whole number." : "Enter a positive price up to 1,000,000.";
                 return new(ActionOutcome.Failed, status);
             }
             selected = listing;
@@ -127,8 +123,8 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
             try
             {
                 if (selected == Guid.Empty && item is { } source)
-                    selected = history.Observe(source.Name, source.BaseType ?? "", source.ItemLevel, league(), next, DateTimeOffset.UtcNow);
-                history.Change(selected, next, DateTimeOffset.UtcNow, kind);
+                    history.Observe(source.Name, source.BaseType ?? "", source.ItemLevel, league(), next, DateTimeOffset.UtcNow, kind);
+                else history.Change(selected, next, DateTimeOffset.UtcNow, kind);
             }
             catch (IOException) { message += " — history could not be saved."; }
             catch (UnauthorizedAccessException) { message += " — history access was denied."; }
@@ -137,7 +133,6 @@ public sealed partial class ShopModel(HistoryStore history, Func<string> league)
         {
             sending = false;
             armed = rejectedBeforeInput;
-            if (!armed) note = next;
             status = message;
         }
         Changed?.Invoke();

@@ -1,4 +1,4 @@
-using System.Globalization;
+using ExileSight.Platform.Abstractions.Input;
 using System.Text.Json;
 using ExileSight.Core.Items;
 
@@ -19,9 +19,9 @@ public sealed partial class ShopModel
             {
                 // A late price response must not overwrite edits, a send or a newer item read.
                 if (revision != expectedRevision || !armed || sending) return;
-                note = seed;
+                estimate = seed;
                 currency = seed.Currency;
-                custom = seed.Amount.ToString(CultureInfo.InvariantCulture);
+                custom = GameAction.FormatAmount(NoteMode ? seed.Amount : WholeAmount(seed.Amount));
             }
             Changed?.Invoke();
         }

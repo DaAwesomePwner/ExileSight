@@ -72,12 +72,12 @@ public sealed class ShopView : StackPanel
     }
     private void Refresh()
     {
-        price.Text = model.Note?.ToString(); status.Text = model.Status + "\n" + model.CurrencyReminder;
+        price.Text = model.BaselineDescription; status.Text = model.DisplayStatus;
         foreach (var (button, choice) in buttons)
         {
             var suggestion = model.Suggest(choice);
             button.IsEnabled = model.CanApply && suggestion is not null;
-            button.Content = $"{choice}: {(suggestion is null ? "unavailable" : $"{suggestion.Amount} {suggestion.Currency}")}";
+            button.Content = $"{choice}: {(suggestion is null ? "unavailable" : suggestion.DisplayAmount)}";
         }
     }
 }

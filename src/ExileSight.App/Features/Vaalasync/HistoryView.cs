@@ -16,8 +16,13 @@ public sealed class HistoryView : Window
         this.model = model; this.prices = prices;
         Title = "Shop history — whispers do not confirm sales"; Width = 700; Height = 650;
         var panel = new StackPanel { Margin = new Thickness(12) };
-        var mode = new CheckBox { Content = "Use legacy note mode (takes effect after restart)", IsChecked = model.NoteMode };
-        mode.Click += (_, _) => model.SaveListingMode(mode.IsChecked == true);
+        var mode = new CheckBox { Content = model.ListingModeLabel, IsChecked = model.SavedNoteMode };
+        mode.Click += (_, _) =>
+        {
+            model.SaveListingMode(mode.IsChecked == true);
+            mode.IsChecked = model.SavedNoteMode;
+            mode.Content = model.ListingModeLabel;
+        };
         panel.Children.Add(mode);
         var custom = new TextBox { Text = model.Custom };
         panel.Children.Add(new TextBlock { Text = "Custom amount: save here, return to the game, focus its amount field (or note box in note mode), click Apply custom." });
@@ -28,8 +33,9 @@ public sealed class HistoryView : Window
         var save = new Button { Content = "Save custom amount" };
         save.Click += (_, _) =>
         {
-            if (ShopNote.Parse("~b/o " + custom.Text + " " + currency.Text) is null) { status.Text = "Invalid amount."; return; }
-            model.Currency = currency.Text; model.Custom = custom.Text; status.Text = "Saved. " + model.Instructions;
+            if (model.SaveCustom(custom.Text, currency.Text) is { } error) { status.Text = error; return; }
+            custom.Text = model.Custom; currency.Text = model.Currency;
+            status.Text = "Saved. " + model.Instructions;
         };
         panel.Children.Add(save);
         var item = new TextBox(); var note = new TextBox { Text = "~b/o 1 chaos" };

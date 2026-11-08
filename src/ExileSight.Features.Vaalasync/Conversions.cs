@@ -1,4 +1,5 @@
 using ExileSight.Core.Pricing;
+using ExileSight.Platform.Abstractions.Input;
 
 namespace ExileSight.Features.Vaalasync;
 
@@ -19,7 +20,7 @@ public static class Conversions
         decimal? rate = note.Currency == "chaos" ? 1 : overview?.Find(name)?.ChaosValue;
         var chaos = rate * note.Amount;
         var divine = chaos is { } c ? overview?.ToDivine(c) : null;
-        return $"{(chaos is null ? "rate unavailable" : $"{chaos:0.##} chaos / {divine:0.####} divine")} · " +
+        return $"{(chaos is null ? "rate unavailable" : $"{GameAction.FormatAmount(decimal.Round(chaos.Value, 2))} chaos / {(divine is null ? "" : GameAction.FormatAmount(decimal.Round(divine.Value, 4)))} divine")} · " +
             $"{(result.IsStale ? "stale" : "cached")} {result.UpdatedAt:yyyy-MM-dd HH:mm}";
     }
 }

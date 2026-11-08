@@ -4,6 +4,7 @@ public enum ActionKind { CopyItem, SendChatCommand, PasteSearch, SetPriceNote, S
 public abstract record GameAction
 {
     private GameAction() { }
+    public static string FormatAmount(decimal amount) => amount.ToString("0.############################", System.Globalization.CultureInfo.InvariantCulture);
     public sealed record CopyItem(bool Advanced = false) : GameAction;
     public sealed record SendChatCommand(string Text) : GameAction;
     public sealed record PasteSearch(string Text) : GameAction;
@@ -11,10 +12,11 @@ public abstract record GameAction
     public sealed record SetListingAmount : GameAction
     {
         public decimal Amount { get; }
-        public string Text => Amount.ToString("0.############################", System.Globalization.CultureInfo.InvariantCulture);
+        public string Text => FormatAmount(Amount);
         public SetListingAmount(decimal amount)
         {
-            if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
+            if (amount <= 0 || decimal.Truncate(amount) != amount)
+                throw new ArgumentOutOfRangeException(nameof(amount), "Listing amounts must be positive whole numbers.");
             Amount = amount;
         }
     }
