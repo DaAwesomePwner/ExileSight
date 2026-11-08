@@ -45,12 +45,13 @@ Game-specific geometry and names live in JSON; a patch does not require C# edits
    3 reference pixels to one row/column centre, using the extrema midpoint rounded
    to the nearest half-pixel. Cells linked by widths **and** heights within 15% use
    common median dimensions, capped at the smallest aligned pitch to avoid overlap.
-   Before normalizing a size class, a span guard requires its largest width and
-   height to be at most 1.15 times its smallest width and height, respectively.
-   Transitive neighbours cannot bypass this guard: a 36→40→43 height chain is
-   refused even though each neighbouring pair is within 15%. Resolve ambiguous
-   measurements from the measurement notes before rerunning; the helper validates
-   every page before writing any files.
+   Before rounding or capping dimensions, a median-relative guard requires every
+   member's original width and height to be within 15% of its class median width
+   and height, respectively. Transitive grouping accommodates measurement noise:
+   a 36→40→43 height chain is accepted because all members are within 15% of 40.
+   An outlier is refused with its page, cell, dimension and percentage deviation.
+   The helper validates every page before writing any files; resolve rejected
+   measurements from the measurement notes before rerunning.
    Distinct size classes (such as larger resonators) remain separate. Origins may
    use quarter-pixels to centre half-pixel dimensions exactly; the schema allows this.
    The helper refuses ambiguous chains spanning over 6 pixels, centre moves over

@@ -45,15 +45,17 @@ def normalize(layout):
     for group in components(range(len(cells)), lambda i, j: all(
             max(cells[i][s], cells[j][s]) <= min(cells[i][s], cells[j][s]) * 1.15
             for s in ('w', 'h'))):
-        for dimension in ('w', 'h'):
-            values = [cells[i][dimension] for i in group]
-            if max(values) > min(values) * 1.15:
-                ids = ', '.join(cells[i]['id'] for i in group)
-                raise ValueError(
-                    f"{layout['tabId']}/{layout['page']}: ambiguous size class "
-                    f"{dimension} span {min(values)}..{max(values)} "
-                    f"({(max(values) / min(values) - 1) * 100:.2f}% > 15%): {ids}")
-        sizes = [half(median(cells[i][s] for i in group)) for s in ('w', 'h')]
+        medians = [median(cells[i][s] for i in group) for s in ('w', 'h')]
+        for dimension, midpoint in zip(('w', 'h'), medians):
+            for i in group:
+                value = cells[i][dimension]
+                deviation = abs(value - midpoint) / midpoint
+                if deviation > 0.15:
+                    raise ValueError(
+                        f"{layout['tabId']}/{layout['page']}: {cells[i]['id']} "
+                        f"{dimension}={value} deviates {deviation * 100:.2f}% "
+                        f"from class median {midpoint} (maximum 15%)")
+        sizes = [half(value) for value in medians]
         # Frame measurements can exceed the pitch (notably Essence). Cap the
         # common box at the smallest pitch on an aligned row/column, not per cell.
         for axis in range(2):
