@@ -1,6 +1,6 @@
 namespace ExileSight.Platform.Abstractions.Input;
 
-public enum ActionKind { CopyItem, SendChatCommand, PasteSearch, SetPriceNote }
+public enum ActionKind { CopyItem, SendChatCommand, PasteSearch, SetPriceNote, SetListingAmount }
 public abstract record GameAction
 {
     private GameAction() { }
@@ -8,9 +8,20 @@ public abstract record GameAction
     public sealed record SendChatCommand(string Text) : GameAction;
     public sealed record PasteSearch(string Text) : GameAction;
     public sealed record SetPriceNote(string Text) : GameAction;
+    public sealed record SetListingAmount : GameAction
+    {
+        public decimal Amount { get; }
+        public string Text => Amount.ToString("0.############################", System.Globalization.CultureInfo.InvariantCulture);
+        public SetListingAmount(decimal amount)
+        {
+            if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
+            Amount = amount;
+        }
+    }
     public ActionKind Kind => this switch
     {
         CopyItem => ActionKind.CopyItem, SendChatCommand => ActionKind.SendChatCommand,
+        SetListingAmount => ActionKind.SetListingAmount,
         PasteSearch => ActionKind.PasteSearch, SetPriceNote => ActionKind.SetPriceNote,
         _ => throw new InvalidOperationException()
     };

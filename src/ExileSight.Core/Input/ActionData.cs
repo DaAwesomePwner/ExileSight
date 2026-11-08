@@ -15,6 +15,7 @@ public static class ActionData
         // already has an unsent draft open in the chat box, the first Enter sends that draft.
         GameAction.SendChatCommand => [new(13,true),new(13,false),new(17,true),new(86,true),new(86,false),new(17,false),new(13,true),new(13,false)],
         GameAction.PasteSearch => [new(17,true),new(70,true),new(70,false),new(65,true),new(65,false),new(86,true),new(86,false),new(17,false),new(13,true),new(13,false)],
+        GameAction.SetListingAmount => [new(17,true),new(65,true),new(65,false),new(86,true),new(86,false),new(17,false)],
         GameAction.SetPriceNote => [new(17,true),new(65,true),new(65,false),new(86,true),new(86,false),new(17,false),new(13,true),new(13,false)],
         _ => throw new ArgumentOutOfRangeException(nameof(action))
     };

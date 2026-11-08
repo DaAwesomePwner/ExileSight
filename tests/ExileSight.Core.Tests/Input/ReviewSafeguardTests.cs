@@ -10,6 +10,7 @@ public sealed class ReviewSafeguardTests
     [Theory]
     [InlineData(ActionKind.PasteSearch)]
     [InlineData(ActionKind.SetPriceNote)]
+    [InlineData(ActionKind.SetListingAmount)]
     public void PhaseTwoActionsAreRejectedByUserBindingMapper(ActionKind action)
     {
         var result = BindingMapper.Map([new PersistedBinding { Id = "future", Key = 118, Action = action, Text = "life" }], new(), []);

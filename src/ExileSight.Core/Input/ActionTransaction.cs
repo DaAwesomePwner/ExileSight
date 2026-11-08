@@ -16,6 +16,7 @@ internal sealed class ActionTransaction(IClipboard clipboard, IKeySender sender,
             GameAction.SendChatCommand command => command.Text,
             GameAction.PasteSearch search => search.Text,
             GameAction.SetPriceNote note => note.Text,
+            GameAction.SetListingAmount amount => amount.Text,
             _ => null
         };
         if (action is not GameAction.CopyItem &&
