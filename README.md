@@ -20,7 +20,7 @@ A fair-play, Windows-native quality-of-life overlay for **Path of Exile**. You g
 | Map tracker + log viewer | Run times, deaths, league mechanics, notes, CSV export |
 | Map-event notifications | Alerts from the game log, such as mercenaries and discoverable hideouts |
 | Stash-ninja price tags | poe.ninja prices drawn over fixed stash tabs |
-| Shop repricing + sales log | Click a price button and one price note is pasted. Your listings and sales are tracked |
+| Shop repricing + sales log | By default, click a price button to paste an async listing amount; pick the currency and click LIST ITEM yourself. Optional `~b/o` note mode is also available. Your listings and sales are tracked |
 | Chat macros + chat wheel | Hideout and custom commands, one command per key press |
 | Search-strings menu | Saved stash or vendor searches pasted into Ctrl+F |
 | Timers | Countdowns and a stopwatch |
