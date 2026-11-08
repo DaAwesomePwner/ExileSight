@@ -88,6 +88,8 @@ public static class StatText
         var values = new List<StatValue>();
         for (var i = 0; i < entry.StatIds.Length; i++)
         {
+            // Ignored indices select wording, but do not establish a reported roll.
+            if (variant.Formats[i] == "ignore") continue;
             decimal lo, hi;
             if (!pattern.Seen.Contains(i))
             {
@@ -130,6 +132,6 @@ public static class StatText
 
     private static bool Valid(StatVariant v, int count) =>
         v.Text.Length <= 16384 && v.Conditions.Length == count && v.Formats.Length == count && v.IndexHandlers.Length == count &&
-        v.Formats.All(f => f is "#" or "+#" or "ignored") &&
+        v.Formats.All(f => f is "#" or "+#" or "ignore") &&
         StatPattern.Placeholder.Matches(v.Text).All(m => int.TryParse(m.Groups[1].Value, out var i) && i < count);
 }
