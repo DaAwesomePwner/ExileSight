@@ -104,8 +104,12 @@ are suggestions until you explicitly choose one.
 
 Stashninja draws poe.ninja price tags over measured fixed stash cells.
 
-Open **Ctrl+Shift+N**, or choose **Price stash tab…** in the omni menu. Select a
-fixed tab/page and load its poe.ninja prices. Tags describe item types, not your
+Open **Ctrl+Shift+N** to load the last page loaded in this app session (Currency
+General initially), or choose **Price stash tab…** in the omni menu to load the
+page matching the copied item's name or base type. An unmatched item uses the
+last page. You can also select a fixed tab/page and click **Load selected tab**.
+Page changes in the game are not detected: reopen from an item or select the page
+manually. No screen capture or pixel reads are used. Tags describe item types, not your
 stash contents or quantities. The default price league is the current softcore
 challenge league excluding SSF/Ruthless, with Standard as fallback; you can set
 `prices.league` in your profile. Stale or incomplete prices are labelled.
@@ -113,7 +117,7 @@ challenge league excluding SSF/Ruthless, with Standard as fallback; you can set
 Supported pages: Currency General, Atlas and League; Fragment General; Delve,
 Essence, Blight and Delirium. Coverage is partial; unknown cells are omitted and cells without a current price
 have no tag. Allflame is deferred. See the [coverage and update guide](../data/stash-layouts/poe1/README.md).
-Select two distinct **empty** cells in the calibration selectors, click **Calibrate**,
+Select two distinct **empty** cells far apart diagonally in the calibration selectors, click **Calibrate**,
 then click their centers in order with no item held. Esc cancels; clicks reach the game. Calibration is saved per layout and
 resolution. A physical **Highlight** click pastes one search; loading prices does
 not. Searches over the game's supported limit are disabled.

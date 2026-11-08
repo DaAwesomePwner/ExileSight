@@ -2,7 +2,6 @@ using System.Net.Http;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Interop;
 using System.Windows.Media;
 using ExileSight.App.Overlay;
 using ExileSight.Core.Pricing;
@@ -21,10 +20,21 @@ public sealed class StashView : StackPanel
     private readonly OverlayHost host;
     private readonly TagSurface surface;
     private readonly CalibrationFlow calibration;
-    private readonly ComboBox tab = new() { IsEditable = true, Text = "currency" };
-    private readonly ComboBox profile = new();
-    private readonly ComboBox firstCell = new() { DisplayMemberPath = "Label", ToolTip = "First reference cell" };
-    private readonly ComboBox secondCell = new() { DisplayMemberPath = "Label", ToolTip = "Second reference cell" };
+    private readonly ListBox tab = ChoiceList();
+    private readonly ListBox profile = ChoiceList();
+    private readonly ListBox firstCell = ChoiceList("Label");
+    private readonly ListBox secondCell = ChoiceList("Label");
+    private static ListBox ChoiceList(string displayMember = "")
+    {
+        var style = new Style(typeof(ListBoxItem));
+        style.Setters.Add(new Setter(FocusableProperty, false));
+        // ListBoxItem normally selects through keyboard focus. Select explicitly
+        // on the local mouse gesture so the game remains foreground.
+        style.Setters.Add(new EventSetter(PreviewMouseLeftButtonDownEvent,
+            new System.Windows.Input.MouseButtonEventHandler((sender, e) =>
+            { ((ListBoxItem)sender).IsSelected = true; e.Handled = true; })));
+        return new() { Height = 64, Focusable = false, DisplayMemberPath = displayMember, ItemContainerStyle = style };
+    }
     private sealed record CellChoice(Cell Cell, string Label);
     private readonly TextBlock status = new() { Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap };
     private readonly Button highlight = new() { IsEnabled = false, Focusable = false };
@@ -37,7 +47,7 @@ public sealed class StashView : StackPanel
         this.model = model; this.services = services;
         host = services.GetRequiredService<OverlayHost>();
         var store = new CalibrationStore(Path.Combine(services.GetRequiredService<IAppPaths>().GetGameDirectory("poe1"), "stashninja"));
-        surface = new(host, services.GetRequiredService<IGameWindow>(), store, services.GetRequiredService<IOverlayWindowStyler>());
+        surface = new(host, services.GetRequiredService<IGameWindow>(), store);
         calibration = new(services.GetRequiredService<PassiveOverlayInput>(), services.GetRequiredService<IGameWindow>(), store);
         Background = Brushes.Black;
         Children.Add(new TextBlock { Text = "Stash prices — select tab/page", Foreground = Brushes.White });
@@ -68,36 +78,44 @@ public sealed class StashView : StackPanel
             Children.Add(new TextBlock { Text = notice, Foreground = Brushes.Orange, TextWrapping = TextWrapping.Wrap });
         status.Text = store.Notice;
         tab.SelectionChanged += (_, _) => Clear();
-        tab.AddHandler(TextBox.TextChangedEvent, new TextChangedEventHandler((_, _) => Clear()));
-        model.Opened += () => Dispatcher.BeginInvoke(async () => { host.SetVisible(window!, true); await Load(); });
+        model.Opened += () =>
+        {
+            var selected = model.SelectedLayout;
+            Dispatcher.BeginInvoke(async () =>
+            {
+                tab.SelectedItem = selected is null ? null : selected.TabId + "/" + selected.Page;
+                var loading = Load();
+                if (!window!.RequestedVisible) host.SetVisible(window, true);
+                await loading;
+            });
+        };
     }
     public void Initialize()
     {
         window = (HostedOverlayWindow)Window.GetWindow(this);
+        window.PhysicalPlacement = Position;
         host.SetVisible(window, false);
-        host.Changed += (_, _) => Position();
         window.IsVisibleChanged += (_, _) =>
         { if (!window.IsVisible) calibration.Cancel(); };
     }
-    private void Position()
+    private PixelRect Position(PixelRect client, double scale)
     {
-        if (window?.IsVisible != true) return;
-        var client = services.GetRequiredService<IGameWindow>().Current.ClientRect;
-        var scale = host.EffectiveScale;
         var width = Math.Min(client.Width, (int)(400 * scale));
-        var height = Math.Min(client.Height, (int)(400 * scale));
-        services.GetRequiredService<IOverlayWindowStyler>().Position(new WindowInteropHelper(window).Handle,
-            new(client.X + client.Width - width, client.Y, width, height));
+        var height = Math.Min(client.Height, (int)(560 * scale));
+        var root = (FrameworkElement)window!.Content;
+        root.Width = width / scale; root.Height = height / scale;
+        return new(client.X + client.Width - width, client.Y, width, height);
     }
     private void Invalidate() { model.SetSearch(new(null, "Load prices first")); highlight.IsEnabled = false; }
     private void Clear()
-    { generation++; calibration.Cancel(); layout = null; overview = null; firstCell.ItemsSource = secondCell.ItemsSource = null; Invalidate(); surface.Hide(); }
+    { generation++; layout = null; overview = null; calibration.Cancel(); firstCell.ItemsSource = secondCell.ItemsSource = null; Invalidate(); surface.Clear(); }
     private async Task Load()
     {
         Clear(); var request = generation;
-        layout = model.Layouts.FirstOrDefault(l => tab.Text == l.TabId + "/" + l.Page || tab.Text == l.TabId);
+        layout = model.Layouts.FirstOrDefault(l => tab.SelectedItem as string == l.TabId + "/" + l.Page);
         if (layout is null)
-        { status.Text = model.LayoutError ?? $"No layout yet for {tab.Text} — see data/stash-layouts README"; return; }
+        { status.Text = model.LayoutError ?? $"No layout yet for {tab.SelectedItem} — see data/stash-layouts README"; return; }
+        model.RememberLoaded(layout);
         var choices = layout.Cells.Select(c => new CellChoice(c, $"{c.ItemName ?? c.NinjaId} ({c.Id})")).ToArray();
         firstCell.ItemsSource = choices; secondCell.ItemsSource = choices;
         var selected = layout;

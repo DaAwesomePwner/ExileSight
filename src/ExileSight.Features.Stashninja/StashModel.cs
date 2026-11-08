@@ -16,8 +16,21 @@ public sealed class StashModel : IItemMenuProvider
         [new("All", 0, 10, "#CCCCCC", "#FFD700"), new("Valuable", 10, 100, "#99DDFF", "#FFD700")];
     public SearchResult Search => Volatile.Read(ref search);
     public void SetSearch(SearchResult value) => Volatile.Write(ref search, value);
-    public void Open() { SetSearch(new(null, "Load prices first")); Opened?.Invoke(); }
-    public IReadOnlyList<ItemMenuEntry> BuildMenu(ParsedItem item) => [new("Price stash tab…", Open)];
+    private Layout? lastLoaded;
+    public Layout? SelectedLayout { get; private set; }
+    public void RememberLoaded(Layout layout) => lastLoaded = layout;
+    public void Open() => Open(null);
+    private void Open(ParsedItem? item)
+    {
+        static string Normalize(string value) => new(value.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+        bool Matches(string? value) => !string.IsNullOrWhiteSpace(value) && item is not null &&
+            (Normalize(value) == Normalize(item.Name) || Normalize(value) == Normalize(item.BaseType ?? ""));
+        SelectedLayout = (item is null ? null : Layouts.FirstOrDefault(l =>
+            l.Cells.Any(c => Matches(c.ItemName) || Matches(c.NinjaId)))) ?? lastLoaded ??
+            Layouts.FirstOrDefault(l => l.TabId == "currency" && l.Page == "general") ?? Layouts.FirstOrDefault();
+        SetSearch(new(null, "Load prices first")); Opened?.Invoke();
+    }
+    public IReadOnlyList<ItemMenuEntry> BuildMenu(ParsedItem item) => [new("Price stash tab…", () => Open(item))];
     public void Register(IFeatureContext context)
     {
         var saved = context.ReadSetting("profiles");
