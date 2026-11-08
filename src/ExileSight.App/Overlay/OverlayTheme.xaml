@@ -1,12 +1,9 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <SolidColorBrush x:Key="OverlayForeground" Color="#FFF0F0F0" />
-    <SolidColorBrush x:Key="OverlayBackground" Color="#ED171B22" />
-    <SolidColorBrush x:Key="OverlayAccent" Color="#FF70C9C2" />
-    <FontFamily x:Key="OverlayFont">Segoe UI</FontFamily>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="/ExileSight.App;component/Ui/Tokens.xaml" /></ResourceDictionary.MergedDictionaries>
     <Style TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource OverlayForeground}" />
         <Setter Property="FontFamily" Value="{StaticResource OverlayFont}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Typography.NumeralAlignment" Value="Tabular" />
     </Style>
 </ResourceDictionary>
