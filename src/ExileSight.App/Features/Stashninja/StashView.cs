@@ -43,7 +43,7 @@ public sealed partial class StashView : StackPanel
     private Layout? layout;
     private PriceOverview? overview;
     private bool pricesIncomplete;
-    private int generation;
+    private volatile int generation;
     private DateTimeOffset freshUntil;
     private string? loadedLeagueSetting;
     private string? LeagueSetting => services.GetRequiredService<ISettingsStore<SettingsDocument>>().Snapshot.Prices.League;
@@ -53,6 +53,7 @@ public sealed partial class StashView : StackPanel
         this.model = model; this.services = services;
         host = services.GetRequiredService<OverlayHost>();
         var store = new CalibrationStore(Path.Combine(services.GetRequiredService<IAppPaths>().GetGameDirectory("poe1"), "stashninja"));
+        calibrationStore = store;
         surface = new(host, services.GetRequiredService<IGameWindow>(), store);
         calibration = new(services.GetRequiredService<PassiveOverlayInput>(), services.GetRequiredService<IGameWindow>(), store);
         InitializeRecognition();
@@ -73,11 +74,12 @@ public sealed partial class StashView : StackPanel
             if (firstCell.SelectedItem is not CellChoice first || secondCell.SelectedItem is not CellChoice second ||
                 first.Cell.Id == second.Cell.Id)
             { status.Text = "Choose two distinct empty cells before calibrating"; return; }
-            calibration.Cancel(); Invalidate();
+            autoEpoch++; calibration.Cancel(); Invalidate();
             calibration.Start(layout, first.Cell, second.Cell, SetStatus, () => { Refresh(); UpdatePolling(); }, () => TeachPage(explicitTeach: false));
             UpdatePolling();
         };
         Children.Add(calibrate);
+        InitializeAutoCalibration();
         Children.Add(highlight); views.Bind(highlight, "stashninja:highlight");
         var close = new Button { Content = "Close", Focusable = false };
         close.Click += (_, _) => { generation++; calibration.Cancel(); Invalidate(); surface.Hide(); host.SetVisible(window!, false); UpdatePolling(); };
@@ -111,7 +113,7 @@ public sealed partial class StashView : StackPanel
         window.PhysicalPlacement = Position;
         host.SetVisible(window, false);
         window.IsVisibleChanged += (_, _) =>
-        { if (!window.IsVisible) calibration.Cancel(); UpdatePolling(); };
+        { if (!window.IsVisible) { autoEpoch++; calibration.Cancel(); } UpdatePolling(); };
     }
     private PixelRect Position(PixelRect client, double scale)
     {
@@ -153,6 +155,7 @@ public sealed partial class StashView : StackPanel
         }
         catch (Exception e) when (e is HttpRequestException or IOException or System.Text.Json.JsonException or TaskCanceledException)
         { if (request == generation) { Invalidate(); SetStatus("Prices unavailable; try again"); } }
+        if (request == generation) await AutoCalibrate(explicitRequest: false);
     }
     private void Refresh()
     {

@@ -62,7 +62,7 @@ public sealed partial class StashView
     private void ResetRecognition() => recognition.Reset();
     private void UpdatePolling()
     {
-        if (window?.IsVisible == true && window.RequestedVisible && Game.Current.IsForeground && !Game.Current.IsMinimized && !calibration.IsActive && autoDetect.IsChecked == true && region is not null)
+        if (window?.IsVisible == true && window.RequestedVisible && Game.Current.IsForeground && !Game.Current.IsMinimized && !calibration.IsActive && !autoCalibrating && autoDetect.IsChecked == true && region is not null)
             recognitionTimer.Start();
         else { recognitionTimer.Stop(); ResetRecognition(); }
     }

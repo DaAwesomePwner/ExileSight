@@ -12,6 +12,6 @@ public sealed class StashninjaFeature : IFeature
     public StashninjaFeature(StashModel model) => this.model = model;
     public FeatureManifest Manifest { get; } = new("stashninja", [Game.PoE1], [ActionKind.PasteSearch], [],
         ["poe.ninja"], "Highlight stash matches on a separate physical click; price tags are display-only.", ["prices"],
-        screenReads: ["stash page recognition (game client area, display-only)"]);
+        screenReads: ["stash page recognition and grid calibration (game client area, display-only)"]);
     public void Register(IFeatureContext context) => model.Register(context);
 }
