@@ -32,11 +32,23 @@ public static class Geometry
         var length = dx * dx + dy * dy;
         if (length < 1) throw new ArgumentException("Choose distinct reference cells");
         var scale = ((clickedB.X - clickedA.X) * dx + (clickedB.Y - clickedA.Y) * dy) / length;
+        // Retain the original 4px delta consistency check before sharing residuals.
         var result = new Transform(scale, clickedA.X - a.X * scale, clickedA.Y - a.Y * scale);
         var end = result.Apply(b);
         if (!result.IsValid || Math.Abs(end.X - clickedB.X) > 4 || Math.Abs(end.Y - clickedB.Y) > 4)
             throw new ArgumentException("Clicks must describe a uniform scale and translation");
-        return result;
+        return new(scale, (clickedA.X + clickedB.X - (a.X + b.X) * scale) / 2,
+            (clickedA.Y + clickedB.Y - (a.Y + b.Y) * scale) / 2);
+    }
+    public sealed record Bounds(double X, double Y, double Width, double Height);
+    public static Bounds TagBounds(Layout layout, Cell cell, Transform transform)
+    {
+        var center = transform.Apply(Center(layout, cell));
+        // Two reference pixels on each edge also separate the measured 40px
+        // essence boxes, whose centers are only about 37.9px apart.
+        var width = Math.Max(cell.W * .5, cell.W - 4) * transform.Scale;
+        var height = Math.Max(cell.H * .5, cell.H - 4) * transform.Scale;
+        return new(center.X - width / 2, center.Y - height / 2, width, height);
     }
     public static Point Center(Layout l, Cell c)
     { var p = Layouts.Origin(l, c); return new(p.X + c.W / 2, p.Y + c.H / 2); }

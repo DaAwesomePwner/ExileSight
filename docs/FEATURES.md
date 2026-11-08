@@ -88,12 +88,12 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 - **Reference:** `modules/qol tools.ahk` around lines 706–770.
 
 ### `stashninja`: Stash-ninja price tags
-- **Trigger:** a hotkey (or long omni press) while a supported fixed stash tab is open. The user names the tab, or it is inferred from the copied item's class.
+- **Trigger:** a hotkey (or long omni press) while a supported fixed stash tab is open. The user selects the tab/page, or it is inferred by matching the copied item's name or base type to a layout cell's itemName or ninjaId. Hotkey opens the last loaded page in this app session, initially Currency General; unmatched items use that same fallback. Game tab switches are not detected; no screen capture or pixel reads.
 - **Actions:** `CopyItem` from the omni press. `PasteSearch` for the optional generated regex, on its own click.
 - **Behaviour:**
   - Price tags drawn over the tab's fixed grid cells, sized from the client height.
   - Chaos and divine conversion, threshold color profiles, and a 7-day sparkline.
-- **Calibration:** choose any two reference cells and click their centers to fit uniform scale and translation per geometry/client resolution. Use empty cells with no item held: these observed clicks reach the game. Esc cancels and restores Highlight.
+- **Calibration:** choose two empty reference cells far apart diagonally and click their centers to fit uniform scale and translation per geometry/client resolution. Use empty cells with no item held: these observed clicks reach the game. Esc cancels and restores Highlight.
 - **Data:** ExileSight-measured layouts with recorded screenshot provenance under `data/stash-layouts/poe1` (initially empty; no Exile-UI geometry), and poe.ninja `poe1/api/economy/exchange/current/overview?league=…&type=…`, cached for 1 h or more.
 - **Reference:** `modules/stash-ninja.ahk` (grid scaling around lines 59–65, poe.ninja around 440). Its bulk-exchange POST is **not** ported (D-003).
 
