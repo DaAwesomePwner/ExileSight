@@ -83,7 +83,7 @@ Game-specific geometry and names live in JSON; a patch does not require C# edits
     including filled cells, at 1080p/1440p/4K, windowed and borderless, with folders
     and ultrawide black bars. Confirm closed stash and unrelated pages refuse;
     changing page, focus or resolution during capture/search must discard the result.
-    Tags should disappear only during the short capture, not the search.
+    Stable identified pages must never blink. On a real page change, tags can stay hidden through capture and identification.
     On refusal, choose any two distinct empty cells in the calibration selectors.
     Click Calibrate, then those cell centers in order. Esc cancels and restores Highlight. Clicks pass through to the game: use empty
     cells and ensure no item is held. This observes physical clicks; it sends no input.
@@ -160,30 +160,37 @@ None.
 
 ## Recognition region runbook
 
-Automatic prices default ON and need no teaching or open menu. The foreground-only
-watch samples the shared header in `recognition.json` every 450 ms as a change
-detector. Full grid identification follows changes, retries unknown pages, and
-runs every 2.5 seconds as a safety check. It compares all shipped layouts using
-saved calibration or Geometry.Fit with a small local search; ambiguous results
-never select a page. Manual Auto-calibrate retains the wider search.
+Automatic prices default ON and need no teaching or menu. Every 450 ms, compare
+the shared header signature against the identification baseline; Currency/Fragment
+also compare their sub-tab strip (y100–138) with tags visible. Their cells start
+at y142 or below. Stable pages cause no full reads and no capture hides. Signature
+change threshold is .04 normalized mean absolute distance. Missing/blocked samples
+with no detected change need one second of consecutive Unknown before hiding.
 
-The header rectangle at 2000×837 (x24–504, y30–120) ends above the highest shipped
-cell (121.75). Keep it clear of cells after geometry updates. Region validation
-also preserves tab-specific sub-tab rectangles for optional local teaching.
-Remember/Forget and version-2 references remain available for compatibility;
-automatic grid identification does not use these references, and teaching does
-not change the automatic-prices setting. Existing pure reference-matcher tests
-remain intact.
+Unidentified scenes use sparse fixed-transform border pre-checks, no scale or
+translation search: eight 33×33 patches per layout, at most 69,696 pixels for all
+eight pages. The profile scans a ±12px normal band for coherent borders, requiring
+17/19 supported tangent samples. Score ≥12.5 gates full capture/identification.
+Repeated no-stash results back off to 900, 1350, then 1800 ms; header checks remain
+450 ms and a header change resets the backoff.
 
-After a patch, verify all eight layouts against real foreground stash pages and
-closed-stash scenes. Synthetic fixture tests render all eight at 1920×1080 and
-3440×1440 with noise, gamma and partially filled cells, rejecting flat images,
-noise, unrelated grids and ambiguous duplicate geometry. Automatic matching
-requires border score ≥25/255, ≥75% supported probes and a ≥3 runner-up margin.
-Local search is ±3 px and ±0.3% scale plus refinement, at most 559 evaluations
-per layout. Unusual UI geometry may require manual calibration first.
+Local identification compares every layout within ±3 px / ±0.3% scale, with
+refinement (≤559 evaluations per layout). Require coherent score ≥25/255,
+≥75% supported search probes and runner-up margin ≥3. Independent neighboring
+tangent probes reject noise. If needed, at most two qualifying uncalibrated
+candidates get the broad ±3% height / ±5% scale search (≤40,000 evaluations each).
+Save a successful calibration per geometry/resolution.
 
-Capture hides tags for a 32 ms compositor delay plus tiled reads, restoring them
-during off-thread scoring. Check flicker, first-use positioning, close/reopen,
-foreground loss, resolution changes, pending price loads, and manual controls on
-Windows. No screenshots or signatures may be committed; samples stay on the PC.
+Menu Load pins a manual selection until the header changes or the stash closes.
+Status includes automatic score/margin. Remember/Forget references remain optional
+and are not used for automatic identity. Keep the header above all cells after
+patches, and keep each sub-tab rectangle clear of its tab's cells.
+
+Tests include noise, gamma, filled cells, shared unpriced distractor frames,
+±2px offsets at 1920×1080 and 3440×1440, ambiguous geometry, unrelated grids,
+first-use offsets beyond 3px, backoff and pin transitions. Windows validation must
+cover real thresholds, sparse GDI call overhead, stable-page flicker, close/reopen,
+foreground/resolution changes, price-response races and manual controls. Only
+a genuine change or qualifying gate causes full capture; tags may hide through
+that transition's 32ms compositor delay, capture and off-thread scoring.
+No screenshots or signatures may be committed; samples stay on the PC.

@@ -112,7 +112,9 @@ unknown page hides its tags.
 the choice is saved in your profile as `stashninja.automaticPrices`. The optional
 menu also provides price profiles, **Highlight**, **Auto-calibrate**, and manual
 calibration. Its page list follows automatic recognition. For a manual override,
-turn automatic prices off, select a page and click **Load selected tab**. Closing
+select a page and click **Load selected tab**. This pins the page even with automatic
+prices enabled, until the header changes or the stash closes; automatic mode then
+resumes. The status shows the automatic page, score and margin for reporting issues. Closing
 the menu does not stop the automatic watch.
 
 Supported pages: Currency General, Atlas and League; Fragment General; Delve,
@@ -130,11 +132,19 @@ with no item held. These clicks reach the game; Esc cancels. Calibration is loca
 and specific to the layout and resolution. A separate physical **Highlight** click
 pastes one search; loading prices never sends input.
 
-The watch checks a small header strip about every 450 ms while the game is
-foreground, pausing during manual calibration. A grid check follows changes and
-runs at least every 2.5 seconds while identified; an unknown page is retried.
-Tags briefly hide for capture and may flicker during these checks. Unknown
-results hide tags immediately; Highlight clears after roughly one second.
+The watch checks a small header strip every 450 ms while the game is foreground,
+pausing during calibration. Currency and Fragment also check their sub-tab strip
+with tags visible. These checks compare against the baseline captured when the page
+was identified. A stable page never causes a periodic full read or recurring blink.
+
+When no page is identified, sparse border checks at the saved calibration or default
+fit gate larger reads; they must score at least 12.5 before a full search starts.
+Repeated no-stash results slow these checks to 900, 1350, then 1800 ms, while the
+header stays on its 450 ms schedule. A header change resets the delay. Qualifying
+uncalibrated candidates can receive a wider first-use search (at most two pages).
+Tags can hide during a genuine page-change capture/search. Unknown after a change
+hides tags immediately; otherwise missing or blocked baseline samples must remain
+Unknown for about one second. Screen checks never send input.
 
 Only game-client pixels are captured, using GDI BitBlt, with no DXGI capture,
 DirectX/Vulkan hooks or Windows.Graphics.Capture. Use Windowed Fullscreen;

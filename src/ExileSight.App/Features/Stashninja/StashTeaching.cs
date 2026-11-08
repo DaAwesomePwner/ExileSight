@@ -7,7 +7,7 @@ namespace ExileSight.App.Features.Stashninja;
 
 public sealed partial class StashView
 {
-    private (double[]? Signature, string? Notice) SampleRegion(Geometry.Bounds? sub = null, string? matchedTab = null)
+    private (double[]? Signature, string? Notice) SampleRegion(Geometry.Bounds? sub = null, string? matchedTab = null, bool passive = false)
     {
         var state = Game.Current;
         if (!state.IsForeground || state.IsMinimized || calibration.IsActive || region is null) return (null, null);
@@ -21,7 +21,7 @@ public sealed partial class StashView
         var decision = SubTabCapture.Decide(surface.Overlaps(sampled), surface.VisibleTabId, matchedTab);
         if (decision != SubTabCaptureAction.Sample)
         {
-            if (decision == SubTabCaptureAction.HideWrongTags)
+            if (!passive && decision == SubTabCaptureAction.HideWrongTags)
             {
                 recognitionHidden = true; surface.Hide(); Invalidate();
                 // Let WPF/composition remove the old tags before sampling on the next tick.

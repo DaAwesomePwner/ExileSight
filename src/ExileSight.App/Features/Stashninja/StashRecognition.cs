@@ -39,7 +39,7 @@ public sealed partial class StashView
         autoDetect.Click += (_, _) =>
         {
             model.SetAutomaticPrices(autoDetect.IsChecked == true);
-            automaticPage = null; surface.Hide(); UpdatePolling();
+            watchPolicy = new(); automaticPage = null; surface.Hide(); UpdatePolling();
         };
         autoDetect.Checked += (_, _) => { ResetRecognition(); UpdatePolling(); };
         autoDetect.Unchecked += (_, _) => { ResetRecognition(); recognitionHidden = false; UpdatePolling(); Refresh(); };
@@ -69,7 +69,7 @@ public sealed partial class StashView
             recognitionTimer.Start();
         else
         {
-            recognitionTimer.Stop(); automaticEpoch++; automaticPage = null;
+            recognitionTimer.Stop(); automaticEpoch++; automaticPage = null; watchPolicy = new();
             if (autoDetect.IsChecked == true) surface.Hide();
             ResetRecognition();
         }
