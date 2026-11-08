@@ -75,8 +75,9 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 - **Behaviour:**
   - Records each run with map name, tier, duration (time spent in hideout excluded), deaths, mechanics, map mods (if the map was copied before the run) and notes.
   - A log viewer with filters, totals and CSV export.
-  - Storage: one SQLite or JSON-lines file per league.
-- **Reference:** `modules/map tracker.ahk`, `modules/client log.ahk` (deaths around line 534). League names and dates come from a data pack, not hard-coded as in Exile-UI (around lines 63–64).
+  - Storage: one JSON-lines file per league.
+  - The league picker uses the shared cached poe.ninja index-state request (at least 1 h between requests, D-071), with the current softcore challenge league first. Offline or stale results show the saved league plus Standard/Hardcore with a note. The saved league stays selected; names are de-duplicated case-insensitively, preserving poe.ninja spelling. Type SSF/Ruthless names manually; poe.ninja does not list them.
+- **Reference:** `modules/map tracker.ahk`, `modules/client log.ahk` (deaths around line 534). Current league choices come from poe.ninja, replacing Exile-UI's hard-coded list (around lines 63–64).
 - **Done when:** a recorded mapping log replays into the expected runs in a unit test.
 
 ### `events`: Map-event notifications
@@ -97,10 +98,13 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 - **Reference:** `modules/stash-ninja.ahk` (grid scaling around lines 59–65, poe.ninja around 440). Its bulk-exchange POST is **not** ported (D-003).
 
 ### `vaalasync`: Shop repricing + sales log
-- **Trigger:** omni-key over an item that has a `~b/o` or `~price` note opens the price buttons.
-- **Actions:** `CopyItem` (omni), then `SetPriceNote(text)` once per button click. The user opens the note box themselves.
+- **Trigger:** a short omni press over an item with a `~b/o` or `~price` note opens the price buttons. For an unpriced item, choose **Set listing price…** in the omni hold menu.
+- **Actions:** `CopyItem` (omni), then one action per price-button click: `SetListingAmount(amount)` in default async mode, or `SetPriceNote(text)` in note mode. The user opens the game dialog themselves.
 - **Behaviour:**
-  - Buttons offer ±1, ±10% and custom prices, suggested from the current note.
+  - Async mode targets the amount field in **Set Item Price**, whose current value is pre-selected. Each click sends Ctrl+A, Ctrl+V of the amount only, with no Enter or clicks. The player chooses the currency and clicks **LIST ITEM**. Buttons show amount + currency; a display-only reminder appears when the suggested currency differs.
+  - Async amounts are positive whole numbers only until decimal support is confirmed in game. Suggestions round to whole numbers (midpoints away from zero, minimum 1); duplicate adjustment amounts are disabled. Custom amounts must already be whole numbers.
+  - Set `features.sections.vaalasync.listingMode` to `"note"` for legacy note mode, applied after restart (`"async"` is the default). Each click pastes the full note with Ctrl+A, Ctrl+V, Enter into the note box the user opened; decimals remain allowed.
+  - Buttons offer ±1, ±10% and custom prices from the current note. Unpriced items enable only a custom amount, seeded from a poe.ninja estimate when known; the estimate never becomes an invented current price. Display and paste use invariant amounts, without thousands separators and with a dot for decimals.
   - After a send or uncertain outcome, buttons disarm until the item is read again with omni. Only explicit pre-input gate refusals leave buttons armed; double clicks are suppressed.
   - Each listing and price change is saved in local history (500 listings × 50 prices, at most 8 MB). Corrupt files are quarantined and buyer names are never stored. "Sold" is marked by hand; trade whisper matches are display-only evidence and never mark a sale.
   - A sales and purchase log viewer converts prices with poe.ninja rates.

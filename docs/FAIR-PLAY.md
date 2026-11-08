@@ -50,6 +50,7 @@ GGG says new OAuth app registrations are currently closed, and that reverse-engi
 3. A feature calls `gate.TryExecute(token, action)` with **exactly one** `GameAction`:
    - `CopyItem` sends Ctrl+C. Holding Alt for advanced copy is optional.
    - `PasteSearch(text)` sends Ctrl+F, Ctrl+A, Ctrl+V, Enter. The search only highlights matches in the game client.
+   - `SetListingAmount(amount)` sends Ctrl+A, Ctrl+V into the amount field of a Set Item Price dialog the user opened. It sends no Enter or clicks.
    - `SetPriceNote(text)` sends Ctrl+A, Ctrl+V, Enter, into a note box the user opened.
    - `SendChatCommand(text)` sends Enter, Ctrl+V, Enter. That is one chat message.
 4. The gate refuses the action if the token is missing, used, or expired, or if the game is not the foreground window. It then:
@@ -66,10 +67,11 @@ Timers, the log watcher, poe.ninja responses and future screen checks have no wa
 ### Example: repricing a shop item
 
 1. Press the omni-key over an item. The token is spent on `CopyItem`, and the overlay shows price buttons for the copied text.
-2. The user right-clicks the item to open the game's note box. ExileSight does **not** send that right-click.
-3. The user clicks a price button. A new token is spent on `SetPriceNote("~b/o 3 divine")`.
+2. In the default async mode, the user opens the game's **Set Item Price** dialog and focuses its amount field. ExileSight does **not** open the dialog.
+3. The user clicks a price button showing **3 divine**. A new token is spent on `SetListingAmount(3)`: Ctrl+A, Ctrl+V, with no Enter or clicks.
+4. The user chooses divine in the game's currency dropdown and clicks **LIST ITEM** themselves. Any currency reminder in ExileSight is display-only.
 
-That is one server-side change for each physical click.
+In optional note mode, the user instead opens the game's note box, then clicks a price button. That click spends one new token on `SetPriceNote("~b/o 3 divine")`: Ctrl+A, Ctrl+V, Enter. Each overlay click authorizes only its one declared game action.
 
 ## Review checklist for every pull request
 
