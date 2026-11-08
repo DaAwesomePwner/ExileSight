@@ -1,0 +1,8 @@
+Item Class: Maps
+Rarity: Unique
+Synthetic Sanctuary
+Dunes Map
+--------
+Some special map property
+--------
+Corrupted

@@ -7,4 +7,5 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
   </ItemGroup>
   <ItemGroup><None Include="mapmods.json" CopyToOutputDirectory="PreserveNewest" /><None Include="../fixtures/poe1/items/maps/*.txt" Link="fixtures/maps/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" /><None Include="../fixtures/poe1/items/expedition-logbooks/*.txt" Link="fixtures/expedition-logbooks/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup><None Update="Fixtures/*.txt" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

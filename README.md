@@ -50,7 +50,7 @@ Generated from compiled feature manifests and registered default bindings; suppl
 | guide | None | `poe1/guide` | None | `poe1/guide/progress.json`<br>`poe1/guide/{hash}.json`<br>`user-selected CSV export` | `Control+Shift+F10 → guide:toggle (blocked)`<br>`Control+Shift+F11 → guide:back (blocked)`<br>`Control+Shift+F12 → guide:next (blocked)` |
 | iteminfo | None | `poe1/bases`<br>`poe1/mods`<br>`poe1/stats` | None | `active profile JSON (highlight profiles)` | None |
 | macros | `SendChatCommand` | None | None | `active profile JSON (commands)` | `F5 → macros:travel (blocked)`<br>`F6 → macros:macro (blocked)` |
-| mapinfo | None | `poe1/mapmods` | None | `poe1/mapinfo/ratings.json` | None |
+| mapinfo | None | `poe1/mapmods` | None | `active profile JSON (map thresholds)`<br>`poe1/mapinfo/ratings.json` | None |
 | maptracker | `SendChatCommand` | None | `HTTP: poe.ninja` | `active profile JSON (league)`<br>`poe1/maptracker/{league-hash}.jsonl`<br>`user-selected CSV export` | `Control+Shift+K → maptracker:kills (blocked)`<br>`Control+Shift+M → maptracker:viewer (blocked)` |
 | omni | `CopyItem` | None | `Browser: poedb.tw`<br>`Browser: www.craftofexile.com`<br>`Browser: www.pathofexile.com`<br>`Browser: www.poewiki.net` | `active profile JSON (use advanced copy)` | `CapsLock → omni:press (blocked)` |
 | searchstr | `PasteSearch` | None | None | None | `F9 → searchstr:open (blocked)` |
