@@ -28,7 +28,7 @@ browser to inspect exact sizes and colours.
 2. Build the view as a pure builder (`model + theme → FrameworkElement`) and add your own
    snapshot test class to the P7-T2 harness, one test per state with fixture models. Get the
    renders from Windows: run the snapshot tests on the Windows host, or read the `ui-snapshots`
-   CI artifact (PRs, `integration/**` pushes, or a manual workflow dispatch).
+   CI artifact from a manual workflow dispatch of your branch or from a PR.
 3. Compare side by side. Must match: section order, which values appear, column
    order and widths, colours (by token), unknown-value treatment, and what the
    view leaves out. May differ: sample values, font rendering (Segoe UI vs the

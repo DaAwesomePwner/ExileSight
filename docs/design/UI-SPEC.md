@@ -149,7 +149,7 @@ Mockup: [ambient-hud](mockups/png/ambient-hud.png). All click-through unless not
   the only colour change. Stopwatch has no bar.
 - **Event toast**, existing `DefaultOverlayLayout.EventsToast` position and existing queue behaviour (one
   toast for 5 s, up to four pending): a 4-wide teal strip, the event's `DisplayName` in bold, then a Muted
-  line with its category and "Ctrl+Shift+E mutes this kind".
+  line with its category. No key hints: bindings can change, and muting is done in event settings.
 - **Omni long-press menu**, width 260, interactive: item name header, in-app actions first ("Set as
   equipped ›", "Set listing price…"), a hairline, then browser links marked `↗`. Number-key selection is
   backlog: omit the key badges until it exists.
@@ -171,12 +171,12 @@ Map log and Sales open the existing `TrackerWindow` and `HistoryView` until they
 
 - **Home**: title "Ready to play" (or the first problem, e.g. "Game not found"), league picker, four
   status tiles (Game, Client.txt, Prices, Game data) each with a teal or orange dot, one bold line and one
-  muted detail. "Your keys": the user's current bindings as keycaps with their meaning. "Last session":
+  muted detail. "Your keys": the user's current bindings as keycaps with their names from the trigger-name table (below). "Last session":
   the most recent run of map-tracker runs with no gap over one hour between them: maps run, average map
   time, deaths, and divine **marked sold** in that window (sales are only ever marked by hand), plus a bar
   per map (orange = a death that map). Footer: the GGG disclaimer (required by FAIR-PLAY.md) and a link to
   Transparency. Status and session mapping live in WPF-free, tested code.
-- **Hotkeys**: a read-only list of current bindings (the same data as Home's "Your keys"). Editing
+- **Hotkeys**: a read-only list of current bindings (the same data and names as Home's "Your keys"). Editing
   bindings in the app is backlog; until then it says where bindings are set today.
 - **Item rules**: five profile tabs (the existing `ItemInfoSettings` limit), the active one marked.
   A search box adds a rule by mod text taken from the stats pack translations; the stored rule text must
@@ -193,9 +193,10 @@ Map log and Sales open the existing `TrackerWindow` and `HistoryView` until they
 - **Transparency**: "Everything ExileSight sent to the game", the last 200 lines of `actions.log`
   newest first: time, trigger, action kind, result (teal Sent / orange refusal reason). The log records
   only `timestamp, hotkey, action, outcome, reason, verb`, where `hotkey` is the binding ID or, for overlay
-  buttons, the feature command ID. The Trigger column shows that ID's display name from the current
-  binding and command registries (e.g. "Omni key", "Shop price button"); an ID that no longer exists
-  shows raw. It never shows key names (a rebind would make them wrong), item text, amounts or search
+  buttons, the feature command ID. The Trigger column shows that ID's name from the shared **trigger-name
+  table**: a WPF-free map from every binding ID and feature command ID to a short display name (e.g.
+  "Omni key", "Shop price button"). Bindings and commands carry no names today, so P7-T12 creates this
+  table and Home, Hotkeys and Transparency all use it; an ID missing from it shows raw. It never shows key names (a rebind would make them wrong), item text, amounts or search
   strings, and the page adds no fields to the log. "Open actions.log" button. Below: what is read, which
   hosts are contacted, what is never touched.
 
@@ -236,7 +237,7 @@ a 4 px grid; card padding 10 top, 12 sides; radius 6 (cards), 3 (pills), 4 (band
 
 | Item | Owner task | Notes |
 |---|---|---|
-| Omni advanced copy + setting | P7-T15 | `CopyItem(Advanced: true)` by default; setting in Omni feature settings |
+| Omni advanced copy + setting | P7-T15 | `CopyItem(Advanced: true)` by default; setting in Omni feature settings with `Load`/`Save` helpers |
 | Short mod labels | P7-T3 | Keyed by stat ID; ExileSight's own wording, ≤ 14 characters; fall back to the mod template with numbers removed, truncated |
 | Item card model (slots, average roll, row kinds, hybrid line span) | P7-T5 | Built from `ItemInfoResult` and GearCmp; WPF-free; added alongside the existing text sections |
 | Placement mode, docked position, density, contrast | P7-T4 | `OverlaySettings`, validated and migrated |
@@ -247,6 +248,7 @@ a 4 px grid; card padding 10 top, 12 sides; radius 6 (cards), 3 (pills), 4 (band
 | Listed-for duration | P7-T7 | Only if shop history has the first-listed time |
 | Highest unit prices in a tab | P7-T8 | From prices already fetched; no new requests; no tab total |
 | Home status and last session | P7-T12 | WPF-free mapping from existing services and logs |
+| Trigger-name table | P7-T12 | WPF-free ID → display name for every binding and feature command; a test fails when a feature registers one without a name; reused by P7-T14 |
 | Rule text from stat templates | P7-T13 | Normalizes like item lines; tested against fixtures |
 | Transparency reader | P7-T14 | Read-only parser for the existing `actions.log` JSON lines |
 

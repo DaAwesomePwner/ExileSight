@@ -81,7 +81,8 @@ Rules for every task below:
   task, under the P7-T2 project; there is no shared registry) and lists any difference from the mockup
   under `RISKS`. Reviewers check the renders against the PNG and the UI-SPEC §12 checklist.
 - **Renders come from Windows.** Run the snapshot tests on the Windows host for a task branch, or read the
-  `ui-snapshots` artifact from CI (PRs, `integration/**` pushes, or a manual dispatch).
+  `ui-snapshots` artifact from a manual CI dispatch of the branch or from CI on a PR. CI's push filter
+  (`main`, `integration/**`, `fixtures/**`) does not match task or `t3/*` branches.
 - **Views are testable.** Split each view into a window host and a pure builder (`model + theme →
   FrameworkElement`) with no live services (UI-SPEC §10).
 - **Fair play and speed are unchanged.** No new `GameAction` kind, hotkey, network host or screen read.
@@ -106,7 +107,8 @@ Rules for every task below:
 - **P7-T15 Omni advanced copy.** Owns `src/ExileSight.Features.Omni/OmniPress.cs`, the Omni feature's
   settings (`OmniFeature.cs`), their tests, and the omni/iteminfo lines in `docs/FEATURES.md` and
   `docs/USER-GUIDE.md`. The omni key sends `CopyItem(Advanced: true)` unless the new **Use advanced copy**
-  setting is off (UI-SPEC §3.1, D-108). Done when tests show one `CopyItem` per press with the flag
+  setting is off (UI-SPEC §3.1, D-108). Expose the setting through `Load`/`Save` helpers like
+  `ItemInfoSettings` so P7-T13 can edit it. Done when tests show one `CopyItem` per press with the flag
   following the setting, and the item-info fixtures parse advanced text from the omni path.
 
 **Wave 2:**
@@ -143,26 +145,31 @@ Rules for every task below:
   stay as they are. Compare: [ambient-hud](design/mockups/png/ambient-hud.png), top row.
 - **P7-T10 Omni menu, chat wheel, search strings.** Owns `src/ExileSight.App/Features/OmniMenuView.cs`,
   `src/ExileSight.App/Features/{Macros,SearchStrings}/` views, and `src/ExileSight.Features.Omni/OmniMenu.cs`
-  (item name in `OmniMenuPresentation`; it may pass the name from `OmniPress.cs`, which P7-T15 has merged).
+  (item name in `OmniMenuPresentation`; `OmniPress.cs` already passes the parsed item to `menu.Show`).
   Compare: [ambient-hud](design/mockups/png/ambient-hud.png), bottom row. No number-key selection (backlog).
 - **P7-T12 App shell, Home and Hotkeys.** Owns `src/ExileSight.App/App.xaml`, `App.xaml.cs`, a new
   `src/ExileSight.App/Shell/` (main window, nav, Home and Hotkeys pages, placeholder pages for Item rules,
-  Overlay and Transparency), `src/ExileSight.App/Tray/`, and a new WPF-free `src/ExileSight.Core/Status/`
-  for status-tile and last-session mapping with tests. The shell replaces the debug panel as `MainWindow`;
+  Overlay and Transparency), `src/ExileSight.App/Tray/`, a new WPF-free `src/ExileSight.Core/Status/` for
+  status-tile and last-session mapping and the trigger-name table (UI-SPEC §7) with tests, and a new test
+  class in `tests/ExileSight.Transparency.Tests` that fails when any feature registers a binding or command
+  the table doesn't name. The shell replaces the debug panel as `MainWindow`;
   tray left-click opens it. Compare: [app-home](design/mockups/png/app-home.png). Done when the GGG
-  disclaimer is visible and each status tile and the session window have tested mappings.
+  disclaimer is visible, each status tile and the session window have tested mappings, and every default
+  binding and command has a name.
 
 **Wave 4:**
 - **P7-T11 Item card view** (after T4, T5). Owns `src/ExileSight.App/Features/ItemInfo/`, and removes the
-  old text path: `src/ExileSight.Features.ItemInfo/ItemInfoSection.cs` and GearCmp's `TooltipSection`
-  builder, with their tests updated. Renders the card model with T1 primitives and T4 placement, applying
+  old text path: `src/ExileSight.Features.ItemInfo/{ItemInfoSection.cs,ItemInfoFeature.cs}`,
+  `src/ExileSight.Features.GearCmp/GearCmpFeature.cs` (its `TooltipSection` builder and registration), and
+  the tests that cover them (`ProfileTests`, `TooltipFailureTests`, `TooltipIntegrationTests`, and
+  `ExileSight.Core.Tests/Features/TooltipTests.cs` if the section contract changes). Renders the card model with T1 primitives and T4 placement, applying
   the height cap (UI-SPEC §3). Compare: [item-card](design/mockups/png/item-card.png) and
   [item-card-states](design/mockups/png/item-card-states.png), every state. Done when first-item latency is
   measured against PERFORMANCE.md.
 - **P7-T14 Overlay settings and Transparency pages** (after T4, T6, T12). Owns
   `src/ExileSight.App/Shell/Pages/Overlay*`, `Transparency*`, and a WPF-free `actions.log` reader in
-  `src/ExileSight.Core/Input/` with fixture tests. The trigger column maps logged IDs to display names
-  (UI-SPEC §7). Compare: [app-overlay-settings](design/mockups/png/app-overlay-settings.png).
+  `src/ExileSight.Core/Input/` with fixture tests. The trigger column uses P7-T12's trigger-name table
+  (UI-SPEC §7); it adds no second name map. Compare: [app-overlay-settings](design/mockups/png/app-overlay-settings.png).
 
 **Wave 5:**
 - **P7-T13 Item rules page** (after T11, T12, T15). Owns `src/ExileSight.App/Shell/Pages/ItemRules*` and a
