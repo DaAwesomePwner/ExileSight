@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../tools/ExileSight.IconGen/ExileSight.IconGen.csproj" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <None Include="../../src/ExileSight.App/Assets/ExileSight.ico" Link="ExileSight.ico" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

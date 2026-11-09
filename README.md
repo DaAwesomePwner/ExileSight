@@ -106,3 +106,5 @@ ExileSight is a from-scratch rewrite inspired by [Exile-UI](https://github.com/L
 ## License
 
 [MIT](LICENSE)
+
+The ExileSight icon is original geometric artwork under this repository’s MIT license. Regenerate it with `dotnet run --project tools/ExileSight.IconGen`; verify the committed asset with `dotnet run --project tools/ExileSight.IconGen -- --check`. WPF windows inherit the executable icon.
