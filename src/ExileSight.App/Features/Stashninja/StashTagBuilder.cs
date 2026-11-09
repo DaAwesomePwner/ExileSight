@@ -16,6 +16,7 @@ public static class StashTagBuilder
 
     public static Border Tag(PriceTag tag, CardTheme theme)
     {
+        // UI-SPEC §5 fixes stash tags at mono 10 inside their 14-pixel height.
         var text = CardPrimitives.Text(tag.Text, theme, size: 10, number: true);
         text.Foreground = Brush(TagPresentation.Foreground(tag.Color));
         text.TextTrimming = TextTrimming.None;
@@ -42,26 +43,26 @@ public static class StashTagBuilder
     public static Border Summary(IEnumerable<PriceTag> tags, string age, CardTheme theme)
     {
         var column = new StackPanel();
-        column.Children.Add(CardPrimitives.Text("Highest unit prices · 7 days", theme, "TextSecondary", 11));
+        column.Children.Add(CardPrimitives.Text("Highest unit prices · 7 days", theme, "TextSecondary", theme.LabelSize));
         foreach (var tag in TagPresentation.Highest(tags))
         {
             var row = new Grid { Height = 24, Margin = new Thickness(0, 4, 0, 0) };
             row.ColumnDefinitions.Add(new ColumnDefinition());
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(44) });
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(48) });
-            var name = CardPrimitives.Text(tag.Name, theme, size: 12);
+            var name = CardPrimitives.Text(tag.Name, theme, size: theme.BodySize);
             name.TextTrimming = TextTrimming.CharacterEllipsis;
             name.Margin = new Thickness(0, 0, 8, 0);
             row.Children.Add(name);
             var chart = Sparkline(tag.Sparkline, theme);
             Grid.SetColumn(chart, 1); row.Children.Add(chart);
-            var price = CardPrimitives.Text(tag.Text, theme, size: 11, number: true);
+            var price = CardPrimitives.Text(tag.Text, theme, size: theme.NumberSize, number: true);
             price.HorizontalAlignment = HorizontalAlignment.Right; price.FontWeight = FontWeights.SemiBold;
             Grid.SetColumn(price, 2); row.Children.Add(price);
             column.Children.Add(row);
         }
         column.Children.Add(CardPrimitives.Hairline(theme));
-        column.Children.Add(CardPrimitives.Text("poe.ninja · " + age, theme, "TextMuted", 11));
+        column.Children.Add(CardPrimitives.Text("poe.ninja · " + age, theme, "TextMuted", theme.LabelSize));
         var card = CardPrimitives.CardFrame(column, theme);
         card.Width = 280;
         card.IsHitTestVisible = false;
