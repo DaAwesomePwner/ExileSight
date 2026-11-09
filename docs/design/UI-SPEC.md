@@ -266,7 +266,8 @@ a 4 px grid; card padding 10 top, 12 sides; radius 6 (cards), 3 (pills), 4 (band
 | Rule text from stat templates | P7-T13 | Normalizes like item lines; tested against fixtures |
 | Transparency reader | P7-T14 | Read-only parser for the existing `actions.log` JSON lines |
 
-No new network hosts, no new `GameAction` kinds, no new hotkeys.
+No new network hosts, no new `GameAction` kinds, no new hotkeys, except **Ctrl+Shift+P** for on-demand stash
+prices (D-118), which only changes what ExileSight displays.
 
 ## 10. Implementation rules (speed and testability)
 
@@ -300,4 +301,4 @@ and first-item latency must not regress.
 - [ ] Unknown values render as unknown or are omitted; nothing is guessed.
 - [ ] Only token keys from §8 are used in views (stash threshold colours excepted, §5).
 - [ ] No effects, animations or per-row brush allocation on overlays.
-- [ ] No new `GameAction` kind, hotkey, network host, or screen read.
+- [ ] No new `GameAction` kind, hotkey (beyond D-118's Ctrl+Shift+P), network host, or screen read.

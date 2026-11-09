@@ -8,23 +8,28 @@ is missing, so add the section on main before dispatching a release.
 
 - **New look:** every overlay is redrawn as a compact card with one shared style:
   the item card, map card, shop pricer, act guide, timers, omni menu, chat wheel,
-  search strings and the Lab overlay. Cards open beside the cursor, away from
-  the game's own tooltip.
+  search strings and the Lab overlay. Item and map cards open beside the cursor,
+  away from the game's own tooltip.
 - **Item card:** short mod labels in the game's order with tier pills, roll bars
   and a verdict, instead of the old text tooltip. CapsLock now copies with
   advanced item text so tiers and roll ranges are known; switch back to plain
   copy on the **Item rules** page.
 - **Desktop app:** clicking the tray icon opens a window with Home, Hotkeys,
-  Overlay, Item rules, Act guide and Transparency pages. The act guide's
-  controls (Back/Next, reset, bandit, import/export) moved there.
-- **Overlay settings:** placement (beside the cursor or docked), UI scale,
-  transparency, Compact density and High contrast, applied to every overlay.
+  Overlay, Item rules, Act guide and Transparency pages. **Item rules** lets you
+  add and edit the mods you want or avoid, with checks as you type and a live
+  card preview. **Transparency** shows what ExileSight reads and its recent
+  actions. The act guide's controls (Back/Next, reset, bandit, import/export)
+  moved to **Act guide**.
+- **Overlay settings:** item and map cards open beside the cursor or docked in
+  one spot; UI scale, Compact density and High contrast apply to every overlay.
 - **Stash prices on demand:** price tags are now off until you press
-  **Ctrl+Shift+P** with a supported stash page open; they stay until the stash
-  closes or you press it again. Tags sit in each slot's bottom-right corner and a
-  card beside the stash lists the three highest prices with a 7-day trend.
-  **Show stash prices automatically** in the Ctrl+Shift+N menu brings back the
-  always-on behaviour.
+  **Ctrl+Shift+P** with a supported stash page open. They stay until the stash
+  closes, you switch away from the game, you open a tab ExileSight doesn't
+  support, or you press it again; press it again to bring them back. Tags sit in
+  each slot's bottom-right corner, and a card beside the stash lists the three
+  highest unit prices with a 7-day trend. **Show stash prices automatically** in
+  the Ctrl+Shift+N menu brings back the always-on behaviour; if you had switched
+  it on yourself, it stays on.
 - **Shop pricer:** the card now reminds you to right-click the item to open
   **Set Item Price** before you pick a price. ExileSight never opens it for you.
 - **Fix:** tiers now show for mods whose game text uses an ignored number, such
