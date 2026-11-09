@@ -1,0 +1,26 @@
+[
+  {
+    "id": "synthetic-ignore-first",
+    "statIds": ["synthetic_hidden_flag", "synthetic_damage_percent"],
+    "english": [
+      {
+        "text": "{1}% increased Synthetic Damage",
+        "conditions": [{"min": 0, "max": 0}, {"min": 1}],
+        "formats": ["ignore", "#"],
+        "indexHandlers": [[], []]
+      }
+    ]
+  },
+  {
+    "id": "synthetic-ignore-last",
+    "statIds": ["synthetic_damage_percent", "synthetic_hidden_flag"],
+    "english": [
+      {
+        "text": "{0}% increased Synthetic Damage",
+        "conditions": [{"min": 1}, {"min": 0, "max": 0}],
+        "formats": ["#", "ignore"],
+        "indexHandlers": [[], []]
+      }
+    ]
+  }
+]

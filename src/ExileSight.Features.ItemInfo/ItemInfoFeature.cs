@@ -5,20 +5,31 @@ using ExileSight.Core.Items;
 
 namespace ExileSight.Features.ItemInfo;
 
+public sealed record CopiedItemSnapshot(ItemInfoResult Result, ItemCardComparison? Comparison);
+
 public sealed class ItemInfoViewModel : INotifyPropertyChanged
 {
-    public IReadOnlyList<TooltipSection> Sections { get; private set; } = [];
+    private CopiedItemSnapshot? lastCopy;
+    public CopiedItemSnapshot? LastCopy => Volatile.Read(ref lastCopy);
+    public ItemInfoResult? LastCopied => LastCopy?.Result;
+    public ItemCard? Card { get; private set; }
+    public string? Notice { get; private set; }
     public ItemInfoResult? Current { get; private set; }
     public event PropertyChangedEventHandler? PropertyChanged;
-    public void Show(ItemInfoResult result, IReadOnlyList<TooltipSection>? sections = null)
+    public void Show(ItemInfoResult result, ItemCard? card = null, string? notice = null)
     {
-        Sections = sections ?? [ItemInfoSection.Render(result)];
+        var nextCard = card ?? ItemCardBuilder.Build(result);
+        Card = nextCard;
+        Notice = notice;
         Current = result;
+        Volatile.Write(ref lastCopy, new(result, nextCard.Compare));
         PropertyChanged?.Invoke(this, new(nameof(Current)));
     }
     public void Close()
     {
         Current = null;
+        Card = null;
+        Notice = null;
         PropertyChanged?.Invoke(this, new(nameof(Current)));
     }
 }
@@ -38,12 +49,15 @@ public sealed class ItemInfoFeature : IFeature
     public void Register(IFeatureContext context)
     {
         context.RegisterOverlay(ViewModel);
-        var section = new ItemInfoSection(PackStatus);
-        context.RegisterTooltipSection(section);
         context.RegisterOmniHandler(new ItemInfoHandler(new(Data), ViewModel, () => ItemInfoSettings.Load(context))
         {
             ReadData = ReadData,
-            Sections = result => TooltipSections.Build(new TooltipContext(result.Item, result), context.TooltipSections, SectionError)
+            Comparison = item => ItemCardComparisons.Build(item, context.ItemCardComparisons, SectionError),
+            PackStatus = () =>
+            {
+                try { return PackStatus?.Invoke(); }
+                catch (Exception error) { SectionError?.Invoke(error); return null; }
+            }
         });
     }
 }
@@ -52,23 +66,17 @@ public sealed class ItemInfoHandler(ItemInfoCalculator calculator, ItemInfoViewM
     Func<ItemInfoSettings> settings) : IOmniHandler
 {
     public Func<IItemInfoData?>? ReadData { get; init; }
-    public Func<ItemInfoResult, IReadOnlyList<TooltipSection>>? Sections { get; init; }
-    private static readonly HashSet<string> Classes = new(StringComparer.Ordinal)
-    {
-        "Helmets", "Body Armours", "Gloves", "Boots", "Shields", "Quivers", "Belts", "Amulets", "Rings",
-        "One Hand Swords", "Thrusting One Hand Swords", "Two Hand Swords", "One Hand Axes", "Two Hand Axes",
-        "One Hand Maces", "Two Hand Maces", "Sceptres", "Daggers", "Rune Daggers", "Claws", "Wands",
-        "Staves", "Warstaves", "Bows", "Jewels", "Abyss Jewels", "Cluster Jewels",
-        "Life Flasks", "Mana Flasks", "Hybrid Flasks", "Utility Flasks"
-    };
+    public Func<ParsedItem, ItemCardComparison?>? Comparison { get; init; }
+    public Func<string?>? PackStatus { get; init; }
     public int Priority => 100;
-    public static bool Supports(ParsedItem item) => item.Game == Game.PoE1 && Classes.Contains(item.ItemClass) &&
+    public static bool Supports(ParsedItem item) => item.Game == Game.PoE1 && ItemClasses.Supports(item.ItemClass) &&
         item.Rarity is ItemRarity.Normal or ItemRarity.Magic or ItemRarity.Rare or ItemRarity.Unique;
     public bool Matches(ParsedItem item, OmniContext context) => context.Game == Game.PoE1 && Supports(item);
     public void Handle(ParsedItem item, OmniContext context, OmniPressKind press)
     {
         if (!Matches(item, context)) return;
         var result = (ReadData is null ? calculator : new ItemInfoCalculator(ReadData())).Calculate(item, settings());
-        viewModel.Show(result, Sections?.Invoke(result));
+        viewModel.Show(result, ItemCardBuilder.Build(result, comparison: result.Settings.ShowCompare
+            ? Comparison?.Invoke(item) : null), PackStatus?.Invoke());
     }
 }

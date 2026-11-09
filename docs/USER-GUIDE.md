@@ -3,7 +3,8 @@
 ExileSight is a Windows overlay for **Path of Exile 1 with an English client**.
 It lives in the notification area beside the clock. Right-click its icon for
 **Debug panel**, **Run setup again**, **Open settings folder**, and **Exit**.
-Clicking the icon opens diagnostics; closing that window leaves the app running.
+Clicking or double-clicking the icon opens the desktop app. Closing its window
+leaves the app running; diagnostics remain available through **Debug panel**.
 
 The stash price panel supports eight measured pages; see [stashninja](#price-check--stashninja--ctrlshiftn).
 
@@ -53,7 +54,7 @@ remove `%APPDATA%\ExileSight` separately after backing up anything you want.
 ## Fair play: what is read and sent
 
 ExileSight reads the selected game log without changing it, and reads item text
-copied after your hotkey. In 1.1, Stashninja may also read pixels of the foreground
+copied after your hotkey. In 1.1, Stashninja may also read pixels of the
 foreground game client to recognize stash pages automatically (D-104). It does not
 read game memory, inject code, or change the game window or game files.
 
@@ -80,6 +81,9 @@ the game is foreground. Unless noted, a bound key is consumed by ExileSight.
 ### Omni and item info — CapsLock
 
 Omni is the shared item hotkey that selects a tool from copied item text.
+It uses advanced copy (Ctrl+Alt+C) by default. Turn off **Use advanced copy**
+in **Item rules › Omni key** to use plain copy. Item info needs advanced copy
+for tiers and roll ranges.
 Hover an item, tap **CapsLock** for at most 200 ms, then release to show the
 matching tool. Maps and priced items route to their specialized panels only on
 this short tap. Equipment opens item info, with tiers, rolls and other supported
@@ -103,13 +107,22 @@ are suggestions until you explicitly choose one.
 
 ### Price check / stashninja — Ctrl+Shift+N
 
-Open a supported stash page and poe.ninja prices appear automatically. ExileSight
+Open a supported stash page and press **Ctrl+Shift+P** to show poe.ninja prices
+and the summary for this visit. Rebind this key on the Hotkeys page. Press again
+to hide them. Closing the stash, an unknown page or leaving the game foreground
+ends the visit. A press outside a recognized stash shows nothing. With automatic prices off,
+nothing runs until you press Ctrl+Shift+P or open the Ctrl+Shift+N menu. The menu
+can load prices and capture the selected page for calibration. ExileSight
 identifies the cell arrangement and saves calibration after two consecutive checks agree on the page and position at each resolution;
 no menu, page selection or teaching is required. Closing the stash or opening an
-unknown page hides its tags.
+unknown page hides its tags. Recognition cannot reliably distinguish an unsupported
+page from a closed stash, so return to a supported page and press again.
 
-**Show stash prices automatically** defaults ON. Open Ctrl+Shift+N to turn it off;
-the choice is saved in your profile as `stashninja.automaticPrices`. The optional
+**Show stash prices automatically** defaults OFF. Open Ctrl+Shift+N to opt in;
+the choice is saved in your profile as `stashninja.automaticPrices`. An explicitly
+saved true from 1.1 stays on. If you used the old default without saving a choice,
+prices now stay off until requested. In automatic mode, Ctrl+Shift+P pauses the
+watch until another press or foreground change. The optional
 menu also provides price profiles, **Highlight**, **Auto-calibrate**, and manual
 calibration. Failed Auto-calibrate attempts retain the last good calibration and the loaded page’s tags; only the status changes. Foreground loss and page changes still hide tags normally. Its page list follows automatic recognition. For a manual override,
 select a page and click **Load selected tab**. This pins the page even with automatic
@@ -199,8 +212,9 @@ Vaalasync is the shop repricing and local price-history tool.
 There is no separate default key. Tap CapsLock over an item with a `~b/o` or
 `~price` note to show price buttons. Async listing mode is the default:
 
-1. Open the game's **Set Item Price** dialog yourself and focus its amount field;
-   the current value is pre-selected.
+1. Right-click the item to open the game's **Set Item Price** dialog; the current
+   amount is pre-selected. ExileSight never opens it for you: the game's macro rules
+   allow one action per key press or click, and the price button's one action is the paste.
 2. Click one ExileSight price button. It shows amount + currency and sends only
    Ctrl+A, Ctrl+V of the amount, with no Enter or clicks.
 3. Pick the currency in the game's dropdown, then click **LIST ITEM** yourself.
@@ -297,6 +311,9 @@ default on. Toasts last five seconds. Enabling an alert does not replay old even
 
 **Ctrl+Shift+F10** toggles the guide; **Ctrl+Shift+F11** goes back and
 **Ctrl+Shift+F12** goes forward. Zone changes can advance it automatically.
+The overlay is click-through and shows progress only. Open the desktop app’s
+**Act guide** page for **Back/Next**, **Reset run**, **League start**, **Bandit**,
+**Import JSON**, **Export CSV**, and **Remove custom guide**.
 Use **Reset run** before starting another character: the guide shares one default
 profile. League-start and bandit choices, and importing a custom JSON guide, reset
 progress and timers. Import/export use file dialogs. Guide timing pauses on AFK
@@ -367,8 +384,8 @@ information. Review files before sharing them. The app never edits your game log
   missing paths, unavailable drives or refused network locations. Reading starts
   at the end of the file, so old lines are not imported; change zones to test it.
 - **Missing item details or notifications:** check data-pack diagnostics. Let packs
-  load, then copy the item again. Unknown values are not guessed. Stash tags also
-  require a supported measured layout, which is absent from this version.
+  load, then copy the item again. Unknown values are not guessed. Stash tags require
+  one of the eight supported measured pages; see the stashninja section above.
 - **Antivirus or SmartScreen warning:** CI and 1.0 release installers are unsigned
   (D-098), so Windows SmartScreen and “unknown publisher” prompts are expected.
   Check the build's origin before running it. Keep protection enabled; if it blocks
@@ -407,4 +424,4 @@ Press **Ctrl+Shift+L**. Click **Open poelab**, select today's difficulty on poel
 
 Click **Import file…**, or copy the JSON text and click **Paste JSON**. Clipboard reads happen only on that click. Invalid/oversized files show an error and preserve your previous map. Startup selects the most recently imported difficulty. Select a difficulty to view its saved import; switching back restores its tracking view, and an active run continues tracking while you browse another map. Import again each day: **OUTDATED** means the file date differs from today's UTC date, assuming a 00:00 UTC reset.
 
-The green room is your last known position. Hover rooms for their names and contents; the legend explains symbols. At Aspirants' Plaza, no room is highlighted. Enter the layout's first room to start room tracking. Adjacent rooms distinguish duplicate names. An uncertain state means the panel could not uniquely identify the transition; don't rely on its highlight until a later transition resolves it. Entering any area absent from the layout clears tracking. The panel lists Izaro information and bundled trial locations/tips; it never controls the game.
+The teal room with a thicker ring is your last known position; the tracking line marks it with ◎. Hover rooms for their names and contents; the legend explains symbols. At Aspirants' Plaza, no room is highlighted. Enter the layout's first room to start room tracking. Adjacent rooms distinguish duplicate names. An uncertain state means the panel could not uniquely identify the transition; don't rely on its highlight until a later transition resolves it. Entering any area absent from the layout clears tracking. The panel lists Izaro information and bundled trial locations/tips; it never controls the game.

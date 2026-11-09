@@ -29,7 +29,7 @@ public sealed partial class StashView
 
     private async Task AutoCalibrate(bool explicitRequest)
     {
-        if ((!explicitRequest && autoDetect.IsChecked == true) || identifying || autoCalibrating || calibration.IsActive || layout is null || window?.IsVisible != true ||
+        if ((!explicitRequest && WatchEnabled) || identifying || autoCalibrating || calibration.IsActive || layout is null || window?.IsVisible != true ||
             !window.RequestedVisible || !Game.Current.IsForeground || Game.Current.IsMinimized) return;
         var selected = layout; var initial = Game.Current; var resolution = ClientResolution;
         var saved = calibrationStore.Get(selected, resolution);

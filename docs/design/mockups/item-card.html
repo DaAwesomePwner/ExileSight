@@ -1,0 +1,212 @@
+<!doctype html>
+<!-- Reference mockup for docs/design/UI-SPEC.md (Item card in context). Static, sample values only.
+     Design changes need owner approval. After editing, re-render the PNG: docs/design/render-mockups.sh -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Item card in context</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FD1C6}a:hover{color:#9BE7DE}
+.mono{font-family:'JetBrains Mono',Consolas,monospace;font-feature-settings:'tnum'}
+.pill{display:inline-flex;align-items:center;justify-content:center;height:18px;width:36px;padding:0 4px;box-sizing:border-box;border-radius:3px;font:600 11px 'JetBrains Mono',Consolas,monospace;color:#0C0F14}
+.best{background:#6FE3D5}.high{background:#6AA8FF}.med{background:#AEB6C2}.low{background:#F2994A}
+.track{width:40px;height:6px;background:#2A313C;border-radius:3px;overflow:hidden}
+.fill{height:6px;border-radius:3px}
+.row{display:grid;grid-template-columns:12px 12px minmax(0,1fr) 36px 40px 30px 20px;column-gap:5px;align-items:center;height:24px}
+.anno{position:absolute;width:20px;height:20px;border-radius:10px;background:#F4F4F5;color:#111318;font:700 11px Inter,sans-serif;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px #0E1013}
+.cell{width:36px;height:36px;border:1px solid #23272E;box-sizing:border-box;border-radius:2px}
+</style>
+<style>body{background:#0E1013}</style>
+</head>
+<body>
+<div style="width: 1440px; height: 810px; position: relative; overflow: hidden; background: #0E1013; font-family: Inter, 'Segoe UI', sans-serif; color: #E8EAED;">
+
+  <!-- Explainer column -->
+  <div style="position: absolute; left: 56px; top: 56px; width: 470px; display: flex; flex-direction: column; gap: 22px;">
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.12em; color: #8E97A4;">IN GAME · OMNI-KEY OVER AN ITEM</div>
+      <h1 style="margin: 0; font-size: 34px; line-height: 1.1; font-weight: 700; letter-spacing: -0.01em;">Item card</h1>
+      <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #B7BEC8;">Answers “is this worth a second look?” in one glance, and adds only what the game’s own tooltip hides. It never reprints mod text.</p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: grid; grid-template-columns: 20px minmax(0, 1fr); column-gap: 12px;">
+        <div style="width: 20px; height: 20px; border-radius: 10px; background: #F4F4F5; color: #111318; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">1</div>
+        <div style="font-size: 13px; line-height: 1.5; color: #B7BEC8;"><span style="color: #E8EAED; font-weight: 600;">Verdict.</span> Hits against your highlight rules for this item class: wanted in teal ◆, unwanted in orange ✕.</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 20px minmax(0, 1fr); column-gap: 12px;">
+        <div style="width: 20px; height: 20px; border-radius: 10px; background: #F4F4F5; color: #111318; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">2</div>
+        <div style="font-size: 13px; line-height: 1.5; color: #B7BEC8;"><span style="color: #E8EAED; font-weight: 600;">Slots and base.</span> Prefix and suffix pips (hollow = open, craftable) and the defence base percentile.</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 20px minmax(0, 1fr); column-gap: 12px;">
+        <div style="width: 20px; height: 20px; border-radius: 10px; background: #F4F4F5; color: #111318; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">3</div>
+        <div style="font-size: 13px; line-height: 1.5; color: #B7BEC8;"><span style="color: #E8EAED; font-weight: 600;">Mod rows.</span> Short label, tier, roll position and the ilvl that tier needs. Same order as the game tooltip, so row 3 is line 3.</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 20px minmax(0, 1fr); column-gap: 12px;">
+        <div style="width: 20px; height: 20px; border-radius: 10px; background: #F4F4F5; color: #111318; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">4</div>
+        <div style="font-size: 13px; line-height: 1.5; color: #B7BEC8;"><span style="color: #E8EAED; font-weight: 600;">Compare.</span> Deltas against the item you set as equipped in this slot. Stats we can’t compute are left out, never guessed.</div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid #262C35; border-radius: 6px; background: #13161B;">
+      <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.12em; color: #8E97A4;">ONE SCALE FOR TIER AND ROLL (CURRENT THRESHOLDS)</div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;">
+        <div style="display: flex; flex-direction: column; gap: 6px;"><span class="pill best" style="width: 44px;">T1</span><span style="font-size: 12px; color: #B7BEC8;">Best · 100%</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px;"><span class="pill high" style="width: 44px;">T2–3</span><span style="font-size: 12px; color: #B7BEC8;">High · 75–99%</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px;"><span class="pill med" style="width: 44px;">T4+</span><span style="font-size: 12px; color: #B7BEC8;">Mid · 25–74%</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px;"><span class="pill low" style="width: 44px;">—</span><span style="font-size: 12px; color: #B7BEC8;">Low · under 25%</span></div>
+      </div>
+      <div style="font-size: 12px; line-height: 1.5; color: #8E97A4;">Teal, blue, grey, orange: distinct in lightness and safe for red–green colour blindness. The number is always printed, so colour is never the only signal.</div>
+    </div>
+  </div>
+
+  <!-- Game scene: everything dashed is drawn by the game, not by ExileSight -->
+  <div style="position: absolute; left: 580px; top: 24px; font-size: 11px; letter-spacing: 0.12em; color: #5C6573; font-weight: 600;">DASHED = GAME UI, UNTOUCHED · SOLID = EXILESIGHT</div>
+
+  <!-- Game tooltip placeholder -->
+  <div style="position: absolute; left: 720px; top: 150px; width: 300px; height: 400px; border: 1px dashed #404855; border-radius: 4px; box-sizing: border-box; padding: 18px; display: flex; flex-direction: column; gap: 10px; background: rgba(255,255,255,0.015);">
+    <div style="font-size: 12px; font-weight: 600; color: #8E97A4; text-align: center;">Game’s item tooltip</div>
+    <div style="font-size: 11px; color: #6B7480; text-align: center; margin-top: -6px;">drawn by Path of Exile · never covered</div>
+    <div style="height: 10px; width: 60%; align-self: center; background: #262B33; border-radius: 2px; margin-top: 6px;"></div>
+    <div style="height: 10px; width: 45%; align-self: center; background: #262B33; border-radius: 2px;"></div>
+    <div style="height: 1px; background: #2B3039; margin: 6px 0;"></div>
+    <div style="height: 8px; width: 55%; align-self: center; background: #20252C; border-radius: 2px;"></div>
+    <div style="height: 8px; width: 40%; align-self: center; background: #20252C; border-radius: 2px;"></div>
+    <div style="height: 1px; background: #2B3039; margin: 6px 0;"></div>
+    <div style="display: flex; align-items: center; gap: 8px;"><span class="mono" style="font-size: 10px; color: #5C6573; width: 10px;">1</span><div style="height: 8px; flex-grow: 1; background: #2A3038; border-radius: 2px;"></div></div>
+    <div style="display: flex; align-items: center; gap: 8px;"><span class="mono" style="font-size: 10px; color: #5C6573; width: 10px;">2</span><div style="height: 8px; width: 75%; background: #2A3038; border-radius: 2px;"></div></div>
+    <div style="display: flex; align-items: center; gap: 8px;"><span class="mono" style="font-size: 10px; color: #5C6573; width: 10px;">3</span><div style="height: 8px; width: 68%; background: #2A3038; border-radius: 2px;"></div></div>
+    <div style="display: flex; align-items: center; gap: 8px;"><span class="mono" style="font-size: 10px; color: #5C6573; width: 10px;">4</span><div style="height: 8px; width: 70%; background: #2A3038; border-radius: 2px;"></div></div>
+    <div style="display: flex; align-items: center; gap: 8px;"><span class="mono" style="font-size: 10px; color: #5C6573; width: 10px;">5</span><div style="height: 8px; width: 82%; background: #2A3038; border-radius: 2px;"></div></div>
+    <div style="height: 1px; background: #2B3039; margin: 6px 0;"></div>
+    <div style="height: 8px; width: 50%; align-self: center; background: #20252C; border-radius: 2px;"></div>
+  </div>
+
+  <!-- Inventory placeholder -->
+  <div style="position: absolute; left: 1040px; top: 300px; width: 380px; height: 290px; border: 1px dashed #404855; border-radius: 4px; box-sizing: border-box; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+    <div style="font-size: 12px; font-weight: 600; color: #8E97A4;">Inventory · game UI</div>
+    <div style="display: grid; grid-template-columns: repeat(10, 36px); grid-auto-rows: 36px; gap: 0;">
+      <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+    </div>
+  </div>
+  <!-- Hovered item (2x3) -->
+  <div style="position: absolute; left: 1052px; top: 334px; width: 72px; height: 108px; border: 1px dashed #8E97A4; border-radius: 3px; background: rgba(142,151,164,0.08);"></div>
+  <!-- Cursor -->
+  <svg style="position: absolute; left: 1102px; top: 384px;" width="18" height="24" viewBox="0 0 18 24" aria-hidden="true"><path d="M1 1 L1 19 L6 14 L9.5 22 L12.5 20.7 L9 13 L16 13 Z" fill="#F4F4F5" stroke="#0E1013" stroke-width="1.5" stroke-linejoin="round"></path></svg>
+
+  <!-- ExileSight item card -->
+  <div style="position: absolute; left: 1124px; top: 372px; width: 300px; box-sizing: border-box; padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; background: rgba(15,18,23,0.96); border: 1px solid #2E3540; border-radius: 6px; font-size: 13px;">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+      <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0;">
+        <span style="font-weight: 600; font-size: 13px; color: #F1F2F4;">Vaal Regalia</span>
+        <span style="font-size: 11px; color: #8E97A4;">Rare body armour</span>
+      </div>
+      <span class="mono" style="font-size: 11px; color: #8E97A4;">ilvl 86</span>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: 4px; background: #17202A;">
+      <div style="display: flex; gap: 10px; font-size: 12px; font-weight: 600;">
+        <span style="color: #6FE3D5;">◆ 3 wanted</span>
+        <span style="color: #F2994A;">✕ 1 unwanted</span>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; color: #8E97A4; white-space: nowrap;">
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <span class="mono" style="color: #B7BEC8;">P</span>
+        <span style="width: 8px; height: 8px; border-radius: 2px; background: #C9CED6;"></span><span style="width: 8px; height: 8px; border-radius: 2px; background: #C9CED6;"></span><span style="width: 8px; height: 8px; border-radius: 2px; border: 1.5px solid #6FE3D5; box-sizing: border-box;"></span>
+        <span class="mono" style="color: #B7BEC8; margin-left: 6px;">S</span>
+        <span style="width: 8px; height: 8px; border-radius: 2px; background: #C9CED6;"></span><span style="width: 8px; height: 8px; border-radius: 2px; background: #C9CED6;"></span><span style="width: 8px; height: 8px; border-radius: 2px; background: #C9CED6;"></span>
+        <span style="color: #6FE3D5; margin-left: 4px;">1 open</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span>ES base</span>
+        <div class="track" style="width: 40px;"><div class="fill high" style="width: 94%;"></div></div>
+        <span class="mono" style="color: #E8EAED;">94th</span>
+      </div>
+    </div>
+
+    <div style="height: 1px; background: #262C35;"></div>
+
+    <div style="display: flex; flex-direction: column;">
+      <div class="row" style="height: 16px; font-size: 10px; letter-spacing: 0.08em; color: #6B7480; font-weight: 600;">
+        <span></span><span></span><span>MOD</span><span>TIER</span><span>ROLL</span><span></span><span style="text-align: right;">ILVL</span>
+      </div>
+      <div class="row">
+        <span class="mono" style="font-size: 10px; color: #6B7480;">P</span><span style="color: #6FE3D5; font-size: 10px;">◆</span>
+        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">+ max ES</span>
+        <span class="pill high">T2</span>
+        <div class="track"><div class="fill high" style="width: 81%;"></div></div>
+        <span class="mono" style="font-size: 11px; color: #B7BEC8; text-align: right;">81%</span>
+        <span class="mono" style="font-size: 11px; color: #8E97A4; text-align: right;">75</span>
+      </div>
+      <div class="row">
+        <span class="mono" style="font-size: 10px; color: #6B7480;">P</span><span style="color: #6FE3D5; font-size: 10px;">◆</span>
+        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">% inc ES</span>
+        <span class="pill best">T1</span>
+        <div class="track"><div class="fill high" style="width: 95%;"></div></div>
+        <span class="mono" style="font-size: 11px; color: #B7BEC8; text-align: right;">95%</span>
+        <span class="mono" style="font-size: 11px; color: #8E97A4; text-align: right;">84</span>
+      </div>
+      <div class="row">
+        <span class="mono" style="font-size: 10px; color: #6B7480;">S</span><span></span>
+        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Fire res</span>
+        <span class="pill high">T3</span>
+        <div class="track"><div class="fill med" style="width: 40%;"></div></div>
+        <span class="mono" style="font-size: 11px; color: #B7BEC8; text-align: right;">40%</span>
+        <span class="mono" style="font-size: 11px; color: #8E97A4; text-align: right;">48</span>
+      </div>
+      <div class="row">
+        <span class="mono" style="font-size: 10px; color: #6B7480;">S</span><span style="color: #6FE3D5; font-size: 10px;">◆</span>
+        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Cold res</span>
+        <span class="pill best">T1</span>
+        <div class="track"><div class="fill best" style="width: 100%;"></div></div>
+        <span class="mono" style="font-size: 11px; color: #B7BEC8; text-align: right;">100%</span>
+        <span class="mono" style="font-size: 11px; color: #8E97A4; text-align: right;">84</span>
+      </div>
+      <div class="row" style="color: #9AA3AF;">
+        <span class="mono" style="font-size: 10px; color: #6B7480;">S</span><span style="color: #F2994A; font-size: 10px;">✕</span>
+        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Stun recov</span>
+        <span class="pill med">T4</span>
+        <div class="track"><div class="fill low" style="width: 18%;"></div></div>
+        <span class="mono" style="font-size: 11px; color: #B7BEC8; text-align: right;">18%</span>
+        <span class="mono" style="font-size: 11px; color: #8E97A4; text-align: right;">30</span>
+      </div>
+    </div>
+
+    <div style="height: 1px; background: #262C35;"></div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <div style="font-size: 11px; color: #8E97A4;">vs equipped body armour</div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; font-size: 12px;">
+        <div style="display: flex; justify-content: space-between;"><span style="color: #B7BEC8;">Energy shield</span><span class="mono" style="color: #6AA8FF;">▲ 142</span></div>
+        <div style="display: flex; justify-content: space-between;"><span style="color: #B7BEC8;">Cold res</span><span class="mono" style="color: #6AA8FF;">▲ 18</span></div>
+        <div style="display: flex; justify-content: space-between;"><span style="color: #B7BEC8;">Fire res</span><span class="mono" style="color: #F2994A;">▼ 12</span></div>
+        <div style="display: flex; justify-content: space-between;"><span style="color: #B7BEC8;">Intelligence</span><span class="mono" style="color: #F2994A;">▼ 20</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Annotation badges -->
+  <div class="anno" style="left: 1414px; top: 420px;">1</div>
+  <div class="anno" style="left: 1414px; top: 452px;">2</div>
+  <div class="anno" style="left: 1414px; top: 540px;">3</div>
+  <div class="anno" style="left: 1414px; top: 680px;">4</div>
+
+  <!-- Placement callout -->
+  <div style="position: absolute; left: 580px; top: 600px; width: 440px; display: flex; flex-direction: column; gap: 6px;">
+    <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.12em; color: #8E97A4;">PLACEMENT</div>
+    <div style="font-size: 13px; line-height: 1.5; color: #B7BEC8;">Cursor is right of centre, so the game puts its tooltip to the left. The card opens to the right, top-aligned with the cursor, clamped inside the client. Click-through; moving the mouse or pressing Esc closes it, as today.</div>
+  </div>
+
+  <div style="position: absolute; left: 56px; bottom: 28px; font-size: 11px; color: #6B7480;">Sample values for illustration. Short mod labels (“+ max ES”) need a new label table keyed by stat ID; everything else comes from data the item-info feature already computes.</div>
+</div>
+</body>
+</html>

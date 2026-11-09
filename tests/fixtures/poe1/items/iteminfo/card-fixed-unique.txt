@@ -1,0 +1,15 @@
+Item Class: Helmets
+Rarity: Unique
+Synthetic Fixed Crown
+Synthetic Hat
+--------
+Item Level: 80
+--------
+{ Enchantment Modifier }
+Cannot be Stunned (enchant)
+--------
+{ Implicit Modifier }
++10 to maximum Life (implicit)
+--------
+{ Unique Modifier }
++1 to Maximum Endurance Charges

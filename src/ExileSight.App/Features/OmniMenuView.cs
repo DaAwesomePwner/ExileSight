@@ -3,7 +3,8 @@ using ExileSight.Core.Features;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Threading;
+using ExileSight.App.Ui;
+using ExileSight.App.Features.Macros;
 using ExileSight.Core.Input;
 using ExileSight.Core.Pricing;
 using ExileSight.Core.Settings;
@@ -22,7 +23,9 @@ namespace ExileSight.App.Features;
 public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, IGameWindow game,
     IOverlayWindowStyler styler, ISettingsStore<SettingsDocument> settings, ILogger<OmniMenuView> logger, IHostApplicationLifetime lifetime, PriceService? prices = null) : IDisposable
 {
-    private readonly StackPanel panel = new();
+    private FrameworkElement? card;
+    private OmniMenuPresentation? displayed;
+    private CardTheme? theme;
     private readonly Window window = new()
     {
         WindowStyle = WindowStyle.None, ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false,
@@ -39,7 +42,7 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
     public void Start(OmniMenu menu)
     {
         model = menu;
-        window.Content = new Border { Background = Brushes.Black, Padding = new Thickness(8), Child = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } };
+        window.Content = new Border();
         handle = new WindowInteropHelper(window).EnsureHandle();
         styler.Apply(handle);
         styler.SetClickThrough(handle, false);
@@ -89,33 +92,25 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
     private void OpenCore(OmniMenuPresentation presentation)
     {
         if (disposed || !game.Current.Found || game.Current.IsMinimized || !game.Current.IsForeground || !settings.Snapshot.Overlay.Enabled) return;
-        panel.Children.Clear();
-        foreach (var link in presentation.Links)
-        {
-            var button = new Button { Content = link.Label, Margin = new Thickness(2), Padding = new Thickness(6) };
+        displayed = presentation;
+        theme = OverlayTheme.From(settings.Snapshot.Overlay);
+        card = OmniMenuBuilder.Build(presentation, theme);
+        ((Border)window.Content).Child = card;
+        foreach (var button in OnDemandControls.Buttons(card))
             button.Click += (_, _) =>
             {
                 window.Hide();
-                try { OmniMenu.Open(browser, link); }
-                catch (Exception error) { logger.LogWarning("Browser open failed: {ExceptionType}", error.GetType().Name); }
+                try
+                {
+                    if (button.Tag is OmniLink link) OmniMenu.Open(browser, link);
+                    else if (button.Tag is ItemMenuEntry entry) entry.Execute();
+                }
+                catch (Exception error)
+                {
+                    if (button.Tag is OmniLink) logger.LogWarning("Browser open failed: {ExceptionType}", error.GetType().Name);
+                    else logger.LogWarning("Item menu action failed: {ExceptionType}", error.GetType().Name);
+                }
             };
-            panel.Children.Add(button);
-        }
-        foreach (var entry in presentation.Entries)
-        {
-            var button = new Button
-            {
-                Content = new TextBlock { Text = "[" + entry.FeatureId + "] " + entry.Label, TextWrapping = TextWrapping.Wrap },
-                Margin = new Thickness(2), Padding = new Thickness(6)
-            };
-            button.Click += (_, _) =>
-            {
-                window.Hide();
-                try { entry.Execute(); }
-                catch (Exception error) { logger.LogWarning("Item menu action failed: {ExceptionType}", error.GetType().Name); }
-            };
-            panel.Children.Add(button);
-        }
         originX = presentation.Origin.X; originY = presentation.Origin.Y;
         Position();
         window.Show();
@@ -127,8 +122,9 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
         var client = game.Current.ClientRect;
         if (client.Width <= 0 || client.Height <= 0) throw new InvalidOperationException("Game client has no drawable area");
         var scale = OverlayRules.Scale(client.Height, settings.Snapshot.Overlay.ScaleOverride);
+        card?.Measure(new Size(260, double.PositiveInfinity));
         bounds = PopupPlacement.Place(client, styler.GetWorkArea(client), originX, originY,
-            260, Math.Max(180, panel.Children.Count * 38 + 16), scale, 8);
+            260, Math.Max(80, card?.DesiredSize.Height ?? 80), scale, 8);
         styler.Position(handle, bounds);
         var dpi = VisualTreeHelper.GetDpi(window);
         ((FrameworkElement)window.Content).LayoutTransform = new ScaleTransform(
@@ -145,7 +141,10 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
     }
     private void SettingsChanged(object? sender, SettingsChangedEventArgs args) => window.Dispatcher.BeginInvoke(() =>
     {
-        if (!disposed && !settings.Snapshot.Overlay.Enabled) window.Hide();
+        if (disposed) return;
+        if (!settings.Snapshot.Overlay.Enabled) window.Hide();
+        else if (window.IsVisible && displayed is { } current && !ReferenceEquals(theme, OverlayTheme.From(settings.Snapshot.Overlay)))
+            Guard(() => OpenCore(current));
     });
     private void GameChanged(object? sender, EventArgs args) => window.Dispatcher.BeginInvoke(() =>
     {

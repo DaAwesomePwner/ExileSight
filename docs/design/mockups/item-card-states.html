@@ -1,0 +1,179 @@
+<!doctype html>
+<!-- Reference mockup for docs/design/UI-SPEC.md (Item card states). Static, sample values only.
+     Design changes need owner approval. After editing, re-render the PNG: docs/design/render-mockups.sh -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Item card states</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+.mono{font-family:'JetBrains Mono',Consolas,monospace;font-feature-settings:'tnum'}
+.card{width:300px;box-sizing:border-box;padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;background:rgba(15,18,23,0.96);border:1px solid #2E3540;border-radius:6px;font-size:13px;color:#E8EAED}
+.pill{display:inline-flex;align-items:center;justify-content:center;height:18px;width:36px;padding:0 4px;box-sizing:border-box;border-radius:3px;font:600 11px 'JetBrains Mono',Consolas,monospace;color:#0C0F14}
+.best{background:#6FE3D5}.high{background:#6AA8FF}.med{background:#AEB6C2}.low{background:#F2994A}.craft{background:#C3A6FF}.uniq{background:#E2B97F}
+.unk{background:transparent;border:1px dashed #5C6573;color:#9AA3AF}
+.imp{background:transparent;border:1px solid #6B7480;color:#C9CED6}
+.track{width:40px;height:6px;background:#2A313C;border-radius:3px;overflow:hidden}
+.fill{height:6px;border-radius:3px}
+.row{display:grid;grid-template-columns:12px 12px minmax(0,1fr) 36px 40px 30px 20px;column-gap:5px;align-items:center;height:24px}
+.lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ps{font-size:10px;color:#6B7480}
+.r{font-size:11px;color:#B7BEC8;text-align:right}
+.i{font-size:11px;color:#8E97A4;text-align:right}
+.rule{height:1px;background:#262C35}
+.cap{font-size:11px;font-weight:600;letter-spacing:0.12em;color:#8E97A4}
+.note{font-size:12px;line-height:1.5;color:#9AA3AF}
+.pip{width:8px;height:8px;border-radius:2px;background:#C9CED6}
+.open{width:8px;height:8px;border-radius:2px;border:1.5px solid #6FE3D5;box-sizing:border-box}
+.unkpip{width:8px;height:8px;border-radius:2px;border:1px dashed #5C6573;box-sizing:border-box}
+</style>
+<style>body{background:#0E1013}</style>
+</head>
+<body>
+<div style="width: 1360px; height: 700px; box-sizing: border-box; padding: 40px; background: #0E1013; font-family: Inter, 'Segoe UI', sans-serif; color: #E8EAED; display: flex; flex-direction: column; gap: 28px;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <div class="cap">ITEM CARD · ACTUAL SIZE AT 1080p</div>
+    <div style="font-size: 22px; font-weight: 700;">One layout for every item class</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(4, 300px); column-gap: 24px; align-items: start;">
+
+    <!-- Ring -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="cap">RARE · IMPLICIT + CRAFTED</div>
+      <div class="card">
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-weight: 600;">Amethyst Ring</span><span style="font-size: 11px; color: #8E97A4;">Rare ring</span></div>
+          <span class="mono" style="font-size: 11px; color: #8E97A4;">ilvl 83</span>
+        </div>
+        <div style="padding: 6px 8px; border-radius: 4px; background: #17202A; font-size: 12px; font-weight: 600; color: #6FE3D5;">◆ 2 wanted</div>
+        <div style="display: flex; align-items: center; gap: 4px; font-size: 11px;">
+          <span class="mono" style="color: #B7BEC8;">P</span><span class="pip"></span><span class="pip"></span><span class="pip"></span>
+          <span class="mono" style="color: #B7BEC8; margin-left: 6px;">S</span><span class="pip"></span><span class="pip"></span><span class="open"></span>
+          <span style="color: #6FE3D5; margin-left: 4px;">1 open</span>
+        </div>
+        <div class="rule"></div>
+        <div style="display: flex; flex-direction: column;">
+          <div class="row"><span class="mono ps">I</span><span></span><span class="lab" style="color: #C9CED6;">Chaos res</span><span class="pill imp">imp</span><div class="track"><div class="fill med" style="width: 60%;"></div></div><span class="mono r">60%</span><span class="mono i"></span></div>
+          <div style="height: 1px; background: #1E232B; margin: 2px 0;"></div>
+          <div class="row"><span class="mono ps">P</span><span style="color: #6FE3D5; font-size: 10px;">◆</span><span class="lab">+ max life</span><span class="pill high">T2</span><div class="track"><div class="fill high" style="width: 88%;"></div></div><span class="mono r">88%</span><span class="mono i">74</span></div>
+          <div class="row"><span class="mono ps">P</span><span></span><span class="lab">Cold to attacks</span><span class="pill med">T6</span><div class="track"><div class="fill med" style="width: 35%;"></div></div><span class="mono r">35%</span><span class="mono i">13</span></div>
+          <div class="row"><span class="mono ps">P</span><span></span><span class="lab">+ max mana</span><span class="pill high">T3</span><div class="track"><div class="fill med" style="width: 50%;"></div></div><span class="mono r">50%</span><span class="mono i">35</span></div>
+          <div class="row"><span class="mono ps">S</span><span style="color: #6FE3D5; font-size: 10px;">◆</span><span class="lab">Lightning res</span><span class="pill best">T1</span><div class="track"><div class="fill high" style="width: 76%;"></div></div><span class="mono r">76%</span><span class="mono i">84</span></div>
+          <div class="row"><span class="mono ps">S</span><span></span><span class="lab" style="color: #C3A6FF;">Fire res</span><span class="pill craft">cr</span><div class="track"><div class="fill med" style="width: 60%;"></div></div><span class="mono r">60%</span><span class="mono i"></span></div>
+        </div>
+        <div class="rule"></div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="font-size: 11px; color: #8E97A4;">vs equipped left ring</div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; font-size: 12px;">
+            <div style="display: flex; justify-content: space-between;"><span style="color: #B7BEC8;">Life</span><span class="mono" style="color: #6AA8FF;">▲ 24</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: #B7BEC8;">Lightning res</span><span class="mono" style="color: #6AA8FF;">▲ 8</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: #B7BEC8;">Mana</span><span class="mono" style="color: #F2994A;">▼ 15</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: #B7BEC8;">Fire res</span><span class="mono" style="color: #F2994A;">▼ 4</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="note">Implicit sits above a hairline with an outlined “imp” pill. Crafted mods use lavender and still count toward slots.</div>
+    </div>
+
+    <!-- Bow -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="cap">WEAPON · HYBRID MOD</div>
+      <div class="card">
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-weight: 600;">Thicket Bow</span><span style="font-size: 11px; color: #8E97A4;">Rare bow</span></div>
+          <span class="mono" style="font-size: 11px; color: #8E97A4;">ilvl 84</span>
+        </div>
+        <div style="padding: 6px 8px; border-radius: 4px; background: #17202A; font-size: 12px; font-weight: 600; display: flex; gap: 10px;"><span style="color: #6FE3D5;">◆ 3 wanted</span><span style="color: #F2994A;">✕ 1 unwanted</span></div>
+        <div style="display: flex; align-items: center; gap: 4px; font-size: 11px;">
+          <span class="mono" style="color: #B7BEC8;">P</span><span class="pip"></span><span class="pip"></span><span class="pip"></span>
+          <span class="mono" style="color: #B7BEC8; margin-left: 6px;">S</span><span class="pip"></span><span class="pip"></span><span class="open"></span>
+          <span style="color: #6FE3D5; margin-left: 4px;">1 open</span>
+        </div>
+        <div class="rule"></div>
+        <div style="display: flex; flex-direction: column;">
+          <div class="row"><span class="mono ps">P</span><span style="color: #6FE3D5; font-size: 10px;">◆</span><span class="lab">% phys dmg</span><span class="pill high">T2</span><div class="track"><div class="fill med" style="width: 70%;"></div></div><span class="mono r">70%</span><span class="mono i">73</span></div>
+          <div style="display: grid; grid-template-columns: 12px 12px minmax(0,1fr) 36px 40px 30px 20px; column-gap: 5px; align-items: center; height: 40px;">
+            <span class="mono ps">P</span><span></span>
+            <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
+              <div style="width: 3px; height: 30px; border: 1px solid #4A5260; border-right: 0; border-radius: 2px 0 0 2px; box-sizing: border-box;"></div>
+              <div style="display: flex; flex-direction: column; min-width: 0;"><span class="lab">% phys + acc</span><span style="font-size: 10px; color: #6B7480;">2 game lines</span></div>
+            </div>
+            <span class="pill high">T3</span><div class="track"><div class="fill med" style="width: 62%;"></div></div><span class="mono r">62%</span><span class="mono i">46</span>
+          </div>
+          <div class="row"><span class="mono ps">P</span><span style="color: #6FE3D5; font-size: 10px;">◆</span><span class="lab">Flat phys</span><span class="pill med">T4</span><div class="track"><div class="fill med" style="width: 55%;"></div></div><span class="mono r">55%</span><span class="mono i">33</span></div>
+          <div class="row"><span class="mono ps">S</span><span style="color: #6FE3D5; font-size: 10px;">◆</span><span class="lab">Attack speed</span><span class="pill best">T1</span><div class="track"><div class="fill best" style="width: 100%;"></div></div><span class="mono r">100%</span><span class="mono i">76</span></div>
+          <div class="row" style="color: #9AA3AF;"><span class="mono ps">S</span><span style="color: #F2994A; font-size: 10px;">✕</span><span class="lab">Light radius</span><span class="pill med">T5</span><div class="track"><div class="fill low" style="width: 20%;"></div></div><span class="mono r">20%</span><span class="mono i">8</span></div>
+        </div>
+        <div class="rule"></div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="font-size: 11px; color: #8E97A4;">vs equipped weapon</div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; font-size: 12px;">
+            <div style="display: flex; justify-content: space-between;"><span style="color: #B7BEC8;">Phys DPS</span><span class="mono" style="color: #6AA8FF;">▲ 87.3</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: #B7BEC8;">Elemental DPS</span><span class="mono" style="color: #F2994A;">▼ 26.3</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="note">A hybrid mod is one row with a bracket and “2 game lines”, so row-to-line matching still holds.</div>
+    </div>
+
+    <!-- Unique -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="cap">UNIQUE · ROLLS ONLY</div>
+      <div class="card">
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-weight: 600; color: #E2B97F;">Headhunter</span><span style="font-size: 11px; color: #8E97A4;">Unique belt · Leather Belt</span></div>
+          <span class="mono" style="font-size: 11px; color: #8E97A4;">ilvl 80</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: 4px; background: #17202A; font-size: 12px;">
+          <span style="color: #B7BEC8;">Average roll</span>
+          <div style="display: flex; align-items: center; gap: 8px;"><div class="track" style="width: 72px;"><div class="fill high" style="width: 86%;"></div></div><span class="mono" style="font-weight: 600;">86%</span></div>
+        </div>
+        <div class="rule"></div>
+        <div style="display: flex; flex-direction: column;">
+          <div class="row"><span class="mono ps">I</span><span></span><span class="lab" style="color: #C9CED6;">+ max life</span><span class="pill imp">imp</span><div class="track"><div class="fill high" style="width: 80%;"></div></div><span class="mono r">80%</span><span class="mono i"></span></div>
+          <div style="height: 1px; background: #1E232B; margin: 2px 0;"></div>
+          <div class="row"><span class="mono ps"></span><span></span><span class="lab">Strength</span><span class="pill uniq">U</span><div class="track"><div class="fill high" style="width: 80%;"></div></div><span class="mono r">80%</span><span class="mono i"></span></div>
+          <div class="row"><span class="mono ps"></span><span></span><span class="lab">Dex</span><span class="pill uniq">U</span><div class="track"><div class="fill med" style="width: 65%;"></div></div><span class="mono r">65%</span><span class="mono i"></span></div>
+          <div class="row"><span class="mono ps"></span><span></span><span class="lab">+ max life</span><span class="pill uniq">U</span><div class="track"><div class="fill best" style="width: 100%;"></div></div><span class="mono r">100%</span><span class="mono i"></span></div>
+          <div class="row"><span class="mono ps"></span><span></span><span class="lab">Dmg vs rares</span><span class="pill uniq">U</span><div class="track"><div class="fill best" style="width: 100%;"></div></div><span class="mono r">100%</span><span class="mono i"></span></div>
+          <div class="row"><span class="mono ps"></span><span></span><span class="lab" style="color: #8E97A4;">Steals mods</span><span class="pill" style="background: transparent; color: #6B7480;">·</span><span style="font-size: 11px; color: #6B7480; grid-column: span 3;">fixed</span></div>
+        </div>
+      </div>
+      <div class="note">No tiers on uniques, so the verdict becomes the average roll. Fixed lines stay as a dim row to keep line matching. Drop tier is unknown, so it isn’t shown.</div>
+    </div>
+
+    <!-- Degraded -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="cap">PLAIN COPY · TIERS UNKNOWN</div>
+      <div class="card">
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-weight: 600;">Titanium Spirit Shield</span><span style="font-size: 11px; color: #8E97A4;">Rare shield</span></div>
+          <span class="mono" style="font-size: 11px; color: #8E97A4;">ilvl 85</span>
+        </div>
+        <div style="padding: 6px 8px; border-radius: 4px; border: 1px dashed #4A5260; font-size: 12px; line-height: 1.45; color: #B7BEC8;">Tiers and rolls need advanced copy. Turn it back on in Item rules › Omni key.</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; color: #8E97A4; white-space: nowrap;">
+          <div style="display: flex; align-items: center; gap: 4px;"><span class="mono" style="color: #B7BEC8;">P</span><span class="unkpip"></span><span class="unkpip"></span><span class="unkpip"></span><span class="mono" style="color: #B7BEC8; margin-left: 6px;">S</span><span class="unkpip"></span><span class="unkpip"></span><span class="unkpip"></span></div>
+          <div style="display: flex; align-items: center; gap: 6px;"><span>ES base</span><div class="track" style="width: 40px;"><div class="fill high" style="width: 78%;"></div></div><span class="mono" style="color: #E8EAED;">78th</span></div>
+        </div>
+        <div class="rule"></div>
+        <div style="display: flex; flex-direction: column;">
+          <div class="row"><span class="mono ps">?</span><span style="color: #6FE3D5; font-size: 10px;">◆</span><span class="lab">+ max ES</span><span class="pill unk">T?</span><div class="track" style="background: transparent; border: 1px dashed #3A414C; box-sizing: border-box;"></div><span class="mono r" style="color: #6B7480;">—</span><span class="mono i">—</span></div>
+          <div class="row"><span class="mono ps">?</span><span></span><span class="lab">Spell dmg</span><span class="pill unk">T?</span><div class="track" style="background: transparent; border: 1px dashed #3A414C; box-sizing: border-box;"></div><span class="mono r" style="color: #6B7480;">—</span><span class="mono i">—</span></div>
+          <div class="row"><span class="mono ps">?</span><span></span><span class="lab">Cast speed</span><span class="pill unk">T?</span><div class="track" style="background: transparent; border: 1px dashed #3A414C; box-sizing: border-box;"></div><span class="mono r" style="color: #6B7480;">—</span><span class="mono i">—</span></div>
+        </div>
+      </div>
+      <div class="note">Unknown stays visibly unknown: dashed pills and empty bars, never a guessed tier. Highlight rules still match on text.</div>
+
+      <div class="cap" style="margin-top: 6px;">UNIDENTIFIED</div>
+      <div class="card" style="gap: 6px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between;"><span style="font-weight: 600;">Hubris Circlet</span><span class="mono" style="font-size: 11px; color: #8E97A4;">ilvl 86</span></div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; color: #8E97A4; white-space: nowrap;"><span>Unidentified · mods hidden</span><div style="display: flex; align-items: center; gap: 6px;"><span>ES base</span><span class="mono" style="color: #E8EAED;">91st</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

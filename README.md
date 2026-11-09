@@ -34,9 +34,9 @@ ExileSight is built to follow [GGG's third-party policy](https://www.pathofexile
 - **One key press gives one action.** Only one component, the Action Gate, can send input to the game. It only acts on a real key press or click, and only once per press.
 - **Display-only updates.** Timers, log events and screen checks can only change what the overlay shows. They can never send input or obtain an IntentToken.
 - **No memory reading, injection or graphics hooks.** ExileSight never opens the game process and never changes the game window.
-- **Transparent.** What it reads: the game's `Client.txt` log, text you copy with Ctrl+C, and, for 1.1 Stashninja page recognition (D-104), pixels inside the game client rectangle only while the game is foreground and the stash overlay is open. What it sends: only the actions listed in [docs/FAIR-PLAY.md](docs/FAIR-PLAY.md).
+- **Transparent.** What it reads: the game's `Client.txt` log, text you copy with Ctrl+C, and, for Stashninja’s automatic watch, page recognition and grid calibration (1.1, D-104), pixels inside the foreground game client rectangle, even with the stash menu closed. What it sends: only the actions listed in [docs/FAIR-PLAY.md](docs/FAIR-PLAY.md).
 
-Stash page recognition uses GDI BitBlt, with no DXGI capture, DirectX/Vulkan hooks or Windows.Graphics.Capture. User-taught page references are captured locally after calibration or with **Remember this page** and stay on your machine; no game images are shipped or committed. Exclusive fullscreen may not capture; Windowed Fullscreen is recommended. Calibration-free grid location is a possible later follow-up, outside D-104.
+Stash page recognition uses GDI BitBlt, with no DXGI capture, DirectX/Vulkan hooks or Windows.Graphics.Capture. **Show stash prices automatically** defaults on. Supported pages are identified without teaching, with first-use calibration saved after two consecutive checks agree. **Auto-calibrate** and manual calibration remain fallbacks. Optional taught references stay on your machine; automatic identification does not use them. No game images are shipped or committed. Exclusive fullscreen may not capture; Windowed Fullscreen is recommended. Screen reads follow the limits in [FAIR-PLAY.md](docs/FAIR-PLAY.md).
 
 See the [transparency table](#transparency) for each feature’s declared permissions and defaults.
 
@@ -53,11 +53,11 @@ Generated from compiled feature manifests and registered default bindings; suppl
 | iteminfo | None | None | `poe1/bases`<br>`poe1/mods`<br>`poe1/stats` | None | `active profile JSON (highlight profiles)` | None |
 | lab | None | None | None | `Browser: poelab.com`<br>`Browser: www.poelab.com` | `poe1/lab/latest.txt`<br>`poe1/lab/{difficulty}.json` | `Control+Shift+L → lab:toggle (blocked)` |
 | macros | `SendChatCommand` | None | None | None | `active profile JSON (commands)` | `F5 → macros:travel (blocked)`<br>`F6 → macros:macro (blocked)` |
-| mapinfo | None | None | `poe1/mapmods` | None | `poe1/mapinfo/ratings.json` | None |
+| mapinfo | None | None | `poe1/mapmods` | None | `active profile JSON (map thresholds)`<br>`poe1/mapinfo/ratings.json` | None |
 | maptracker | `SendChatCommand` | None | None | `HTTP: poe.ninja` | `active profile JSON (league)`<br>`poe1/maptracker/{league-hash}.jsonl`<br>`user-selected CSV export` | `Control+Shift+K → maptracker:kills (blocked)`<br>`Control+Shift+M → maptracker:viewer (blocked)` |
-| omni | `CopyItem` | None | None | `Browser: poedb.tw`<br>`Browser: www.craftofexile.com`<br>`Browser: www.pathofexile.com`<br>`Browser: www.poewiki.net` | None | `CapsLock → omni:press (blocked)` |
+| omni | `CopyItem` | None | None | `Browser: poedb.tw`<br>`Browser: www.craftofexile.com`<br>`Browser: www.pathofexile.com`<br>`Browser: www.poewiki.net` | `active profile JSON (use advanced copy)` | `CapsLock → omni:press (blocked)` |
 | searchstr | `PasteSearch` | None | None | None | None | `F9 → searchstr:open (blocked)` |
-| stashninja | `PasteSearch` | `automatic stash watch, page recognition and grid calibration (foreground game client, display-only)` | None | `HTTP: poe.ninja` | `poe1/stashninja/calibration.json` | `Control+Shift+N → stashninja:open (blocked)` |
+| stashninja | `PasteSearch` | `stash watch after Ctrl+Shift+P or with automatic prices on, page recognition and grid calibration (foreground game client, display-only)` | None | `HTTP: poe.ninja` | `poe1/stashninja/calibration.json` | `Control+Shift+N → stashninja:open (blocked)`<br>`Control+Shift+P → stashninja:prices (blocked)` |
 | timers | None | None | None | None | `poe1/timers/timers.json` | `Control+Shift+T → timers:toggle (blocked)`<br>`Tab → timers:hold (passed through)` |
 | vaalasync | `SetListingAmount`<br>`SetPriceNote` | None | None | `HTTP: poe.ninja` | `poe1/vaalasync/history.json` | None |
 

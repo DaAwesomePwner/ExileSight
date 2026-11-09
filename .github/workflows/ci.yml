@@ -1,5 +1,6 @@
 name: CI
 on:
+  workflow_dispatch:
   push:
     branches: [main, 'integration/**', 'fixtures/**']
   pull_request:
@@ -9,6 +10,8 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      EXILESIGHT_UI_SNAPSHOTS_DIR: ${{ github.workspace }}/artifacts/ui-snapshots
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -23,6 +26,13 @@ jobs:
       - run: dotnet restore ExileSight.slnx
       - run: dotnet build ExileSight.slnx -c Release -warnaserror
       - run: dotnet test ExileSight.slnx -c Release --no-build
+      - name: ui-snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-snapshots
+          path: artifacts/ui-snapshots/
+          if-no-files-found: warn
       - name: Generate pinned PoE1 packs
         shell: pwsh
         run: |

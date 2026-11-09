@@ -1,0 +1,17 @@
+Item Class: Bows
+Rarity: Rare
+Synthetic Card Bow
+Synthetic Bow
+--------
+Physical Damage: 20-40
+Elemental Damage: 10-20
+Chaos Damage: 2-6
+Attacks per Second: 2
+--------
+Item Level: 80
+--------
+{ Prefix Modifier "Synthetic Hybrid" (Tier: 2) }
+50(40-60)% increased Physical Damage
++20(10-30) to Accuracy Rating
+{ Suffix Modifier "Synthetic Craft" (Tier: 3) — Crafted }
++30(20-40)% to Fire Resistance (crafted)

@@ -1,0 +1,5 @@
+{"timestamp":"2026-01-01T10:00:00Z","hotkey":"copy-item","action":"CopyItem","outcome":"Success","reason":"","verb":null}
+not json
+{"timestamp":"2026-01-01T10:01:00Z","hotkey":"omni.press","action":"CopyItem","outcome":"NotForeground","reason":"Game not in front","verb":null}
+{"timestamp":"2026-01-01T10:02:00Z","hotkey":"synthetic-unnamed","action":"SendChatCommand","outcome":"Success","reason":"","verb":"/hideout","unlogged":"not displayed"}
+{"timestamp":

@@ -66,12 +66,12 @@ public sealed class StatTranslationTests
     }
 
     [Fact]
-    public void IgnoredStatsRequireAnExactRecoverableCondition()
+    public void OmittedPlaceholdersRequireAnExactRecoverableCondition()
     {
-        var entry = new StatTranslation("flag", ["flag"], [new("Synthetic flag", [new(1, 1)], ["ignored"], [[]])]);
+        var entry = new StatTranslation("flag", ["flag"], [new("Synthetic flag", [new(1, 1)], ["#"], [[]])]);
         Assert.Equal(1, Assert.Single(StatText.Match("Synthetic flag", [entry])).Values[0].Min);
         Assert.Empty(StatText.Match("Synthetic flag", [entry with {
-            English = [new("Synthetic flag", [new(Min: 1)], ["ignored"], [[]])] }]));
+            English = [new("Synthetic flag", [new(Min: 1)], ["#"], [[]])] }]));
     }
 
     [Fact]

@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
+using ExileSight.App.Ui;
 using ExileSight.Features.Timers;
 
 namespace ExileSight.App.Features.Timers;
@@ -11,7 +11,7 @@ public sealed class TimerEditor : StackPanel
 {
     private readonly TextBlock name = Label("Timer");
     private readonly TextBlock duration = Label("60 seconds");
-    private readonly CheckBox alert = new() { Content = "Alert toast", IsChecked = true, Focusable = false, Foreground = Brushes.White };
+    private readonly CheckBox alert = new() { Content = "Alert toast", IsChecked = true, Focusable = false };
     private TimerKind selectedKind;
     private int seconds = 60;
     public string TimerName => name.Text;
@@ -33,7 +33,7 @@ public sealed class TimerEditor : StackPanel
         var edit = new WrapPanel();
         edit.Children.Add(Button("Backspace", () => { if (name.Text.Length > 0) name.Text = name.Text[..^1]; }));
         edit.Children.Add(Button("Clear", () => name.Text = "")); keys.Children.Add(edit);
-        Children.Add(new Expander { Header = "Edit name", Content = keys, Focusable = false, Foreground = Brushes.White });
+        Children.Add(new Expander { Header = "Edit name", Content = keys, Focusable = false });
         var kind = Button("Countdown", () => { });
         kind.Click += (_, _) =>
         {
@@ -51,8 +51,23 @@ public sealed class TimerEditor : StackPanel
     public void Select(TimerState row) { name.Text = row.Name; alert.IsChecked = row.Alert; }
     public static Button Button(string label, Action action)
     {
-        var button = new Button { Content = label, Focusable = false, Background = Brushes.DimGray, Foreground = Brushes.White, Padding = new Thickness(3, 1, 3, 1), Margin = new Thickness(1) };
+        var button = new Button { Content = label, Focusable = false, Padding = new Thickness(3, 1, 3, 1), Margin = new Thickness(1) };
         button.Click += (_, _) => action(); return button;
     }
-    public static TextBlock Label(string text) => new() { Text = text, Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap };
+    public static TextBlock Label(string text) => new() { Text = text, TextWrapping = TextWrapping.Wrap };
+    public static void ApplyTheme(DependencyObject root, CardTheme theme)
+    {
+        if (root is TextBlock text) text.Foreground = theme.OverlayForeground;
+        if (root is Control control)
+        {
+            control.Foreground = theme.OverlayForeground;
+            control.Background = root is Button ? theme.OverlayRaised : theme.OverlayBackground;
+            control.BorderBrush = theme.OverlayBorder;
+            if (root is Button) control.Padding = new Thickness(3, (theme.RowHeight - 24) / 4, 3, (theme.RowHeight - 24) / 4);
+        }
+        if (root is Panel panel) panel.Background = theme.OverlayBackground;
+        if (root is Border border) border.Background = theme.OverlayBackground;
+        foreach (var child in LogicalTreeHelper.GetChildren(root).OfType<DependencyObject>()) ApplyTheme(child, theme);
+    }
+
 }

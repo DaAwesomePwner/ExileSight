@@ -1,0 +1,73 @@
+# Design reference
+
+The 1.2 UI redesign is specified in [UI-SPEC.md](UI-SPEC.md). This folder holds the
+mockups that spec refers to. They are the visual reference for every UI task in
+[Phase 7](../ROADMAP.md#phase-7-ui-redesign-12).
+
+## Mockups
+
+Each mockup is a static HTML page with sample values, plus a PNG render of it.
+Open the PNG to look at it (agents: read the image file); open the HTML in a
+browser to inspect exact sizes and colours.
+
+| Mockup | What it shows | Tasks |
+|---|---|---|
+| [item-card](mockups/png/item-card.png) ([html](mockups/item-card.html)) | Item card in a mock game screen: anatomy, placement, colour scale | P7-T4, P7-T5, P7-T11, P7-T15 |
+| [item-card-states](mockups/png/item-card-states.png) ([html](mockups/item-card-states.html)) | Rare with implicit + crafted, weapon with hybrid mod, unique, plain copy, unidentified | P7-T5, P7-T11 |
+| [map-card](mockups/png/map-card.png) ([html](mockups/map-card.html)) | Map card, rated and first-time | P7-T6 |
+| [trade](mockups/png/trade.png) ([html](mockups/trade.html)) | Shop pricer (armed, disarmed) and stash price tags | P7-T7, P7-T8 |
+| [ambient-hud](mockups/png/ambient-hud.png) ([html](mockups/ambient-hud.html)) | Act guide, timers, event toasts, omni menu, chat wheel, search strings | P7-T9, P7-T10 |
+| [app-home](mockups/png/app-home.png) ([html](mockups/app-home.html)) | Desktop app shell and Home (Hotkeys reuses its key list) | P7-T12 |
+| [app-item-rules](mockups/png/app-item-rules.png) ([html](mockups/app-item-rules.html)) | Highlight-rule editor with live card preview | P7-T13 |
+| [app-overlay-settings](mockups/png/app-overlay-settings.png) ([html](mockups/app-overlay-settings.html)) | Overlay settings and the transparency log | P7-T14 |
+| [tokens](mockups/png/tokens.png) ([html](mockups/tokens.html)) | Colours, type, mod-row and card specs | P7-T1, all |
+
+## How to compare your work
+
+1. Read the spec section for your surface in [UI-SPEC.md](UI-SPEC.md), then open its PNG.
+2. Build the view as a pure builder (`model + theme → FrameworkElement`) and add your own
+   snapshot test class to `tests/ExileSight.App.Snapshots.Tests`, one test per state with fixture models. Get the
+   renders from Windows: run the snapshot tests on the Windows host (the only sure route until
+   P7-T2's `workflow_dispatch` trigger is on `main`), or read the `ui-snapshots` CI artifact from a
+   manual dispatch of your branch or from a PR into `main` or `integration/**`.
+3. Compare side by side. Must match: section order, which values appear, column
+   order and widths, colours (by token), unknown-value treatment, and what the
+   view leaves out. May differ: sample values, font rendering (Segoe UI vs the
+   mockup's Inter), and anti-aliasing.
+4. If the mockup is impossible or wrong for real data (a value we don't have, a
+   label that doesn't fit), don't silently diverge. Follow the spec text, and list
+   the difference under `RISKS` in your report so the owner can decide.
+
+Use `SampleSnapshotTests.cs` as the template: mark each test `[WindowsOnlyFact]`, and
+wrap WPF imports and the test body in `#if SNAPSHOT_WINDOWS`. Keep the class and test
+method outside the conditional so non-Windows runs discover and skip the test.
+There is no shared registry. Inside the test call
+`SnapshotRenderer.Render(() => Build(model, theme), "surface-state", new Size(width, height))`.
+Create the view and all theme brushes inside the factory: it runs on a new STA thread.
+Use a unique output name per state. Omit the size to measure to content; explicit sizes
+are logical pixels, rounded up for the PNG. Rendering uses 96 DPI, scale 1.0 (1080p
+baseline), without opening a window. Builders must not use live services, effects or animations.
+Assert that the PNG exists and has the expected dimensions, as the sample does.
+
+On Windows run `dotnet test tests/ExileSight.App.Snapshots.Tests`. PNGs land under
+`tests/ExileSight.App.Snapshots.Tests/bin/Debug/net10.0-windows10.0.19041.0/TestResults/ui-snapshots/`
+(use `Release` instead of `Debug` for `-c Release`). Set `EXILESIGHT_UI_SNAPSHOTS_DIR`
+to override the output directory. macOS/Linux runs skip rendering; to compile-check
+the WPF path there, use `dotnet build tests/ExileSight.App.Snapshots.Tests -p:SnapshotRenderingEnabled=true`,
+then rebuild normally before running tests. A cross-build does not validate rendering.
+
+CI sets the output directory to `artifacts/ui-snapshots` and uploads the `ui-snapshots`
+artifact even when a test fails. In GitHub Actions, open the CI run and download that
+artifact to compare the PNGs. Once this workflow is on `main`, use **Run workflow**
+and select your task branch for a manual render; PRs into `main` or `integration/**`
+also run it. The sample is a harness smoke test, not a production design reference.
+
+The spec text wins over a mockup when they disagree. Sample values in mockups are
+illustrations, not data: never copy them into code or fixtures.
+
+## Changing a mockup
+
+Mockups change only with owner approval. After editing an HTML mockup, re-render
+its PNG with `docs/design/render-mockups.sh <name>` (needs Chrome or Chromium;
+set `CHROME` to its path if it isn't in the default location) and commit both.
+The owner also keeps an editable design canvas; keep the two in step.

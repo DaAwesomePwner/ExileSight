@@ -4,6 +4,51 @@ Player-facing changes for each ExileSight app release. The release workflow
 copies the `## <version>` section into the GitHub release notes and fails if it
 is missing, so add the section on main before dispatching a release.
 
+## 1.2.0
+
+The first release since 1.0.0, so it also includes everything listed under 1.1.0
+below (1.1.0 was not published on its own).
+
+- **New look:** every overlay is redrawn as a compact card with one shared style:
+  the item card, map card, shop pricer, act guide, timers, omni menu, chat wheel,
+  search strings and the Lab overlay. Item and map cards open beside the cursor,
+  away from the game's own tooltip.
+- **Item card:** short mod labels in the game's order with tier pills, roll bars
+  and a verdict, instead of the old text tooltip. CapsLock now copies with
+  advanced item text so tiers and roll ranges are known; switch back to plain
+  copy on the **Item rules** page.
+- **Desktop app:** clicking the tray icon opens a window with Home, Hotkeys,
+  Overlay, Item rules, Act guide and Transparency pages. **Item rules** lets you
+  add and edit the mods you want or avoid, with checks as you type and a live
+  card preview. **Transparency** shows what ExileSight reads and its recent
+  actions. The act guide's controls (Back/Next, reset, bandit, import/export)
+  moved to **Act guide**.
+- **Overlay settings:** item and map cards open beside the cursor or docked in
+  one spot; UI scale, Compact density and High contrast apply to every overlay.
+- **Stash prices on demand:** open a supported stash page and press
+  **Ctrl+Shift+P** to see poe.ninja prices on it. ExileSight recognises the page
+  from a small, display-only read of the game window while the game is in front,
+  with no calibration step, and never sends input. The first visit to each page
+  takes a few seconds; pages calibrated with 1.0 need **Auto-calibrate** again.
+  Prices stay until the stash closes, you switch away from the game, you open a
+  tab ExileSight doesn't support, or you press Ctrl+Shift+P again; press it once
+  more to bring them back. Tags sit in each slot's bottom-right corner, and a
+  card beside the stash lists the three highest unit prices with a 7-day trend.
+  **Show stash prices automatically** in the Ctrl+Shift+N menu keeps them on
+  whenever the stash is open.
+- **Lab overlay (Ctrl+Shift+L):** import the day's lab compass file from
+  poelab (**Open poelab**, then **Import file…** or **Paste JSON**) to see the
+  room map, darkshrines, golden doors, Argus and Izaro's weapon, phases and
+  traps. Your current room is followed from the game log. ExileSight never
+  contacts poelab itself.
+- **New app icon** for the app, tray and installer.
+- **Shop pricer:** the card now reminds you to right-click the item to open
+  **Set Item Price** before you pick a price. ExileSight never opens it for you.
+- **Fix:** tiers now show for mods whose game text uses an ignored number, such
+  as increased physical damage on weapons.
+- **Known issue:** stash price tags can blink briefly when you switch currency
+  sub-tabs or move the mouse over the stash.
+
 ## 1.1.0
 
 - **Automatic stash prices:** open a supported stash page and poe.ninja prices

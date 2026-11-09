@@ -1,0 +1,9 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="/ExileSight.App;component/Ui/Tokens.xaml" /></ResourceDictionary.MergedDictionaries>
+    <Style TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource OverlayForeground}" />
+        <Setter Property="FontFamily" Value="{StaticResource OverlayFont}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Typography.NumeralAlignment" Value="Tabular" />
+    </Style>
+</ResourceDictionary>

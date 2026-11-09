@@ -5,7 +5,7 @@ using ExileSight.Platform.Abstractions.Shell;
 namespace ExileSight.Features.Omni;
 
 public sealed record OmniMenuOrigin(long PressId, int X, int Y);
-public sealed record OmniMenuPresentation(OmniMenuOrigin Origin, IReadOnlyList<OmniLink> Links, IReadOnlyList<ItemMenuEntry> Entries);
+public sealed record OmniMenuPresentation(OmniMenuOrigin Origin, IReadOnlyList<OmniLink> Links, IReadOnlyList<ItemMenuEntry> Entries, string ItemName = "");
 
 public sealed class OmniMenu
 {
@@ -44,7 +44,7 @@ public sealed class OmniMenu
         }
         var entries = ItemMenuEntries.Build(item, Providers(), error => ReportFailure?.Invoke(error.GetType().Name));
         if (!IsCurrent(origin)) return;
-        Presented?.Invoke(new(origin, links, entries));
+        Presented?.Invoke(new(origin, links, entries, item.Name));
         EntriesOpened?.Invoke(links, entries);
         Opened?.Invoke(links);
     }

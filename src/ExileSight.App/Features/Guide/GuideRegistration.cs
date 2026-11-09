@@ -1,3 +1,4 @@
+using ExileSight.Core.Settings;
 using ExileSight.App.Overlay;
 using ExileSight.Core.Features;
 using ExileSight.Features.Guide;
@@ -14,5 +15,5 @@ public static class GuideRegistration
         new GuideStore(System.IO.Path.Combine(services.GetRequiredService<IAppPaths>().GetGameDirectory("poe1"), "guide")),
         services.GetRequiredService<IClock>()));
     public static void Register(IServiceProvider services, FeatureViews views) => views.RegisterManaged<GuideModel>(model =>
-        _ = new GuideView(model, services.GetRequiredService<OverlayHost>(), services.GetRequiredService<IGameWindow>()));
+        _ = new GuideView(model, services.GetRequiredService<OverlayHost>(), services.GetRequiredService<IGameWindow>(), services.GetRequiredService<ISettingsStore<SettingsDocument>>()));
 }

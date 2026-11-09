@@ -1,0 +1,33 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options">
+    <SolidColorBrush x:Key="OverlayForeground" Color="#E8EAED" po:Freeze="True" />
+    <SolidColorBrush x:Key="OverlayBackground" Color="#0F1217" Opacity="0.96" po:Freeze="True" />
+    <SolidColorBrush x:Key="OverlayAccent" Color="#6FE3D5" po:Freeze="True" />
+    <SolidColorBrush x:Key="TooltipBest" Color="#6FE3D5" po:Freeze="True" />
+    <SolidColorBrush x:Key="TooltipHigh" Color="#6AA8FF" po:Freeze="True" />
+    <SolidColorBrush x:Key="TooltipMedium" Color="#AEB6C2" po:Freeze="True" />
+    <SolidColorBrush x:Key="TooltipLow" Color="#F2994A" po:Freeze="True" />
+    <SolidColorBrush x:Key="TooltipCrafted" Color="#C3A6FF" po:Freeze="True" />
+    <SolidColorBrush x:Key="TooltipUnique" Color="#E2B97F" po:Freeze="True" />
+    <SolidColorBrush x:Key="TooltipUnknown" Color="#5C6573" po:Freeze="True" />
+    <SolidColorBrush x:Key="OverlayRaised" Color="#17202A" po:Freeze="True" />
+    <SolidColorBrush x:Key="OverlayBorder" Color="#2E3540" po:Freeze="True" />
+    <SolidColorBrush x:Key="OverlayRule" Color="#262C35" po:Freeze="True" />
+    <SolidColorBrush x:Key="TextSecondary" Color="#B7BEC8" po:Freeze="True" />
+    <SolidColorBrush x:Key="TextMuted" Color="#8E97A4" po:Freeze="True" />
+    <SolidColorBrush x:Key="TextFaint" Color="#7D8592" po:Freeze="True" />
+    <SolidColorBrush x:Key="Danger1" Color="#E6CC5A" po:Freeze="True" />
+    <SolidColorBrush x:Key="Danger2" Color="#F2994A" po:Freeze="True" />
+    <SolidColorBrush x:Key="Danger3" Color="#FF6B5E" po:Freeze="True" />
+    <SolidColorBrush x:Key="Accent" Color="#6FD1C6" po:Freeze="True" />
+    <SolidColorBrush x:Key="AppBackground" Color="#0F1216" po:Freeze="True" />
+    <SolidColorBrush x:Key="AppPanel" Color="#14181E" po:Freeze="True" />
+    <SolidColorBrush x:Key="AppNav" Color="#0C0F12" po:Freeze="True" />
+    <SolidColorBrush x:Key="StatTileBackground" Color="#161A21" po:Freeze="True" />
+    <SolidColorBrush x:Key="RollTrack" Color="#2A313C" po:Freeze="True" />
+    <SolidColorBrush x:Key="DangerRowBackground" Color="#221616" po:Freeze="True" />
+    <FontFamily x:Key="OverlayFont">Segoe UI Variable, Segoe UI</FontFamily>
+    <FontFamily x:Key="NumberFont">Cascadia Mono, Consolas</FontFamily>
+</ResourceDictionary>
+

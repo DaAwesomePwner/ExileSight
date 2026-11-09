@@ -1,0 +1,10 @@
+Item Class: Maps
+Rarity: Rare
+Doom Road
+Dunes Map
+--------
+Map Tier: 16
+--------
+20% increased Monster Damage
+--------
+Corrupted

@@ -36,6 +36,7 @@
   <Project Path="tests/ExileSight.Features.MapTracker.Tests/ExileSight.Features.MapTracker.Tests.csproj" />
   <Project Path="tests/ExileSight.Perf.Tests/ExileSight.Perf.Tests.csproj" />
   <Project Path="tests/ExileSight.Transparency.Tests/ExileSight.Transparency.Tests.csproj" />
+  <Project Path="tests/ExileSight.App.Snapshots.Tests/ExileSight.App.Snapshots.Tests.csproj" />
   <Project Path="tools/ExileSight.IconGen/ExileSight.IconGen.csproj" />
   <Project Path="tests/ExileSight.IconGen.Tests/ExileSight.IconGen.Tests.csproj" />
   <Project Path="src/ExileSight.Features.Lab/ExileSight.Features.Lab.csproj" />

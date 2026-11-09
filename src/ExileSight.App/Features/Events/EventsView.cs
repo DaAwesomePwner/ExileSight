@@ -1,7 +1,9 @@
+using ExileSight.Core.Settings;
+using ExileSight.Platform.Abstractions.Storage;
 // ExileSight-authored presentation. Passive log events never dispatch game commands.
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
+using ExileSight.App.Ui;
 using System.Windows.Threading;
 using ExileSight.App.Overlay;
 using ExileSight.Core.Overlay;
@@ -12,27 +14,29 @@ namespace ExileSight.App.Features.Events;
 
 public sealed class EventsView
 {
+    private readonly OverlayTheme overlayTheme;
     private readonly EventsModel model;
     private readonly OverlayHost host;
     private readonly ILogger<EventsView> logger;
     private readonly HostedOverlayWindow toast;
-    private readonly TextBlock name = new() { Foreground = Brushes.White, FontSize = 20, TextWrapping = TextWrapping.Wrap };
-    private readonly TextBlock category = new() { Foreground = Brushes.LightGray, FontSize = 13 };
+    private readonly Border content = new() { HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
+    private CardTheme theme => overlayTheme.Current;
+    private EventToastCard? displayed;
     private readonly DispatcherTimer ticker = new() { Interval = TimeSpan.FromSeconds(1) };
     private Window? settings;
     private StackPanel? choices;
     private string? optionsSignature;
     private bool visible, closed;
 
-    public EventsView(EventsModel model, OverlayHost host, ILogger<EventsView> logger)
+    public EventsView(EventsModel model, OverlayHost host, ILogger<EventsView> logger, ISettingsStore<SettingsDocument> overlaySettings)
     {
+        overlayTheme = new(overlaySettings);
         this.model = model; this.host = host; this.logger = logger;
-        var content = new StackPanel();
-        content.Children.Add(category); content.Children.Add(name);
-        toast = host.Register(new Border { Background = Brushes.Black, Padding = new Thickness(12), Child = content },
+        toast = host.Register(content,
             // Placement relative to neighbouring panels is defined in DefaultOverlayLayout.
             DefaultOverlayLayout.EventsToast, clickThrough: true);
         host.SetVisible(toast, false);
+        overlayTheme.Watch(toast, () => { displayed = null; Guard(Tick); });
         model.SettingsRequested += OpenSettings;
         toast.Closed += (_, _) =>
         {
@@ -47,8 +51,12 @@ public sealed class EventsView
         // Poll slowly when empty; retain smooth expiry while a toast is active.
         ticker.Interval = current is null ? TimeSpan.FromSeconds(1) : TimeSpan.FromMilliseconds(100);
         if (current is null && !visible && settings is null) return;
-        name.Text = current?.DisplayName ?? "";
-        category.Text = current?.Category ?? "";
+        var next = current is null ? null : new EventToastCard(current.DisplayName, current.Category);
+        if (next != displayed)
+        {
+            displayed = next;
+            content.Child = next is null ? null : EventToastBuilder.Build(next, theme);
+        }
         if (visible != (current is not null))
         { visible = current is not null; host.SetVisible(toast, visible); }
         RefreshSettings();

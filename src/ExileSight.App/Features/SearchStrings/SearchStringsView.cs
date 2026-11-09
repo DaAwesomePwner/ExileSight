@@ -1,6 +1,9 @@
+using ExileSight.Core.Settings;
+using ExileSight.Platform.Abstractions.Storage;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
+using ExileSight.App.Ui;
+using ExileSight.App.Features.Macros;
 using System.Windows.Interop;
 using ExileSight.Core.Features;
 using ExileSight.Platform.Windows.Input;
@@ -12,28 +15,36 @@ using Microsoft.Extensions.Logging;
 namespace ExileSight.App.Features.SearchStrings;
 
 /// <summary>Hosted NOACTIVATE menu; the hook pairs physical clicks before command execution.</summary>
-public sealed class SearchStringsView : ScrollViewer
+public sealed class SearchStringsView : ContentControl
 {
+    private readonly OverlayTheme overlayTheme;
     private readonly SearchMenu model;
     private readonly FeatureHost features;
     private readonly HookHost hooks;
     private readonly OverlayHost host;
     private readonly PassiveOverlayInput passive;
     private readonly ILogger<SearchStringsView> logger;
-    private readonly StackPanel panel = new();
+    private FrameworkElement panel = new StackPanel();
+    private readonly SearchStringsSelection selection;
     private HostedOverlayWindow? window;
+    private bool vendorSelected;
     public SearchStringsView(SearchMenu model, FeatureHost features, HookHost hooks, OverlayHost host,
-        PassiveOverlayInput passive, ILogger<SearchStringsView> logger)
+        PassiveOverlayInput passive, ILogger<SearchStringsView> logger, ISettingsStore<SettingsDocument> overlaySettings)
     {
+        overlayTheme = new(overlaySettings);
         this.model = model; this.features = features; this.hooks = hooks; this.host = host; this.passive = passive; this.logger = logger;
-        Background = Brushes.Black; Content = panel;
-        VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+        selection = new(model);
+        Width = 320; HorizontalAlignment = HorizontalAlignment.Left; Content = panel;
+        VerticalAlignment = VerticalAlignment.Top;
+        HorizontalContentAlignment = HorizontalAlignment.Stretch;
+        Focusable = false;
         model.Opened += Open;
     }
     public void Initialize()
     {
         window = (HostedOverlayWindow)Window.GetWindow(this);
         host.SetVisible(window, false);
+        overlayTheme.Watch(window, () => { if (window.IsVisible) Guard(() => Rebuild(vendorSelected)); });
         window.IsVisibleChanged += VisibilityChanged;
         window.Closed += (_, _) => { model.Opened -= Open; passive.Close(this); model.Cancel(); };
     }
@@ -50,42 +61,40 @@ public sealed class SearchStringsView : ScrollViewer
         if (window!.IsVisible) passive.Open(this, Observed);
         else { passive.Close(this); model.Cancel(); }
     }
-    private void Header(string text) => panel.Children.Add(new TextBlock
-    { Text = text, Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(6) });
-    private static Button Button(string text) => new()
+    private void Vendors() => Rebuild(false);
+    private SearchRowPresentation Row(int entry) => new(model.Entries[entry].Name, model.Text(entry),
+        selection.Line(entry), selection.LineCount(entry));
+    private void Rebuild(bool selected)
     {
-        Content = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap },
-        Focusable = false, Margin = new Thickness(3), Padding = new Thickness(5)
-    };
-    private void Vendors()
-    {
-        panel.Children.Clear();
-        Header("Search strings — pick the vendor / UI by hand");
-        if (model.Notice is { } notice) Header(notice);
-        foreach (var vendor in model.Vendors)
+        vendorSelected = selected;
+        var theme = overlayTheme.Current;
+        panel = SearchStringsBuilder.Build(new(model.Vendors, selected ? model.Vendor : null,
+            selected ? Enumerable.Range(0, model.Entries.Count).Select(Row).ToArray() : [], model.Notice), theme);
+        Content = panel;
+        foreach (var button in OnDemandControls.Buttons(panel))
         {
-            var button = Button(vendor);
-            button.Click += (_, _) => Guard(() => { model.ChooseVendor(vendor); Searches(); });
-            panel.Children.Add(button);
-        }
-        CloseButton();
-    }
-    private void Searches()
-    {
-        panel.Children.Clear();
-        Header(model.Vendor + " — click to highlight; wheel over a search to cycle lines");
-        var back = Button("Back to vendors");
-        back.Click += (_, _) => Guard(() => { model.Cancel(); Vendors(); });
-        panel.Children.Add(back);
-        for (var i = 0; i < model.Entries.Count; i++)
-        {
-            var entry = i;
-            string Label() => model.Entries[entry].Name + "\n" + model.Text(entry);
-            var button = Button(Label());
+            if (button.Name == "Close") { button.Click += (_, _) => Guard(Close); continue; }
+            if (button.Name == "Back")
+            {
+                button.Click += (_, _) => Guard(() => { model.Cancel(); Vendors(); });
+                continue;
+            }
+            if (button.Tag is string vendor)
+            {
+                button.Click += (_, _) => Guard(() =>
+                {
+                    selection.ChooseVendor(vendor);
+                    Rebuild(true);
+                });
+                continue;
+            }
+            var entry = (int)button.Tag;
             button.PreviewMouseWheel += (_, e) => Guard(() =>
             {
-                model.Cycle(entry, e.Delta > 0 ? -1 : 1);
-                ((TextBlock)button.Content).Text = Label(); e.Handled = true;
+                var direction = e.Delta > 0 ? -1 : 1;
+                selection.Cycle(entry, direction);
+                button.Content = SearchStringsBuilder.Row(Row(entry), theme);
+                e.Handled = true;
             });
             button.PreviewMouseLeftButtonUp += async (_, e) =>
             {
@@ -105,15 +114,8 @@ public sealed class SearchStringsView : ScrollViewer
                 }
                 finally { panel.IsEnabled = true; }
             };
-            panel.Children.Add(button);
+
         }
-        CloseButton();
-    }
-    private void CloseButton()
-    {
-        var close = Button("Close");
-        close.Click += (_, _) => Guard(Close);
-        panel.Children.Add(close);
     }
     private void Close() { model.Cancel(); host.SetVisible(window!, false); }
     private void Observed(PassiveInput input)

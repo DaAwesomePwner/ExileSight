@@ -1,11 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0</TargetFramework><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable></PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../src/ExileSight.App/Features/SearchStrings/SearchStringsSelection.cs" Link="SearchStringsSelection.cs" />
+    <ProjectReference Include="../../src/ExileSight.Features.SearchStrings/ExileSight.Features.SearchStrings.csproj" />
     <Compile Include="../../src/ExileSight.App/Features/OverlayFailureGuard.cs" Link="OverlayFailureGuard.cs" />
     <ProjectReference Include="../../src/ExileSight.Features.Omni/ExileSight.Features.Omni.csproj" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <None Include="../fixtures/poe1/items/**/*.advanced.txt" Link="fixtures/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../fixtures/poe1/items/**/*.plain.txt" Link="fixtures/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

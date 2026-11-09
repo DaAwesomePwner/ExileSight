@@ -43,22 +43,24 @@ public sealed partial class StashView : StackPanel
     private Layout? layout;
     private PriceOverview? overview;
     private bool pricesIncomplete;
+    private DateTimeOffset? pricesFetchedAt;
     private volatile int generation;
     private DateTimeOffset freshUntil;
     private string? loadedLeagueSetting;
     private string? LeagueSetting => services.GetRequiredService<ISettingsStore<SettingsDocument>>().Snapshot.Prices.League;
     private void SetStatus(string message) => status.Text =
         (layout is null ? message : $"{layout.TabId}/{layout.Page}: {message}") +
-        (autoDetect.IsChecked == true && automaticStatus.Length > 0 ? $" — {automaticStatus}" : "");
+        (WatchEnabled && automaticStatus.Length > 0 ? $" — {automaticStatus}" : "");
     public StashView(StashModel model, IServiceProvider services, FeatureViews views)
     {
         this.model = model; this.services = services;
         host = services.GetRequiredService<OverlayHost>();
         var store = new CalibrationStore(Path.Combine(services.GetRequiredService<IAppPaths>().GetGameDirectory("poe1"), "stashninja"));
         calibrationStore = store;
-        surface = new(host, services.GetRequiredService<IGameWindow>(), store);
+        surface = new(host, services.GetRequiredService<IGameWindow>(), store, services.GetRequiredService<ISettingsStore<SettingsDocument>>());
         calibration = new(services.GetRequiredService<PassiveOverlayInput>(), services.GetRequiredService<IGameWindow>(), store);
         InitializeRecognition();
+        surface.SetRecognitionRegion(region);
         Background = Brushes.Black;
         Children.Add(new TextBlock { Text = "Stash prices — select tab/page", Foreground = Brushes.White });
         foreach (var l in model.Layouts) tab.Items.Add(l.TabId + "/" + l.Page);
@@ -87,7 +89,7 @@ public sealed partial class StashView : StackPanel
         close.Click += (_, _) =>
         {
             calibration.Cancel();
-            if (autoDetect.IsChecked != true) { generation++; Invalidate(); surface.Hide(); }
+            if (!WatchEnabled) { generation++; Invalidate(); surface.Hide(); }
             host.SetVisible(window!, false); UpdatePolling();
         };
         Children.Add(close); Children.Add(status);
@@ -155,6 +157,8 @@ public sealed partial class StashView : StackPanel
             if (request != generation) return;
             overview = new(results.Where(r => r.Overview is not null).SelectMany(r => r.Overview!.Items).ToArray(),
                 results.Select(r => r.Overview?.ChaosPerDivine).FirstOrDefault(r => r is > 0));
+            pricesFetchedAt = results.Where(r => r.Overview is not null).Any(r => r.UpdatedAt is null)
+                ? null : results.Where(r => r.Overview is not null).Select(r => r.UpdatedAt).Min();
             loadedLeagueSetting = configuredLeague;
             freshUntil = results.Any(r => r.IsStale || r.Overview is null || r.UpdatedAt is null)
                 ? default : results.Min(r => r.UpdatedAt!.Value).AddHours(1);
@@ -170,8 +174,8 @@ public sealed partial class StashView : StackPanel
         if (calibration.IsActive || layout is null || overview is null || profile.SelectedIndex < 0) return;
         var selected = model.Profiles[profile.SelectedIndex];
         var tags = Tags.Build(layout, overview, selected);
-        if (autoDetect.IsChecked == true ? automaticPage == layout && !recognitionHidden :
-            window?.RequestedVisible == true) surface.Show(layout, tags);
+        if (WatchEnabled ? automaticPage == layout && !recognitionHidden :
+            window?.RequestedVisible == true) surface.Show(layout, tags, pricesFetchedAt, services.GetRequiredService<IClock>().UtcNow);
         var search = Tags.Search(tags, selected.Minimum); model.SetSearch(search);
         highlight.Content = $"Highlight above {selected.Minimum}c"; highlight.IsEnabled = search.Text is not null;
         SetStatus(search.Status + $" — {tags.Length}/{layout.Cells.Length} cells priced" +

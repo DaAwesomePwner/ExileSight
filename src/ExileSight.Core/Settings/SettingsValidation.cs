@@ -17,6 +17,10 @@ internal static class SettingsValidation
                 s.Features.Sections.Values.Any(x => x is null) || string.IsNullOrWhiteSpace(s.General.Language) ||
                 s.Overlay.ScaleOverride is double scale && (!double.IsFinite(scale) || scale <= 0))
                 throw new JsonException("Invalid settings sections.");
+            if (!Enum.IsDefined(s.Overlay.PlacementMode) || !Enum.IsDefined(s.Overlay.Density) ||
+                !Enum.IsDefined(s.Overlay.Contrast) || !ValidFraction(s.Overlay.DockedX) ||
+                !ValidFraction(s.Overlay.DockedY))
+                throw new JsonException("Invalid overlay preferences.");
             NormalizeUpdateChannel(s.General, warnings);
             if (s.Hotkeys.Any(x => x is null || string.IsNullOrWhiteSpace(x.Id)) ||
                 s.Hotkeys.Select(x => x.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count() != s.Hotkeys.Count)
@@ -91,6 +95,8 @@ internal static class SettingsValidation
         }
         settings.UpdateChannel = channel;
     }
+
+    private static bool ValidFraction(double value) => double.IsFinite(value) && value >= 0 && value <= 1;
 
     internal static bool ValidId(string id) => string.Equals(id, "default", StringComparison.OrdinalIgnoreCase) || Guid.TryParseExact(id, "N", out _);
 }

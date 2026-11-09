@@ -89,7 +89,7 @@ public sealed class MapInfoTests
         try
         {
             var store = new RatingStore(dir);
-            Assert.Equal(0, store.Get("future-id"));
+            Assert.Null(store.Get("future-id"));
             Assert.Equal(1, store.Cycle("future-id"));
             store = new(dir); Assert.Equal(1, store.Get("future-id"));
             Assert.Equal(2, store.Cycle("future-id")); Assert.Equal(3, store.Cycle("future-id"));

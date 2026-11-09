@@ -83,18 +83,18 @@ public sealed class StoreTests : IDisposable
         Assert.False(Open().Has(GearSlot.Helmet));
     }
     [Fact]
-    public void TooltipUsesSignedTonesForSameSlot()
+    public void CardUsesSignedDirectionsForSameSlot()
     {
         var model = Open();
         model.Equip(null, GearSlot.Helmet, new("Helmets", new() { ["Armour"] = 100, ["Ward"] = 5 }));
         var item = StatsTests.Item("Helmets");
         item.Properties["Armour"] = new("120", []);
-        var section = new GearCmpFeature(model).Build(item)!;
-        var texts = section.Rows.SelectMany(r => r.Text).ToArray();
-        Assert.Contains(texts, t => t.Text == "Armour: +20" && t.Tone == TooltipTone.High);
-        Assert.Contains(texts, t => t.Text == "Ward: -5" && t.Tone == TooltipTone.Low);
-        Assert.DoesNotContain(new GearCmpFeature(model).Build(StatsTests.Item("Boots"))!.Rows.SelectMany(r => r.Text),
-            t => t.Text.StartsWith("Armour:", StringComparison.Ordinal));
+        var comparison = new GearCmpFeature(model).BuildComparison(item)!;
+        var deltas = comparison.Slots.SelectMany(r => r.Deltas).ToArray();
+        Assert.Contains(deltas, d => d.Stat == "Armour" && d.Direction == DeltaDirection.Increase && d.AbsoluteValue == 20);
+        Assert.Contains(deltas, d => d.Stat == "Ward" && d.Direction == DeltaDirection.Decrease && d.AbsoluteValue == 5);
+        Assert.DoesNotContain(new GearCmpFeature(model).BuildComparison(StatsTests.Item("Boots"))!.Slots.SelectMany(r => r.Deltas),
+            d => d.Stat == "Armour");
     }
     [Fact]
     public void CandidateBoundAndSafeFilenames()
@@ -107,7 +107,7 @@ public sealed class StoreTests : IDisposable
         Assert.NotEqual(GearStore.ProfileFile("a/b"), GearStore.ProfileFile("a_b"));
     }
     [Fact]
-    public void MenuActionsAndTooltipAreLocalAndProfileBound()
+    public void MenuActionsAndCardAreLocalAndProfileBound()
     {
         var model = Open();
         var feature = new GearCmpFeature(model);
@@ -115,7 +115,7 @@ public sealed class StoreTests : IDisposable
         var entries = feature.BuildMenu(item);
         entries.Single(e => e.Label.StartsWith("Set as left ring", StringComparison.Ordinal)).Execute();
         Assert.True(model.Has(GearSlot.LeftRing));
-        Assert.Contains(feature.Build(item)!.Rows, r => r.Text.Any(t => t.Text.Contains("Default profile", StringComparison.Ordinal)));
+        Assert.Contains("Default profile", feature.BuildComparison(item)!.Note);
         model.Observe("A"); model.Confirm("A");
         Assert.Throws<InvalidOperationException>(() => entries.Single(e => e.Label.StartsWith("Set as right ring", StringComparison.Ordinal)).Execute());
         Assert.Empty(feature.Manifest.GameActions);

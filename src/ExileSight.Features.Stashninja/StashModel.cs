@@ -8,7 +8,8 @@ namespace ExileSight.Features.Stashninja;
 public sealed class StashModel : IItemMenuProvider
 {
     private IFeatureContext? context;
-    public bool AutomaticPrices { get; private set; } = true;
+    public bool AutomaticPrices { get; private set; }
+    public event Action? PricesRequested;
     public void SetAutomaticPrices(bool enabled)
     {
         context?.WriteSetting("automaticPrices", System.Text.Json.JsonSerializer.SerializeToElement(enabled));
@@ -20,7 +21,8 @@ public sealed class StashModel : IItemMenuProvider
     public string? ProfileNotice { get; private set; }
     public string? LayoutError { get; init; }
     public ThresholdProfile[] Profiles { get; set; } =
-        [new("All", 0, 10, "#CCCCCC", "#FFD700"), new("Valuable", 10, 100, "#99DDFF", "#FFD700")];
+        // TooltipHigh (low) and TooltipBest (high), from App/Ui/Tokens.xaml.
+        [new("All", 0, 10, "#6AA8FF", "#6FE3D5"), new("Valuable", 10, 100, "#6AA8FF", "#6FE3D5")];
     public SearchResult Search => Volatile.Read(ref search);
     public void SetSearch(SearchResult value) => Volatile.Write(ref search, value);
     private Layout? lastLoaded;
@@ -49,7 +51,7 @@ public sealed class StashModel : IItemMenuProvider
     public void Register(IFeatureContext context)
     {
         this.context = context;
-        AutomaticPrices = context.ReadSetting("automaticPrices")?.ValueKind != System.Text.Json.JsonValueKind.False;
+        AutomaticPrices = context.ReadSetting("automaticPrices")?.ValueKind == System.Text.Json.JsonValueKind.True;
         var saved = context.ReadSetting("profiles");
         if (saved is not null)
         {
@@ -65,6 +67,8 @@ public sealed class StashModel : IItemMenuProvider
             catch (Exception e) when (e is System.Text.Json.JsonException or ArgumentException)
             { ProfileNotice = "Invalid stash threshold profiles — using defaults. Check stashninja.profiles settings."; }
         }
+        context.RegisterCommand("prices", null, _ => { PricesRequested?.Invoke(); return new(ActionOutcome.Success); });
+        context.RegisterDefaultBinding(new("stashninja.prices", 0x50, KeyModifiers.Control | KeyModifiers.Shift, true, "stashninja:prices"));
         context.RegisterCommand("open", null, _ => { Open(); return new(ActionOutcome.Success); });
         context.RegisterDefaultBinding(new("stashninja.open", 0x4E, KeyModifiers.Control | KeyModifiers.Shift, true, "stashninja:open"));
         context.RegisterCommand("highlight", ActionKind.PasteSearch, token =>

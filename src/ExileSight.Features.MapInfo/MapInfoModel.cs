@@ -29,8 +29,8 @@ public sealed class MapInfoModel(RatingStore store)
     {
         if (last is null) return;
         var result = matcher.Match(last);
-        current = result with { Mods = result.Mods.Select(r => r with { Rank = r.Id is null ? 3 : store.Get(r.Id) })
-            .OrderByDescending(r => r.Rank).ToArray() };
+        current = result with { Mods = result.Mods.Select(r => r with { Rank = r.Id is null ? null : store.Get(r.Id) })
+            .OrderBy(MapCardModel.SortGroup).ToArray() };
     }
     public void Cycle(string id)
     {
