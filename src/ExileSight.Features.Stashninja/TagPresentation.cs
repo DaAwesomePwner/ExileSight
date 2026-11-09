@@ -8,8 +8,16 @@ public static class TagPresentation
     {
         var value = divine is >= 1 ? divine.Value : chaos;
         var step = divine is >= 1 || chaos < 10 ? .1m : 1m;
+        var format = "0.#";
+        if (value is > 0 and < .1m)
+        {
+            // Decimal supports 28 fractional places. Stop at the first significant
+            // digit, including the smallest positive decimal, rather than displaying zero.
+            while (step > value) step /= 10;
+            format = "0.############################";
+        }
         // Truncate rather than round: the displayed price must not overstate value.
-        return (value - value % step).ToString("0.#", CultureInfo.InvariantCulture) +
+        return (value - value % step).ToString(format, CultureInfo.InvariantCulture) +
             (divine is >= 1 ? "d" : "");
     }
 

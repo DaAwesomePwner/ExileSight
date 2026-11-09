@@ -33,6 +33,29 @@ public sealed class TagPresentationTests
         Assert.Equal("0.2", TagPresentation.Price(.25m, null));
     }
 
+    [Fact] public void TinyPositivePricesKeepTheirFirstSignificantDigit()
+    {
+        Assert.Equal("0.05", TagPresentation.Price(.05m, null));
+        Assert.Equal("0.003", TagPresentation.Price(.0037m, null));
+        Assert.Equal("0.09", TagPresentation.Price(.099m, null));
+    }
+
+    [Fact] public void PositivePricesStayPositiveAcrossEveryDecimalScale()
+    {
+        for (byte scale = 0; scale <= 28; scale++)
+        for (var coefficient = 1; coefficient <= 99; coefficient++)
+        {
+            var value = new decimal(coefficient, 0, 0, false, scale);
+            var price = TagPresentation.Price(value, null);
+            var displayed = decimal.Parse(price, System.Globalization.CultureInfo.InvariantCulture);
+            Assert.True(displayed > 0 && displayed <= value, $"{value} displayed as {price}");
+            Assert.Null(TagPresentation.FitPrice(price, text => text == "0"));
+            Assert.Equal(price, TagPresentation.FitPrice(price, _ => true));
+        }
+        Assert.Equal(decimal.MaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            TagPresentation.Price(decimal.MaxValue, null));
+    }
+
     [Theory]
     [InlineData("3.1d", 4, "3.1d")]
     [InlineData("3.1d", 3, "3d")]
@@ -45,6 +68,10 @@ public sealed class TagPresentationTests
     [InlineData("999", 2, null)]
     [InlineData("0.25", 3, "0.2")]
     [InlineData("0.25", 1, null)]
+    [InlineData("0.05", 4, "0.05")]
+    [InlineData("0.05", 3, null)]
+    [InlineData("0.003", 5, "0.003")]
+    [InlineData("0.003", 4, null)]
     [InlineData("3.1d", 1, null)]
     public void ChoosesCompleteConservativePriceOrOmits(string price, int capacity, string? expected) =>
         Assert.Equal(expected, TagPresentation.FitPrice(price, text => text.Length <= capacity));
