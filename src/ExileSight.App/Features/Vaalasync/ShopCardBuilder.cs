@@ -61,6 +61,10 @@ public static class ShopCardBuilder
     internal static FrameworkElement Hints(ShopCardModel model, CardTheme theme)
     {
         var body = new StackPanel();
+        if (model.Armed && model.Pasted is null)
+            body.Children.Add(Paragraph(model.NoteMode
+                ? "Open the item's price note, then pick a price"
+                : "Right-click the item → Set Item Price, then pick a price", theme));
         var hint = !model.Armed ? "Omni-key the item again to re-arm." : model.NoteMode
             ? "All amounts in " + model.Currency + ". A click pastes the note into the note box you opened."
             : "All amounts in " + model.Currency + ". A click pastes the number into the amount box you opened. You pick the currency and press List.";
@@ -71,7 +75,7 @@ public static class ShopCardBuilder
 
     private static TextBlock Paragraph(string text, CardTheme theme)
     {
-        var result = CardPrimitives.Text(text, theme, "TextSecondary", 11);
+        var result = CardPrimitives.Text(text, theme, "TextSecondary", theme.LabelSize);
         result.TextWrapping = TextWrapping.Wrap;
         result.Margin = new Thickness(0, 10, 0, 0);
         return result;
