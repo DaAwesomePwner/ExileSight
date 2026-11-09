@@ -77,9 +77,9 @@ Features contribute WPF-free item-card comparisons (`IItemCardComparisonProvider
 
 Only App types in `ExileSight.App.Features.Stashninja` consume `IScreenSampler`, apart from its DI registration and platform implementation/contract. An architecture test guards this boundary.
 
-`IScreenSampler` is the platform boundary for GDI `BitBlt` capture in Windows; recognition logic stays WPF-free. Capture is limited to the game client rectangle while the game is foreground and the stash overlay is open. No DXGI capture, DirectX/Vulkan hooks or Windows.Graphics.Capture are allowed. Exclusive fullscreen may not capture; recommend Windowed Fullscreen.
+`IScreenSampler` is the platform boundary for GDI `BitBlt` capture in Windows; recognition logic stays WPF-free. Capture is limited to the foreground game client rectangle. A light automatic stash watch defaults on and runs with the menu closed; **Show stash prices automatically** disables it. No DXGI capture, DirectX/Vulkan hooks or Windows.Graphics.Capture are allowed. Exclusive fullscreen may not capture; recommend Windowed Fullscreen.
 
-The user teaches page references, captured locally after calibration or with **Remember this page**. References remain on the user’s machine; no game images ship or are committed. Recognition only switches overlay price tags; sampling and recognition cannot obtain an `IntentToken` or send game input. The manifest declares the screen-read purpose. Calibration-free grid location is outside D-104 and may be considered later.
+Bounded grid comparison identifies supported pages without teaching and saves first-use calibration per layout and resolution after two consecutive checks agree. **Auto-calibrate** and manual two-click calibration remain fallbacks. Optional references captured after manual calibration or with **Remember this page** stay local; automatic identification does not use them. No game images ship or are committed. Screen results only select and position price tags; they cannot obtain an `IntentToken` or send game input. The manifest declares the automatic watch, page recognition and grid calibration purposes. See [FAIR-PLAY.md](FAIR-PLAY.md) for capture limits.
 
 ## Threading
 

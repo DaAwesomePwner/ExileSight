@@ -4,7 +4,8 @@ Status: approved by the owner on 2026-11-08 (D-109). Tasks: [Phase 7](../ROADMAP
 Mockups and how to compare against them: [README.md](README.md).
 
 The redesign changes how ExileSight looks, not what it is allowed to do. [FAIR-PLAY.md](../FAIR-PLAY.md)
-is unchanged: no new `GameAction` kinds, no screen reading, nothing sent without a key press or click.
+is unchanged: no new `GameAction` kinds, no screen reading added by the redesign, nothing sent without a
+key press or click. Stash recognition inherits 1.1's display-only screen reads (D-104), within FAIR-PLAY's limits.
 The only input change is that the omni key sends advanced copy by default (§3.1, D-113), which is the
 existing `CopyItem` action with its existing `Advanced` flag.
 
@@ -131,7 +132,7 @@ amount box you opened. You pick the currency and press List." After a click: hea
 buttons disabled, "Omni-key the item again to re-arm." Note mode keeps the same layout with the note text
 in the buttons.
 
-**Stash price tags** (stashninja; still disabled until stash layouts are measured): a tag in each priced
+**Stash price tags** (stashninja; measured layouts and automatic recognition shipped in 1.1): a tag in each priced
 cell's **bottom-right** corner, mono 10, 14 high, solid background so it reads over item art. Text is the
 unit price: chaos with no suffix below 1 divine, `1.4d` at or above. Colours keep the existing
 `ThresholdProfile`: `HighColor` at or above its `High` value, otherwise `LowColor`; `Minimum` keeps driving
@@ -151,6 +152,8 @@ Mockup: [ambient-hud](mockups/png/ambient-hud.png). All click-through unless not
   lines, each ellipsized, then `+N more lines`. Its controls (Back/Next, Reset run, League start, Bandit,
   Import JSON, Export CSV, Remove custom guide) live on the desktop app's **Act guide** page (§7, D-115), so
   the overlay stays click-through. Needs a structured guide snapshot (P7-T9).
+- **Lab overlay**, interactive: restyled in Phase 7 (P7-T17), with no mockup. A thicker ring marks the current room; the tracking line adds ◎.
+  Content markers: ◆ darkshrine, K golden key, D golden door, A Argus, ⚠ traps/gauntlet.
 - **Timers** (Tab held), width 300: name, a 4-high bar, mono time. Under one minute turns orange; that is
   the only colour change. Stopwatch has no bar. At most four rows, then `+N more`; long names ellipsize.
 - **Event toast**, existing `DefaultOverlayLayout.EventsToast` position and existing queue behaviour (one
