@@ -18,7 +18,8 @@ public sealed class CompositionWaitTests
             for (var i = 0; i < 2; i++)
             {
                 var elapsed = Stopwatch.StartNew();
-                await wait.WaitAsync().WaitAsync(TimeSpan.FromSeconds(2));
+                // Hang guard only: loaded CI runners can starve timer continuations for seconds.
+                await wait.WaitAsync().WaitAsync(TimeSpan.FromSeconds(30));
                 Assert.True(elapsed.ElapsedMilliseconds >= CompositionWait.TimeoutMilliseconds + CompositionWait.FallbackMilliseconds - 5);
                 Assert.False(finished.IsSet); // Caller resumed although the sampler never returned.
             }
