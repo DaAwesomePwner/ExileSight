@@ -107,13 +107,22 @@ are suggestions until you explicitly choose one.
 
 ### Price check / stashninja — Ctrl+Shift+N
 
-Open a supported stash page and poe.ninja prices appear automatically. ExileSight
+Open a supported stash page and press **Ctrl+Shift+P** to show poe.ninja prices
+and the summary for this visit. Rebind this key on the Hotkeys page. Press again
+to hide them. Closing the stash, an unknown page or leaving the game foreground
+ends the visit. A press outside a recognized stash shows nothing. With automatic prices off,
+nothing runs until you press Ctrl+Shift+P or open the Ctrl+Shift+N menu. The menu
+can load prices and capture the selected page for calibration. ExileSight
 identifies the cell arrangement and saves calibration after two consecutive checks agree on the page and position at each resolution;
 no menu, page selection or teaching is required. Closing the stash or opening an
-unknown page hides its tags.
+unknown page hides its tags. Recognition cannot reliably distinguish an unsupported
+page from a closed stash, so return to a supported page and press again.
 
-**Show stash prices automatically** defaults ON. Open Ctrl+Shift+N to turn it off;
-the choice is saved in your profile as `stashninja.automaticPrices`. The optional
+**Show stash prices automatically** defaults OFF. Open Ctrl+Shift+N to opt in;
+the choice is saved in your profile as `stashninja.automaticPrices`. An explicitly
+saved true from 1.1 stays on. If you used the old default without saving a choice,
+prices now stay off until requested. In automatic mode, Ctrl+Shift+P pauses the
+watch until another press or foreground change. The optional
 menu also provides price profiles, **Highlight**, **Auto-calibrate**, and manual
 calibration. Failed Auto-calibrate attempts retain the last good calibration and the loaded page’s tags; only the status changes. Foreground loss and page changes still hide tags normally. Its page list follows automatic recognition. For a manual override,
 select a page and click **Load selected tab**. This pins the page even with automatic

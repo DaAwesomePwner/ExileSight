@@ -50,7 +50,7 @@ public sealed partial class StashView : StackPanel
     private string? LeagueSetting => services.GetRequiredService<ISettingsStore<SettingsDocument>>().Snapshot.Prices.League;
     private void SetStatus(string message) => status.Text =
         (layout is null ? message : $"{layout.TabId}/{layout.Page}: {message}") +
-        (autoDetect.IsChecked == true && automaticStatus.Length > 0 ? $" — {automaticStatus}" : "");
+        (WatchEnabled && automaticStatus.Length > 0 ? $" — {automaticStatus}" : "");
     public StashView(StashModel model, IServiceProvider services, FeatureViews views)
     {
         this.model = model; this.services = services;
@@ -89,7 +89,7 @@ public sealed partial class StashView : StackPanel
         close.Click += (_, _) =>
         {
             calibration.Cancel();
-            if (autoDetect.IsChecked != true) { generation++; Invalidate(); surface.Hide(); }
+            if (!WatchEnabled) { generation++; Invalidate(); surface.Hide(); }
             host.SetVisible(window!, false); UpdatePolling();
         };
         Children.Add(close); Children.Add(status);
@@ -174,7 +174,7 @@ public sealed partial class StashView : StackPanel
         if (calibration.IsActive || layout is null || overview is null || profile.SelectedIndex < 0) return;
         var selected = model.Profiles[profile.SelectedIndex];
         var tags = Tags.Build(layout, overview, selected);
-        if (autoDetect.IsChecked == true ? automaticPage == layout && !recognitionHidden :
+        if (WatchEnabled ? automaticPage == layout && !recognitionHidden :
             window?.RequestedVisible == true) surface.Show(layout, tags, pricesFetchedAt, services.GetRequiredService<IClock>().UtcNow);
         var search = Tags.Search(tags, selected.Minimum); model.SetSearch(search);
         highlight.Content = $"Highlight above {selected.Minimum}c"; highlight.IsEnabled = search.Text is not null;

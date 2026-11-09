@@ -26,6 +26,7 @@ public static class TriggerNames
         Both("lab", "toggle", "Show or hide lab layout");
         names["mapinfo:hold"] = "Show map card while held";
         names["searchstr:paste"] = "Search string button";
+        Both("stashninja", "prices", "Show stash prices");
         Both("stashninja", "open", "Stash prices");
         names["stashninja:highlight"] = "Stash highlight button";
         foreach (var choice in new[] { "minus1", "plus1", "minus10", "plus10", "custom" })
