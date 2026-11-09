@@ -4,9 +4,14 @@ namespace ExileSight.Features.Stashninja;
 
 public static class TagPresentation
 {
-    public static string Price(decimal chaos, decimal? divine) => divine is >= 1
-        ? divine.Value.ToString("0.##", CultureInfo.InvariantCulture) + "d"
-        : chaos.ToString("0.##", CultureInfo.InvariantCulture);
+    public static string Price(decimal chaos, decimal? divine)
+    {
+        var value = divine is >= 1 ? divine.Value : chaos;
+        var step = divine is >= 1 || chaos < 10 ? .1m : 1m;
+        // Truncate rather than round: the displayed price must not overstate value.
+        return (value - value % step).ToString("0.#", CultureInfo.InvariantCulture) +
+            (divine is >= 1 ? "d" : "");
+    }
 
     // Prefer the full price; compact forms round DOWN to one decimal, then whole
     // units. Chaos >= 1000 uses k/m/b. Never round a positive price down to zero.

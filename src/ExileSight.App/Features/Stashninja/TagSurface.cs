@@ -17,6 +17,9 @@ public sealed class TagSurface
     private readonly HostedOverlayWindow window;
     private bool captureHidden, requested;
     private Layout? layout;
+    private RecognitionRegion? recognition;
+    public void SetRecognitionRegion(RecognitionRegion? value)
+    { recognition = value; drawn = null; Draw(); }
     private PriceTag[] tags = [];
     private (Layout Layout, ExileSight.Features.Stashninja.Transform Transform, Resolution Resolution, double Scale)? drawn;
     private PriceTag[] drawnTags = [];
@@ -76,7 +79,7 @@ public sealed class TagSurface
         var size = ExileSight.Features.Stashninja.Geometry.Viewport(resolution, scale);
         var root = (FrameworkElement)window.Content;
         root.Width = canvas.Width = size.X; root.Height = canvas.Height = size.Y;
-        var visuals = StashTagBuilder.Build(layout, tags, transform, resolution, scale, age, CardTheme.Default);
+        var visuals = StashTagBuilder.Build(layout, tags, transform, resolution, scale, age, CardTheme.Default, recognition);
         drawnBounds = visuals.Select(v => v.Bounds).Select(b =>
             new ExileSight.Features.Stashninja.Geometry.Bounds(Math.Max(0, b.X), Math.Max(0, b.Y),
                 Math.Max(0, Math.Min(r.Width, b.X + b.Width) - Math.Max(0, b.X)),

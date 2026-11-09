@@ -76,7 +76,7 @@ public sealed class StashTagsSnapshotTests
             var layout = smallest.Layout with { Cells = tags.Select(t => t.Cell).ToArray() };
             var resolution = new Resolution(width, height);
             var transform = ExileSight.Features.Stashninja.Geometry.Fit(layout.ReferenceResolution, resolution);
-            var visuals = StashTagBuilder.Build(layout, tags, transform, resolution, 1, "14 min ago", theme);
+            var visuals = StashTagBuilder.Build(layout, tags, transform, resolution, 1, "14 min ago", theme, EmptyRegion());
             Assert.Equal(4, visuals.Count);
             var canvas = new Canvas { Width = width, Height = height, Background = theme.OverlayBackground };
             foreach (var visual in visuals)
@@ -118,12 +118,55 @@ public sealed class StashTagsSnapshotTests
             var layout = new Layout("synthetic", "general", new(1920, 1080), tags.Select(t => t.Cell).ToArray(),
                 [], new("synthetic", "synthetic", new(2026, 1, 1)));
             var visuals = StashTagBuilder.Build(layout, tags, new(1, 0, 0), new(1920, 1080), 1,
-                "14 min ago", CardTheme.Default);
+                "14 min ago", CardTheme.Default, EmptyRegion());
             Assert.Equal(2, visuals.Count); // One compact tag plus summary; omitted tag has no bounds.
             var tag = Assert.IsType<Border>(visuals[0].Element);
             Assert.Equal("3d", Assert.IsType<TextBlock>(tag.Child).Text);
             return tag;
         }, "stash-compact");
+#endif
+    }
+
+    [WindowsOnlyFact]
+    public void TagsShareFrozenColourBrushes()
+    {
+#if SNAPSHOT_WINDOWS
+        SnapshotRenderer.Render(() =>
+        {
+            var a = StashTagBuilder.Tag(Fixture()[0], CardTheme.Default);
+            var b = StashTagBuilder.Tag(Fixture()[0] with { Color = "#6fe3d5" }, CardTheme.Default);
+            Assert.Same(a.Background, b.Background);
+            Assert.Same(((TextBlock)a.Child).Foreground, ((TextBlock)b.Child).Foreground);
+            Assert.True(a.Background.IsFrozen);
+            Assert.True(((TextBlock)a.Child).Foreground.IsFrozen);
+            return a;
+        }, "stash-frozen-brushes");
+#endif
+    }
+
+    [WindowsOnlyFact]
+    public void SummaryAvoidsHeadersSubTabsAndCalibratedButtons()
+    {
+#if SNAPSHOT_WINDOWS
+        SnapshotRenderer.Render(() =>
+        {
+            var cell = Fixture()[0].Cell with { X = 100, Y = 200, W = 500, H = 200 };
+            var layout = new Layout("synthetic", "general", new(800, 600), [cell], [], new("test", "test", new(2026, 1, 1)));
+            var region = EmptyRegion() with { ReferenceResolution = new(800, 600), X = 100, Y = 420, Width = 280, Height = 100 };
+            var above = StashSummaryPlacement.Find(layout, new(1, 0, 0), new(800, 600), 1, 280, 100, region);
+            Assert.NotNull(above);
+            Assert.Equal(80, above.Y); // Below is blocked by the header; sides are outside the viewport.
+            region = region with { SubTabs = new() { ["fragment"] = new(100, 80, 280, 100) } };
+            Assert.Null(StashSummaryPlacement.Find(layout, new(1, 0, 0), new(800, 600), 1, 280, 100, region));
+            region = EmptyRegion() with { ReferenceResolution = new(800, 600),
+                SubTabs = new() { ["currency/general"] = new(100, 80, 280, 100) } };
+            // Fit puts this button above the candidate; calibration moves it directly underneath.
+            Assert.Null(StashSummaryPlacement.Find(layout, new(1, 0, 100), new(800, 600), 1, 280, 100, region));
+            var tags = Fixture();
+            Assert.Equal(tags.Length, StashTagBuilder.Build(layout, tags, new(1, 0, 0), new(800, 600), 1,
+                "14 min ago", CardTheme.Default, null).Count); // Unknown exclusions suppress only the summary.
+            return StashTagBuilder.Tag(tags[0], CardTheme.Default);
+        }, "stash-recognition-safe");
 #endif
     }
 
@@ -137,6 +180,9 @@ public sealed class StashTagsSnapshotTests
     }
 
 #if SNAPSHOT_WINDOWS
+    private static RecognitionRegion EmptyRegion() => new(new(1920, 1080), 0, 0, 1, 1,
+        new("synthetic", "synthetic", new(2026, 1, 1)), []);
+
     private static PriceTag[] Fixture() => new[] { ("Divine Orb", 2400m, "12d"),
         ("Mirror Shard", 620m, "3.1d"), ("Exalted Orb", 280m, "1.4d") }.Select((item, i) => new PriceTag(
             new(item.Item1, i * 50, 0, 44, 44, "Currency", ItemName: item.Item1), item.Item1,

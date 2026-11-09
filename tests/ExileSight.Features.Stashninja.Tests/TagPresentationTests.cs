@@ -20,11 +20,17 @@ public sealed class TagPresentationTests
     [Fact] public void FormatsUnitPricesAtDivineBoundary()
     {
         Assert.Equal("45", TagPresentation.Price(45, .3m));
-        Assert.Equal("199.99", TagPresentation.Price(199.99m, .99995m));
+        Assert.Equal("199", TagPresentation.Price(199.99m, .99995m));
         Assert.Equal("1d", TagPresentation.Price(200, 1));
         Assert.Equal("1.4d", TagPresentation.Price(280, 1.4m));
+        Assert.Equal("1.4d", TagPresentation.Price(290, 1.45m));
+        Assert.Equal("1.9d", TagPresentation.Price(398, 1.99m));
+        Assert.Equal("9.9", TagPresentation.Price(9.99m, null));
+        Assert.Equal("10", TagPresentation.Price(10.99m, null));
+        Assert.Equal("199", TagPresentation.Price(199.99m, null));
+        Assert.Equal("0", TagPresentation.Price(0, null));
         Assert.Equal("280", TagPresentation.Price(280, null));
-        Assert.Equal("0.25", TagPresentation.Price(.25m, null));
+        Assert.Equal("0.2", TagPresentation.Price(.25m, null));
     }
 
     [Theory]

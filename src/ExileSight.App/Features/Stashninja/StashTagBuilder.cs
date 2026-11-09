@@ -23,7 +23,21 @@ public static class StashTagBuilder
             Background = Brush(tag.Color), Child = text, ClipToBounds = true, IsHitTestVisible = false };
     }
 
-    private static Brush Brush(string color) => (Brush)new BrushConverter().ConvertFromString(color)!;
+    private static readonly Dictionary<string, SolidColorBrush> Brushes = new(StringComparer.OrdinalIgnoreCase);
+    private static SolidColorBrush Brush(string color)
+    {
+        lock (Brushes)
+        {
+            if (Brushes.TryGetValue(color, out var cached)) return cached;
+            var rgb = Convert.FromHexString(color[1..]);
+            var brush = new SolidColorBrush(Color.FromRgb(rgb[0], rgb[1], rgb[2]));
+            brush.Freeze();
+            // Bound retention across repeated profile edits; at most 40 profile colours are active.
+            if (Brushes.Count >= 128) Brushes.Clear();
+            Brushes.Add(color, brush);
+            return brush;
+        }
+    }
 
     public static Border Summary(IEnumerable<PriceTag> tags, string age, CardTheme theme)
     {
@@ -70,7 +84,7 @@ public static class StashTagBuilder
 
     public static IReadOnlyList<Visual> Build(Layout layout, PriceTag[] tags,
         ExileSight.Features.Stashninja.Transform transform, Resolution resolution, double scale,
-        string age, CardTheme theme)
+        string age, CardTheme theme, RecognitionRegion? recognition)
     {
         var visuals = new List<Visual>();
         foreach (var tag in tags)
@@ -95,30 +109,12 @@ public static class StashTagBuilder
             element.Width = bounds.Width / transform.Scale;
             visuals.Add(new(element, bounds));
         }
-        if (tags.Length == 0) return visuals;
+        if (tags.Length == 0 || recognition is null) return visuals;
         var card = Summary(tags, age, theme);
         card.Measure(new Size(card.Width, double.PositiveInfinity));
         var width = card.Width * scale; var height = card.DesiredSize.Height * scale;
-        // Keep the card beyond every cell in this page, including folder offsets.
-        var right = layout.Cells.Max(c => transform.Apply(Layouts.Origin(layout, c)).X + c.W * transform.Scale);
-        var top = layout.Cells.Min(c => transform.Apply(Layouts.Origin(layout, c)).Y);
-        var left = layout.Cells.Min(c => transform.Apply(Layouts.Origin(layout, c)).X);
-        var bottom = layout.Cells.Max(c => transform.Apply(Layouts.Origin(layout, c)).Y + c.H * transform.Scale);
-        var gap = 20 * scale;
-        var x = right + gap; var y = Math.Clamp(top, 0, Math.Max(0, resolution.Height - height));
-        if (x + width > resolution.Width)
-        {
-            x = left - gap - width;
-            if (x < 0)
-            {
-                x = Math.Clamp(left, 0, Math.Max(0, resolution.Width - width));
-                y = bottom + gap;
-                if (y + height > resolution.Height) y = top - gap - height;
-            }
-        }
-        // No room outside the tab: omit rather than cover cells or stack counts.
-        if (x >= 0 && y >= 0 && x + width <= resolution.Width && y + height <= resolution.Height)
-            visuals.Add(new(card, new(x, y, width, height)));
+        var boundsForCard = StashSummaryPlacement.Find(layout, transform, resolution, scale, width, height, recognition);
+        if (boundsForCard is not null) visuals.Add(new(card, boundsForCard));
         return visuals;
     }
 }

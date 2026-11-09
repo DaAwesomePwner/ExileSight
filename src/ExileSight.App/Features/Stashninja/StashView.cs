@@ -60,6 +60,7 @@ public sealed partial class StashView : StackPanel
         surface = new(host, services.GetRequiredService<IGameWindow>(), store);
         calibration = new(services.GetRequiredService<PassiveOverlayInput>(), services.GetRequiredService<IGameWindow>(), store);
         InitializeRecognition();
+        surface.SetRecognitionRegion(region);
         Background = Brushes.Black;
         Children.Add(new TextBlock { Text = "Stash prices — select tab/page", Foreground = Brushes.White });
         foreach (var l in model.Layouts) tab.Items.Add(l.TabId + "/" + l.Page);
