@@ -56,10 +56,11 @@ public sealed class CardTheme
     public double CardWidth => 300;
     public double TierPillWidth => 36;
     public Thickness CardPadding => new(12, 10, 12, 10);
-    public double BodySize => 13;
-    public double LabelSize => 11;
-    public double NumberSize => 11;
-    public double TitleSize => 13;
+    public double BodySize => 12;
+    public double LabelSize => 10;
+    public double NumberSize => 10;
+    public double TitleSize => 12;
+    public double StatValueSize => 20;
     public double AppTitleSize => 24;
     public double AppSectionSize => 18;
     public double AppBodySize => 14;

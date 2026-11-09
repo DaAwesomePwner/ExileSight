@@ -23,13 +23,13 @@ public static partial class CardPrimitives
         var row = new StackPanel { Orientation = Orientation.Horizontal };
         if (model.Wanted > 0)
         {
-            var wanted = Text($"◆ {model.Wanted} wanted", theme, "OverlayAccent", 12);
+            var wanted = Text($"◆ {model.Wanted} wanted", theme, "OverlayAccent", theme.BodySize);
             wanted.FontWeight = FontWeights.SemiBold;
             row.Children.Add(wanted);
         }
         if (model.Unwanted > 0)
         {
-            var unwanted = Text($"✕ {model.Unwanted} unwanted", theme, "TooltipLow", 12);
+            var unwanted = Text($"✕ {model.Unwanted} unwanted", theme, "TooltipLow", theme.BodySize);
             unwanted.FontWeight = FontWeights.SemiBold;
             unwanted.Margin = new Thickness(model.Wanted > 0 ? 8 : 0, 0, 0, 0);
             row.Children.Add(unwanted);
@@ -50,14 +50,14 @@ public static partial class CardPrimitives
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        row.Children.Add(Text("Average roll", theme, "TextSecondary", 12));
+        row.Children.Add(Text("Average roll", theme, "TextSecondary", theme.BodySize));
         var bar = RollBar(roll, theme, stretch: true);
         bar.Margin = new Thickness(12, 0, 8, 0);
         Grid.SetColumn(bar, 1);
         row.Children.Add(bar);
         var number = RollLabel(roll, theme);
         number.FontWeight = FontWeights.Bold;
-        number.FontSize = 12;
+        number.FontSize = theme.NumberSize;
         number.Foreground = theme.OverlayForeground;
         number.HorizontalAlignment = HorizontalAlignment.Right;
         Grid.SetColumn(number, 2);
@@ -73,10 +73,10 @@ public static partial class CardPrimitives
     public static Border StatTile(StatTileModel model, CardTheme theme)
     {
         var column = new StackPanel();
-        column.Children.Add(Text(model.Label, theme, "TextMuted", 11));
+        column.Children.Add(Text(model.Label, theme, "TextMuted", theme.LabelSize));
         column.Children.Add(Text(model.Value ?? "?", theme,
             model.Value is null || model.Tone is null or CardTone.Unknown
-                ? "OverlayForeground" : "Tooltip" + model.Tone, 20, true));
+                ? "OverlayForeground" : "Tooltip" + model.Tone, theme.StatValueSize, true));
         return new Border
         {
             Background = theme["OverlayRaised"], CornerRadius = new CornerRadius(4),
