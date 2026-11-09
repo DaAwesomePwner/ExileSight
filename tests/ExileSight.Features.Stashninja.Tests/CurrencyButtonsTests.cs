@@ -58,8 +58,10 @@ public sealed class CurrencyButtonsTests
         Assert.False(policy.Retain(now, result.HoverPage == atlas, hover, hover, adoptBaseline: false));
         Assert.True(policy.Identified);
         Assert.Equal(WatchWork.None, policy.Tick(now, hover, hover).Work);
-        // Round 2 decision: acknowledge a no-leader hover; do not blink again until it moves.
-        for (var i = 1; i <= 100; i++)
+        // Round 2 continued: confirm a new hover once, then stay quiet until it moves.
+        Assert.Equal(WatchWork.Identify, policy.Tick(now.AddMilliseconds(450), hover, hover).Work);
+        Assert.False(policy.Retain(now.AddMilliseconds(550), result.HoverPage == atlas, hover, hover, adoptBaseline: false));
+        for (var i = 2; i <= 100; i++)
             Assert.Equal(WatchWork.None, policy.Tick(now.AddMilliseconds(i * 450), hover, hover).Work);
         var moved = Enumerable.Repeat(.4, PageSignature.Length).ToArray();
         Assert.Equal(WatchWork.None, policy.Tick(now.AddSeconds(46), moved, moved).Work);

@@ -12,7 +12,8 @@ public sealed class RealImageCompositionTests(ITestOutputHelper output)
         var folder = Environment.GetEnvironmentVariable("EXILESIGHT_REAL_STASH_DIR")!;
         var labels = JsonSerializer.Deserialize<Dictionary<string, string?>>(File.ReadAllText(Path.Combine(folder, "labels.json")))!;
         var layouts = Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts"));
-        var kept = 0; var total = 0; var failures = new List<string>();
+        var kept = 0; var total = 0; var cleanKeeps = 0; var normalKeeps = 0; var hoverKeeps = 0;
+        var recoveryTicks = new Dictionary<int, int>(); var failures = new List<string>();
         foreach (var width in new[] { 2000, 3440 })
         {
             var scenes = labels.Where(p => p.Key.StartsWith("src", StringComparison.Ordinal)).ToDictionary(p => p.Key, p =>
@@ -30,7 +31,8 @@ public sealed class RealImageCompositionTests(ITestOutputHelper output)
                 var ownKey = labels.First(p => p.Value == $"{layout.TabId}/{layout.Page}").Key;
                 var own = scenes[ownKey];
                 var clean = GridIdentifier.Identify(layouts, size, own, l => saved[l], buttons: GridFixture.Buttons);
-                if (clean.Layout != layout) failures.Add($"clean {width}/{scale}/{layout.TabId}/{layout.Page}");
+                if (clean.Layout == layout) cleanKeeps++;
+                else failures.Add($"clean {width}/{scale}/{layout.TabId}/{layout.Page}");
                 var freshResults = new Dictionary<string, GridIdentification>();
                 var world = (byte[])own.Bgra.Clone();
                 var right = (int)Math.Ceiling(layout.Cells.Max(c => t.Apply(Layouts.Origin(layout, c)).X + c.W * t.Scale) + 8);
@@ -55,17 +57,22 @@ public sealed class RealImageCompositionTests(ITestOutputHelper output)
                     if (result.Layout == layout || result.HoverPage == layout)
                     {
                         kept++;
+                        if (result.Layout == layout) normalKeeps++; else hoverKeeps++;
                         if (!freshResults.TryGetValue(name, out var fresh))
                             freshResults[name] = fresh = GridIdentifier.Identify(layouts, size, scene, l => saved[l], buttons: GridFixture.Buttons);
                         if (fresh.Layout == layout || fresh.HoverPage == layout)
                             failures.Add($"fresh {width}/{scale}/{layout.TabId}/{layout.Page}/{name}");
-                        if (!PaintedCaptureReplay.Hides(result, layout))
+                        var ticks = PaintedCaptureReplay.RecoveryTicks(result, layout);
+                        recoveryTicks[ticks] = recoveryTicks.GetValueOrDefault(ticks) + 1;
+                        if (ticks != 2)
                             failures.Add($"unbounded {width}/{scale}/{layout.TabId}/{layout.Page}/{name}/dy={dx}: normal={result.Layout?.Page}, hover={result.HoverPage?.Page}");
                     }
                 }
             }
         }
-        output.WriteLine($"production painted frames={total}, transient keeps={kept}, unbounded={failures.Count}");
+        output.WriteLine($"production painted frames={total}, clean keeps={cleanKeeps}/64, transient keeps={kept} (normal={normalKeeps}, hover={hoverKeeps}), failures={failures.Count}");
+        output.WriteLine($"recovery ticks/count: {string.Join(", ", recoveryTicks.OrderBy(p => p.Key).Select(p => $"{p.Key}/{p.Value}"))}; replay hides at 1.000s after stale completion");
+        Assert.Equal(64, cleanKeeps);
         Assert.True(failures.Count == 0, string.Join("\n", failures));
     }
 }

@@ -223,8 +223,8 @@ Tests include noise, gamma, filled cells, unpriced frames at two unique cell/pro
 first-use offsets beyond 3px, backoff and pin transitions. Windows validation must
 cover real thresholds, sparse GDI call overhead, stable-page flicker, close/reopen,
 foreground/resolution changes, price-response races and manual controls. Only
-a genuine change or qualifying gate causes full capture; tags may hide through
-that transition's 32ms compositor delay, capture and off-thread scoring.
+a genuine change, qualifying gate or pending confirmation causes full capture;
+tags hide for composition and capture, then return before off-thread scoring.
 No screenshots or signatures may be committed; samples stay on the PC.
 
 Set `EXILESIGHT_REAL_STASH_DIR` to the local corpus to run `RealImageTests`: all
@@ -247,7 +247,8 @@ caps count transforms, not scoring passes: at most two passes per candidate plus
 Two evidence maps additionally read at most nine luminances per captured pixel each,
 after one luminance conversion pass. Final continuity verification rereads at most
 8,712 pixels from the existing capture, with the same bounded sparse-patch loops.
-Capture pixel caps and watch cadence are unchanged. Tests include 128 deterministic
+Capture pixel caps and the 450 ms header tick are unchanged; independent confirmation
+adds the checks described below. Tests include 128 deterministic
 dark correlated-noise scenes (clipping both before and after blur), black/mid-grey
 frames at both widths, synthetic and real Atlas hover-glow rejection, and the
 first-use confirmation guard. Fixtures choose band centers within measured navy valleys, offset by 0.5–1 reference
@@ -276,19 +277,29 @@ Tags return before identification scoring (historically ~100 ms). Real Windows
 composition timings remain to be measured; no game input or new capture region
 is introduced.
 
-A new automatic header/sub-tab baseline is provisional. On the next available
+A new automatic header/sub-tab baseline or hover acknowledgement is provisional. On the next available
 450 ms tick after completion, capture again after composition. A matching pass
 confirms it. A failed confirmation remains pending, and a second consecutive
-failure hides tags. A single stale normal pass followed by fresh failed checks
+failure hides tags. A single stale normal or hover pass followed by fresh failed checks
 therefore clears within two follow-up ticks plus processing (typically 2–3 ticks,
 0.9–1.35 s). A slow gap over four seconds resets the failure count, not the need
 for confirmation. Moving-world closure remains bounded to four ticks (1.8 s)
 plus processing. Completion times, rather than starts, govern all failure windows.
 
-No-leader currency hover signatures are acknowledged without adopting the normal
-baseline. Matching acknowledged signatures cause no more captures or scoring;
-moving away, including returning to the old baseline, restarts normal debounce.
-Normal identification gates (16 score, 3 margin, button agreement) are unchanged.
+Owner decision (round 2 continued): a new no-leader currency hover acknowledgement
+gets the same independent confirmation as a normal baseline. Either a matching
+normal result or matching hover keep confirms the signature. A resting correct
+hover therefore costs one extra check/short blink, then matching signatures cause
+no capture or scoring. Moving away, even back to the old baseline, restarts debounce.
+A changed signature during confirmation needs its own matching confirmation.
+
+The bound from stale-keep completion is 0.9 s scheduling plus two fresh check
+durations. The policy replay models 100 ms checks and hides at 1.000 s, after two
+follow-up ticks; an operational estimate is ~0.9–1.35 s. From initial change,
+including debounce and the first stale check, the bound is 1.8 s scheduling plus
+three check durations (~2.4 s estimated). These are conditional on fresh consecutive
+failures within four seconds; OS/driver stalls prevent a hard wall-clock maximum.
+The normal identification gates (16 score, 3 margin, button agreement) are unchanged.
 Production-scale regression cases reuse ZReviewGuardTests and painted.txt from the
 owner's local review folder. Clean pages are checked at 1.0/1.25/1.5/2.0 scale;
 painted panels use those scales and vertical offsets −1/0/+1 px. Images stay local.
@@ -311,41 +322,43 @@ Header-only occlusion keeps all eight pages at both widths; total-grid occlusion
 hides after two failures. Passes reset the count; the next passing identification
 restores hidden tags. Real hover-glow brightness needs in-game validation.
 
-#### Round 2 verification and remaining D/F conflict
+#### Independent-confirmation regression coverage
 
 The native wait follows the [Microsoft DwmFlush contract](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/nf-dwmapi-dwmflush):
 it waits for queued updates from this application, not the entire desktop session.
 The application render drain precedes this wait. Windows timing is not measured here.
 
-All 64 clean page/width/scale combinations identify correctly without the pixel
-guard. The production matrix covers 2,112 painted frames: 118 transient keeps,
-98 bounded normal-identification keeps, and 20 unbounded no-leader hover keeps.
-Fresh unpainted captures reject P in all these cases, but the acknowledged-hover
-policy never requests that capture while the signature stays unchanged.
+The production matrix exercises 2,112 painted frames and 64 clean page/width/scale
+combinations. Each transient keep, normal or hover, is replayed through two fresh
+failed checks; fresh unpainted scenes must reject the old page. Clean pages must
+still identify correctly at all four scales. The prior 20 unbounded hover cases
+are retained as regression inputs, including Atlas on src11 and General on the
+world/src11 at production DPI and vertical offsets. No case is deleted or skipped.
 
-| Width | Display scale | Unbounded painted hover cases |
-| --- | --- | --- |
-| 2000 | 1.25 | Atlas on src11, dy=-1 |
-| 2000 | 1.5 | Atlas on src11, dy=-1; General on world, dy=0/+1 |
-| 2000 | 2.0 | Atlas on src11, dy=-1; General on world, dy=0/+1 |
-| 3440 | 1.5 | Atlas on src11, dy=0; General on src11 and world, dy=-1/0/+1 |
-| 3440 | 2.0 | Atlas on src11, dy=-1; General on src8, dy=-1/0; General on src11, dy=-1; General on world, dy=-1/0 |
+Verified result: all 64 clean combinations keep. Of 2,112 painted frames, 118
+transiently keep (98 normal identifications and 20 hover keeps); all 118 hide on
+recovery tick two, at 1.000 s after the stale completion in the policy replay.
+There are zero fresh-scene or recovery failures. All four opt-in RealImage tests
+pass with the local corpus enabled, including the original recognition cases.
 
-The legacy-size painted regression also exposes Atlas-on-src11 as an unbounded
-hover keep. Its raw score gaps are -3.14 at 2000 and -1.55 at 3440; no single-frame
-painted-score safety margin is claimed after removing the guard.
+Single-frame painted scores still overlap correct scores (legacy-size raw gaps
+-3.14 at 2000 and -1.55 at 3440); safety is structural confirmation, not a weaker
+keep threshold or pixel-panel heuristic. The legacy painted regression and original
+198-case first-use replay remain enabled. All ten half-grid and both +25-hover
+strict-policy assertions remain unchanged. No images are committed.
 
-Direction D requires no more checks while an acknowledged hover signature stays
-unchanged, whereas F requires every painted-frame keep to receive fresh checks
-and hide within the bound. The corpus demonstrates that a painted frame can
-produce precisely that acknowledged hover. Both requirements cannot hold as
-written. A proposed resolution is one independent confirmation for each new hover
-acknowledgement, then no more checks until its signature moves. That exception
-needs an explicit decision; it has not been silently introduced.
+The latest ±1 px calibration-offset and legacy-panel replay measures:
 
-Build, 109 regular feature tests, 129 architecture tests, 25 transparency tests
-and 48 Platform.Windows tests pass (21 Windows-only tests skipped off Windows).
-The full opt-in run executes all four image tests with no skips: the original
-198-case replay and approved strict-occlusion cases pass; the legacy and production
-painted-frame temporal acceptance tests fail on the hover cases above. No images
-are committed. This round remains incomplete and is not ready to merge.
+| Width | Correct-page minimum | Wrong-page offset maximum | Painted maximum | Minimum raw gap |
+| --- | --- | --- | --- | --- |
+| 2000 | 19.24 | 16.88 | 22.37 | −3.14 |
+| 3440 | 18.42 | 17.18 | 19.97 | −1.55 |
+
+These are raw candidate scores, before all normal identification gates. Fresh
+unpainted negatives never retain the old page in this replay.
+
+The unchanged 198-case first-use replay passes with minimum accepted score 18.40,
+highest admitted null candidate 16.45 (gap 1.95), and minimum decision margin 5.11.
+Its highest admitted wrong candidate scores 22.48 (raw gap −4.07), but is rejected:
+League on shifted Atlas loses to the other local grid score of 30.02 and fails the
+wide acceptance gate. Raw candidate scores alone do not establish correctness.

@@ -63,9 +63,12 @@ public sealed class StashWatchPolicy
     // A newly adopted automatic baseline needs an independent capture one tick later.
     public void ObserveIdentification(DateTimeOffset completedAt, double[] currentHeader, double[]? currentSub)
     {
-        var changed = !Identified || header is null || Changed(header, currentHeader) || !SameOptional(subTab, currentSub);
+        var changed = !Identified || header is null || Changed(header, currentHeader) || !SameOptional(subTab, currentSub) ||
+            acknowledgedHeader is not null && (Changed(acknowledgedHeader, currentHeader) || !SameOptional(acknowledgedSub, currentSub));
+        var confirmsHover = confirmAfter is { } due && completedAt > due && acknowledgedHeader is not null &&
+            !Changed(acknowledgedHeader, currentHeader) && SameOptional(acknowledgedSub, currentSub);
         Accept(currentHeader, currentSub);
-        if (changed) confirmAfter = completedAt;
+        if (changed && !confirmsHover) confirmAfter = completedAt;
     }
 
     public void Accept(double[] headerSignature, double[]? subSignature, bool pinned = false)
@@ -84,9 +87,18 @@ public sealed class StashWatchPolicy
             if (adoptBaseline && PageSignature.Valid(currentHeader)) ObserveIdentification(now, currentHeader!, currentSub);
             if (!adoptBaseline)
             {
+                var sameAcknowledgement = acknowledgedHeader is not null && currentHeader is not null &&
+                    !Changed(acknowledgedHeader, currentHeader) && SameOptional(acknowledgedSub, currentSub);
+                var matchesNormal = acknowledgedHeader is null && header is not null && currentHeader is not null &&
+                    !Changed(header, currentHeader) && SameOptional(subTab, currentSub);
+                // Owner decision: a new hover signature is provisional too. Either passing
+                // identification mode can confirm the same signature on a later capture.
+                var confirmed = confirmAfter is { } due && now > due && (sameAcknowledgement || matchesNormal);
+                var alreadyTrusted = confirmAfter is null && sameAcknowledgement;
                 acknowledgedHeader = currentHeader is null ? null : (double[])currentHeader.Clone();
                 acknowledgedSub = currentSub is null ? null : (double[])currentSub.Clone();
-                confirmAfter = null; pendingHeader = pendingSub = null; unstableTicks = 0; acknowledgementChanged = false;
+                confirmAfter = confirmed || alreadyTrusted ? null : now;
+                pendingHeader = pendingSub = null; unstableTicks = 0; acknowledgementChanged = false;
             }
             keepFailures = 0;
             return false;

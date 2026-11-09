@@ -71,10 +71,12 @@ public sealed class WatchRetentionTests
         Assert.False(policy.Retain(Now, false, null, null));
         Assert.False(policy.Retain(Now, true, S(.2), S(.2), adoptBaseline: false));
         Assert.Equal(WatchWork.None, policy.Tick(Now, S(.2), S(.2)).Work);
-        // Round 2: a kept hover is acknowledged, rather than checked every tick.
-        Assert.Equal(WatchWork.None, policy.Tick(Now.AddMilliseconds(450), S(.2), S(.2)).Work);
+        // Owner decision: a kept hover needs one independent confirmation, not an every-tick loop.
+        Assert.Equal(WatchWork.Identify, policy.Tick(Now.AddMilliseconds(450), S(.2), S(.2)).Work);
+        Assert.False(policy.Retain(Now.AddMilliseconds(550), true, S(.2), S(.2), adoptBaseline: false));
+        Assert.Equal(WatchWork.None, policy.Tick(Now.AddMilliseconds(800), S(.2), S(.2)).Work);
         Assert.Equal(WatchWork.None, policy.Tick(Now.AddMilliseconds(900), S(.4), S(.4)).Work);
         Assert.Equal(WatchWork.Identify, policy.Tick(Now.AddMilliseconds(1350), S(.4), S(.4)).Work);
-        Assert.False(policy.Retain(Now.AddMilliseconds(450), false, null, null));
+        Assert.False(policy.Retain(Now.AddMilliseconds(1450), false, null, null));
     }
 }
