@@ -39,14 +39,14 @@ public sealed class EngineTests
         var overview = new PriceOverview([new("chaos", "Chaos Orb", "Currency", null, 1, null, [10, null, -10], null, null),
             new("divine", "Divine Orb", "Currency", null, 200, null, [], null, null)], 200);
         var tags = Tags.Build(Fixture(), overview, new("test", 10, 100, "#FFFFFF", "#FFD700"));
-        Assert.Equal("200c / 1d", tags[1].Text);
+        Assert.Equal("1d", tags[1].Text);
         Assert.Equal("#FFD700", tags[1].Color);
         Assert.Equal(7, tags[0].Sparkline.Length);
         Assert.Null(tags[0].Sparkline[5]);
         Assert.Equal(99, tags[0].Sparkline[6]!.Value, 6);
         Assert.Contains("Divine", Tags.Search(tags, 10).Text);
         Assert.Null(Tags.Search(tags, 201).Text);
-        Assert.Equal("1c", Tags.Build(Fixture(), overview with { ChaosPerDivine = null }, new("t",0,1,"#FFFFFF","#FFFFFF"))[0].Text);
+        Assert.Equal("1", Tags.Build(Fixture(), overview with { ChaosPerDivine = null }, new("t",0,1,"#FFFFFF","#FFFFFF"))[0].Text);
     }
     [Fact] public void RegexEscapesNamesAndEnforcesExactLimit()
     {
