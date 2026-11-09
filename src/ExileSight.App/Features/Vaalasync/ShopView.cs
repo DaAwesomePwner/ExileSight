@@ -37,9 +37,9 @@ public sealed class ShopView : StackPanel
     }
     private void BuildCard()
     {
-        theme = overlayTheme.Current;
-        Children.Clear();
-        card = new ShopCardSurface(model.CardSnapshot(DateTimeOffset.UtcNow, null), theme, (button, choice) =>
+        var nextTheme = overlayTheme.Current;
+        var next = ShopCardSurface.Replace(this, card,
+            model.CardSnapshot(DateTimeOffset.UtcNow, selectedAmount), nextTheme, (button, choice) =>
         {
             var acceptClick = false;
             button.PreviewMouseLeftButtonDown += (_, e) => acceptClick = ShopModel.AcceptClick(e.ClickCount);
@@ -53,7 +53,8 @@ public sealed class ShopView : StackPanel
             };
             views.Bind(button, "vaalasync:" + choice);
         });
-        Children.Add(card.Frame);
+        card = next;
+        theme = nextTheme;
         card.History.Click += (_, _) => new HistoryView(model, services.GetRequiredService<PriceService>()).Show();
         card.EditCustom.Click += (_, _) => new HistoryView(model, services.GetRequiredService<PriceService>()).Show();
         card.Close.Click += (_, _) => services.GetRequiredService<OverlayHost>().SetVisible(window!, false);
