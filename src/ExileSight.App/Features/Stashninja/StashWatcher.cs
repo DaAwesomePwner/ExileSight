@@ -13,6 +13,7 @@ public sealed partial class StashView
     private int automaticEpoch;
     private StashWatchPolicy watchPolicy = new();
     private readonly WideSearchBudget wideSearchBudget = new();
+    private readonly FirstUseCalibration calibrationConfirmation = new();
     private string automaticStatus = "";
 
     private double[]? WatchHeader() => SampleRegion(passive: true).Signature;
@@ -27,7 +28,7 @@ public sealed partial class StashView
         if (recognitionResolution != ClientResolution)
         {
             recognitionResolution = ClientResolution;
-            watchPolicy = new(); automaticPage = null; generation++; surface.Hide();
+            watchPolicy = new(); calibrationConfirmation.Reset(); automaticPage = null; generation++; surface.Hide();
         }
         var now = services.GetRequiredService<IClock>().UtcNow;
         var header = WatchHeader();
@@ -43,7 +44,7 @@ public sealed partial class StashView
             autoDetect.IsChecked == true && GridCapture.Current(Game.Current, initial);
         try
         {
-            var saved = model.Layouts.ToDictionary(l => l, l => calibrationStore.Get(l, resolution));
+            var saved = model.Layouts.ToDictionary(l => l, l => calibrationStore.Get(l, resolution) ?? calibrationConfirmation.Pending(l, resolution));
             var starts = model.Layouts.ToDictionary(l => l, l => saved[l] ?? Geometry.Fit(l.ReferenceResolution, resolution));
             var sampler = services.GetRequiredService<IScreenSampler>();
             Dictionary<Layout, double>? precheck = null;
@@ -57,7 +58,7 @@ public sealed partial class StashView
                 { RejectPage(now, step.Changed, header); return; }
             }
             var areas = model.Layouts.Select(l => GridSampling.Bounds(l, resolution, starts[l])).ToArray();
-            var x = areas.Min(a => a.X); var y = areas.Min(a => a.Y);
+            var x = areas.Min(a => a.X); var y = Math.Min(areas.Min(a => a.Y), (int)(94 * resolution.Height / 837d));
             var area = new GridArea(x, y, areas.Max(a => a.X + a.Width) - x, areas.Max(a => a.Y + a.Height) - y);
             var menu = Position(initial.ClientRect, host.EffectiveScale);
             if (window?.IsVisible == true && RecognitionRegion.Intersects(new(area.X, area.Y, area.Width, area.Height),
@@ -76,13 +77,30 @@ public sealed partial class StashView
                 if (!Current()) return;
                 var result = sample is null ? null : await Task.Run(() =>
                     GridIdentifier.Identify(model.Layouts, resolution, sample, l => saved[l], precheck,
-                        candidates => wideSearchBudget.Reserve(now, baselineHeader, candidates)));
+                        candidates => wideSearchBudget.Reserve(now, baselineHeader, candidates), currencyButtons));
                 if (!Current()) return;
                 if (result?.Layout is not { } identified || result.Transform is null || baselineHeader is null ||
                     (region!.SubTabs.ContainsKey(identified.TabId) && baselineSub[identified.TabId] is null))
                 { RejectPage(now, step.Changed, header); return; }
                 if (calibrationStore.Get(identified, resolution) is null)
+                {
+                    if (!calibrationConfirmation.Observe(identified, resolution, result.Transform))
+                    {
+                        // Keep only a transient start transform for the next identification;
+                        // otherwise the wide-search cooldown would prevent confirmation.
+                        if (watchPolicy.Unknown(now, true, baselineHeader))
+                        {
+                            generation++; Invalidate();
+                            // This transition invalidates the old page, not our pending fit.
+                            request = generation;
+                        }
+                        automaticPage = null; recognitionHidden = true; surface.Hide();
+                        SetStatus("Confirming grid calibration…");
+                        return;
+                    }
                     calibrationStore.Save(identified, resolution, result.Transform);
+                }
+                calibrationConfirmation.Reset();
                 watchPolicy.Accept(baselineHeader, baselineSub[identified.TabId]);
                 automaticPage = identified; recognitionHidden = false;
                 automaticStatus = $"auto: {identified.TabId}/{identified.Page} (score {result.Score:F0}, margin {result.Margin:F0})";
@@ -96,7 +114,7 @@ public sealed partial class StashView
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
         { if (Current()) RejectPage(now, step.Changed, header); }
-        finally { identifying = false; }
+        finally { if (!Current()) calibrationConfirmation.Reset(); identifying = false; }
     }
 
     private async Task LoadAutomatic(Layout identified)
@@ -108,6 +126,7 @@ public sealed partial class StashView
 
     private void RejectPage(DateTimeOffset now, bool changed, double[]? header)
     {
+        calibrationConfirmation.Reset();
         if (!watchPolicy.Unknown(now, changed, header)) return;
         generation++; Invalidate();
         automaticPage = null; recognitionHidden = true;

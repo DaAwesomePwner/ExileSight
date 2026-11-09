@@ -47,10 +47,15 @@ public sealed class GridIdentificationTests(ITestOutputHelper output)
             Assert.True(StashWatchPolicy.ShouldIdentify(precheck[layout]),
                 $"{layout.TabId}/{layout.Page} sparse score {precheck[layout]} at offset {offset}");
             var watch = Stopwatch.StartNew();
-            var result = GridIdentifier.Identify(layouts, size, new(0, 0, size.Width, size.Height, pixels), _ => null);
+            var result = GridIdentifier.Identify(layouts, size, new(0, 0, size.Width, size.Height, pixels), _ => null, buttons: GridFixture.Buttons);
             output.WriteLine($"{layout.TabId}/{layout.Page} {size}: {watch.ElapsedMilliseconds}ms, {result.Score:F2}, margin {result.Margin:F2}");
             Assert.Equal(layout, result.Layout);
             Assert.NotNull(result.Transform);
+            if (result.BroadSearches != 0)
+            {
+                var local = GridLocator.Locate(layout, size, fit, new(0, 0, size.Width, size.Height, pixels), local: true);
+                output.WriteLine($"Local {layout.TabId}/{layout.Page}, offset {offset}, fit {fit}: {local}");
+            }
             Assert.Equal(0, result.BroadSearches);
             Assert.InRange(result.Evaluations, 1, layouts.Length * 559);
             if (layout.TabId == "currency") Assert.True(result.Margin >= 10);
@@ -99,7 +104,7 @@ public sealed class GridIdentificationTests(ITestOutputHelper output)
         Assert.InRange(pixelCount, 1, layouts.Length * GridPrecheck.MaxPixelsPerLayout);
         Assert.True(StashWatchPolicy.ShouldIdentify(precheck[page]));
         watch.Restart();
-        var result = GridIdentifier.Identify(layouts, size, new(0, 0, size.Width, size.Height, pixels), _ => null, precheck);
+        var result = GridIdentifier.Identify(layouts, size, new(0, 0, size.Width, size.Height, pixels), _ => null, precheck, buttons: GridFixture.Buttons);
         output.WriteLine($"First-use search: {watch.ElapsedMilliseconds}ms, {result.Evaluations} evaluations, {result.BroadSearches} broad candidates");
         Assert.Equal(page, result.Layout);
         Assert.InRange(result.BroadSearches, 1, 2);
@@ -121,7 +126,7 @@ public sealed class GridIdentificationTests(ITestOutputHelper output)
         var saved = fit with { X = fit.X + 20, Y = fit.Y + 12 };
         var pixels = GridFixture.Render(page, size, saved, .8, 1.3);
         Assert.Equal(page, GridIdentifier.Identify(layouts, size,
-            new(0, 0, size.Width, size.Height, pixels), _ => saved).Layout);
+            new(0, 0, size.Width, size.Height, pixels), _ => saved, buttons: GridFixture.Buttons).Layout);
     }
 
     [Fact]
@@ -132,10 +137,10 @@ public sealed class GridIdentificationTests(ITestOutputHelper output)
         foreach (var pixels in new[] { new byte[size.Width * size.Height * 4],
             GridFixture.Render(layouts[0], size, new(1, 0, 0), 1, 1, false),
             GridFixture.Render(GridFixture.Layout, size, new(1, 0, 0), 1, 1) })
-            Assert.Null(GridIdentifier.Identify(layouts, size, new(0, 0, size.Width, size.Height, pixels), _ => null).Layout);
+            Assert.Null(GridIdentifier.Identify(layouts, size, new(0, 0, size.Width, size.Height, pixels), _ => null, buttons: GridFixture.Buttons).Layout);
         var page = layouts[0];
         var image = GridFixture.Render(page, size, Geometry.Fit(page.ReferenceResolution, size), 1, 1);
         Assert.Null(GridIdentifier.Identify([page, page with { Page = "duplicate" }], size,
-            new(0, 0, size.Width, size.Height, image), _ => null).Layout);
+            new(0, 0, size.Width, size.Height, image), _ => null, buttons: GridFixture.Buttons).Layout);
     }
 }

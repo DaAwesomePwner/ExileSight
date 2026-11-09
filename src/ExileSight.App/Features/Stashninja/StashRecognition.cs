@@ -16,6 +16,7 @@ public sealed partial class StashView
     private readonly CheckBox autoDetect = new() { Content = "Show stash prices automatically", Focusable = false,
         Foreground = System.Windows.Media.Brushes.White };
     private RecognitionRegion? region;
+    private CurrencyButtons? currencyButtons;
     private PageReferenceStore? references;
     private readonly RecognitionState recognition = new();
     private bool recognitionHidden { get => recognition.Hidden; set => recognition.Hidden = value; }
@@ -28,6 +29,7 @@ public sealed partial class StashView
         string? notice = null;
         try
         {
+            currencyButtons = CurrencyButtons.Load(Path.Combine(AppContext.BaseDirectory, "data", "stash-layouts", "poe1", "recognition.json"));
             region = RecognitionRegion.Load(Path.Combine(AppContext.BaseDirectory, "data", "stash-layouts", "poe1", "recognition.json"), model.Layouts);
             references = new(Path.Combine(services.GetRequiredService<IAppPaths>().GetGameDirectory("poe1"), "stashninja"), region.Fingerprint);
             notice = references.Notice;
@@ -65,11 +67,20 @@ public sealed partial class StashView
     private void ResetRecognition() => recognition.Reset();
     private void UpdatePolling()
     {
+        // Calibration temporarily owns capture. Preserve the accepted page and
+        // its tags while it runs; a failed attempt only changes the status.
+        // Foreground loss and active manual calibration still take the reset path.
+        if (autoCalibrating && Game.Current.Found && Game.Current.IsForeground &&
+            !Game.Current.IsMinimized && !calibration.IsActive)
+        {
+            recognitionTimer.Stop();
+            return;
+        }
         if (window is not null && Game.Current.Found && Game.Current.IsForeground && !Game.Current.IsMinimized && !calibration.IsActive && !autoCalibrating && autoDetect.IsChecked == true && region is not null)
             recognitionTimer.Start();
         else
         {
-            recognitionTimer.Stop(); automaticEpoch++; automaticPage = null; watchPolicy = new();
+            recognitionTimer.Stop(); calibrationConfirmation.Reset(); automaticEpoch++; automaticPage = null; watchPolicy = new();
             if (autoDetect.IsChecked == true) surface.Hide();
             ResetRecognition();
         }

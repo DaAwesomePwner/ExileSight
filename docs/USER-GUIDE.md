@@ -104,17 +104,17 @@ are suggestions until you explicitly choose one.
 ### Price check / stashninja — Ctrl+Shift+N
 
 Open a supported stash page and poe.ninja prices appear automatically. ExileSight
-identifies the cell arrangement and saves calibration the first time at each resolution;
+identifies the cell arrangement and saves calibration after two consecutive checks agree on the page and position at each resolution;
 no menu, page selection or teaching is required. Closing the stash or opening an
 unknown page hides its tags.
 
 **Show stash prices automatically** defaults ON. Open Ctrl+Shift+N to turn it off;
 the choice is saved in your profile as `stashninja.automaticPrices`. The optional
 menu also provides price profiles, **Highlight**, **Auto-calibrate**, and manual
-calibration. Its page list follows automatic recognition. For a manual override,
+calibration. Failed Auto-calibrate attempts retain the last good calibration and the loaded page’s tags; only the status changes. Foreground loss and page changes still hide tags normally. Its page list follows automatic recognition. For a manual override,
 select a page and click **Load selected tab**. This pins the page even with automatic
 prices enabled, until the header changes or the stash closes; automatic mode then
-resumes. The status shows the automatic page, score and margin for reporting issues. Closing
+resumes. Currency pages are distinguished by the highlighted sub-tab button, without teaching. An ambiguous highlight is not accepted as a currency page. The status shows the automatic page, score and margin for reporting issues. Closing
 the menu does not stop the automatic watch.
 
 Supported pages: Currency General, Atlas and League; Fragment General; Delve,
@@ -126,7 +126,7 @@ prices are labelled.
 
 If recognition cannot confidently identify the grid, tags stay hidden. Move
 covering windows away, or disable automatic prices and select the page manually.
-**Auto-calibrate** performs a wider grid search. As a fallback, select two distinct
+**Auto-calibrate** performs a wider grid search. Automatic first-use detection uses stricter score and scale checks; if it cannot confirm the page, try this menu action or manual calibration. As a fallback, select two distinct
 **empty** cells far apart diagonally, click **Calibrate**, then click their centers
 with no item held. These clicks reach the game; Esc cancels. Calibration is local
 and specific to the layout and resolution. A separate physical **Highlight** click
@@ -138,11 +138,17 @@ with tags visible. These checks compare against the baseline captured when the p
 was identified. A stable page never causes a periodic full read or recurring blink.
 
 When no page is identified, sparse border checks at the saved calibration or default
-fit gate larger reads; they must score at least 12.5 before a full search starts.
+fit compare dark inner-slot bands, normalized against their neighboring pixels, and gate larger reads; they must score at least 12.5 before a full search starts.
 After the first immediate check, unidentified scenes are checked no more often than
 every 1.8 seconds, even when the moving world changes the header every tick. The
-header itself stays on its 450 ms schedule. Opening a supported stash waits at most
-1.8 seconds for this gate, then capture, scoring and price loading follow.
+header itself stays on its 450 ms schedule. An already-calibrated page reopening
+from an unidentified scene normally waits up to one 1.8-second admission interval;
+a change from an identified page is noticed on the next 450 ms header/sub-tab check.
+First use needs at least two identification ticks: allow roughly 3.6 seconds for
+two admission intervals, or 5.4 seconds if a third tick is needed. Capture, scoring
+and price loading add time. Immediate first checks can finish sooner; missing
+samples or search cooldowns can take longer. Previous-page tags and Highlight are
+unavailable while the new calibration is being confirmed.
 Qualifying uncalibrated candidates can receive one fully admitted wider-search batch per header
 baseline (at most two pages), with a separate 30-second cooldown for each page.
 A fully admitted batch requires a real header change to retry. If a top candidate
