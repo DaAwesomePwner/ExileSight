@@ -18,7 +18,7 @@ public sealed class ShopPricerSnapshotTests
     public void ArmedAsync()
     {
 #if SNAPSHOT_WINDOWS
-        Render("armed", Fixture());
+        Render("armed", Fixture(), "Right-click the item → Set Item Price, then pick a price");
 #endif
     }
 
@@ -29,7 +29,7 @@ public sealed class ShopPricerSnapshotTests
         var data = Fixture() with { ListedNow = "10 chaos", Currency = "chaos", Amounts = [
             new("minus10", "−10%", "9", false), new("minus1", "−1", "9", true),
             new("plus1", "+1", "11", true), new("plus10", "+10%", "11", false)] };
-        Render("duplicate", data);
+        Render("duplicate", data, "Right-click the item → Set Item Price, then pick a price");
 #endif
     }
 
@@ -37,7 +37,7 @@ public sealed class ShopPricerSnapshotTests
     public void Disarmed()
     {
 #if SNAPSHOT_WINDOWS
-        Render("disarmed", Fixture() with { Armed = false, Notice = "Price possibly set — press omni again before repricing." });
+        Render("disarmed", Fixture() with { Armed = false, Notice = "Price possibly set — press omni again before repricing." }, null);
 #endif
     }
 
@@ -45,7 +45,7 @@ public sealed class ShopPricerSnapshotTests
     public void Pasted()
     {
 #if SNAPSHOT_WINDOWS
-        Render("pasted", Fixture() with { Armed = false, Pasted = "39" });
+        Render("pasted", Fixture() with { Armed = false, Pasted = "39" }, null);
 #endif
     }
 
@@ -55,7 +55,8 @@ public sealed class ShopPricerSnapshotTests
 #if SNAPSHOT_WINDOWS
         var data = Fixture();
         Render("note", data with { NoteMode = true,
-            Amounts = data.Amounts.Select(a => a with { Text = "~b/o " + a.Text + " divine" }).ToArray() });
+            Amounts = data.Amounts.Select(a => a with { Text = "~b/o " + a.Text + " divine" }).ToArray() },
+            "Open the item's price note, then pick a price");
 #endif
     }
 
@@ -63,7 +64,7 @@ public sealed class ShopPricerSnapshotTests
     public void NoTimestamp()
     {
 #if SNAPSHOT_WINDOWS
-        Render("no-timestamp", Fixture() with { ListedFor = null });
+        Render("no-timestamp", Fixture() with { ListedFor = null }, "Right-click the item → Set Item Price, then pick a price");
 #endif
     }
 
@@ -117,13 +118,25 @@ public sealed class ShopPricerSnapshotTests
         "divine", true, false, [new("minus10", "−10%", "36", true), new("minus1", "−1", "39", true),
             new("plus1", "+1", "41", true), new("plus10", "+10%", "44", true)]);
 
-    private static void Render(string name, ShopCardModel model)
+    private static void Render(string name, ShopCardModel model, string? instruction)
     {
         var path = SnapshotRenderer.Render(() =>
         {
             var card = ShopCardBuilder.Build(model, CardTheme.Default);
             Assert.Equal(330, card.Width);
             var descendants = Descendants(card).ToArray();
+            var instructions = descendants.OfType<TextBlock>().Where(t => t.Text is
+                "Right-click the item → Set Item Price, then pick a price" or
+                "Open the item's price note, then pick a price").ToArray();
+            if (instruction is null) Assert.Empty(instructions);
+            else
+            {
+                var line = Assert.Single(instructions);
+                Assert.Equal(instruction, line.Text);
+                Assert.Equal(TextWrapping.Wrap, line.TextWrapping);
+                Assert.Equal(CardTheme.Default.LabelSize, line.FontSize);
+                Assert.Same(CardTheme.Default.TextSecondary, line.Foreground);
+            }
             var buttons = descendants.OfType<Button>().Where(b => model.Amounts.Any(a => a.Choice == (string)b.Tag)).ToArray();
             Assert.Equal(4, buttons.Length);
             foreach (var button in buttons)
