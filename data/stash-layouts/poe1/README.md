@@ -259,54 +259,41 @@ invalidating earlier taught references. Automatic recognition needs no teaching;
 users who use optional taught references can remember those pages again.
 
 
-### Retention redesign (S1-R6 review round 1)
+### Structural capture and retention (S1-R6 round 2)
 
-The weak GridKeep scorer and its two-bright-button heuristic have been removed.
-The previous margin table was invalid under ±1 px calibration error and stale
-composited tag panels. Review measured League on unsupported src11 at 19.4/20.5,
-League on Delve at 27.3, and tag-painted world false positives for Essence (16.37)
-and Atlas (16.44). These are historical failures, not acceptable thresholds.
+The pixel-panel guard is removed. Review demonstrated both false negatives at
+3440/150% with panels shifted down one pixel (General on src11: 17.35; world:
+18.42) and false positives on clean 2000-px Atlas/General at ≥125%. The old
+positive post-guard score gaps are not a safety guarantee at production scales.
 
-Retention now uses normal local GridIdentifier evidence (score ≥16, margin ≥3)
-at saved/pending transforms or Fit. Confident P/Q adopts the baseline. Only a
-currency grid winner P with no ≥6 button leader can retain P without adopting it.
-The +25 League glow on Atlas previously measured a real League lead of 6.89 at
-2000 and 6.12 at calibrated 3440; the approved strict policy therefore treats this exact variant as a failed
-check. Real hover-glow brightness remains to be validated in game.
+After hiding tags, drain WPF rendering then call IScreenSampler.WaitForComposition
+once per capture batch, before header/sub-tab/grid samples. Platform.Windows uses
+CsWin32 DwmFlush (display-only, not input). A failure or return under 16 ms incurs
+a bounded 32 ms fallback on the worker. Estimated hidden time is render drain +
+flush + fallback if needed + capture: roughly 21–78 ms at 60 Hz excluding dispatcher
+backlog, with estimated capture 5–30 ms. Native flush/driver stalls can be longer.
+Tags return before identification scoring (historically ~100 ms). Real Windows
+composition timings remain to be measured; no game input or new capture region
+is introduced.
 
-Two unstable header ticks force a check. Two failed checks within four seconds
-hide tags; a pass or gap longer than four seconds resets failures. Continuous
-world motion therefore hides a closed stash within four ticks (1.8 seconds plus
-capture/scoring). Capture exceptions and menu overlap use the same failure window.
-The compositor wait is restored to 32 ms. Expected hidden duration is 32 ms plus
-capture (estimated 5–30 ms); scoring runs after tags return, historically about
-100 ms. Windows timings remain unmeasured.
+A new automatic header/sub-tab baseline is provisional. On the next available
+450 ms tick after completion, capture again after composition. A matching pass
+confirms it. A failed confirmation remains pending, and a second consecutive
+failure hides tags. A single stale normal pass followed by fresh failed checks
+therefore clears within two follow-up ticks plus processing (typically 2–3 ticks,
+0.9–1.35 s). A slow gap over four seconds resets the failure count, not the need
+for confirmation. Moving-world closure remains bounded to four ticks (1.8 s)
+plus processing. Completion times, rather than starts, govern all failure windows.
 
-Review regressions cover ±1 px offsets and alpha-170 black panels, 27 DIP tall,
-on world crops and every other page at 50% and 100% tag coverage. Occlusion tests
-explicitly assert the owner-approved strict policy without relaxing the identification gates.
-Normal identification alone also falsely retained eight painted-tag cases:
-2000 Atlas/src11 16.87, Essence/world 17.89, Blight/src11 17.84,
-Blight/world 18.77, Fragment/world 16.21; 3440 Essence/world 17.97,
-Blight/src11 17.83 and Blight/world 17.59. A separate pre-identification
-TagCaptureGuard now checks the known panel boundaries at the actual overlay
-scale: both horizontal edges must show darkening at six of nine positions,
-repeated in at least 20% of cells (minimum two). A matching frame is rejected,
-not used to keep or select a page. This uses existing captured pixels only.
+No-leader currency hover signatures are acknowledged without adopting the normal
+baseline. Matching acknowledged signatures cause no more captures or scoring;
+moving away, including returning to the old baseline, restarts normal debounce.
+Normal identification gates (16 score, 3 margin, button agreement) are unchanged.
+Production-scale regression cases reuse ZReviewGuardTests and painted.txt from the
+owner's local review folder. Clean pages are checked at 1.0/1.25/1.5/2.0 scale;
+painted panels use those scales and vertical offsets −1/0/+1 px. Images stay local.
 
-Strict identification takes precedence over retention (owner decision, S1-R6 fix
-round 1 continued). GridLocator requires ≥65% support (100% for small layouts)
-and discards the strongest quarter when averaging. The ten half-grid cases below
-return Unknown, with no wrong page: one failed check keeps tags up; the second
-consecutive failure within four seconds hides them. A passing check in between
-resets the count, and the next passing identification restores hidden tags.
-Both +25 Atlas-hover cases follow the same rule and never identify League.
-A true no-leader currency ambiguity still retains Atlas without adopting a baseline.
-
-A tooltip hiding much of the grid or hover lighting another currency sub-tab may
-therefore hide tags after about two failed checks (allow roughly 1.8–4 s including
-processing; a stable header can be faster). No new occlusion or hover exceptions
-were introduced. Every header-only case keeps; total-grid occlusion hides after two.
+Strict partial-occlusion policy remains:
 
 | Half-grid case | 2000 px | 3440 px |
 | --- | --- | --- |
@@ -320,24 +307,45 @@ were introduced. Every header-only case keeps; total-grid occlusion hides after 
 | Currency League | Keep | Hide after 2 |
 | Atlas +25 League hover | Hide after 2 | Hide after 2 |
 
-The guarded review regression passes with no false retention. Candidate scores
-after the panel guard (still subject to the full locator, margin and button gates):
+Header-only occlusion keeps all eight pages at both widths; total-grid occlusion
+hides after two failures. Passes reset the count; the next passing identification
+restores hidden tags. Real hover-glow brightness needs in-game validation.
 
-| Width | Minimum correct ±1 px | Maximum wrong ±1 px | Maximum painted wrong | Minimum gap |
-| --- | ---: | ---: | ---: | ---: |
-| 2000 | 19.24 | 16.88 | 14.85 | 2.36 |
-| 3440 | 18.42 | 17.18 | 16.50 | 1.24 |
+#### Round 2 verification and remaining D/F conflict
 
-Wrong candidate scores above 16 do not imply acceptance: the unchanged transform,
-coverage, margin and button gates still apply. No reviewer offset or painted-panel
-scene retains P. The guard does not replace these gates or introduce a lower keep
-threshold. All ten half-grid assertions and both +25 hover assertions remain
-present, restated for the approved strict policy. No image files are created or
-committed. Windows capture timing and real hover brightness still need in-game
-validation.
+The native wait follows the [Microsoft DwmFlush contract](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/nf-dwmapi-dwmflush):
+it waits for queued updates from this application, not the entire desktop session.
+The application render drain precedes this wait. Windows timing is not measured here.
 
-Verification after the strict-policy decision: build passed without warnings;
-106 regular feature tests, 129 architecture tests and 25 transparency tests passed.
-The opt-in RealImage run passed all three tests with no skips, including the
-original 198 image/shift cases and both original hover cases. Every header-only
-occlusion case keeps its page; none requires hiding.
+All 64 clean page/width/scale combinations identify correctly without the pixel
+guard. The production matrix covers 2,112 painted frames: 118 transient keeps,
+98 bounded normal-identification keeps, and 20 unbounded no-leader hover keeps.
+Fresh unpainted captures reject P in all these cases, but the acknowledged-hover
+policy never requests that capture while the signature stays unchanged.
+
+| Width | Display scale | Unbounded painted hover cases |
+| --- | --- | --- |
+| 2000 | 1.25 | Atlas on src11, dy=-1 |
+| 2000 | 1.5 | Atlas on src11, dy=-1; General on world, dy=0/+1 |
+| 2000 | 2.0 | Atlas on src11, dy=-1; General on world, dy=0/+1 |
+| 3440 | 1.5 | Atlas on src11, dy=0; General on src11 and world, dy=-1/0/+1 |
+| 3440 | 2.0 | Atlas on src11, dy=-1; General on src8, dy=-1/0; General on src11, dy=-1; General on world, dy=-1/0 |
+
+The legacy-size painted regression also exposes Atlas-on-src11 as an unbounded
+hover keep. Its raw score gaps are -3.14 at 2000 and -1.55 at 3440; no single-frame
+painted-score safety margin is claimed after removing the guard.
+
+Direction D requires no more checks while an acknowledged hover signature stays
+unchanged, whereas F requires every painted-frame keep to receive fresh checks
+and hide within the bound. The corpus demonstrates that a painted frame can
+produce precisely that acknowledged hover. Both requirements cannot hold as
+written. A proposed resolution is one independent confirmation for each new hover
+acknowledgement, then no more checks until its signature moves. That exception
+needs an explicit decision; it has not been silently introduced.
+
+Build, 109 regular feature tests, 129 architecture tests, 25 transparency tests
+and 48 Platform.Windows tests pass (21 Windows-only tests skipped off Windows).
+The full opt-in run executes all four image tests with no skips: the original
+198-case replay and approved strict-occlusion cases pass; the legacy and production
+painted-frame temporal acceptance tests fail on the hover cases above. No images
+are committed. This round remains incomplete and is not ready to merge.

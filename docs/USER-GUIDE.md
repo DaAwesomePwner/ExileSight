@@ -136,8 +136,8 @@ The watch checks a small header strip every 450 ms while the game is foreground,
 pausing during calibration. Currency and Fragment also check their sub-tab strip
 with tags visible. These checks compare against the baseline captured when the page
 was identified or last retained. A change waits for one stable tick; after two changing ticks, the watch checks
-anyway. Hovering over the grid alone does not trigger a check. A stable page never
-causes a periodic full read or recurring blink.
+anyway. Hovering over the grid alone does not trigger a check. A newly recognized header or sub-tab gets one extra confirmation on the next
+available tick. Once confirmed, a stable page causes no periodic capture or blink.
 
 When no page is identified, sparse border checks at the saved calibration or default
 fit compare dark inner-slot bands, normalized against their neighboring pixels, and gate larger reads; they must score at least 12.5 before a full search starts.
@@ -158,18 +158,24 @@ is still cooling down, the baseline stays available for later attempts; each pag
 can still be searched at most once per 30 seconds.
 The sparse pre-check only covers a ±12 px band around predicted borders. For larger
 first-use offsets, use Ctrl+Shift+N → **Auto-calibrate** or manual calibration.
-Tags briefly hide for a 32 ms compositor wait plus capture, then return before
-page scoring. Expected hidden time is about 37–62 ms, pending Windows measurement.
-A moving header cannot postpone checking indefinitely: a closed stash is checked
-twice within about 1.8 seconds plus capture/scoring. Two failed checks no more than
-four seconds apart hide the tags; a pass or longer gap resets the failure count.
-Normal identification determines whether the page remains supported. An ambiguous
-Currency hover may retain the current page without adopting a new baseline; a
-clear different button must agree with its grid to switch pages. A tooltip hiding much of the grid, or hover lighting another currency sub-tab,
-may hide tags after about two failed checks (allow roughly 1.8–4 seconds including
-processing; a stable header can be faster). Avoiding wrong prices takes precedence
-over retaining the tags. They return on the next passing identification check.
-Focus loss and minimization still hide tags immediately. Screen checks never send input.
+Tags briefly hide while Windows composes a frame without the overlay and the
+watch captures it. A 32 ms fallback applies if that wait fails or returns too
+quickly. Estimated hidden time is about 21–78 ms at 60 Hz, excluding render backlog;
+Windows/driver delays still need in-game measurement. Tags return before scoring.
+A new automatic header or sub-tab baseline gets a separate confirmation capture
+on the next available 450 ms tick. A stale normal identification pass followed by two fresh failed
+checks hides within two follow-up ticks plus processing (typically 0.9–1.35 s).
+A closed stash with a moving header is checked twice within about 1.8 seconds
+plus processing. Failure counts use completion times and reset after a pass or
+a gap over four seconds; an unconfirmed baseline stays pending across that gap.
+An ambiguous no-leader Currency hover is acknowledged, so resting the mouse there
+causes no repeated capture or blink. Moving away triggers normal debounce again.
+Validation is incomplete: a stale frame mistaken for a hover can remain
+acknowledged until the picture changes.
+A tooltip hiding much of the grid, or hover making another button the clear leader,
+can still hide tags after two failed checks. The next passing identification
+restores them. Avoiding wrong prices takes precedence over retention. Focus loss
+and minimization hide tags immediately. Screen checks never send input.
 
 Only game-client pixels are captured, using GDI BitBlt, with no DXGI capture,
 DirectX/Vulkan hooks or Windows.Graphics.Capture. Use Windowed Fullscreen;

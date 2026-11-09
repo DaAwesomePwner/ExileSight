@@ -11,6 +11,9 @@ public sealed class StashWatchPolicy
     private DateTimeOffset nextCheck, unknownSince;
     private bool unknown;
     private double[]? pendingHeader, pendingSub;
+    private double[]? acknowledgedHeader, acknowledgedSub;
+    private bool acknowledgementChanged;
+    private DateTimeOffset? confirmAfter;
     private int keepFailures, unstableTicks;
     private DateTimeOffset lastFailure;
     public static readonly TimeSpan FailureWindow = TimeSpan.FromSeconds(4);
@@ -27,9 +30,18 @@ public sealed class StashWatchPolicy
         if (!PageSignature.Valid(currentHeader) ||
             (Identified && subTab is not null && !Pinned && !PageSignature.Valid(currentSubTab)))
             return new(WatchWork.Unknown);
+        if (Identified && confirmAfter is { } due)
+            return new(now > due ? WatchWork.Identify : WatchWork.None);
+        if (Identified && acknowledgedHeader is not null)
+        {
+            if (!Changed(acknowledgedHeader, currentHeader!) && SameOptional(acknowledgedSub, currentSubTab))
+                return new(WatchWork.None);
+            acknowledgedHeader = acknowledgedSub = null;
+            acknowledgementChanged = true;
+        }
         var headerChanged = header is not null && Changed(header, currentHeader!);
         var changed = headerChanged || (Identified && !Pinned && subTab is not null && Changed(subTab, currentSubTab!));
-        if ((changed || keepFailures > 0) && Identified)
+        if ((changed || acknowledgementChanged || keepFailures > 0) && Identified)
         {
             if (headerChanged) Pinned = false;
             var stable = pendingHeader is not null && !Changed(pendingHeader, currentHeader!) &&
@@ -45,8 +57,20 @@ public sealed class StashWatchPolicy
         return new(now >= nextCheck ? WatchWork.Precheck : WatchWork.None);
     }
 
+    private static bool SameOptional(double[]? a, double[]? b) =>
+        a is null ? b is null : b is not null && !Changed(a, b);
+
+    // A newly adopted automatic baseline needs an independent capture one tick later.
+    public void ObserveIdentification(DateTimeOffset completedAt, double[] currentHeader, double[]? currentSub)
+    {
+        var changed = !Identified || header is null || Changed(header, currentHeader) || !SameOptional(subTab, currentSub);
+        Accept(currentHeader, currentSub);
+        if (changed) confirmAfter = completedAt;
+    }
+
     public void Accept(double[] headerSignature, double[]? subSignature, bool pinned = false)
     {
+        confirmAfter = null; acknowledgedHeader = acknowledgedSub = null; acknowledgementChanged = false;
         header = (double[])headerSignature.Clone();
         subTab = subSignature is null ? null : (double[])subSignature.Clone();
         Identified = true; Pinned = pinned; unknown = false;
@@ -57,10 +81,17 @@ public sealed class StashWatchPolicy
     {
         if (supported)
         {
-            if (adoptBaseline && PageSignature.Valid(currentHeader)) Accept(currentHeader!, currentSub, Pinned);
+            if (adoptBaseline && PageSignature.Valid(currentHeader)) ObserveIdentification(now, currentHeader!, currentSub);
+            if (!adoptBaseline)
+            {
+                acknowledgedHeader = currentHeader is null ? null : (double[])currentHeader.Clone();
+                acknowledgedSub = currentSub is null ? null : (double[])currentSub.Clone();
+                confirmAfter = null; pendingHeader = pendingSub = null; unstableTicks = 0; acknowledgementChanged = false;
+            }
             keepFailures = 0;
             return false;
         }
+        if (confirmAfter is not null) confirmAfter = now;
         if (now - lastFailure > FailureWindow) keepFailures = 0;
         lastFailure = now;
         return ++keepFailures >= 2 && Unknown(now, true, currentHeader);
@@ -72,7 +103,8 @@ public sealed class StashWatchPolicy
         if (!unknown) { unknown = true; unknownSince = now; }
         if (Identified && !changed && now - unknownSince < TimeSpan.FromSeconds(1)) return false;
         var hide = Identified;
-        Identified = false; Pinned = false;
+        Identified = false; Pinned = false; confirmAfter = null;
+        acknowledgedHeader = acknowledgedSub = null; acknowledgementChanged = false;
         if (PageSignature.Valid(currentHeader)) header = (double[])currentHeader!.Clone();
         subTab = null;
         nextCheck = now + Interval;

@@ -30,3 +30,4 @@ SelectObject
 DeleteObject
 BitBlt
 GdiFlush
+DwmFlush

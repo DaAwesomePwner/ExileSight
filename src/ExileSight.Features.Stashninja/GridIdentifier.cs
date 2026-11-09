@@ -11,11 +11,8 @@ public static class GridIdentifier
     public static GridIdentification Identify(IReadOnlyList<Layout> layouts, Resolution size, GridSample sample,
         Func<Layout, Transform?> calibration, IReadOnlyDictionary<Layout, double>? precheck = null,
         Func<IReadOnlyList<Layout>, IReadOnlySet<Layout>>? reserveWideSearch = null, CurrencyButtons? buttons = null,
-        Action<GridCandidateEvidence>? observe = null, Layout? displayedPage = null, double? tagScale = null)
+        Action<GridCandidateEvidence>? observe = null)
     {
-        if (displayedPage is not null && TagCaptureGuard.ContainsPanels(displayedPage,
-            calibration(displayedPage) ?? Geometry.Fit(displayedPage.ReferenceResolution, size), size, sample, tagScale))
-            return new(null, null, 0, 0, "Overlay panels in capture");
         if (layouts.Any(a => layouts.Any(b => !ReferenceEquals(a, b) && a.ReferenceResolution == b.ReferenceResolution && a.Cells.SequenceEqual(b.Cells))))
             return new(null, null, 0, 0, "Ambiguous geometry");
         var candidates = layouts.Select(layout =>

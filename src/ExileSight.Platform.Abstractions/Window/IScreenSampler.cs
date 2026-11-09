@@ -8,5 +8,7 @@ public interface IScreenSampler
     /// not fully inside the current client rect, larger than MaxPixels, or capture fails.
     /// </summary>
     ScreenSample? TrySample(PixelRect region);
+    /// <summary>Wait once after hiding overlays and submitting UI render work, before a capture batch.</summary>
+    void WaitForComposition();
     const int MaxPixels = 1_048_576;
 }

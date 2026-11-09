@@ -36,7 +36,7 @@ public sealed partial class StashView
         var sub = automaticPage is null ? null : WatchSubTab(automaticPage);
         var step = watchPolicy.Tick(now, header, sub);
         if (step.Work == WatchWork.None) return;
-        if (step.Work == WatchWork.Unknown) { RejectPage(now, false, header); return; }
+        if (step.Work == WatchWork.Unknown) { RejectPage(false, header); return; }
         identifying = true;
         var initial = Game.Current; var resolution = ClientResolution;
         var epoch = automaticEpoch; var request = generation;
@@ -55,7 +55,7 @@ public sealed partial class StashView
                         () => epoch == automaticEpoch && request == generation)));
                 if (!Current()) return;
                 if (!precheck.Values.Any(StashWatchPolicy.ShouldIdentify))
-                { RejectPage(now, step.Changed, header); return; }
+                { RejectPage(step.Changed, header); return; }
             }
             var areas = model.Layouts.Select(l => GridSampling.Bounds(l, resolution, starts[l])).ToArray();
             var x = areas.Min(a => a.X); var y = Math.Min(areas.Min(a => a.Y), (int)(94 * resolution.Height / 837d));
@@ -63,12 +63,13 @@ public sealed partial class StashView
             var menu = Position(initial.ClientRect, host.EffectiveScale);
             if (window?.IsVisible == true && RecognitionRegion.Intersects(new(area.X, area.Y, area.Width, area.Height),
                 new(menu.X - initial.ClientRect.X, menu.Y - initial.ClientRect.Y, menu.Width, menu.Height)))
-            { RejectPage(now, step.Changed, header); return; }
+            { RejectPage(step.Changed, header); return; }
             // Only a changed baseline or a qualifying sparse pre-check reaches this capture.
             surface.SetCaptureHidden(true);
             try
             {
-                await Task.Delay(32); // Let the compositor remove our tag panels before GDI capture.
+                await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.ContextIdle);
+                await Task.Run(sampler.WaitForComposition); // Once per hidden batch, before any pixels are sampled.
                 if (!Current()) return;
                 var baselineHeader = WatchHeader();
                 var baselineSub = model.Layouts.GroupBy(l => l.TabId).ToDictionary(g => g.Key, g => WatchSubTab(g.First()));
@@ -79,17 +80,18 @@ public sealed partial class StashView
                 surface.SetCaptureHidden(false);
                 var result = sample is null ? null : await Task.Run(() =>
                     GridIdentifier.Identify(model.Layouts, resolution, sample, l => automaticPage is null ? saved[l] : starts[l], precheck,
-                        candidates => wideSearchBudget.Reserve(now, baselineHeader, candidates), currencyButtons, displayedPage: automaticPage, tagScale: host.EffectiveScale));
+                        candidates => wideSearchBudget.Reserve(now, baselineHeader, candidates), currencyButtons));
                 if (!Current()) return;
+                now = services.GetRequiredService<IClock>().UtcNow; // Failure windows use check completion.
                 if (result?.Layout is not { } identified || result.Transform is null || baselineHeader is null ||
                     (region!.SubTabs.ContainsKey(identified.TabId) && baselineSub[identified.TabId] is null))
                 {
                     if (automaticPage is { } displayed && result?.HoverPage == displayed)
                     {
-                        watchPolicy.Retain(now, true, header, sub, adoptBaseline: false);
+                        watchPolicy.Retain(now, true, baselineHeader ?? header, baselineSub[displayed.TabId], adoptBaseline: false);
                         return;
                     }
-                    RejectPage(now, step.Changed, header);
+                    RejectPage(step.Changed, header);
                     return;
                 }
                 if (calibrationStore.Get(identified, resolution) is null)
@@ -111,7 +113,7 @@ public sealed partial class StashView
                     calibrationStore.Save(identified, resolution, result.Transform);
                 }
                 calibrationConfirmation.Reset();
-                watchPolicy.Accept(baselineHeader, baselineSub[identified.TabId]);
+                watchPolicy.ObserveIdentification(now, baselineHeader, baselineSub[identified.TabId]);
                 automaticPage = identified; recognitionHidden = false;
                 automaticStatus = $"auto: {identified.TabId}/{identified.Page} (score {result.Score:F0}, margin {result.Margin:F0})";
                 if (loadingPage == identified) return;
@@ -123,7 +125,7 @@ public sealed partial class StashView
             finally { surface.SetCaptureHidden(false); }
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
-        { if (Current()) RejectPage(now, step.Changed, header); }
+        { if (Current()) RejectPage(step.Changed, header); }
         finally { if (!Current()) calibrationConfirmation.Reset(); identifying = false; }
     }
 
@@ -134,8 +136,9 @@ public sealed partial class StashView
         finally { if (loadingPage == identified) loadingPage = null; }
     }
 
-    private void RejectPage(DateTimeOffset now, bool changed, double[]? header)
+    private void RejectPage(bool changed, double[]? header)
     {
+        var now = services.GetRequiredService<IClock>().UtcNow;
         calibrationConfirmation.Reset();
         if (!(automaticPage is not null
             ? watchPolicy.Retain(now, false, header, null)

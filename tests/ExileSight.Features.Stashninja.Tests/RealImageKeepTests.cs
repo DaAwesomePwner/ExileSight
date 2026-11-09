@@ -46,7 +46,7 @@ public sealed class RealImageKeepTests(ITestOutputHelper output)
                 {
                     if (!results.TryGetValue(sample, out var result))
                         results[sample] = result = GridIdentifier.Identify(layouts, scene.Size, sample,
-                            l => l == layout ? transform : Geometry.Fit(l.ReferenceResolution, scene.Size), buttons: GridFixture.Buttons, displayedPage: layout);
+                            l => l == layout ? transform : Geometry.Fit(l.ReferenceResolution, scene.Size), buttons: GridFixture.Buttons);
                     return result;
                 }
                 bool Keep(GridSample sample) => Identify(sample).Layout == layout || Identify(sample).HoverPage == layout;

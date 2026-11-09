@@ -47,7 +47,7 @@ public sealed class CurrencyButtonsTests
         var sample = new GridSample(0, 0, size.Width, size.Height, pixels);
         Assert.Null(GridFixture.Buttons.Identify(size, sample).Page);
         var result = GridIdentifier.Identify(layouts, size, sample,
-            l => Geometry.Fit(l.ReferenceResolution, size), buttons: GridFixture.Buttons, displayedPage: atlas);
+            l => Geometry.Fit(l.ReferenceResolution, size), buttons: GridFixture.Buttons);
         Assert.Null(result.Layout);
         Assert.Equal(atlas, result.HoverPage);
         var policy = new StashWatchPolicy();
@@ -58,7 +58,12 @@ public sealed class CurrencyButtonsTests
         Assert.False(policy.Retain(now, result.HoverPage == atlas, hover, hover, adoptBaseline: false));
         Assert.True(policy.Identified);
         Assert.Equal(WatchWork.None, policy.Tick(now, hover, hover).Work);
-        Assert.Equal(WatchWork.Identify, policy.Tick(now.AddMilliseconds(450), hover, hover).Work);
+        // Round 2 decision: acknowledge a no-leader hover; do not blink again until it moves.
+        for (var i = 1; i <= 100; i++)
+            Assert.Equal(WatchWork.None, policy.Tick(now.AddMilliseconds(i * 450), hover, hover).Work);
+        var moved = Enumerable.Repeat(.4, PageSignature.Length).ToArray();
+        Assert.Equal(WatchWork.None, policy.Tick(now.AddSeconds(46), moved, moved).Work);
+        Assert.Equal(WatchWork.Identify, policy.Tick(now.AddSeconds(46.45), moved, moved).Work);
     }
 
     [Theory]

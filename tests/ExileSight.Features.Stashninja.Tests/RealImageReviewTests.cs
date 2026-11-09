@@ -30,7 +30,7 @@ public sealed class RealImageReviewTests(ITestOutputHelper output)
             {
                 var evidence = new List<GridCandidateEvidence>();
                 var result = GridIdentifier.Identify(layouts, size, sample, l => l == page ? transform : saved[l],
-                    buttons: GridFixture.Buttons, observe: evidence.Add, displayedPage: page);
+                    buttons: GridFixture.Buttons, observe: evidence.Add);
                 score = evidence.SingleOrDefault(e => e.Layout == page)?.Location.Score ?? 0;
                 return result;
             }
@@ -75,7 +75,14 @@ public sealed class RealImageReviewTests(ITestOutputHelper output)
                     }
                     var result = Check(layout, transform, scene with { Bgra = pixels }, out var score);
                     highestPainted = Math.Max(highestPainted, score);
-                    if (result.Layout == layout || result.HoverPage == layout) failures.Add($"painted {width}/{layout.TabId}/{layout.Page}/{name}/{fraction}: {score:F2}");
+                    if (result.Layout == layout || result.HoverPage == layout)
+                    {
+                        var fresh = Check(layout, transform, scene, out _);
+                        if (fresh.Layout == layout || fresh.HoverPage == layout)
+                            failures.Add($"fresh {width}/{layout.TabId}/{layout.Page}/{name}");
+                        if (!PaintedCaptureReplay.Hides(result, layout))
+                            failures.Add($"unbounded {width}/{layout.TabId}/{layout.Page}/{name}/{fraction}: layout={result.Layout?.Page}, hover={result.HoverPage?.Page}");
+                    }
                 }
             }
             output.WriteLine($"{width}: own min={lowestOwn:F2}, wrong offset max={highestOffset:F2}, painted max={highestPainted:F2}, gap={lowestOwn - Math.Max(highestOffset, highestPainted):F2}");
