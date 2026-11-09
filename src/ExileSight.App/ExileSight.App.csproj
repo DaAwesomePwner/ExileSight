@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><TargetFramework>net10.0-windows10.0.19041.0</TargetFramework><ApplicationManifest>app.manifest</ApplicationManifest><UseWPF>true</UseWPF><StartupObject>ExileSight.App.Program</StartupObject><OutputType>WinExe</OutputType><TargetPlatformVersion>10.0.19041.0</TargetPlatformVersion><SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion></PropertyGroup>
+  <PropertyGroup><TargetFramework>net10.0-windows10.0.19041.0</TargetFramework><ApplicationIcon>Assets/ExileSight.ico</ApplicationIcon><ApplicationManifest>app.manifest</ApplicationManifest><UseWPF>true</UseWPF><StartupObject>ExileSight.App.Program</StartupObject><OutputType>WinExe</OutputType><TargetPlatformVersion>10.0.19041.0</TargetPlatformVersion><SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../ExileSight.Features.Omni/ExileSight.Features.Omni.csproj" />
     <ProjectReference Include="../../src/ExileSight.Core/ExileSight.Core.csproj" />
