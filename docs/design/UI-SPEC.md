@@ -132,8 +132,8 @@ amount box you opened. You pick the currency and press List." After a click: hea
 buttons disabled, "Omni-key the item again to re-arm." Note mode keeps the same layout with the note text
 in the buttons.
 
-**Stash price tags** (stashninja; measured layouts and automatic recognition shipped in 1.1): a tag in each priced
-cell's **bottom-right** corner, mono 10, 14 high, solid background so it reads over item art. Text is the
+**Stash price tags** (stashninja; measured layouts and recognition shipped in 1.1; off until **Ctrl+Shift+P** shows
+them for the current stash visit, D-118): a tag in each priced cell's **bottom-right** corner, mono 10, 14 high, solid background so it reads over item art. Text is the
 unit price: chaos with no suffix below 1 divine, `1.4d` at or above. Colours keep the existing
 `ThresholdProfile`: `HighColor` at or above its `High` value, otherwise `LowColor`; `Minimum` keeps driving
 the search highlight. These are user-chosen colours, the one place a view may use non-token colours; new
@@ -147,7 +147,7 @@ and the price age.
 Mockup: [ambient-hud](mockups/png/ambient-hud.png). All click-through unless noted.
 
 - **Act guide**, width 340: `Act N · step i of n`, act and total timers right-aligned, a 3-high progress
-  bar, the current page's lines in 15/600, then `NEXT` + the next page's first line in Muted. Guide notices
+  bar, the current page's lines in 14/600 (D-119), then `NEXT` + the next page's first line in Muted. Guide notices
   (timing uncertain, guide complete, store notices) get one Muted line. The overlay shows at most 12 page
   lines, each ellipsized, then `+N more lines`. Its controls (Back/Next, Reset run, League start, Bandit,
   Import JSON, Export CSV, Remove custom guide) live on the desktop app's **Act guide** page (§7, D-115), so
@@ -266,7 +266,8 @@ a 4 px grid; card padding 10 top, 12 sides; radius 6 (cards), 3 (pills), 4 (band
 | Rule text from stat templates | P7-T13 | Normalizes like item lines; tested against fixtures |
 | Transparency reader | P7-T14 | Read-only parser for the existing `actions.log` JSON lines |
 
-No new network hosts, no new `GameAction` kinds, no new hotkeys.
+No new network hosts, no new `GameAction` kinds, no new hotkeys, except **Ctrl+Shift+P** for on-demand stash
+prices (D-118), which only changes what ExileSight displays.
 
 ## 10. Implementation rules (speed and testability)
 
@@ -300,4 +301,4 @@ and first-item latency must not regress.
 - [ ] Unknown values render as unknown or are omitted; nothing is guessed.
 - [ ] Only token keys from §8 are used in views (stash threshold colours excepted, §5).
 - [ ] No effects, animations or per-row brush allocation on overlays.
-- [ ] No new `GameAction` kind, hotkey, network host, or screen read.
+- [ ] No new `GameAction` kind, hotkey (beyond D-118's Ctrl+Shift+P), network host, or screen read.

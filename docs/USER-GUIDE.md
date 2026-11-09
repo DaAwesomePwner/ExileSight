@@ -212,8 +212,9 @@ Vaalasync is the shop repricing and local price-history tool.
 There is no separate default key. Tap CapsLock over an item with a `~b/o` or
 `~price` note to show price buttons. Async listing mode is the default:
 
-1. Open the game's **Set Item Price** dialog yourself and focus its amount field;
-   the current value is pre-selected.
+1. Right-click the item to open the game's **Set Item Price** dialog; the current
+   amount is pre-selected. ExileSight never opens it for you: the game's macro rules
+   allow one action per key press or click, and the price button's one action is the paste.
 2. Click one ExileSight price button. It shows amount + currency and sends only
    Ctrl+A, Ctrl+V of the amount, with no Enter or clicks.
 3. Pick the currency in the game's dropdown, then click **LIST ITEM** yourself.
