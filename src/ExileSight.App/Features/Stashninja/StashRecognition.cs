@@ -69,8 +69,10 @@ public sealed partial class StashView
     {
         if (!Game.Current.Found || !Game.Current.IsForeground || Game.Current.IsMinimized)
         {
+            var watching = WatchEnabled;
             priceSession.EndVisit();
-            generation++; autoEpoch++; surface.Hide();
+            // Manual menu loads and tags retain the host's foreground hide/restore behaviour.
+            if (watching) { generation++; autoEpoch++; surface.Hide(); }
         }
         // Calibration temporarily owns capture. Preserve the accepted page and
         // its tags while it runs; a failed attempt only changes the status.

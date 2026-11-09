@@ -46,6 +46,21 @@ public sealed class StashPriceSessionTests
         Assert.False(session.ShouldWatch(true));
     }
 
+    [Theory]
+    [InlineData(false, false, false)] // Manual menu: preserve load and requested tags.
+    [InlineData(false, true, true)] // On-demand visit: invalidate load and hide tags.
+    [InlineData(true, false, true)] // Automatic watch: invalidate, then resume on foreground.
+    [InlineData(true, true, false)] // Paused automatic watch: no active work to invalidate.
+    public void ForegroundLossInvalidatesOnlyAnActiveWatch(bool automatic, bool press, bool invalidate)
+    {
+        var session = new StashPriceSession();
+        if (press) session.Toggle(automatic);
+        var watching = session.ShouldWatch(automatic);
+        session.EndVisit();
+        Assert.Equal(invalidate, watching);
+        Assert.Equal(automatic, session.ShouldWatch(automatic));
+    }
+
     [Fact]
     public void PricesCommandIsBlockedBindableAndDisplayOnly()
     {
