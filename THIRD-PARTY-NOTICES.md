@@ -4,7 +4,7 @@ ExileSight ports data and logic from the projects below. Each ported file or dat
 
 ## Exile-UI
 
-https://github.com/Lailloken/Exile-UI. Ported data (map-info patterns, leveling guide, stash tab grids, mercenaries) and algorithms from the item-info and map-info features.
+https://github.com/Lailloken/Exile-UI. Ported data (map-info patterns, leveling guide, mercenaries) and algorithms from the item-info and map-info features.
 
 ```
 MIT License

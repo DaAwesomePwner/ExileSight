@@ -116,7 +116,7 @@ jobs:
             } else {
               Write-Output '::warning::Signing secrets absent or incomplete; producing unsigned artifacts.'
             }
-            vpk pack --packId ExileSight --packVersion $env:APP_VERSION --packDir artifacts/velopack --mainExe ExileSight.App.exe --packTitle ExileSight --channel $env:CHANNEL --outputDir Releases @sign
+            vpk pack --icon src/ExileSight.App/Assets/ExileSight.ico --packId ExileSight --packVersion $env:APP_VERSION --packDir artifacts/velopack --mainExe ExileSight.App.exe --packTitle ExileSight --channel $env:CHANNEL --outputDir Releases @sign
             if ($LASTEXITCODE -ne 0) { throw 'Velopack packaging failed' }
           } finally {
             Remove-Item $certPath -Force -ErrorAction SilentlyContinue

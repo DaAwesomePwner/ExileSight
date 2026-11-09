@@ -1,0 +1,277 @@
+{
+  "tabId": "delve",
+  "page": "general",
+  "referenceResolution": {
+    "width": 2000,
+    "height": 837
+  },
+  "cells": [
+    {
+      "id": "jagged-fossil",
+      "x": 85.0,
+      "y": 141.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Jagged Fossil"
+    },
+    {
+      "id": "dense-fossil",
+      "x": 136.5,
+      "y": 141.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Dense Fossil"
+    },
+    {
+      "id": "frigid-fossil",
+      "x": 187.5,
+      "y": 141.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Frigid Fossil"
+    },
+    {
+      "id": "aberrant-fossil",
+      "x": 238.5,
+      "y": 141.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Aberrant Fossil"
+    },
+    {
+      "id": "scorched-fossil",
+      "x": 290.5,
+      "y": 141.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Scorched Fossil"
+    },
+    {
+      "id": "metallic-fossil",
+      "x": 342.0,
+      "y": 141.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Metallic Fossil"
+    },
+    {
+      "id": "pristine-fossil",
+      "x": 393.5,
+      "y": 141.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Pristine Fossil"
+    },
+    {
+      "id": "bound-fossil",
+      "x": 33.0,
+      "y": 192.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Bound Fossil"
+    },
+    {
+      "id": "corroded-fossil",
+      "x": 85.0,
+      "y": 192.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Corroded Fossil"
+    },
+    {
+      "id": "opulent-fossil",
+      "x": 136.5,
+      "y": 192.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Opulent Fossil"
+    },
+    {
+      "id": "deft-fossil",
+      "x": 238.5,
+      "y": 192.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Deft Fossil"
+    },
+    {
+      "id": "aetheric-fossil",
+      "x": 290.5,
+      "y": 192.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Aetheric Fossil"
+    },
+    {
+      "id": "serrated-fossil",
+      "x": 393.5,
+      "y": 192.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Serrated Fossil"
+    },
+    {
+      "id": "shuddering-fossil",
+      "x": 444.0,
+      "y": 192.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Shuddering Fossil"
+    },
+    {
+      "id": "tangled-fossil",
+      "x": 57.5,
+      "y": 243.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Tangled Fossil"
+    },
+    {
+      "id": "bloodstained-fossil",
+      "x": 110.0,
+      "y": 243.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Bloodstained Fossil"
+    },
+    {
+      "id": "gilded-fossil",
+      "x": 187.5,
+      "y": 243.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Gilded Fossil"
+    },
+    {
+      "id": "fundamental-fossil",
+      "x": 238.5,
+      "y": 243.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Fundamental Fossil"
+    },
+    {
+      "id": "sanctified-fossil",
+      "x": 290.5,
+      "y": 243.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Sanctified Fossil"
+    },
+    {
+      "id": "hollow-fossil",
+      "x": 367.0,
+      "y": 243.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Hollow Fossil"
+    },
+    {
+      "id": "glyphic-fossil",
+      "x": 85.0,
+      "y": 294.5,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Glyphic Fossil"
+    },
+    {
+      "id": "faceted-fossil",
+      "x": 393.5,
+      "y": 294.5,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Faceted Fossil"
+    },
+    {
+      "id": "primitive-chaotic-resonator",
+      "x": 129.0,
+      "y": 493.5,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Resonator",
+      "itemName": "Primitive Chaotic Resonator"
+    },
+    {
+      "id": "potent-chaotic-resonator",
+      "x": 182.0,
+      "y": 479.5,
+      "w": 41.0,
+      "h": 72.0,
+      "category": "Resonator",
+      "itemName": "Potent Chaotic Resonator"
+    },
+    {
+      "id": "powerful-chaotic-resonator",
+      "x": 234.0,
+      "y": 480.0,
+      "w": 74.0,
+      "h": 71.0,
+      "category": "Resonator",
+      "itemName": "Powerful Chaotic Resonator"
+    },
+    {
+      "id": "prime-chaotic-resonator",
+      "x": 316.0,
+      "y": 480.0,
+      "w": 74.0,
+      "h": 71.0,
+      "category": "Resonator",
+      "itemName": "Prime Chaotic Resonator"
+    },
+    {
+      "id": "prismatic-fossil",
+      "x": 187.5,
+      "y": 192.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Prismatic Fossil"
+    },
+    {
+      "id": "lucent-fossil",
+      "x": 342.0,
+      "y": 192.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Lucent Fossil"
+    },
+    {
+      "id": "fractured-fossil",
+      "x": 418.5,
+      "y": 243.0,
+      "w": 44.0,
+      "h": 44.0,
+      "category": "Fossil",
+      "itemName": "Fractured Fossil"
+    }
+  ],
+  "folderOffsets": {},
+  "provenance": {
+    "author": "ExileSight contributors; owner-provided screenshot",
+    "method": "measured from screenshot at 2000x837",
+    "date": "2026-11-08"
+  }
+}

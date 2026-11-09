@@ -23,6 +23,7 @@ public static class TriggerNames
         Both("guide", "next", "Next guide step");
         Both("guide", "back", "Previous guide step");
         Both("guide", "toggle", "Show or hide act guide");
+        Both("lab", "toggle", "Show or hide lab layout");
         names["mapinfo:hold"] = "Show map card while held";
         names["searchstr:paste"] = "Search string button";
         Both("stashninja", "open", "Stash prices");

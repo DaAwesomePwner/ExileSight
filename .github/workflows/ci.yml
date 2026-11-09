@@ -73,7 +73,7 @@ jobs:
         shell: pwsh
         run: Copy-Item artifacts/fallback/packs artifacts/velopack/packs -Recurse -Force
       - name: Pack installer and updates (no publishing)
-        run: vpk pack --packId ExileSight --packVersion ${{ env.APP_VERSION }} --packDir artifacts/velopack --mainExe ExileSight.App.exe --packTitle ExileSight --outputDir Releases
+        run: vpk pack --icon src/ExileSight.App/Assets/ExileSight.ico --packId ExileSight --packVersion ${{ env.APP_VERSION }} --packDir artifacts/velopack --mainExe ExileSight.App.exe --packTitle ExileSight --outputDir Releases
       - uses: actions/upload-artifact@v4
         with:
           name: ExileSight-Velopack-win-x64

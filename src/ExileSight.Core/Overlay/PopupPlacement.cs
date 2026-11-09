@@ -21,7 +21,7 @@ public static class PopupPlacement
     }
 
     /// <summary>Place an item/map card. The caller supplies the target monitor's work area.
-    /// At exactly the client centre the card opens left (D-106). The 12 design-unit gap
+    /// At exactly the client centre the card opens left (D-111). The 12 design-unit gap
     /// is horizontal only; the top aligns with the cursor. Dock fractions anchor the top-left
     /// in the full client before clamping. Legacy Place callers retain their existing behavior.</summary>
     public static PixelRect PlaceCard(PixelRect client, PixelRect workArea, int cursorX, int cursorY,

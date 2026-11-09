@@ -1,0 +1,133 @@
+{
+  "tabId": "currency",
+  "page": "atlas",
+  "referenceResolution": {
+    "width": 2000,
+    "height": 837
+  },
+  "cells": [
+    {
+      "id": "crusader-s-exalted-orb",
+      "x": 388.5,
+      "y": 142.5,
+      "w": 38.0,
+      "h": 38.0,
+      "category": "Currency",
+      "itemName": "Crusader's Exalted Orb"
+    },
+    {
+      "id": "redeemer-s-exalted-orb",
+      "x": 342.5,
+      "y": 186.5,
+      "w": 38.0,
+      "h": 38.0,
+      "category": "Currency",
+      "itemName": "Redeemer's Exalted Orb"
+    },
+    {
+      "id": "warlord-s-exalted-orb",
+      "x": 388.5,
+      "y": 186.5,
+      "w": 38.0,
+      "h": 38.0,
+      "category": "Currency",
+      "itemName": "Warlord's Exalted Orb"
+    },
+    {
+      "id": "orb-of-conflict",
+      "x": 456.0,
+      "y": 275.5,
+      "w": 38.0,
+      "h": 38.0,
+      "category": "Currency",
+      "itemName": "Orb of Conflict"
+    },
+    {
+      "id": "lesser-eldritch-ember",
+      "x": 323.0,
+      "y": 320.0,
+      "w": 38.0,
+      "h": 38.0,
+      "category": "Currency",
+      "itemName": "Lesser Eldritch Ember"
+    },
+    {
+      "id": "greater-eldritch-ember",
+      "x": 366.0,
+      "y": 320.0,
+      "w": 38.0,
+      "h": 38.0,
+      "category": "Currency",
+      "itemName": "Greater Eldritch Ember"
+    },
+    {
+      "id": "grand-eldritch-ember",
+      "x": 408.5,
+      "y": 320.0,
+      "w": 38.0,
+      "h": 38.0,
+      "category": "Currency",
+      "itemName": "Grand Eldritch Ember"
+    },
+    {
+      "id": "exceptional-eldritch-ember",
+      "x": 456.0,
+      "y": 320.0,
+      "w": 38.0,
+      "h": 38.0,
+      "category": "Currency",
+      "itemName": "Exceptional Eldritch Ember"
+    },
+    {
+      "id": "lesser-eldritch-ichor",
+      "x": 323.0,
+      "y": 365.0,
+      "w": 38.0,
+      "h": 38.0,
+      "category": "Currency",
+      "itemName": "Lesser Eldritch Ichor"
+    },
+    {
+      "id": "greater-eldritch-ichor",
+      "x": 366.0,
+      "y": 365.0,
+      "w": 38.0,
+      "h": 38.0,
+      "category": "Currency",
+      "itemName": "Greater Eldritch Ichor"
+    },
+    {
+      "id": "grand-eldritch-ichor",
+      "x": 408.5,
+      "y": 365.0,
+      "w": 38.0,
+      "h": 38.0,
+      "category": "Currency",
+      "itemName": "Grand Eldritch Ichor"
+    },
+    {
+      "id": "exceptional-eldritch-ichor",
+      "x": 456.0,
+      "y": 365.0,
+      "w": 38.0,
+      "h": 38.0,
+      "category": "Currency",
+      "itemName": "Exceptional Eldritch Ichor"
+    },
+    {
+      "id": "hunter-s-exalted-orb",
+      "x": 342.5,
+      "y": 142.5,
+      "w": 38.0,
+      "h": 38.0,
+      "category": "Currency",
+      "itemName": "Hunter's Exalted Orb"
+    }
+  ],
+  "folderOffsets": {},
+  "provenance": {
+    "author": "ExileSight contributors; owner-provided screenshot",
+    "method": "measured from screenshot at 2000x837",
+    "date": "2026-11-08"
+  }
+}

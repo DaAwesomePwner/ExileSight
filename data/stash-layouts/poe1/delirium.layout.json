@@ -1,0 +1,142 @@
+{
+  "tabId": "delirium",
+  "page": "general",
+  "referenceResolution": {
+    "width": 2000,
+    "height": 837
+  },
+  "cells": [
+    {
+      "id": "simulacrum-splinter",
+      "x": 174.0,
+      "y": 137.0,
+      "w": 42.0,
+      "h": 42.0,
+      "category": "Fragment",
+      "itemName": "Simulacrum Splinter"
+    },
+    {
+      "id": "simulacrum",
+      "x": 307.0,
+      "y": 137.0,
+      "w": 42.0,
+      "h": 42.0,
+      "category": "Fragment",
+      "itemName": "Simulacrum"
+    },
+    {
+      "id": "singular-delirium-orb",
+      "x": 42.5,
+      "y": 176.0,
+      "w": 42.0,
+      "h": 42.0,
+      "category": "DeliriumOrb",
+      "itemName": "Singular Delirium Orb"
+    },
+    {
+      "id": "cartographer-s-delirium-orb",
+      "x": 97.0,
+      "y": 176.0,
+      "w": 42.0,
+      "h": 42.0,
+      "category": "DeliriumOrb",
+      "itemName": "Cartographer's Delirium Orb"
+    },
+    {
+      "id": "armoursmith-s-delirium-orb",
+      "x": 435.5,
+      "y": 176.0,
+      "w": 42.0,
+      "h": 42.0,
+      "category": "DeliriumOrb",
+      "itemName": "Armoursmith's Delirium Orb"
+    },
+    {
+      "id": "thaumaturge-s-delirium-orb",
+      "x": 42.5,
+      "y": 230.0,
+      "w": 42.0,
+      "h": 42.0,
+      "category": "DeliriumOrb",
+      "itemName": "Thaumaturge's Delirium Orb"
+    },
+    {
+      "id": "jeweller-s-delirium-orb",
+      "x": 97.0,
+      "y": 230.0,
+      "w": 42.0,
+      "h": 42.0,
+      "category": "DeliriumOrb",
+      "itemName": "Jeweller's Delirium Orb"
+    },
+    {
+      "id": "whispering-delirium-orb",
+      "x": 382.0,
+      "y": 230.0,
+      "w": 42.0,
+      "h": 42.0,
+      "category": "DeliriumOrb",
+      "itemName": "Whispering Delirium Orb"
+    },
+    {
+      "id": "fragmented-delirium-orb",
+      "x": 435.5,
+      "y": 230.0,
+      "w": 42.0,
+      "h": 42.0,
+      "category": "DeliriumOrb",
+      "itemName": "Fragmented Delirium Orb"
+    },
+    {
+      "id": "blacksmith-s-delirium-orb",
+      "x": 42.5,
+      "y": 284.5,
+      "w": 42.0,
+      "h": 42.0,
+      "category": "DeliriumOrb",
+      "itemName": "Blacksmith's Delirium Orb"
+    },
+    {
+      "id": "fine-delirium-orb",
+      "x": 97.0,
+      "y": 284.5,
+      "w": 42.0,
+      "h": 42.0,
+      "category": "DeliriumOrb",
+      "itemName": "Fine Delirium Orb"
+    },
+    {
+      "id": "diviner-s-delirium-orb",
+      "x": 382.0,
+      "y": 284.5,
+      "w": 42.0,
+      "h": 42.0,
+      "category": "DeliriumOrb",
+      "itemName": "Diviner's Delirium Orb"
+    },
+    {
+      "id": "blighted-delirium-orb",
+      "x": 435.5,
+      "y": 284.5,
+      "w": 42.0,
+      "h": 42.0,
+      "category": "DeliriumOrb",
+      "itemName": "Blighted Delirium Orb"
+    },
+    {
+      "id": "skittering-delirium-orb",
+      "x": 382.0,
+      "y": 176.0,
+      "w": 42.0,
+      "h": 42.0,
+      "category": "DeliriumOrb",
+      "itemName": "Skittering Delirium Orb"
+    }
+  ],
+  "folderOffsets": {},
+  "provenance": {
+    "author": "ExileSight contributors; owner-provided screenshot",
+    "method": "measured from screenshot at 2000x837",
+    "date": "2026-11-08"
+  }
+}

@@ -1,0 +1,160 @@
+{
+  "tabId": "blight",
+  "page": "general",
+  "referenceResolution": {
+    "width": 2000,
+    "height": 837
+  },
+  "cells": [
+    {
+      "id": "clear-oil",
+      "x": 38.5,
+      "y": 127.5,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Clear Oil"
+    },
+    {
+      "id": "sepia-oil",
+      "x": 87.5,
+      "y": 127.5,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Sepia Oil"
+    },
+    {
+      "id": "amber-oil",
+      "x": 136.0,
+      "y": 127.5,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Amber Oil"
+    },
+    {
+      "id": "verdant-oil",
+      "x": 184.5,
+      "y": 127.5,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Verdant Oil"
+    },
+    {
+      "id": "teal-oil",
+      "x": 233.5,
+      "y": 127.5,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Teal Oil"
+    },
+    {
+      "id": "azure-oil",
+      "x": 281.5,
+      "y": 127.5,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Azure Oil"
+    },
+    {
+      "id": "indigo-oil",
+      "x": 331.5,
+      "y": 127.5,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Indigo Oil"
+    },
+    {
+      "id": "tainted-oil",
+      "x": 398.0,
+      "y": 127.5,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Tainted Oil"
+    },
+    {
+      "id": "violet-oil",
+      "x": 64.0,
+      "y": 170.0,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Violet Oil"
+    },
+    {
+      "id": "crimson-oil",
+      "x": 112.5,
+      "y": 170.0,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Crimson Oil"
+    },
+    {
+      "id": "black-oil",
+      "x": 161.0,
+      "y": 170.0,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Black Oil"
+    },
+    {
+      "id": "opalescent-oil",
+      "x": 209.5,
+      "y": 170.0,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Opalescent Oil"
+    },
+    {
+      "id": "silver-oil",
+      "x": 258.0,
+      "y": 170.0,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Silver Oil"
+    },
+    {
+      "id": "golden-oil",
+      "x": 306.5,
+      "y": 170.0,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Golden Oil"
+    },
+    {
+      "id": "reflective-oil",
+      "x": 398.0,
+      "y": 170.0,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Reflective Oil"
+    },
+    {
+      "id": "prismatic-oil",
+      "x": 445.0,
+      "y": 170.0,
+      "w": 36.0,
+      "h": 35.0,
+      "category": "Oil",
+      "itemName": "Prismatic Oil"
+    }
+  ],
+  "folderOffsets": {},
+  "provenance": {
+    "author": "ExileSight contributors; owner-provided screenshot",
+    "method": "measured from screenshot at 2000x837",
+    "date": "2026-11-08"
+  }
+}

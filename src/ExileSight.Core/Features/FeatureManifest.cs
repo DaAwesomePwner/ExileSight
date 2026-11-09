@@ -8,15 +8,18 @@ public sealed class FeatureManifest
 {
     public FeatureManifest(string id, IEnumerable<Game> games, IEnumerable<ActionKind> gameActions,
         IEnumerable<string> dataPacks, IEnumerable<string> networkHosts, string description,
-        IEnumerable<string>? services = null, IEnumerable<string>? browserHosts = null)
+        IEnumerable<string>? services = null, IEnumerable<string>? browserHosts = null,
+        IEnumerable<string>? screenReads = null)
     {
         Id = id; Games = games.ToFrozenSet(); GameActions = gameActions.ToFrozenSet();
         DataPacks = dataPacks.ToFrozenSet(StringComparer.Ordinal);
         NetworkHosts = networkHosts.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
         Services = (services ?? []).ToFrozenSet(StringComparer.Ordinal); Description = description;
         BrowserHosts = (browserHosts ?? []).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+        ScreenReads = (screenReads ?? []).ToFrozenSet(StringComparer.Ordinal);
         Validate();
     }
+    public FrozenSet<string> ScreenReads { get; }
     public FrozenSet<string> BrowserHosts { get; }
     public string Id { get; }
     public FrozenSet<Game> Games { get; }
@@ -31,7 +34,8 @@ public sealed class FeatureManifest
             throw new ArgumentException("Feature ID must be a non-reserved identifier");
         if (Games.Count == 0 || Games.Any(g => !Enum.IsDefined(g)) || GameActions.Any(a => !Enum.IsDefined(a)))
             throw new ArgumentException("Unknown game or action");
-        if (string.IsNullOrWhiteSpace(Description) || DataPacks.Any(string.IsNullOrWhiteSpace) || Services.Any(string.IsNullOrWhiteSpace))
+        if (string.IsNullOrWhiteSpace(Description) || DataPacks.Any(string.IsNullOrWhiteSpace) || Services.Any(string.IsNullOrWhiteSpace) ||
+            ScreenReads.Any(string.IsNullOrWhiteSpace))
             throw new ArgumentException("Description and resource identifiers must be nonempty");
         foreach (var host in BrowserHosts)
         {

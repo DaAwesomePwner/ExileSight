@@ -56,7 +56,7 @@ public interface IFeature
 }
 ```
 
-Registration finishes before input starts. Manifests declare actions, packs, services, HTTP hosts and browser hosts separately. Features cannot use `System.Net`; App supplies shared services. Architecture tests validate manifests, declared actions and network boundaries. README transparency-table generation remains a Phase 5 deliverable.
+Registration finishes before input starts. Manifests declare actions, screen-read purposes, packs, services, HTTP hosts and browser hosts separately. Features cannot use `System.Net`; App supplies shared services. Architecture tests validate manifests, declared actions and network boundaries. The README transparency table is generated from these declarations and registered defaults by the transparency tests.
 
 The hook pipeline attaches feature identity when issuing an intent token; features cannot claim another owner. The issuer can be installed only once. `GatePolicy` combines built-in CopyItem/SendChatCommand permissions with per-feature manifest declarations and validates the token's owner and action. PasteSearch, SetPriceNote and SetListingAmount are available only through declaring features.
 
@@ -73,6 +73,14 @@ Features contribute WPF-free item-card comparisons (`IItemCardComparisonProvider
 - Interactive overlay buttons redeem tokens only by pairing WPF mouse-up with a hook-observed, non-injected left click on the same owned HWND, within 4 px and 500 ms of physical mouse-up. The gesture also requires matching down/up within 4 px and 1.5 s. A UI-built z-order snapshot chooses the topmost matching overlay; redemption is single-use and resolves a host-registered feature command.
 - Overlay open/close paths use failure guards and cleanup; diagnostics record exception types without copied item or chat text.
 
+## Display-only stash screen reading (1.1, D-104)
+
+Only App types in `ExileSight.App.Features.Stashninja` consume `IScreenSampler`, apart from its DI registration and platform implementation/contract. An architecture test guards this boundary.
+
+`IScreenSampler` is the platform boundary for GDI `BitBlt` capture in Windows; recognition logic stays WPF-free. Capture is limited to the game client rectangle while the game is foreground and the stash overlay is open. No DXGI capture, DirectX/Vulkan hooks or Windows.Graphics.Capture are allowed. Exclusive fullscreen may not capture; recommend Windowed Fullscreen.
+
+The user teaches page references, captured locally after calibration or with **Remember this page**. References remain on the user’s machine; no game images ship or are committed. Recognition only switches overlay price tags; sampling and recognition cannot obtain an `IntentToken` or send game input. The manifest declares the screen-read purpose. Calibration-free grid location is outside D-104 and may be considered later.
+
 ## Threading
 
 - The UI runs on the WPF dispatcher. Hooks run on their own STA thread with a message loop, and hook callbacks must return in under 1 ms (Windows drops slow hooks). They only enqueue work.
@@ -87,7 +95,7 @@ Features contribute WPF-free item-card comparisons (`IItemCardComparisonProvider
 
 ## Mac later
 
-A future `Platform.Mac` would implement the same abstractions (CGEventTap, ScreenCaptureKit, Vision OCR), and a new UI project would reuse `Features.*` view models. Nothing in Core or Features may assume Windows.
+A future `Platform.Mac` would implement the same abstractions (for example, CGEventTap; screen capture would need a separate platform decision), and a new UI project would reuse `Features.*` view models. Nothing in Core or Features may assume Windows.
 
 ## Scaffold enforcement decisions (D-015, D-018–D-029)
 

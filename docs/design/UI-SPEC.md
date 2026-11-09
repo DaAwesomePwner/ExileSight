@@ -1,11 +1,11 @@
-# UI spec (1.1 redesign)
+# UI spec (1.2 redesign)
 
-Status: approved by the owner on 2026-11-08 (D-104). Tasks: [Phase 7](../ROADMAP.md#phase-7-ui-redesign-11).
+Status: approved by the owner on 2026-11-08 (D-109). Tasks: [Phase 7](../ROADMAP.md#phase-7-ui-redesign-12).
 Mockups and how to compare against them: [README.md](README.md).
 
 The redesign changes how ExileSight looks, not what it is allowed to do. [FAIR-PLAY.md](../FAIR-PLAY.md)
 is unchanged: no new `GameAction` kinds, no screen reading, nothing sent without a key press or click.
-The only input change is that the omni key sends advanced copy by default (§3.1, D-108), which is the
+The only input change is that the omni key sends advanced copy by default (§3.1, D-113), which is the
 existing `CopyItem` action with its existing `Advanced` flag.
 
 ## 1. Principles
@@ -24,7 +24,7 @@ existing `CopyItem` action with its existing `Advanced` flag.
 6. **Instant and quiet.** Overlays show and hide with no animation and no effects, take no focus, and
    stay click-through unless they have buttons.
 
-## 2. Placement of item and map cards (D-106)
+## 2. Placement of item and map cards (D-111)
 
 1.0 never reads the screen (D-006), so the game tooltip's rectangle is unknown. Only the cursor and the
 game client rect are known. Two modes, set on the Overlay page (§7):
@@ -81,7 +81,7 @@ with `·` in the pill column and `fixed` in place of the bar.
 **Tones** reuse the existing calculator thresholds and `InfoColor` enum unchanged:
 tier 1 = Best, tiers 2–3 = High, 4+ = Medium; roll 100% = Best, 75–99 = High, 25–74 = Medium, <25 = Low.
 
-### 3.1 Advanced copy (D-108)
+### 3.1 Advanced copy (D-113)
 
 Tiers, roll ranges and tier ilvl exist only in advanced-copy text. Today the omni key sends a plain
 `CopyItem()` (`OmniPress.cs`), so every omni card would be in the plain-copy state. Phase 7 makes the omni
@@ -149,7 +149,7 @@ Mockup: [ambient-hud](mockups/png/ambient-hud.png). All click-through unless not
   bar, the current page's lines in 15/600, then `NEXT` + the next page's first line in Muted. Guide notices
   (timing uncertain, guide complete, store notices) get one Muted line. The overlay shows at most 12 page
   lines, each ellipsized, then `+N more lines`. Its controls (Back/Next, Reset run, League start, Bandit,
-  Import JSON, Export CSV, Remove custom guide) live on the desktop app's **Act guide** page (§7, D-110), so
+  Import JSON, Export CSV, Remove custom guide) live on the desktop app's **Act guide** page (§7, D-115), so
   the overlay stays click-through. Needs a structured guide snapshot (P7-T9).
 - **Timers** (Tab held), width 300: name, a 4-high bar, mono time. Under one minute turns orange; that is
   the only colour change. Stopwatch has no bar. At most four rows, then `+N more`; long names ellipsize.
@@ -160,7 +160,7 @@ Mockup: [ambient-hud](mockups/png/ambient-hud.png). All click-through unless not
   equipped ›", "Set listing price…"), a hairline, then browser links marked `↗`. Number-key selection is
   backlog: omit the key badges until it exists.
 - **Chat wheel**, centred on the cursor: 8 pill slots on a 200 circle. It opens after the key is released
-  and a slot is chosen by clicking, so the centre reads `choose / click` (D-111); the slot under the pointer
+  and a slot is chosen by clicking, so the centre reads `choose / click` (D-116); the slot under the pointer
   direction is highlighted teal.
 - **Search strings**, width 320, interactive: vendor chips (selected = teal), then the string list with
   the string itself in mono Faint on the right; multi-line entries show `wheel ↕ i/n`.
@@ -185,7 +185,7 @@ Map log and Sales open the existing `TrackerWindow` and `HistoryView` until they
   Transparency. Status and session mapping live in WPF-free, tested code.
 - **Hotkeys**: a read-only list of current bindings (the same data and names as Home's "Your keys"). Editing
   bindings in the app is backlog; until then it says where bindings are set today.
-- **Act guide**: the guide's management controls, moved off the click-through overlay (D-110): Back/Next,
+- **Act guide**: the guide's management controls, moved off the click-through overlay (D-115): Back/Next,
   Reset run, League start, Bandit, Import JSON, Export CSV and Remove custom guide, wired to the same
   `GuideModel` operations and file dialogs as before, plus the current step's lines. It follows guide
   progress while open and keeps its last status message across refreshes.
