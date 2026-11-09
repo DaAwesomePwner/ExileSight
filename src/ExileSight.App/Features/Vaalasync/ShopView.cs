@@ -1,3 +1,5 @@
+using ExileSight.Core.Settings;
+using ExileSight.Platform.Abstractions.Storage;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
@@ -16,15 +18,28 @@ public sealed class ShopView : StackPanel
 {
     private readonly ShopModel model;
     private readonly IServiceProvider services;
-    private readonly ShopCardSurface card;
+    private ShopCardSurface card = null!;
+    private readonly FeatureViews views;
+    private readonly OverlayTheme overlayTheme;
+    private CardTheme? theme;
     private HostedOverlayWindow? window;
     private PixelRect? placement;
     private string? selectedAmount;
     public ShopView(ShopModel model, FeatureViews views, IServiceProvider services)
     {
-        this.model = model; this.services = services;
+        this.model = model; this.services = services; this.views = views;
+        overlayTheme = new(services.GetRequiredService<ISettingsStore<SettingsDocument>>());
         HorizontalAlignment = HorizontalAlignment.Left;
-        card = new ShopCardSurface(model.CardSnapshot(DateTimeOffset.UtcNow, null), CardTheme.Default, (button, choice) =>
+        BuildCard();
+        model.Opened += () => Dispatcher.BeginInvoke(Open);
+        model.Changed += () => Dispatcher.BeginInvoke(Refresh);
+        Refresh();
+    }
+    private void BuildCard()
+    {
+        theme = overlayTheme.Current;
+        Children.Clear();
+        card = new ShopCardSurface(model.CardSnapshot(DateTimeOffset.UtcNow, null), theme, (button, choice) =>
         {
             var acceptClick = false;
             button.PreviewMouseLeftButtonDown += (_, e) => acceptClick = ShopModel.AcceptClick(e.ClickCount);
@@ -42,13 +57,11 @@ public sealed class ShopView : StackPanel
         card.History.Click += (_, _) => new HistoryView(model, services.GetRequiredService<PriceService>()).Show();
         card.EditCustom.Click += (_, _) => new HistoryView(model, services.GetRequiredService<PriceService>()).Show();
         card.Close.Click += (_, _) => services.GetRequiredService<OverlayHost>().SetVisible(window!, false);
-        model.Opened += () => Dispatcher.BeginInvoke(Open);
-        model.Changed += () => Dispatcher.BeginInvoke(Refresh);
-        Refresh();
     }
     public void Initialize()
     {
         window = (HostedOverlayWindow)Window.GetWindow(this);
+        overlayTheme.Watch(window, Refresh);
         if (Parent is Border surface) { surface.Width = 330; surface.Height = double.NaN; }
         services.GetRequiredService<OverlayHost>().SetVisible(window, false);
         services.GetRequiredService<OverlayHost>().Changed += (_, _) => Position();
@@ -85,6 +98,7 @@ public sealed class ShopView : StackPanel
     }
     private void Refresh()
     {
+        if (!ReferenceEquals(theme, overlayTheme.Current)) BuildCard();
         card.Update(model.CardSnapshot(DateTimeOffset.UtcNow, selectedAmount));
         Position();
     }

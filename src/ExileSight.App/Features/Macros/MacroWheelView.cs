@@ -21,12 +21,15 @@ namespace ExileSight.App.Features.Macros;
 /// <summary>Hosted windows supply NOACTIVATE and DPI scaling; selections redeem physical clicks only.</summary>
 public sealed class MacroWheelView : Canvas
 {
+    private readonly OverlayTheme overlayTheme;
+    private CardTheme theme;
     private readonly MacroWheel model;
     private readonly OverlayHost host;
     private readonly PassiveOverlayInput passive;
     private readonly IGameWindow game;
     private readonly ILogger<MacroWheelView> logger;
     private Button[] slots = [];
+    private IReadOnlyList<string> displayedCommands = [];
     private readonly Action<Button, int> wireSlot;
     private readonly Action editCommands;
     private HostedOverlayWindow? window;
@@ -35,6 +38,8 @@ public sealed class MacroWheelView : Canvas
     private readonly IOverlayWindowStyler styler;
     public MacroWheelView(MacroWheel model, FeatureViews views, IServiceProvider services)
     {
+        overlayTheme = new(services.GetRequiredService<ISettingsStore<SettingsDocument>>());
+        theme = overlayTheme.Current;
         this.model = model;
         styler = services.GetRequiredService<IOverlayWindowStyler>();
         model.CursorPosition = () => { var p = HookHost.CursorPosition(); return new(p.X, p.Y); };
@@ -79,6 +84,7 @@ public sealed class MacroWheelView : Canvas
     {
         window = (HostedOverlayWindow)Window.GetWindow(this);
         host.SetVisible(window, false);
+        overlayTheme.Watch(window, () => { if (window.IsVisible) Open(presentedVersion, displayedCommands, origin); });
         window.IsVisibleChanged += VisibilityChanged;
         window.PhysicalPlacement = (client, scale) => PopupPlacement.Place(client,
             styler.GetWorkArea(client), origin.X, origin.Y, 400, 300, scale, centered: true);
@@ -98,9 +104,11 @@ public sealed class MacroWheelView : Canvas
         var state = game.Current;
         if (!state.Found || !state.IsForeground || state.IsMinimized) { model.Reset(); return; }
         presentedVersion = id;
+        displayedCommands = commands;
         origin = captured;
+        theme = overlayTheme.Current;
         Children.Clear();
-        var content = MacroWheelBuilder.Build(new(commands), CardTheme.Default);
+        var content = MacroWheelBuilder.Build(new(commands), theme);
         Children.Add(content);
         slots = OnDemandControls.Buttons(content).Where(b => b.Tag is int).ToArray();
         foreach (var button in slots) wireSlot(button, (int)button.Tag);
@@ -128,7 +136,7 @@ public sealed class MacroWheelView : Canvas
                 var point = PointFromScreen(new Point(input.X, input.Y));
                 var selected = MacroWheelBuilder.Direction(point);
                 foreach (var button in slots)
-                    MacroWheelBuilder.Highlight(button, (int)button.Tag == selected, CardTheme.Default);
+                    MacroWheelBuilder.Highlight(button, (int)button.Tag == selected, theme);
             }
             var origin = PointToScreen(new Point());
             var end = PointToScreen(new Point(ActualWidth, ActualHeight));

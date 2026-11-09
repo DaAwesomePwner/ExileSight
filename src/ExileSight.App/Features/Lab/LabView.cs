@@ -1,3 +1,5 @@
+using ExileSight.Core.Settings;
+using ExileSight.Platform.Abstractions.Storage;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -16,6 +18,7 @@ namespace ExileSight.App.Features.Lab;
 
 public sealed class LabView
 {
+    private readonly OverlayTheme overlayTheme;
     private readonly LabModel model;
     private readonly OverlayHost host;
     private readonly HostedOverlayWindow panel;
@@ -27,8 +30,9 @@ public sealed class LabView
     private string error = "";
     private readonly string tips;
     private object? drawnState;
-    public LabView(LabModel model, OverlayHost host, IBrowser browser, IClipboard clipboard)
+    public LabView(LabModel model, OverlayHost host, IBrowser browser, IClipboard clipboard, ISettingsStore<SettingsDocument> overlaySettings)
     {
+        overlayTheme = new(overlaySettings);
         this.model = model; this.host = host;
         actions["Open poelab"] = () => browser.Open("https://www.poelab.com/", new LabFeature().Manifest.BrowserHosts);
         actions["Import file…"] = () =>
@@ -48,6 +52,7 @@ public sealed class LabView
         viewport.Content = content;
         panel = host.Register(viewport, DefaultOverlayLayout.Lab, clickThrough: false);
         host.SetVisible(panel, false);
+        overlayTheme.Watch(panel, () => { drawnState = null; Refresh(); });
         model.Changed += Refresh;
         timer.Tick += (_, _) => Refresh();
         panel.IsVisibleChanged += (_, _) => timer.IsEnabled = panel.IsVisible;
@@ -76,7 +81,7 @@ public sealed class LabView
         var next = (state, error, state.Layout?.IsOutdated(now));
         if (!Equals(drawnState, next))
         {
-            var card = LabCardBuilder.Build(state, error, tips, now, CardTheme.Default);
+            var card = LabCardBuilder.Build(state, error, tips, now, overlayTheme.Current);
             viewport.Resources = card.Resources;
             content.Child = card;
             foreach (var button in OnDemandControls.Buttons(card))

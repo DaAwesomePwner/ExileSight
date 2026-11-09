@@ -1,3 +1,5 @@
+using ExileSight.Core.Settings;
+using ExileSight.Platform.Abstractions.Storage;
 using System.Windows;
 using System.Windows.Controls;
 using ExileSight.App.Ui;
@@ -11,16 +13,17 @@ namespace ExileSight.App.Features.Timers;
 
 public sealed class TimersView
 {
+    private readonly OverlayTheme overlayTheme;
     private readonly TimersModel model;
     private readonly OverlayHost host;
     private readonly IGameWindow game;
     private readonly HostedOverlayWindow panel, passive, toast;
     private readonly DispatcherTimer ticker = new() { Interval = TimeSpan.FromMilliseconds(250) };
-    private readonly ListBox list = new() { Height = 155, Focusable = false, Background = CardTheme.Default.OverlayBackground, Foreground = CardTheme.Default.OverlayForeground, DisplayMemberPath = "Text" };
+    private readonly ListBox list = new() { Height = 155, Focusable = false, DisplayMemberPath = "Text" };
     private readonly TimerEditor editor = new();
     private readonly StackPanel controls = new();
     private readonly Border passiveContent = new() { HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
-    private readonly CardTheme theme = CardTheme.Default;
+    private CardTheme theme => overlayTheme.Current;
     private readonly TextBlock status = TimerEditor.Label("");
     private readonly TextBlock toastText = TimerEditor.Label("");
     private readonly TimerRows rows = new();
@@ -28,8 +31,9 @@ public sealed class TimersView
     private long toastUntil;
     private TimersVisibility visibility;
     private readonly Dictionary<HostedOverlayWindow, bool> requested = [];
-    public TimersView(TimersModel model, OverlayHost host, IGameWindow game)
+    public TimersView(TimersModel model, OverlayHost host, IGameWindow game, ISettingsStore<SettingsDocument> overlaySettings)
     {
+        overlayTheme = new(overlaySettings);
         this.model = model; this.host = host; this.game = game;
         list.ItemsSource = rows.Items;
         var itemStyle = new Style(typeof(ListBoxItem));
@@ -44,7 +48,7 @@ public sealed class TimersView
             list.SelectedItem = list.ItemContainerGenerator.ItemFromContainer(item);
             e.Handled = true;
         };
-        var content = new StackPanel { Background = CardTheme.Default.OverlayBackground, Margin = new Thickness(6) };
+        var content = new StackPanel { Background = theme.OverlayBackground, Margin = new Thickness(6) };
         content.Children.Add(TimerEditor.Label("Timers · hold Tab to view · Ctrl+Shift+T to edit"));
         content.Children.Add(list); content.Children.Add(controls); content.Children.Add(status);
         controls.Children.Add(editor);
@@ -65,8 +69,17 @@ public sealed class TimersView
         panel = host.Register(content, DefaultOverlayLayout.Timers, clickThrough: false);
         passive = host.Register(passiveContent,
             DefaultOverlayLayout.CompactTimers);
-        toast = host.Register(new Border { Background = CardTheme.Default.OverlayBackground, Padding = new Thickness(10), Child = toastText },
+        toast = host.Register(new Border { Background = theme.OverlayBackground, Padding = new Thickness(10), Child = toastText },
             DefaultOverlayLayout.TimersToast);
+        void ApplyTheme()
+        {
+            TimerEditor.ApplyTheme(content, theme);
+            TimerEditor.ApplyTheme((DependencyObject)toast.Content, theme);
+            passiveContent.Child = null;
+            Refresh();
+        }
+        ApplyTheme();
+        overlayTheme.Watch(panel, ApplyTheme);
         SetVisible(panel, false); SetVisible(passive, false); SetVisible(toast, false);
         // Settings visibility changes bypass model notifications.
         DependencyPropertyChangedEventHandler displayVisibilityChanged = (_, _) => ScheduleTick();

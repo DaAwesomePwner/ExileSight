@@ -24,6 +24,8 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
     IOverlayWindowStyler styler, ISettingsStore<SettingsDocument> settings, ILogger<OmniMenuView> logger, IHostApplicationLifetime lifetime, PriceService? prices = null) : IDisposable
 {
     private FrameworkElement? card;
+    private OmniMenuPresentation? displayed;
+    private CardTheme? theme;
     private readonly Window window = new()
     {
         WindowStyle = WindowStyle.None, ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false,
@@ -90,7 +92,9 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
     private void OpenCore(OmniMenuPresentation presentation)
     {
         if (disposed || !game.Current.Found || game.Current.IsMinimized || !game.Current.IsForeground || !settings.Snapshot.Overlay.Enabled) return;
-        card = OmniMenuBuilder.Build(presentation, CardTheme.Default);
+        displayed = presentation;
+        theme = OverlayTheme.From(settings.Snapshot.Overlay);
+        card = OmniMenuBuilder.Build(presentation, theme);
         ((Border)window.Content).Child = card;
         foreach (var button in OnDemandControls.Buttons(card))
             button.Click += (_, _) =>
@@ -137,7 +141,10 @@ public sealed class OmniMenuView(PassiveOverlayInput passive, IBrowser browser, 
     }
     private void SettingsChanged(object? sender, SettingsChangedEventArgs args) => window.Dispatcher.BeginInvoke(() =>
     {
-        if (!disposed && !settings.Snapshot.Overlay.Enabled) window.Hide();
+        if (disposed) return;
+        if (!settings.Snapshot.Overlay.Enabled) window.Hide();
+        else if (window.IsVisible && displayed is { } current && !ReferenceEquals(theme, OverlayTheme.From(settings.Snapshot.Overlay)))
+            Guard(() => OpenCore(current));
     });
     private void GameChanged(object? sender, EventArgs args) => window.Dispatcher.BeginInvoke(() =>
     {

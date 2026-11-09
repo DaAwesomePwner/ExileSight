@@ -1,3 +1,5 @@
+using ExileSight.Core.Settings;
+using ExileSight.Platform.Abstractions.Storage;
 // ExileSight-authored presentation. Passive log events never dispatch game commands.
 using System.Windows;
 using System.Windows.Controls;
@@ -12,12 +14,13 @@ namespace ExileSight.App.Features.Events;
 
 public sealed class EventsView
 {
+    private readonly OverlayTheme overlayTheme;
     private readonly EventsModel model;
     private readonly OverlayHost host;
     private readonly ILogger<EventsView> logger;
     private readonly HostedOverlayWindow toast;
     private readonly Border content = new() { HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
-    private readonly CardTheme theme = CardTheme.Default;
+    private CardTheme theme => overlayTheme.Current;
     private EventToastCard? displayed;
     private readonly DispatcherTimer ticker = new() { Interval = TimeSpan.FromSeconds(1) };
     private Window? settings;
@@ -25,13 +28,15 @@ public sealed class EventsView
     private string? optionsSignature;
     private bool visible, closed;
 
-    public EventsView(EventsModel model, OverlayHost host, ILogger<EventsView> logger)
+    public EventsView(EventsModel model, OverlayHost host, ILogger<EventsView> logger, ISettingsStore<SettingsDocument> overlaySettings)
     {
+        overlayTheme = new(overlaySettings);
         this.model = model; this.host = host; this.logger = logger;
         toast = host.Register(content,
             // Placement relative to neighbouring panels is defined in DefaultOverlayLayout.
             DefaultOverlayLayout.EventsToast, clickThrough: true);
         host.SetVisible(toast, false);
+        overlayTheme.Watch(toast, () => { displayed = null; Guard(Tick); });
         model.SettingsRequested += OpenSettings;
         toast.Closed += (_, _) =>
         {

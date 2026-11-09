@@ -88,7 +88,7 @@ public static class MapCardBuilder
 
     private static FrameworkElement Row(MapRow row, CardTheme theme)
     {
-        var grid = new Grid { MinHeight = 30, Margin = new Thickness(0, 1, 0, 1) };
+        var grid = new Grid { MinHeight = theme.RowHeight + 2, Margin = new Thickness(0, 1, 0, 1) };
         grid.ColumnDefinitions.Add(new() { Width = new GridLength(34) });
         grid.ColumnDefinitions.Add(new() { Width = new GridLength(78) });
         grid.ColumnDefinitions.Add(new());
@@ -119,7 +119,7 @@ public static class MapCardBuilder
 
     private static Button FoldButton(int count, CardTheme theme)
     {
-        var grid = new Grid { MinHeight = 30 };
+        var grid = new Grid { MinHeight = theme.RowHeight + 2 };
         grid.ColumnDefinitions.Add(new() { Width = new GridLength(34) });
         grid.ColumnDefinitions.Add(new() { Width = new GridLength(78) });
         grid.ColumnDefinitions.Add(new());
