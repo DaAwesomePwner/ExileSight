@@ -132,8 +132,8 @@ amount box you opened. You pick the currency and press List." After a click: hea
 buttons disabled, "Omni-key the item again to re-arm." Note mode keeps the same layout with the note text
 in the buttons.
 
-**Stash price tags** (stashninja; measured layouts and automatic recognition shipped in 1.1): a tag in each priced
-cell's **bottom-right** corner, mono 10, 14 high, solid background so it reads over item art. Text is the
+**Stash price tags** (stashninja; measured layouts and recognition shipped in 1.1; off until **Ctrl+Shift+P** shows
+them for the current stash visit, D-118): a tag in each priced cell's **bottom-right** corner, mono 10, 14 high, solid background so it reads over item art. Text is the
 unit price: chaos with no suffix below 1 divine, `1.4d` at or above. Colours keep the existing
 `ThresholdProfile`: `HighColor` at or above its `High` value, otherwise `LowColor`; `Minimum` keeps driving
 the search highlight. These are user-chosen colours, the one place a view may use non-token colours; new
@@ -147,7 +147,7 @@ and the price age.
 Mockup: [ambient-hud](mockups/png/ambient-hud.png). All click-through unless noted.
 
 - **Act guide**, width 340: `Act N · step i of n`, act and total timers right-aligned, a 3-high progress
-  bar, the current page's lines in 15/600, then `NEXT` + the next page's first line in Muted. Guide notices
+  bar, the current page's lines in 14/600 (D-119), then `NEXT` + the next page's first line in Muted. Guide notices
   (timing uncertain, guide complete, store notices) get one Muted line. The overlay shows at most 12 page
   lines, each ellipsized, then `+N more lines`. Its controls (Back/Next, Reset run, League start, Bandit,
   Import JSON, Export CSV, Remove custom guide) live on the desktop app's **Act guide** page (§7, D-115), so
