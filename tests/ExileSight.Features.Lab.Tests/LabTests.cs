@@ -49,7 +49,7 @@ public sealed class LabTests
     {
         var model = new LabModel(); model.Import(Fixture("valid.json"));
         var parser = new LogParser();
-        var lines = Encoding.UTF8.GetString(Fixture("replay.txt")).Split('\n');
+        var lines = Encoding.UTF8.GetString(Fixture("replay.txt")).ReplaceLineEndings("\n").Split('\n');
         foreach (var (line, expected) in lines.Zip(new string?[] { null, "a", "b", "c", "c", null, null }))
         { model.Accept(parser.Parse(line)); Assert.Equal(expected, model.Snapshot().RoomId); }
         Assert.Equal("Not tracking", model.Snapshot().Tracking);
