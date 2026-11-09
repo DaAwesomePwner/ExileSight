@@ -34,9 +34,9 @@ ExileSight is built to follow [GGG's third-party policy](https://www.pathofexile
 - **One key press gives one action.** Only one component, the Action Gate, can send input to the game. It only acts on a real key press or click, and only once per press.
 - **Display-only updates.** Timers, log events and screen checks can only change what the overlay shows. They can never send input or obtain an IntentToken.
 - **No memory reading, injection or graphics hooks.** ExileSight never opens the game process and never changes the game window.
-- **Transparent.** What it reads: the game's `Client.txt` log, text you copy with Ctrl+C, and, for 1.1 Stashninja page recognition (D-104), pixels inside the game client rectangle only while the game is foreground and the stash overlay is open. What it sends: only the actions listed in [docs/FAIR-PLAY.md](docs/FAIR-PLAY.md).
+- **Transparent.** What it reads: the game's `Client.txt` log, text you copy with Ctrl+C, and, for Stashninja’s automatic watch, page recognition and grid calibration (1.1, D-104), pixels inside the foreground game client rectangle, even with the stash menu closed. What it sends: only the actions listed in [docs/FAIR-PLAY.md](docs/FAIR-PLAY.md).
 
-Stash page recognition uses GDI BitBlt, with no DXGI capture, DirectX/Vulkan hooks or Windows.Graphics.Capture. User-taught page references are captured locally after calibration or with **Remember this page** and stay on your machine; no game images are shipped or committed. Exclusive fullscreen may not capture; Windowed Fullscreen is recommended. Calibration-free grid location is a possible later follow-up, outside D-104.
+Stash page recognition uses GDI BitBlt, with no DXGI capture, DirectX/Vulkan hooks or Windows.Graphics.Capture. **Show stash prices automatically** defaults on. Supported pages are identified without teaching, with first-use calibration saved after two consecutive checks agree. **Auto-calibrate** and manual calibration remain fallbacks. Optional taught references stay on your machine; automatic identification does not use them. No game images are shipped or committed. Exclusive fullscreen may not capture; Windowed Fullscreen is recommended. Screen reads follow the limits in [FAIR-PLAY.md](docs/FAIR-PLAY.md).
 
 See the [transparency table](#transparency) for each feature’s declared permissions and defaults.
 

@@ -3,7 +3,8 @@
 ExileSight is a Windows overlay for **Path of Exile 1 with an English client**.
 It lives in the notification area beside the clock. Right-click its icon for
 **Debug panel**, **Run setup again**, **Open settings folder**, and **Exit**.
-Clicking the icon opens diagnostics; closing that window leaves the app running.
+Clicking or double-clicking the icon opens the desktop app. Closing its window
+leaves the app running; diagnostics remain available through **Debug panel**.
 
 The stash price panel supports eight measured pages; see [stashninja](#price-check--stashninja--ctrlshiftn).
 
@@ -53,7 +54,7 @@ remove `%APPDATA%\ExileSight` separately after backing up anything you want.
 ## Fair play: what is read and sent
 
 ExileSight reads the selected game log without changing it, and reads item text
-copied after your hotkey. In 1.1, Stashninja may also read pixels of the foreground
+copied after your hotkey. In 1.1, Stashninja may also read pixels of the
 foreground game client to recognize stash pages automatically (D-104). It does not
 read game memory, inject code, or change the game window or game files.
 
@@ -300,6 +301,9 @@ default on. Toasts last five seconds. Enabling an alert does not replay old even
 
 **Ctrl+Shift+F10** toggles the guide; **Ctrl+Shift+F11** goes back and
 **Ctrl+Shift+F12** goes forward. Zone changes can advance it automatically.
+The overlay is click-through and shows progress only. Open the desktop app’s
+**Act guide** page for **Back/Next**, **Reset run**, **League start**, **Bandit**,
+**Import JSON**, **Export CSV**, and **Remove custom guide**.
 Use **Reset run** before starting another character: the guide shares one default
 profile. League-start and bandit choices, and importing a custom JSON guide, reset
 progress and timers. Import/export use file dialogs. Guide timing pauses on AFK
@@ -370,8 +374,8 @@ information. Review files before sharing them. The app never edits your game log
   missing paths, unavailable drives or refused network locations. Reading starts
   at the end of the file, so old lines are not imported; change zones to test it.
 - **Missing item details or notifications:** check data-pack diagnostics. Let packs
-  load, then copy the item again. Unknown values are not guessed. Stash tags also
-  require a supported measured layout, which is absent from this version.
+  load, then copy the item again. Unknown values are not guessed. Stash tags require
+  one of the eight supported measured pages; see the stashninja section above.
 - **Antivirus or SmartScreen warning:** CI and 1.0 release installers are unsigned
   (D-098), so Windows SmartScreen and “unknown publisher” prompts are expected.
   Check the build's origin before running it. Keep protection enabled; if it blocks
@@ -410,4 +414,4 @@ Press **Ctrl+Shift+L**. Click **Open poelab**, select today's difficulty on poel
 
 Click **Import file…**, or copy the JSON text and click **Paste JSON**. Clipboard reads happen only on that click. Invalid/oversized files show an error and preserve your previous map. Startup selects the most recently imported difficulty. Select a difficulty to view its saved import; switching back restores its tracking view, and an active run continues tracking while you browse another map. Import again each day: **OUTDATED** means the file date differs from today's UTC date, assuming a 00:00 UTC reset.
 
-The green room is your last known position. Hover rooms for their names and contents; the legend explains symbols. At Aspirants' Plaza, no room is highlighted. Enter the layout's first room to start room tracking. Adjacent rooms distinguish duplicate names. An uncertain state means the panel could not uniquely identify the transition; don't rely on its highlight until a later transition resolves it. Entering any area absent from the layout clears tracking. The panel lists Izaro information and bundled trial locations/tips; it never controls the game.
+The teal room with a thicker ring is your last known position; the tracking line marks it with ◎. Hover rooms for their names and contents; the legend explains symbols. At Aspirants' Plaza, no room is highlighted. Enter the layout's first room to start room tracking. Adjacent rooms distinguish duplicate names. An uncertain state means the panel could not uniquely identify the transition; don't rely on its highlight until a later transition resolves it. Entering any area absent from the layout clears tracking. The panel lists Izaro information and bundled trial locations/tips; it never controls the game.
