@@ -1,8 +1,8 @@
 # Design reference
 
-The 1.1 UI redesign is specified in [UI-SPEC.md](UI-SPEC.md). This folder holds the
+The 1.2 UI redesign is specified in [UI-SPEC.md](UI-SPEC.md). This folder holds the
 mockups that spec refers to. They are the visual reference for every UI task in
-[Phase 7](../ROADMAP.md#phase-7-ui-redesign-11).
+[Phase 7](../ROADMAP.md#phase-7-ui-redesign-12).
 
 ## Mockups
 

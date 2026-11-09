@@ -70,7 +70,7 @@ Phases run in order. Inside a phase, tasks own disjoint files and run in paralle
 - User docs, signed installer, and update channel.
 - 🎮 **Gate:** a full play session on the release build, then a public beta about 4 weeks before a league launch.
 
-### Phase 7: UI redesign (1.1)
+### Phase 7: UI redesign (1.2)
 
 Phase 6 shipped with 1.0. Phase 7 restyles every surface to the approved design, without changing what
 the app is allowed to do. Read [design/UI-SPEC.md](design/UI-SPEC.md) and compare against the mockup PNGs
@@ -108,7 +108,7 @@ Rules for every task below:
 - **P7-T15 Omni advanced copy.** Owns `src/ExileSight.Features.Omni/OmniPress.cs`, the Omni feature's
   settings (`OmniFeature.cs`), their tests, and the omni/iteminfo lines in `docs/FEATURES.md` and
   `docs/USER-GUIDE.md`. The omni key sends `CopyItem(Advanced: true)` unless the new **Use advanced copy**
-  setting is off (UI-SPEC §3.1, D-108). Expose the setting through `Load`/`Save` helpers like
+  setting is off (UI-SPEC §3.1, D-113). Expose the setting through `Load`/`Save` helpers like
   `ItemInfoSettings` so P7-T13 can edit it. Done when tests show one `CopyItem` per press with the flag
   following the setting, and the item-info fixtures parse advanced text from the omni path.
 

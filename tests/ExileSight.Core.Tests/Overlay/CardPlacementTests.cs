@@ -24,7 +24,7 @@ public sealed class CardPlacementTests
 
     [Theory]
     [InlineData(600, 288)]
-    [InlineData(960, 648)] // Exact centre opens left (D-106).
+    [InlineData(960, 648)] // Exact centre opens left (D-111).
     [InlineData(1100, 1112)]
     public void ChoosesSideAndAlignsTop(int cursorX, int expectedX)
     {
