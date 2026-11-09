@@ -259,47 +259,72 @@ invalidating earlier taught references. Automatic recognition needs no teaching;
 users who use optional taught references can remember those pages again.
 
 
-### Retention evidence (S1-R6)
+### Retention redesign (S1-R6 review round 1)
 
-`GridKeep` retains an existing identity at its saved transform, with threshold 15
-versus identification's 16. It samples four inner borders per cell, nine tangent
-points and ±1 reference-pixel normal offsets. At least seven of nine points must
-have valley >12 and absolute contrast ≥6; average the strongest 40% of cells
-(at least two). These scores use a different aggregation from identification.
-Header-only and partial-grid tooltip tests retain at least half the complete cells;
-a tooltip covering all cells fails. The two failure checks use independent captures
-within one hidden interval. Images remain local and uncommitted.
+The weak GridKeep scorer and its two-bright-button heuristic have been removed.
+The previous margin table was invalid under ±1 px calibration error and stale
+composited tag panels. Review measured League on unsupported src11 at 19.4/20.5,
+League on Delve at 27.3, and tag-painted world false positives for Essence (16.37)
+and Atlas (16.44). These are historical failures, not acceptable thresholds.
 
-The exploratory notes in c91cb89 identified total occlusion of League's four cells
-by a 300×220 box at (80,70); that case now explicitly requires hiding. Current
-regressions cover both widths, every other labelled/unsupported scene, and world
-crops pasted over the stash. Atlas's overlapping grid alone can score as League;
-the button contradiction gate rejects it. The +25 League hover on Atlas actually
-leads by 6.89 at 2000 and 6.12 at calibrated 3440, but Atlas stays ≥6 above the
-third button. Retention therefore requires that the displayed button also lose
-its brightness before treating another leader as a contradiction.
+Retention now uses normal local GridIdentifier evidence (score ≥16, margin ≥3)
+at saved/pending transforms or Fit. Confident P/Q adopts the baseline. Only a
+currency grid winner P with no ≥6 button leader can retain P without adopting it.
+The +25 League glow on Atlas previously measured a real League lead of 6.89 at
+2000 and 6.12 at calibrated 3440; this contradicts an unconditional expectation
+that this exact variant retain Atlas under the new strict button rule.
 
-Excluding tag rectangles gives zero evidence on all eight pages at both widths
-for these probes. The implementation accepts a short capture hide instead.
-No Windows hidden-time measurement is claimed: one dispatcher render drain plus
-one or two GDI captures and keep scoring is estimated at 5–87 ms; identification
-scoring runs after restoring tags. Validate compositor behavior in game.
+Two unstable header ticks force a check. Two failed checks within four seconds
+hide tags; a pass or gap longer than four seconds resets failures. Continuous
+world motion therefore hides a closed stash within four ticks (1.8 seconds plus
+capture/scoring). Capture exceptions and menu overlap use the same failure window.
+The compositor wait is restored to 32 ms. Expected hidden duration is 32 ms plus
+capture (estimated 5–30 ms); scoring runs after tags return, historically about
+100 ms. Windows timings remain unmeasured.
 
-Measured scores (raw other-scene scores precede the currency button veto):
+Review regressions cover ±1 px offsets and alpha-170 black panels, 27 DIP tall,
+on world crops and every other page at 50% and 100% tag coverage. Occlusion tests
+retain their required assertions rather than relaxing the identification gates.
+Normal identification alone also falsely retained eight painted-tag cases:
+2000 Atlas/src11 16.87, Essence/world 17.89, Blight/src11 17.84,
+Blight/world 18.77, Fragment/world 16.21; 3440 Essence/world 17.97,
+Blight/src11 17.83 and Blight/world 17.59. A separate pre-identification
+TagCaptureGuard now checks the known panel boundaries at the actual overlay
+scale: both horizontal edges must show darkening at six of nine positions,
+repeated in at least 20% of cells (minimum two). A matching frame is rejected,
+not used to keep or select a page. This uses existing captured pixels only.
 
-| Page | 2000 clean / partial / best other | 3440 clean / partial / best other |
-| --- | --- | --- |
-| fragment/general | 26.56 / 23.64 / 8.51 | 24.52 / 21.68 / 7.51 |
-| currency/general | 31.43 / 25.66 / 8.84 | 32.87 / 26.82 / 8.23 |
-| delve/general | 28.29 / 25.45 / 14.80 | 25.94 / 22.30 / 14.34 |
-| blight/general | 23.68 / 18.22 / 9.62 | 22.28 / 18.97 / 7.93 |
-| currency/atlas | 29.20 / 25.35 / 11.90 | 27.24 / 25.25 / 8.95 |
-| delirium/general | 30.27 / 23.13 / 9.44 | 27.09 / 21.83 / 9.17 |
-| essence/general | 23.59 / 21.51 / 9.19 | 23.42 / 19.51 / 7.72 |
-| currency/league | 32.10 / 28.40 / 30.64 | 27.37 / 24.56 / 21.90 |
+The unchanged full-identification gates cannot guarantee half-grid retention:
+GridLocator requires ≥65% support (100% for small layouts) and discards the
+strongest quarter when averaging. Ten partial-occlusion cases fail across the
+two widths, even though at least half of the complete cells remain visible.
+The exact +25 Atlas hover additionally fails at both widths because League
+has a ≥6 lead. These required assertions remain enabled; no threshold or test
+has been relaxed to hide the conflict. Header-only occlusion passes all pages.
+The guarded review regression passes with no false retention. Candidate scores
+after the panel guard (still subject to the full locator, margin and button gates):
 
-Header-only scores equal clean scores; total occlusion scores are zero. All other
-labelled scenes (including unsupported src3/8/11) and all tested world crops fail
-retention. League-on-Atlas is the sole above-threshold sibling exception and is
-rejected by its button contradiction. The narrowest raw negative margin is
-Delve-on-League: 14.80 against threshold 15, so in-game validation matters.
+| Width | Minimum correct ±1 px | Maximum wrong ±1 px | Maximum painted wrong | Minimum gap |
+| --- | ---: | ---: | ---: | ---: |
+| 2000 | 19.24 | 16.88 | 14.85 | 2.36 |
+| 3440 | 18.42 | 17.18 | 16.50 | 1.24 |
+
+Wrong candidate scores above 16 do not imply acceptance: the unchanged transform,
+coverage, margin and button gates still apply. No reviewer offset or painted-panel
+scene retains P. The guard does not replace these gates or introduce a lower keep
+threshold. Build, 105 regular feature tests, 129 architecture tests and 25
+transparency tests pass. The opt-in acceptance test intentionally still reports
+these unresolved required cases:
+
+- 2000: partial Fragment, Delve, Blight, Atlas, Essence; +25 Atlas hover.
+- 3440: partial Delve, Blight, Delirium, Essence, League; +25 Atlas hover.
+
+These are blockers to declaring S1-R6 complete. Accept the strict-identification
+behavior for these occlusions/hover variants, or explicitly authorize a separate
+occlusion-aware identification rule and a different button rule; the current
+requirements cannot all hold simultaneously.
+
+Final verification: the full opt-in command ran three tests with no skips: the
+original 198-case replay and guarded review regression passed; the occlusion/hover
+acceptance test failed with the 12 cases listed above (command exit 1). No image
+files were created or committed. This change is not ready to mark complete.

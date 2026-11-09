@@ -68,46 +68,28 @@ public sealed partial class StashView
             surface.SetCaptureHidden(true);
             try
             {
-                // Drain WPF render work once; no fixed sleep. Only our overlay changes.
-                await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.ContextIdle);
+                await Task.Delay(32); // Let the compositor remove our tag panels before GDI capture.
                 if (!Current()) return;
                 var baselineHeader = WatchHeader();
                 var baselineSub = model.Layouts.GroupBy(l => l.TabId).ToDictionary(g => g.Key, g => WatchSubTab(g.First()));
                 var sample = await Task.Run(() => GridCapture.Sample(sampler, Game, initial, area,
                     () => epoch == automaticEpoch && request == generation));
                 if (!Current()) return;
-                bool? keep = null, confirmation = null;
-                if (automaticPage is { } displayed && saved[displayed] is { } transform)
-                {
-                    keep = GridKeep.Supports(displayed, transform, resolution, sample, currencyButtons);
-                    if (keep == false)
-                    {
-                        // Two independent captures in the same hide burst: no repeat blink on the next tick.
-                        var keepArea = GridKeep.Bounds(displayed, transform, resolution, currencyButtons);
-                        var second = await Task.Run(() => GridCapture.Sample(sampler, Game, initial, keepArea,
-                            () => epoch == automaticEpoch && request == generation));
-                        if (!Current()) return;
-                        confirmation = GridKeep.Supports(displayed, transform, resolution, second, currencyButtons);
-                    }
-                }
                 // Search runs after restoring tags; its cost is not hidden time.
                 surface.SetCaptureHidden(false);
                 var result = sample is null ? null : await Task.Run(() =>
-                    GridIdentifier.Identify(model.Layouts, resolution, sample, l => saved[l], precheck,
-                        candidates => wideSearchBudget.Reserve(now, baselineHeader, candidates), currencyButtons));
+                    GridIdentifier.Identify(model.Layouts, resolution, sample, l => automaticPage is null ? saved[l] : starts[l], precheck,
+                        candidates => wideSearchBudget.Reserve(now, baselineHeader, candidates), currencyButtons, displayedPage: automaticPage, tagScale: host.EffectiveScale));
                 if (!Current()) return;
                 if (result?.Layout is not { } identified || result.Transform is null || baselineHeader is null ||
                     (region!.SubTabs.ContainsKey(identified.TabId) && baselineSub[identified.TabId] is null))
                 {
-                    if (keep is not null)
+                    if (automaticPage is { } displayed && result?.HoverPage == displayed)
                     {
-                        var hide = watchPolicy.Retain(now, keep.Value, baselineHeader ?? header, baselineSub[automaticPage!.TabId]);
-                        if (confirmation is not null)
-                            hide = watchPolicy.Retain(now, confirmation.Value, baselineHeader ?? header, baselineSub[automaticPage!.TabId]);
-                        if (!hide) return;
-                        RejectPage(now, true, baselineHeader, alreadyRejected: true);
+                        watchPolicy.Retain(now, true, header, sub, adoptBaseline: false);
+                        return;
                     }
-                    else RejectPage(now, step.Changed, header);
+                    RejectPage(now, step.Changed, header);
                     return;
                 }
                 if (calibrationStore.Get(identified, resolution) is null)
@@ -152,10 +134,10 @@ public sealed partial class StashView
         finally { if (loadingPage == identified) loadingPage = null; }
     }
 
-    private void RejectPage(DateTimeOffset now, bool changed, double[]? header, bool alreadyRejected = false)
+    private void RejectPage(DateTimeOffset now, bool changed, double[]? header)
     {
         calibrationConfirmation.Reset();
-        if (!alreadyRejected && !(automaticPage is not null
+        if (!(automaticPage is not null
             ? watchPolicy.Retain(now, false, header, null)
             : watchPolicy.Unknown(now, changed, header))) return;
         generation++; Invalidate();

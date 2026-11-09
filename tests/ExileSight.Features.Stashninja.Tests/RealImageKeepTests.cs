@@ -26,7 +26,15 @@ public sealed class RealImageKeepTests(ITestOutputHelper output)
                 var layout = layouts.Single(l => $"{l.TabId}/{l.Page}" == scene.Value);
                 var transform = GridLocator.Locate(layout, scene.Size, Geometry.Fit(layout.ReferenceResolution, scene.Size), scene.Sample).Transform!;
                 Assert.NotNull(transform);
-                bool Keep(GridSample sample) => GridKeep.Supports(layout, transform, scene.Size, sample, GridFixture.Buttons);
+                var results = new Dictionary<GridSample, GridIdentification>();
+                GridIdentification Identify(GridSample sample)
+                {
+                    if (!results.TryGetValue(sample, out var result))
+                        results[sample] = result = GridIdentifier.Identify(layouts, scene.Size, sample,
+                            l => l == layout ? transform : Geometry.Fit(l.ReferenceResolution, scene.Size), buttons: GridFixture.Buttons, displayedPage: layout);
+                    return result;
+                }
+                bool Keep(GridSample sample) => Identify(sample).Layout == layout || Identify(sample).HoverPage == layout;
                 var bounds = layout.Cells.Select(c => (P: transform.Apply(Layouts.Origin(layout, c)), W: c.W * transform.Scale, H: c.H * transform.Scale)).ToArray();
                 var right = (int)Math.Ceiling(bounds.Max(b => b.P.X + b.W) + 8);
                 var bottom = (int)Math.Ceiling(bounds.Max(b => b.P.Y + b.H) + 8);
@@ -50,29 +58,16 @@ public sealed class RealImageKeepTests(ITestOutputHelper output)
                 var total = Paint(0, 0, right, bottom);
                 foreach (var (name, sample, expected) in new[] { ("clean", scene.Sample, true), ("header", header, true), ("partial", partial, true), ("total", total, false) })
                 {
-                    output.WriteLine($"{width} {scene.Value} {name}: {GridKeep.Score(layout, transform, sample):F2}");
-                    var policy = new StashWatchPolicy();
-                    var baseline = new double[PageSignature.Length];
-                    var changed = Enumerable.Repeat(.5, PageSignature.Length).ToArray();
-                    policy.Accept(baseline, baseline);
-                    Assert.Equal(WatchWork.None, policy.Tick(DateTimeOffset.UnixEpoch, changed, changed).Work);
-                    Assert.Equal(WatchWork.Identify, policy.Tick(DateTimeOffset.UnixEpoch.AddMilliseconds(450), changed, changed).Work);
-                    Assert.False(policy.Retain(DateTimeOffset.UnixEpoch, Keep(sample), changed, changed));
-                    Assert.Equal(!expected, policy.Retain(DateTimeOffset.UnixEpoch, Keep(sample), changed, changed));
-                    Assert.Equal(expected, policy.Identified);
-                    if (expected) Assert.Equal(WatchWork.None, policy.Tick(DateTimeOffset.UnixEpoch, changed, changed).Work);
-                    var area = GridKeep.Bounds(layout, transform, scene.Size, GridFixture.Buttons);
-                    var crop = GridFixture.Crop(sample.Bgra, scene.Size, area);
-                    Assert.Equal(Keep(sample), Keep(crop!));
+                    output.WriteLine($"{width} {scene.Value} {name}: {Identify(sample).Score:F2}");
                     if (Keep(sample) != expected) failures.Add($"{width}/{scene.Value}/{name}");
                 }
-                var wrong = scenes.Where(s => s.Value != scene.Value).Select(s => (s.Key, Score: GridKeep.Score(layout, transform, s.Sample), Keep: Keep(s.Sample))).ToArray();
+                var wrong = scenes.Where(s => s.Value != scene.Value).Select(s => (s.Key, Score: Identify(s.Sample).Score, Keep: Keep(s.Sample))).ToArray();
                 foreach (var other in wrong.Where(s => s.Keep)) failures.Add($"{width}/{scene.Value} kept {other.Key} ({other.Score:F2})");
                 var worldPixels = (byte[])scene.Sample.Bgra.Clone();
                 for (var y = 0; y < bottom; y++)
                     Buffer.BlockCopy(scene.Sample.Bgra, (y * width + width / 2) * 4, worldPixels, y * width * 4, right * 4);
                 if (Keep(scene.Sample with { Bgra = worldPixels })) failures.Add($"{width}/{scene.Value}/world");
-                output.WriteLine($"{width} {scene.Value}: best other={wrong.Max(s => s.Score):F2}, masked={GridKeep.Score(layout, transform, scene.Sample, true):F2}");
+                output.WriteLine($"{width} {scene.Value}: best other winner={wrong.Max(s => s.Score):F2}");
                 if (scene.Key == "src6")
                 {
                     var pixels = (byte[])scene.Sample.Bgra.Clone();

@@ -1,6 +1,6 @@
 namespace ExileSight.Features.Stashninja;
 
-public sealed record GridIdentification(Layout? Layout, Transform? Transform, double Score, double Margin, string Reason, int Evaluations = 0, int BroadSearches = 0, int ScorePasses = 0, int ScoreSampleReads = 0);
+public sealed record GridIdentification(Layout? Layout, Transform? Transform, double Score, double Margin, string Reason, int Evaluations = 0, int BroadSearches = 0, int ScorePasses = 0, int ScoreSampleReads = 0, Layout? HoverPage = null);
 
 public sealed record GridCandidateEvidence(Layout Layout, GridLocation Location, bool Wide);
 
@@ -11,8 +11,11 @@ public static class GridIdentifier
     public static GridIdentification Identify(IReadOnlyList<Layout> layouts, Resolution size, GridSample sample,
         Func<Layout, Transform?> calibration, IReadOnlyDictionary<Layout, double>? precheck = null,
         Func<IReadOnlyList<Layout>, IReadOnlySet<Layout>>? reserveWideSearch = null, CurrencyButtons? buttons = null,
-        Action<GridCandidateEvidence>? observe = null)
+        Action<GridCandidateEvidence>? observe = null, Layout? displayedPage = null, double? tagScale = null)
     {
+        if (displayedPage is not null && TagCaptureGuard.ContainsPanels(displayedPage,
+            calibration(displayedPage) ?? Geometry.Fit(displayedPage.ReferenceResolution, size), size, sample, tagScale))
+            return new(null, null, 0, 0, "Overlay panels in capture");
         if (layouts.Any(a => layouts.Any(b => !ReferenceEquals(a, b) && a.ReferenceResolution == b.ReferenceResolution && a.Cells.SequenceEqual(b.Cells))))
             return new(null, null, 0, 0, "Ambiguous geometry");
         var candidates = layouts.Select(layout =>
@@ -44,7 +47,8 @@ public static class GridIdentifier
                 var siblingMargin = best.Result.Score - (sibling.Layout is null ? 0 : sibling.Result.Score);
                 var button = buttons?.Identify(size, sample, best.Result.Transform) ?? (Page: (string?)null, Margin: 0d);
                 if (siblingMargin < MinimumMargin || button.Page != best.Layout.Page)
-                    return new(null, null, best.Result.Score, Math.Min(margin, siblingMargin), "Currency highlight disagrees", evaluations, broad, passes, reads);
+                    return new(null, null, best.Result.Score, Math.Min(margin, siblingMargin), "Currency highlight disagrees", evaluations, broad, passes, reads,
+                        siblingMargin >= MinimumMargin && button.Page is null && buttons is not null ? best.Layout : null);
                 margin = Math.Min(margin, button.Margin);
             }
             return new(accepted ? best.Layout : null, accepted ? best.Result.Transform : null,

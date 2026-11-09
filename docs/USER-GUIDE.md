@@ -135,8 +135,8 @@ pastes one search; loading prices never sends input.
 The watch checks a small header strip every 450 ms while the game is foreground,
 pausing during calibration. Currency and Fragment also check their sub-tab strip
 with tags visible. These checks compare against the baseline captured when the page
-was identified or last retained. A change must settle for one tick before checking
-again. Hovering over the grid alone does not trigger a check. A stable page never
+was identified or last retained. A change waits for one stable tick; after two changing ticks, the watch checks
+anyway. Hovering over the grid alone does not trigger a check. A stable page never
 causes a periodic full read or recurring blink.
 
 When no page is identified, sparse border checks at the saved calibration or default
@@ -158,14 +158,16 @@ is still cooling down, the baseline stays available for later attempts; each pag
 can still be searched at most once per 30 seconds.
 The sparse pre-check only covers a ±12 px band around predicted borders. For larger
 first-use offsets, use Ctrl+Shift+N → **Auto-calibrate** or manual calibration.
-Tags briefly hide once to capture a settled header change, then return before page
-identification scoring. A tooltip or hover that prevents identification keeps the
-current page when enough of its grid remains visible. Currency hover glow does
-not select the hovered page. Total grid occlusion or a closed/unsupported page
-hides tags after two failed checks; the second capture occurs within the same
-brief hidden interval. Focus loss and minimization still hide tags immediately.
-Windows timing remains to be measured; the expected capture interval is under
-about 100 ms. Screen checks never send input.
+Tags briefly hide for a 32 ms compositor wait plus capture, then return before
+page scoring. Expected hidden time is about 37–62 ms, pending Windows measurement.
+A moving header cannot postpone checking indefinitely: a closed stash is checked
+twice within about 1.8 seconds plus capture/scoring. Two failed checks no more than
+four seconds apart hide the tags; a pass or longer gap resets the failure count.
+Normal identification determines whether the page remains supported. An ambiguous
+Currency hover may retain the current page without adopting a new baseline; a
+clear different button must agree with its grid to switch pages. Partial tooltip
+occlusion can fail normal identification; this limitation is under validation.
+Focus loss and minimization still hide tags immediately. Screen checks never send input.
 
 Only game-client pixels are captured, using GDI BitBlt, with no DXGI capture,
 DirectX/Vulkan hooks or Windows.Graphics.Capture. Use Windowed Fullscreen;
