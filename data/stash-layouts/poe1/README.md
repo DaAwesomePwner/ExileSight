@@ -271,8 +271,8 @@ Retention now uses normal local GridIdentifier evidence (score ≥16, margin ≥
 at saved/pending transforms or Fit. Confident P/Q adopts the baseline. Only a
 currency grid winner P with no ≥6 button leader can retain P without adopting it.
 The +25 League glow on Atlas previously measured a real League lead of 6.89 at
-2000 and 6.12 at calibrated 3440; this contradicts an unconditional expectation
-that this exact variant retain Atlas under the new strict button rule.
+2000 and 6.12 at calibrated 3440; the approved strict policy therefore treats this exact variant as a failed
+check. Real hover-glow brightness remains to be validated in game.
 
 Two unstable header ticks force a check. Two failed checks within four seconds
 hide tags; a pass or gap longer than four seconds resets failures. Continuous
@@ -284,7 +284,7 @@ capture (estimated 5–30 ms); scoring runs after tags return, historically abou
 
 Review regressions cover ±1 px offsets and alpha-170 black panels, 27 DIP tall,
 on world crops and every other page at 50% and 100% tag coverage. Occlusion tests
-retain their required assertions rather than relaxing the identification gates.
+explicitly assert the owner-approved strict policy without relaxing the identification gates.
 Normal identification alone also falsely retained eight painted-tag cases:
 2000 Atlas/src11 16.87, Essence/world 17.89, Blight/src11 17.84,
 Blight/world 18.77, Fragment/world 16.21; 3440 Essence/world 17.97,
@@ -294,13 +294,32 @@ scale: both horizontal edges must show darkening at six of nine positions,
 repeated in at least 20% of cells (minimum two). A matching frame is rejected,
 not used to keep or select a page. This uses existing captured pixels only.
 
-The unchanged full-identification gates cannot guarantee half-grid retention:
-GridLocator requires ≥65% support (100% for small layouts) and discards the
-strongest quarter when averaging. Ten partial-occlusion cases fail across the
-two widths, even though at least half of the complete cells remain visible.
-The exact +25 Atlas hover additionally fails at both widths because League
-has a ≥6 lead. These required assertions remain enabled; no threshold or test
-has been relaxed to hide the conflict. Header-only occlusion passes all pages.
+Strict identification takes precedence over retention (owner decision, S1-R6 fix
+round 1 continued). GridLocator requires ≥65% support (100% for small layouts)
+and discards the strongest quarter when averaging. The ten half-grid cases below
+return Unknown, with no wrong page: one failed check keeps tags up; the second
+consecutive failure within four seconds hides them. A passing check in between
+resets the count, and the next passing identification restores hidden tags.
+Both +25 Atlas-hover cases follow the same rule and never identify League.
+A true no-leader currency ambiguity still retains Atlas without adopting a baseline.
+
+A tooltip hiding much of the grid or hover lighting another currency sub-tab may
+therefore hide tags after about two failed checks (allow roughly 1.8–4 s including
+processing; a stable header can be faster). No new occlusion or hover exceptions
+were introduced. Every header-only case keeps; total-grid occlusion hides after two.
+
+| Half-grid case | 2000 px | 3440 px |
+| --- | --- | --- |
+| Fragment | Hide after 2 | Keep |
+| Currency General | Keep | Keep |
+| Delve | Hide after 2 | Hide after 2 |
+| Blight | Hide after 2 | Hide after 2 |
+| Currency Atlas | Hide after 2 | Keep |
+| Delirium | Keep | Hide after 2 |
+| Essence | Hide after 2 | Hide after 2 |
+| Currency League | Keep | Hide after 2 |
+| Atlas +25 League hover | Hide after 2 | Hide after 2 |
+
 The guarded review regression passes with no false retention. Candidate scores
 after the panel guard (still subject to the full locator, margin and button gates):
 
@@ -312,19 +331,13 @@ after the panel guard (still subject to the full locator, margin and button gate
 Wrong candidate scores above 16 do not imply acceptance: the unchanged transform,
 coverage, margin and button gates still apply. No reviewer offset or painted-panel
 scene retains P. The guard does not replace these gates or introduce a lower keep
-threshold. Build, 105 regular feature tests, 129 architecture tests and 25
-transparency tests pass. The opt-in acceptance test intentionally still reports
-these unresolved required cases:
+threshold. All ten half-grid assertions and both +25 hover assertions remain
+present, restated for the approved strict policy. No image files are created or
+committed. Windows capture timing and real hover brightness still need in-game
+validation.
 
-- 2000: partial Fragment, Delve, Blight, Atlas, Essence; +25 Atlas hover.
-- 3440: partial Delve, Blight, Delirium, Essence, League; +25 Atlas hover.
-
-These are blockers to declaring S1-R6 complete. Accept the strict-identification
-behavior for these occlusions/hover variants, or explicitly authorize a separate
-occlusion-aware identification rule and a different button rule; the current
-requirements cannot all hold simultaneously.
-
-Final verification: the full opt-in command ran three tests with no skips: the
-original 198-case replay and guarded review regression passed; the occlusion/hover
-acceptance test failed with the 12 cases listed above (command exit 1). No image
-files were created or committed. This change is not ready to mark complete.
+Verification after the strict-policy decision: build passed without warnings;
+106 regular feature tests, 129 architecture tests and 25 transparency tests passed.
+The opt-in RealImage run passed all three tests with no skips, including the
+original 198 image/shift cases and both original hover cases. Every header-only
+occlusion case keeps its page; none requires hiding.

@@ -36,6 +36,31 @@ public sealed class CurrencyButtonsTests
         Assert.True(result.Layout is null || result.Layout.Page == "atlas");
     }
 
+    [Fact]
+    public void AtlasWithNoButtonLeaderRetainsWithoutAdoptingBaseline()
+    {
+        var layouts = Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts"));
+        var atlas = layouts.Single(l => l.TabId == "currency" && l.Page == "atlas");
+        var size = new Resolution(2000, 837);
+        var pixels = GridFixture.Render(atlas, size, new(1, 0, 0), 1, 1);
+        GridFixture.BrightenButton(pixels, size, "league", 45);
+        var sample = new GridSample(0, 0, size.Width, size.Height, pixels);
+        Assert.Null(GridFixture.Buttons.Identify(size, sample).Page);
+        var result = GridIdentifier.Identify(layouts, size, sample,
+            l => Geometry.Fit(l.ReferenceResolution, size), buttons: GridFixture.Buttons, displayedPage: atlas);
+        Assert.Null(result.Layout);
+        Assert.Equal(atlas, result.HoverPage);
+        var policy = new StashWatchPolicy();
+        var baseline = new double[PageSignature.Length];
+        var hover = Enumerable.Repeat(.2, PageSignature.Length).ToArray();
+        var now = DateTimeOffset.UnixEpoch;
+        policy.Accept(baseline, baseline);
+        Assert.False(policy.Retain(now, result.HoverPage == atlas, hover, hover, adoptBaseline: false));
+        Assert.True(policy.Identified);
+        Assert.Equal(WatchWork.None, policy.Tick(now, hover, hover).Work);
+        Assert.Equal(WatchWork.Identify, policy.Tick(now.AddMilliseconds(450), hover, hover).Work);
+    }
+
     [Theory]
     [InlineData("general")]
     [InlineData("atlas")]

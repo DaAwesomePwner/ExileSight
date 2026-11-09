@@ -165,8 +165,10 @@ twice within about 1.8 seconds plus capture/scoring. Two failed checks no more t
 four seconds apart hide the tags; a pass or longer gap resets the failure count.
 Normal identification determines whether the page remains supported. An ambiguous
 Currency hover may retain the current page without adopting a new baseline; a
-clear different button must agree with its grid to switch pages. Partial tooltip
-occlusion can fail normal identification; this limitation is under validation.
+clear different button must agree with its grid to switch pages. A tooltip hiding much of the grid, or hover lighting another currency sub-tab,
+may hide tags after about two failed checks (allow roughly 1.8–4 seconds including
+processing; a stable header can be faster). Avoiding wrong prices takes precedence
+over retaining the tags. They return on the next passing identification check.
 Focus loss and minimization still hide tags immediately. Screen checks never send input.
 
 Only game-client pixels are captured, using GDI BitBlt, with no DXGI capture,
