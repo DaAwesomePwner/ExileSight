@@ -257,3 +257,39 @@ at least ±7 levels of luminance noise.
 The new `currency/*` recognition rectangle keys change `RecognitionRegion.Fingerprint`,
 invalidating earlier taught references. Automatic recognition needs no teaching;
 users who use optional taught references can remember those pages again.
+
+
+### S1-R6 retention feasibility investigation
+
+The proposed tooltip regression needs an explicit exception for total occlusion.
+Currency/League has only four cells: reference x=88..175.5, y=145.25..230.25.
+A 300×220 reference-pixel tooltip at (80,70), covering the header/sub-tab area,
+also covers **all four cells**, including their border probes. This holds at
+both corpus widths (2000 and 3440). Requiring this case to pass a check based
+on P's own remaining grid evidence conflicts with hiding after two failed
+checks. No keep threshold can recover evidence entirely replaced by a tooltip.
+A partial-grid tooltip and a total-grid tooltip need distinct expected outcomes.
+
+Local, uncommitted experiments used fixed saved transforms from GridLocator,
+four inner borders per cell, nine tangent samples per border, ±1 reference-pixel
+normal offsets, normalized valley contrast, and the strongest 40% of cells.
+Continuous support required at least seven of nine samples to exceed valley 12
+and absolute luminance contrast 6. These are exploratory measurements, **not an
+accepted keep algorithm or production thresholds**:
+
+| Scene scored as Currency/League | 2000 px | 3440 px |
+| --- | ---: | ---: |
+| League unobscured | 32.10 | 27.37 |
+| League with the header tooltip above | 0.00 | 0.00 |
+| Atlas (best other labelled scene) | 30.64 | 21.90 |
+
+Atlas overlap also prevents using a low scalar threshold alone. A sibling
+contradiction rule must accompany any eventual retention implementation.
+Excluding every drawn tag rectangle from these inner-border probes yielded
+0.00 on all eight labelled pages at both widths; this establishes that these
+probes cannot support visible-tag capture, not that every alternative probe
+scheme is impossible. No screenshots were added to the repository.
+
+Production behavior is unchanged pending the total-occlusion decision. Hidden
+capture duration was not measured on Windows; it remains the existing 32 ms
+fixed wait plus capture/scoring. No new policy sequence outcomes are claimed.
