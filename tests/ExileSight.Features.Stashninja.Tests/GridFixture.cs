@@ -3,9 +3,28 @@ namespace ExileSight.Features.Stashninja.Tests;
 internal static class GridFixture
 {
     public static CurrencyButtons Buttons => CurrencyButtons.Load(Path.Combine(AppContext.BaseDirectory, "layouts", "recognition.json"));
-    // Independent synthetic profile measurements (reference pixels), not scorer constants.
-    private static double Near(Layout l, bool vertical = true) => l.TabId switch { "blight" => 1.5, "delve" => vertical ? 2.5 : 3.5, _ => 3 };
-    private static double Far(Layout l, bool vertical = true) => l.TabId switch { "delve" => vertical ? 8.5 : 7, "blight" or "essence" => 8.5, _ => 8 };
+    // Reference-pixel centers chosen within the measured navy valleys: currency
+    // X=2..3/Y=3..5, Blight X=1..2/Y=0..2, Delve X=1..4/Y=3..4,
+    // Essence X=3..4/Y=2..4; Fragment/Delirium median strips from src1/src7.
+    // Keep these measured profile choices independent of the scorer's template.
+    private static double Near(Layout l, bool vertical = true) => l.TabId switch
+    {
+        "currency" or "fragment" => vertical ? 2.5 : 3.5,
+        "blight" => vertical ? 2 : 1,
+        "delve" => vertical ? 2 : 4,
+        "essence" => 3.5,
+        _ => 2.5
+    };
+    private static double Far(Layout l, bool vertical = true) => l.TabId switch
+    {
+        "currency" => vertical ? 7.5 : 8.5, // 39px slots: X=31.5, Y=30.5
+        "fragment" => 8.5, // 41x40 slots: X=32.5, Y=31.5
+        "blight" => vertical ? 9 : 8, // 36x35 slots: X=27, Y=27
+        "delve" => vertical ? 8 : 7.5,
+        "essence" => 9,
+        "delirium" => vertical ? 7 : 7.5,
+        _ => 7.5
+    };
     public static Layout Layout => new("synthetic", "grid", new(1000, 600),
         Enumerable.Range(0, 30).Select(i => new Cell($"c{i}", 90 + i % 6 * 49,
             110 + i / 6 * 53, 34, 38, "Currency", ItemName: "fixture")).ToArray(),

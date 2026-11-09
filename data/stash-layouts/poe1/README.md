@@ -176,8 +176,11 @@ eight pages. The profile scans up to a ±12px normal band (scaled flanks reduce 
 larger client scales) for coherent borders, requiring
 ≥18/19 samples to have normalized valley evidence >12 and absolute contrast ≥6 luminance. Weight line evidence by clamp((mean flank luminance − 8)/20, 0, 1) to suppress dark speckle. Score ≥12.5 gates full capture/identification.
 After the initial immediate check, unidentified scenes have a minimum 1800 ms
-interval even if the header changes every tick. Header checks remain 450 ms. A
-supported stash waits at most 1.8 s for the gate, plus capture/scoring/price loading.
+interval even if the header changes every tick. Header checks remain 450 ms. An
+already-calibrated page normally needs one admission interval when reopening from
+an unidentified scene. First use needs two identification ticks: budget ~3.6 s
+(two intervals), or ~5.4 s for three, plus capture/scoring/price loading. Immediate
+first checks can be faster; failures or cooldowns can extend the delay.
 
 Local identification compares every layout within ±3 px / ±0.3% scale, with
 refinement (≤559 evaluations per layout). Require normalized inner-band score ≥16,
@@ -231,7 +234,10 @@ production identifier with every admitted wide candidate explicitly permitted an
 the normal currency button rule. The test records the exact number of executed
 wide searches per image/shift, checks that every reservation ran, and reports the
 minimum accepted score against the highest admitted wrong/null candidate. The
-original calibration checks remain within 2 px at 2000 width / 3 px at 3440 width. With the
+original calibration checks remain within 2 px at 2000 width / 3 px at 3440 width.
+Each case also replays pending-transform identification and confirmation for up to
+three ticks, retaining the first wide-search reservation across those ticks. All
+labelled cases must confirm within that bound; unsupported cases must never confirm. With the
 variable unset the test skips cleanly. No screenshots belong in this repository.
 `GridTimingTests` logs Release timings (targets: 150 ms local all-eight, 600 ms wide,
 excluding capture and JIT warm-up); shared CI runners do not fail on wall time.
@@ -244,7 +250,8 @@ after one luminance conversion pass. Final continuity verification rereads at mo
 Capture pixel caps and watch cadence are unchanged. Tests include 128 deterministic
 dark correlated-noise scenes (clipping both before and after blur), black/mid-grey
 frames at both widths, synthetic and real Atlas hover-glow rejection, and the
-first-use confirmation guard. Fixtures use independent measured band offsets and
+first-use confirmation guard. Fixtures choose band centers within measured navy valleys, offset by 0.5–1 reference
+pixel from the scorer’s template on every side, and use
 at least ±7 levels of luminance noise.
 
 The new `currency/*` recognition rectangle keys change `RecognitionRegion.Fingerprint`,

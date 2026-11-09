@@ -22,7 +22,7 @@ public sealed class RealImageTests(ITestOutputHelper output)
         var folder = Environment.GetEnvironmentVariable("EXILESIGHT_REAL_STASH_DIR")!;
         var labels = JsonSerializer.Deserialize<Dictionary<string, string?>>(File.ReadAllText(Path.Combine(folder, "labels.json")))!;
         var layouts = Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts"));
-        var failures = new List<string>(); var cases = 0;
+        var failures = new List<string>(); var cases = 0; var confirmedInTwo = 0; var confirmedInThree = 0; var nullNeverConfirmed = 0; var confirmationWideSearches = 0;
         var searches = new Dictionary<(string Name, int Width), List<int>>();
         double minimumCorrect = double.PositiveInfinity, maximumAdmittedWrong = 0, maximumAdmittedNull = 0, minimumMargin = double.PositiveInfinity;
         var worstWrong = "none";
@@ -46,10 +46,16 @@ public sealed class RealImageTests(ITestOutputHelper output)
             var pre = GridPrecheck.Score(layouts, size, _ => null, a => GridFixture.Crop(pixels, size, a));
             var watch = Stopwatch.StartNew();
             var admitted = new HashSet<Layout>(); var evidence = new List<GridCandidateEvidence>();
+            var budget = new WideSearchBudget(); var header = new double[PageSignature.Length];
+            var now = DateTimeOffset.UnixEpoch;
             // Replay the production first-use path: real sparse crops, no saved
             // calibration, and a budget that grants every proposed wide candidate.
             var result = GridIdentifier.Identify(layouts, size, sample, _ => null, pre,
-                reserveWideSearch: candidates => { admitted.UnionWith(candidates); return candidates.ToHashSet(); },
+                reserveWideSearch: candidates =>
+                {
+                    budget.Reserve(now, header, candidates); // Consume the first batch for later ticks.
+                    admitted.UnionWith(candidates); return candidates.ToHashSet();
+                },
                 buttons: GridFixture.Buttons, observe: evidence.Add);
             if (!searches.TryGetValue((name, width), out var counts)) searches[(name, width)] = counts = [];
             counts.Add(result.BroadSearches);
@@ -89,7 +95,36 @@ public sealed class RealImageTests(ITestOutputHelper output)
                 minimumMargin = Math.Min(minimumMargin, result.Margin);
             }
             if (expected != actual) failures.Add($"{tag}: expected {expected ?? "Unknown"}, got {actual ?? "Unknown"}");
-            if (layout is null) continue;
+            var confirmation = new FirstUseCalibration(); var confirmedAt = 0; var tickResult = result;
+            for (var tick = 1; tick <= 3; tick++)
+            {
+                if (tick > 1)
+                {
+                    now = now.AddMilliseconds(1800);
+                    var pending = layouts.ToDictionary(l => l, l => confirmation.Pending(l, size));
+                    var nextPre = GridPrecheck.Score(layouts, size, l => pending[l], a => GridFixture.Crop(pixels, size, a));
+                    tickResult = nextPre.Values.Any(StashWatchPolicy.ShouldIdentify)
+                        ? GridIdentifier.Identify(layouts, size, sample, l => pending[l], nextPre,
+                            reserveWideSearch: candidates => budget.Reserve(now, header, candidates), buttons: GridFixture.Buttons)
+                        : new(null, null, 0, 0, "Sparse gate closed");
+                    confirmationWideSearches += tickResult.BroadSearches;
+                }
+                var tickPage = tickResult.Layout is null ? null : $"{tickResult.Layout.TabId}/{tickResult.Layout.Page}";
+                if (tickPage != expected) failures.Add($"{tag}/tick{tick}: expected {expected ?? "Unknown"}, got {tickPage ?? "Unknown"}");
+                if (!confirmation.Observe(tickResult.Layout, size, tickResult.Transform)) continue;
+                confirmedAt = tick;
+                if (expected is null || tick == 1) failures.Add($"{tag}: unexpected confirmation on tick {tick}");
+                break;
+            }
+            output.WriteLine($"CONFIRM {tag}: {(confirmedAt == 0 ? "never" : confirmedAt)}");
+            if (layout is null)
+            {
+                if (confirmedAt == 0) nullNeverConfirmed++;
+                continue;
+            }
+            if (confirmedAt == 2) confirmedInTwo++;
+            else if (confirmedAt == 3) confirmedInThree++;
+            else failures.Add($"{tag}: did not confirm within three identification ticks");
             if (result.Margin < GridIdentifier.MinimumMargin) failures.Add($"{tag}: margin {result.Margin:F2}");
             if (!StashWatchPolicy.ShouldIdentify(pre[layout])) failures.Add($"{tag}: precheck {pre[layout]:F2}");
             if (wide!.Transform is null || error > (width == 2000 ? 2 : 3)) failures.Add($"{tag}: wide error {error:F2}");
@@ -109,6 +144,7 @@ public sealed class RealImageTests(ITestOutputHelper output)
         foreach (var (key, counts) in searches)
             output.WriteLine($"PRODUCTION {key.Name}/{key.Width}: wide per shift=[{string.Join(",", counts)}], total={counts.Sum()}, max={counts.Max()}");
         output.WriteLine($"PRODUCTION gap: lowest correct={minimumCorrect:F2}, highest admitted wrong/null candidate={maximumAdmittedWrong:F2} ({worstWrong}), gap={minimumCorrect - maximumAdmittedWrong:F2}, highest admitted null={maximumAdmittedNull:F2}, null gap={minimumCorrect - maximumAdmittedNull:F2}, minimum decision margin={minimumMargin:F2}");
+        output.WriteLine($"CONFIRMATION totals: two ticks={confirmedInTwo}, three ticks={confirmedInThree}, null never confirmed={nullNeverConfirmed}, follow-up wide searches={confirmationWideSearches}");
         output.WriteLine($"Checked {cases} image/shift cases and two Atlas hover-glow cases; {failures.Count} failures.");
         Assert.True(failures.Count == 0, string.Join(Environment.NewLine, failures));
     }

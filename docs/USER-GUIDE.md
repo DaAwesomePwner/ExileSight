@@ -141,8 +141,14 @@ When no page is identified, sparse border checks at the saved calibration or def
 fit compare dark inner-slot bands, normalized against their neighboring pixels, and gate larger reads; they must score at least 12.5 before a full search starts.
 After the first immediate check, unidentified scenes are checked no more often than
 every 1.8 seconds, even when the moving world changes the header every tick. The
-header itself stays on its 450 ms schedule. Opening a supported stash waits at most
-1.8 seconds for this gate, then capture, scoring and price loading follow.
+header itself stays on its 450 ms schedule. An already-calibrated page reopening
+from an unidentified scene normally waits up to one 1.8-second admission interval;
+a change from an identified page is noticed on the next 450 ms header/sub-tab check.
+First use needs at least two identification ticks: allow roughly 3.6 seconds for
+two admission intervals, or 5.4 seconds if a third tick is needed. Capture, scoring
+and price loading add time. Immediate first checks can finish sooner; missing
+samples or search cooldowns can take longer. Previous-page tags and Highlight are
+unavailable while the new calibration is being confirmed.
 Qualifying uncalibrated candidates can receive one fully admitted wider-search batch per header
 baseline (at most two pages), with a separate 30-second cooldown for each page.
 A fully admitted batch requires a real header change to retry. If a top candidate

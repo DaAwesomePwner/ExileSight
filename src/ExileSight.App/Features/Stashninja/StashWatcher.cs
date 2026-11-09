@@ -88,7 +88,12 @@ public sealed partial class StashView
                     {
                         // Keep only a transient start transform for the next identification;
                         // otherwise the wide-search cooldown would prevent confirmation.
-                        watchPolicy.Unknown(now, true, baselineHeader);
+                        if (watchPolicy.Unknown(now, true, baselineHeader))
+                        {
+                            generation++; Invalidate();
+                            // This transition invalidates the old page, not our pending fit.
+                            request = generation;
+                        }
                         automaticPage = null; recognitionHidden = true; surface.Hide();
                         SetStatus("Confirming grid calibration…");
                         return;
