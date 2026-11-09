@@ -1,0 +1,14 @@
+{
+  "width": 480,
+  "height": 108,
+  "subTop": 70,
+  "subHeight": 38,
+  "buttonTop": 77,
+  "buttonHeight": 24,
+  "buttonWidth": 107,
+  "buttons": [
+    49,
+    181
+  ],
+  "buttonContrast": 10
+}

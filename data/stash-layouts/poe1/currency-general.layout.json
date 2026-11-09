@@ -1,0 +1,241 @@
+{
+  "tabId": "currency",
+  "page": "general",
+  "referenceResolution": {
+    "width": 2000,
+    "height": 837
+  },
+  "cells": [
+    {
+      "id": "scroll-of-wisdom",
+      "x": 70.0,
+      "y": 142.0,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Scroll of Wisdom"
+    },
+    {
+      "id": "portal-scroll",
+      "x": 115.0,
+      "y": 142.0,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Portal Scroll"
+    },
+    {
+      "id": "blacksmith-s-whetstone",
+      "x": 322.5,
+      "y": 142.0,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Blacksmith's Whetstone"
+    },
+    {
+      "id": "armourer-s-scrap",
+      "x": 365.5,
+      "y": 142.0,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Armourer's Scrap"
+    },
+    {
+      "id": "glassblower-s-bauble",
+      "x": 409.5,
+      "y": 142.0,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Glassblower's Bauble"
+    },
+    {
+      "id": "gemcutter-s-prism",
+      "x": 455.5,
+      "y": 142.0,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Gemcutter's Prism"
+    },
+    {
+      "id": "orb-of-transmutation",
+      "x": 26.0,
+      "y": 195.5,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Orb of Transmutation"
+    },
+    {
+      "id": "orb-of-alteration",
+      "x": 70.0,
+      "y": 195.5,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Orb of Alteration"
+    },
+    {
+      "id": "orb-of-annulment",
+      "x": 115.0,
+      "y": 195.5,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Orb of Annulment"
+    },
+    {
+      "id": "orb-of-chance",
+      "x": 159.5,
+      "y": 195.5,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Orb of Chance"
+    },
+    {
+      "id": "exalted-orb",
+      "x": 215.5,
+      "y": 195.5,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Exalted Orb"
+    },
+    {
+      "id": "mirror-of-kalandra",
+      "x": 263.5,
+      "y": 195.5,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Mirror of Kalandra"
+    },
+    {
+      "id": "regal-orb",
+      "x": 322.5,
+      "y": 195.5,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Regal Orb"
+    },
+    {
+      "id": "orb-of-alchemy",
+      "x": 365.5,
+      "y": 195.5,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Orb of Alchemy"
+    },
+    {
+      "id": "chaos-orb",
+      "x": 409.5,
+      "y": 195.5,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Chaos Orb"
+    },
+    {
+      "id": "blessed-orb",
+      "x": 455.5,
+      "y": 195.5,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Blessed Orb"
+    },
+    {
+      "id": "orb-of-augmentation",
+      "x": 159.5,
+      "y": 239.0,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Orb of Augmentation"
+    },
+    {
+      "id": "divine-orb",
+      "x": 455.5,
+      "y": 239.0,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Divine Orb"
+    },
+    {
+      "id": "jeweller-s-orb",
+      "x": 70.0,
+      "y": 292.0,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Jeweller's Orb"
+    },
+    {
+      "id": "orb-of-fusing",
+      "x": 115.0,
+      "y": 292.0,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Orb of Fusing"
+    },
+    {
+      "id": "chromatic-orb",
+      "x": 159.5,
+      "y": 292.0,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Chromatic Orb"
+    },
+    {
+      "id": "orb-of-scouring",
+      "x": 322.5,
+      "y": 292.0,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Orb of Scouring"
+    },
+    {
+      "id": "vaal-orb",
+      "x": 455.5,
+      "y": 292.0,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Vaal Orb"
+    },
+    {
+      "id": "orb-of-regret",
+      "x": 322.5,
+      "y": 335.5,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Orb of Regret"
+    },
+    {
+      "id": "scroll-fragment",
+      "x": 26.0,
+      "y": 142.0,
+      "w": 39.0,
+      "h": 39.0,
+      "category": "Currency",
+      "itemName": "Scroll Fragment"
+    }
+  ],
+  "folderOffsets": {},
+  "provenance": {
+    "author": "ExileSight contributors; owner-provided screenshot",
+    "method": "measured from screenshot at 2000x837",
+    "date": "2026-11-08"
+  }
+}

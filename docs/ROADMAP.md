@@ -4,7 +4,7 @@
 
 1.0 covers Path of Exile 1 only, with an English game client and the 12 features below. Specs are in [FEATURES.md](FEATURES.md).
 
-1.0 has **no screen recognition, OCR or calibration.** Every feature works from copied item text, `Client.txt`, user key presses and poe.ninja.
+The locked 1.0 scope excluded screen recognition and OCR; its features use copied item text, `Client.txt`, user key presses and poe.ninja. Manual stash calibration was subsequently adopted (D-080). For 1.1, D-104 approves display-only stash page recognition from locally taught references, limited to the foreground game client while the stash overlay is open.
 
 | ID | Feature | Rough effort (dev-weeks, both games → PoE1 ×0.8) |
 |---|---|---|
@@ -188,7 +188,8 @@ then the owner compares each live surface with its mockup.
   menu is open); Map log and Sales rebuilt as pages in the app shell; editing hotkeys in the app.
 
 - **PoE2 support:** data packs and geometry, plus Statlas, Rune-ninja and the gemcutting helper.
-- **Screen-recognition services** (template matching, calibration, OCR) and the features that need them: PoB tree and gem overlays, Sanctum planner, currency exchange helper, advanced cheat sheets, Betrayal recognition, TLDR tooltips.
+- **1.1 stash page recognition (D-104):** GDI BitBlt within the foreground game client only while the stash overlay is open; user-taught references stay local. Recognition switches displayed price tags and never sends input or obtains an IntentToken. No game images ship or enter the repository; calibration-free grid location is a possible later follow-up.
+- **Broader screen-recognition services** (beyond D-104, including OCR) and the features that need them: PoB tree and gem overlays, Sanctum planner, currency exchange helper, advanced cheat sheets, Betrayal recognition, TLDR tooltips.
 - **Other features:** FilterSpoon, image and app cheat sheets, clone-frames, notepad, Enchant finder, essence tooltip, recombination simulator, seed explorer, lab overlay, Quick-PoB, Betrayal info sheet.
 - **Image content** (zone layouts for Act-decoder, boss images), after a licensing check.
 - **Non-English game clients**, translated by the community.

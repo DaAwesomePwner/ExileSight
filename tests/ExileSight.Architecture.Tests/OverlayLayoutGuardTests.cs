@@ -11,9 +11,35 @@ public sealed class OverlayLayoutGuardTests
     private static readonly string[] FactoryReceivers =
     [
         "Vaalasync.ShopRegistration", "Stashninja.StashRegistration", "Timers.TimersRegistration",
-        "Events.EventsRegistration", "Guide.GuideRegistration", "MapInfo.MapInfoRegistration",
+        "Events.EventsRegistration", "Guide.GuideRegistration", "Lab.LabRegistration", "MapInfo.MapInfoRegistration",
         "MapTracker.TrackerRegistration", "SearchStrings.SearchStringsRegistration", "Macros.MacrosRegistration"
     ];
+
+    [Fact]
+    public void LabSlotDoesNotOverlapOtherFixedRegions()
+    {
+        var context = new System.Runtime.Loader.AssemblyLoadContext("lab-layout-audit", isCollectible: true);
+        try
+        {
+            var project = Path.Combine(Repository.Root, "src/ExileSight.Core/ExileSight.Core.csproj");
+            var type = context.LoadFromAssemblyPath(AssemblyInventory.Output(project))
+                .GetType("ExileSight.Core.Overlay.DefaultOverlayLayout", throwOnError: true)!;
+            var lab = type.GetProperty("Lab")!.GetValue(null)!;
+            double Value(object rect, string property) => (double)rect.GetType().GetProperty(property)!.GetValue(rect)!;
+            foreach (var compact in new[] { false, true })
+            {
+                var regions = ((System.Collections.IEnumerable)type.GetMethod("FixedRegions")!
+                    .Invoke(null, [compact])!).Cast<object>().ToArray();
+                Assert.Single(regions, r => r.Equals(lab));
+                foreach (var other in regions.Where(r => !r.Equals(lab)))
+                    Assert.True(Value(lab, "X") + Value(lab, "Width") <= Value(other, "X") ||
+                        Value(other, "X") + Value(other, "Width") <= Value(lab, "X") ||
+                        Value(lab, "Y") + Value(lab, "Height") <= Value(other, "Y") ||
+                        Value(other, "Y") + Value(other, "Height") <= Value(lab, "Y"));
+            }
+        }
+        finally { context.Unload(); }
+    }
 
     [Fact]
     public void AppUsesCentralOverlayLayout()

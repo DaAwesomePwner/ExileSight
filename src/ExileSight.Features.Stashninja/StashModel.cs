@@ -7,6 +7,13 @@ namespace ExileSight.Features.Stashninja;
 
 public sealed class StashModel : IItemMenuProvider
 {
+    private IFeatureContext? context;
+    public bool AutomaticPrices { get; private set; } = true;
+    public void SetAutomaticPrices(bool enabled)
+    {
+        context?.WriteSetting("automaticPrices", System.Text.Json.JsonSerializer.SerializeToElement(enabled));
+        AutomaticPrices = enabled;
+    }
     private SearchResult search = new(null, "Load prices first");
     public event Action? Opened;
     public Layout[] Layouts { get; init; } = [];
@@ -16,10 +23,33 @@ public sealed class StashModel : IItemMenuProvider
         [new("All", 0, 10, "#CCCCCC", "#FFD700"), new("Valuable", 10, 100, "#99DDFF", "#FFD700")];
     public SearchResult Search => Volatile.Read(ref search);
     public void SetSearch(SearchResult value) => Volatile.Write(ref search, value);
-    public void Open() { SetSearch(new(null, "Load prices first")); Opened?.Invoke(); }
-    public IReadOnlyList<ItemMenuEntry> BuildMenu(ParsedItem item) => [new("Price stash tab…", Open)];
+    private Layout? lastLoaded;
+    private Layout? selectedLayout;
+    // Hotkey/item-menu dispatch can run off the UI thread; layout snapshots are immutable.
+    public Layout? SelectedLayout => Volatile.Read(ref selectedLayout);
+    public void RememberLoaded(Layout layout) => Volatile.Write(ref lastLoaded, layout);
+    public void Open() => Open(null);
+    private void Open(ParsedItem? item)
+    {
+        static string Normalize(string value) => new(value.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+        bool Matches(string? value) => !string.IsNullOrWhiteSpace(value) && item is not null &&
+            (Normalize(value) == Normalize(item.Name) || Normalize(value) == Normalize(item.BaseType ?? ""));
+        var previous = Volatile.Read(ref lastLoaded);
+        var ordered = Layouts.OrderBy(l => l.TabId, StringComparer.Ordinal)
+            .ThenBy(l => l.Page, StringComparer.Ordinal).ToArray();
+        var matches = item is null ? [] : ordered.Where(l =>
+            l.Cells.Any(c => Matches(c.ItemName) || Matches(c.NinjaId))).ToArray();
+        var selected = (previous is not null && matches.Contains(previous) ? previous : matches.FirstOrDefault()) ?? previous ??
+            ordered.FirstOrDefault(l => l.TabId == "currency" && l.Page == "general") ?? ordered.FirstOrDefault();
+        Volatile.Write(ref selectedLayout, selected);
+        // The view invalidates search only when it actually changes/reloads the page.
+        Opened?.Invoke();
+    }
+    public IReadOnlyList<ItemMenuEntry> BuildMenu(ParsedItem item) => [new("Price stash tab…", () => Open(item))];
     public void Register(IFeatureContext context)
     {
+        this.context = context;
+        AutomaticPrices = context.ReadSetting("automaticPrices")?.ValueKind != System.Text.Json.JsonValueKind.False;
         var saved = context.ReadSetting("profiles");
         if (saved is not null)
         {
