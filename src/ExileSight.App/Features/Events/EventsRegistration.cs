@@ -1,3 +1,5 @@
+using ExileSight.Core.Settings;
+using ExileSight.Platform.Abstractions.Storage;
 using ExileSight.App.Overlay;
 using ExileSight.Features.Events;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,5 +11,5 @@ public static class EventsRegistration
 {
     public static void Register(IServiceProvider services, FeatureViews views) =>
         views.RegisterManaged<EventsModel>(model => _ = new EventsView(model, services.GetRequiredService<OverlayHost>(),
-            services.GetRequiredService<ILogger<EventsView>>()));
+            services.GetRequiredService<ILogger<EventsView>>(), services.GetRequiredService<ISettingsStore<SettingsDocument>>()));
 }

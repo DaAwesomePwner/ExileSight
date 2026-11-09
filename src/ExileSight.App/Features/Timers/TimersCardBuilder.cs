@@ -15,7 +15,7 @@ public static class TimersCardBuilder
         var body = new StackPanel();
         foreach (var row in rows.Take(4))
         {
-            var grid = new Grid { Margin = new Thickness(0, body.Children.Count == 0 ? 0 : 8, 0, 0) };
+            var grid = new Grid { Margin = new Thickness(0, body.Children.Count == 0 ? 0 : theme.RowHeight - 20, 0, 0) };
             grid.ColumnDefinitions.Add(new ColumnDefinition());
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var left = new StackPanel { Margin = new Thickness(0, 0, 12, 0) };

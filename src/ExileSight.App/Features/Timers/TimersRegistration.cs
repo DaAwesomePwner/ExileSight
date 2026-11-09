@@ -1,3 +1,4 @@
+using ExileSight.Core.Settings;
 using ExileSight.App.Overlay;
 using ExileSight.Core.Features;
 using ExileSight.Features.Timers;
@@ -15,5 +16,5 @@ public static class TimersRegistration
         services.GetRequiredService<IClock>()));
     public static void Register(IServiceProvider services, FeatureViews views) =>
         views.RegisterManaged<TimersModel>(model => _ = new TimersView(model,
-            services.GetRequiredService<OverlayHost>(), services.GetRequiredService<IGameWindow>()));
+            services.GetRequiredService<OverlayHost>(), services.GetRequiredService<IGameWindow>(), services.GetRequiredService<ISettingsStore<SettingsDocument>>()));
 }

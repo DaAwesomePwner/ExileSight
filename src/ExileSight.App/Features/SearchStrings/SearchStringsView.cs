@@ -1,3 +1,5 @@
+using ExileSight.Core.Settings;
+using ExileSight.Platform.Abstractions.Storage;
 using System.Windows;
 using System.Windows.Controls;
 using ExileSight.App.Ui;
@@ -15,6 +17,7 @@ namespace ExileSight.App.Features.SearchStrings;
 /// <summary>Hosted NOACTIVATE menu; the hook pairs physical clicks before command execution.</summary>
 public sealed class SearchStringsView : ContentControl
 {
+    private readonly OverlayTheme overlayTheme;
     private readonly SearchMenu model;
     private readonly FeatureHost features;
     private readonly HookHost hooks;
@@ -24,9 +27,11 @@ public sealed class SearchStringsView : ContentControl
     private FrameworkElement panel = new StackPanel();
     private readonly SearchStringsSelection selection;
     private HostedOverlayWindow? window;
+    private bool vendorSelected;
     public SearchStringsView(SearchMenu model, FeatureHost features, HookHost hooks, OverlayHost host,
-        PassiveOverlayInput passive, ILogger<SearchStringsView> logger)
+        PassiveOverlayInput passive, ILogger<SearchStringsView> logger, ISettingsStore<SettingsDocument> overlaySettings)
     {
+        overlayTheme = new(overlaySettings);
         this.model = model; this.features = features; this.hooks = hooks; this.host = host; this.passive = passive; this.logger = logger;
         selection = new(model);
         Width = 320; HorizontalAlignment = HorizontalAlignment.Left; Content = panel;
@@ -39,6 +44,7 @@ public sealed class SearchStringsView : ContentControl
     {
         window = (HostedOverlayWindow)Window.GetWindow(this);
         host.SetVisible(window, false);
+        overlayTheme.Watch(window, () => { if (window.IsVisible) Guard(() => Rebuild(vendorSelected)); });
         window.IsVisibleChanged += VisibilityChanged;
         window.Closed += (_, _) => { model.Opened -= Open; passive.Close(this); model.Cancel(); };
     }
@@ -60,8 +66,10 @@ public sealed class SearchStringsView : ContentControl
         selection.Line(entry), selection.LineCount(entry));
     private void Rebuild(bool selected)
     {
+        vendorSelected = selected;
+        var theme = overlayTheme.Current;
         panel = SearchStringsBuilder.Build(new(model.Vendors, selected ? model.Vendor : null,
-            selected ? Enumerable.Range(0, model.Entries.Count).Select(Row).ToArray() : [], model.Notice), CardTheme.Default);
+            selected ? Enumerable.Range(0, model.Entries.Count).Select(Row).ToArray() : [], model.Notice), theme);
         Content = panel;
         foreach (var button in OnDemandControls.Buttons(panel))
         {
@@ -85,7 +93,7 @@ public sealed class SearchStringsView : ContentControl
             {
                 var direction = e.Delta > 0 ? -1 : 1;
                 selection.Cycle(entry, direction);
-                button.Content = SearchStringsBuilder.Row(Row(entry), CardTheme.Default);
+                button.Content = SearchStringsBuilder.Row(Row(entry), theme);
                 e.Handled = true;
             });
             button.PreviewMouseLeftButtonUp += async (_, e) =>

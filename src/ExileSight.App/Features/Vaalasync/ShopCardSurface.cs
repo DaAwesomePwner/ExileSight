@@ -55,6 +55,25 @@ public sealed class ShopCardSurface
         foreach (var (choice, button) in actions) bind?.Invoke(button, choice);
     }
 
+    /// <summary>Attach before resolving command ownership; retain the old card if any binding fails.</summary>
+    public static ShopCardSurface Replace(Panel parent, ShopCardSurface? previous, ShopCardModel model,
+        CardTheme theme, Action<Button, string> bind)
+    {
+        var next = new ShopCardSurface(model, theme);
+        parent.Children.Add(next.Frame);
+        try
+        {
+            foreach (var (choice, button) in next.Actions) bind(button, choice);
+        }
+        catch
+        {
+            parent.Children.Remove(next.Frame);
+            throw;
+        }
+        if (previous is not null) parent.Children.Remove(previous.Frame);
+        return next;
+    }
+
     public void Update(ShopCardModel model)
     {
         header.Content = ShopCardBuilder.Header(model, theme);

@@ -1,3 +1,4 @@
+using ExileSight.Core.Settings;
 using ExileSight.App.Overlay;
 using ExileSight.Core.Features;
 using ExileSight.Features.Lab;
@@ -14,5 +15,5 @@ public static class LabRegistration
         System.IO.Path.Combine(services.GetRequiredService<IAppPaths>().GetGameDirectory("poe1"), "lab"))));
     public static void Register(IServiceProvider services, FeatureViews views) => views.RegisterManaged<LabModel>(model =>
         _ = new LabView(model, services.GetRequiredService<OverlayHost>(),
-            services.GetRequiredService<IBrowser>(), services.GetRequiredService<IClipboard>()));
+            services.GetRequiredService<IBrowser>(), services.GetRequiredService<IClipboard>(), services.GetRequiredService<ISettingsStore<SettingsDocument>>()));
 }
