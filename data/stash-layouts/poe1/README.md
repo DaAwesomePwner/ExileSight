@@ -272,14 +272,14 @@ once per capture batch, before header/sub-tab/grid samples. Platform.Windows use
 CsWin32 DwmFlush (display-only, not input). A failure or return under 16 ms incurs
 a bounded 32 ms fallback on the worker. Estimated hidden time is render drain +
 flush + fallback if needed + capture: roughly 21–78 ms at 60 Hz excluding dispatcher
-backlog, with estimated capture 5–30 ms. Native flush/driver stalls can be longer.
+backlog, with estimated capture 5–30 ms. The caller now bounds a stalled flush as described in the polish section below.
 Tags return before identification scoring (historically ~100 ms). Real Windows
 composition timings remain to be measured; no game input or new capture region
 is introduced.
 
 A new automatic header/sub-tab baseline or hover acknowledgement is provisional. On the next available
 450 ms tick after completion, capture again after composition. A matching pass
-confirms it. A failed confirmation remains pending, and a second consecutive
+confirms it if no confirmation has failed. A failed confirmation remains pending, and a second consecutive
 failure hides tags. A single stale normal or hover pass followed by fresh failed checks
 therefore clears within two follow-up ticks plus processing (typically 2–3 ticks,
 0.9–1.35 s). A slow gap over four seconds resets the failure count, not the need
@@ -287,7 +287,7 @@ for confirmation. Moving-world closure remains bounded to four ticks (1.8 s)
 plus processing. Completion times, rather than starts, govern all failure windows.
 
 Owner decision (round 2 continued): a new no-leader currency hover acknowledgement
-gets the same independent confirmation as a normal baseline. Either a matching
+gets the same independent confirmation as a normal baseline. With no failed confirmation, either a matching
 normal result or matching hover keep confirms the signature. A resting correct
 hover therefore costs one extra check/short blink, then matching signatures cause
 no capture or scoring. Moving away, even back to the old baseline, restarts debounce.
@@ -300,8 +300,8 @@ including debounce and the first stale check, the bound is 1.8 s scheduling plus
 three check durations (~2.4 s estimated). These are conditional on fresh consecutive
 failures within four seconds; OS/driver stalls prevent a hard wall-clock maximum.
 The normal identification gates (16 score, 3 margin, button agreement) are unchanged.
-Production-scale regression cases reuse ZReviewGuardTests and painted.txt from the
-owner's local review folder. Clean pages are checked at 1.0/1.25/1.5/2.0 scale;
+Production-scale regression cases re-implement the reviewer's scenarios described
+in ZReviewGuardTests and painted.txt in the owner's local review folder. Clean pages are checked at 1.0/1.25/1.5/2.0 scale;
 painted panels use those scales and vertical offsets −1/0/+1 px. Images stay local.
 
 Strict partial-occlusion policy remains:
@@ -362,3 +362,9 @@ highest admitted null candidate 16.45 (gap 1.95), and minimum decision margin 5.
 Its highest admitted wrong candidate scores 22.48 (raw gap −4.07), but is rejected:
 League on shifted Atlas loses to the other local grid score of 30.02 and fails the
 wide acceptance gate. Raw candidate scores alone do not establish correctness.
+
+### Polish: failed-confirmation recovery and bounded composition wait
+
+After any failed confirmation, the provisional baseline or hover acknowledgement needs two consecutive matching passing confirmations from separate composed captures before trust; another failure resets that streak. Failure-free pages still need only one extra check. Two stale passing captures with no intervening failure can still establish wrong trust: this is an accepted residual limit of composition-based freshness and needs in-game validation.
+
+The caller waits at most 100 ms for the composition worker, then uses the 32 ms fallback on timeout. At most one outstanding worker is retained per watcher, so repeated timeouts cannot accumulate blocked workers. Reusing an older outstanding flush also requires the fallback. The composition wait budget is 132 ms plus capture (estimated 137–162 ms with 5–30 ms capture), excluding dispatcher/scheduler backlog; tags return before scoring. A hung DwmFlush no longer holds the caller indefinitely.

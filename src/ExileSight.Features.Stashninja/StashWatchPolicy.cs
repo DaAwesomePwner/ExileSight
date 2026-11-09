@@ -14,7 +14,8 @@ public sealed class StashWatchPolicy
     private double[]? acknowledgedHeader, acknowledgedSub;
     private bool acknowledgementChanged;
     private DateTimeOffset? confirmAfter;
-    private int keepFailures, unstableTicks;
+    private int keepFailures, unstableTicks, passingConfirmations;
+    private bool confirmationFailed;
     private DateTimeOffset lastFailure;
     public static readonly TimeSpan FailureWindow = TimeSpan.FromSeconds(4);
     public bool Identified { get; private set; }
@@ -67,12 +68,20 @@ public sealed class StashWatchPolicy
             acknowledgedHeader is not null && (Changed(acknowledgedHeader, currentHeader) || !SameOptional(acknowledgedSub, currentSub));
         var confirmsHover = confirmAfter is { } due && completedAt > due && acknowledgedHeader is not null &&
             !Changed(acknowledgedHeader, currentHeader) && SameOptional(acknowledgedSub, currentSub);
+        var matching = confirmsHover || acknowledgedHeader is null && !changed;
+        var pending = confirmAfter is not null && !Confirm(completedAt, matching);
+        var failed = confirmationFailed; var passes = passingConfirmations;
         Accept(currentHeader, currentSub);
-        if (changed && !confirmsHover) confirmAfter = completedAt;
+        if (pending || changed && !confirmsHover)
+        {
+            confirmAfter = completedAt;
+            confirmationFailed = failed; passingConfirmations = passes;
+        }
     }
 
     public void Accept(double[] headerSignature, double[]? subSignature, bool pinned = false)
     {
+        confirmationFailed = false; passingConfirmations = 0;
         confirmAfter = null; acknowledgedHeader = acknowledgedSub = null; acknowledgementChanged = false;
         header = (double[])headerSignature.Clone();
         subTab = subSignature is null ? null : (double[])subSignature.Clone();
@@ -93,20 +102,30 @@ public sealed class StashWatchPolicy
                     !Changed(header, currentHeader) && SameOptional(subTab, currentSub);
                 // Owner decision: a new hover signature is provisional too. Either passing
                 // identification mode can confirm the same signature on a later capture.
-                var confirmed = confirmAfter is { } due && now > due && (sameAcknowledgement || matchesNormal);
+                var confirmed = Confirm(now, sameAcknowledgement || matchesNormal);
                 var alreadyTrusted = confirmAfter is null && sameAcknowledgement;
                 acknowledgedHeader = currentHeader is null ? null : (double[])currentHeader.Clone();
                 acknowledgedSub = currentSub is null ? null : (double[])currentSub.Clone();
                 confirmAfter = confirmed || alreadyTrusted ? null : now;
+                if (confirmed) { confirmationFailed = false; passingConfirmations = 0; }
                 pendingHeader = pendingSub = null; unstableTicks = 0; acknowledgementChanged = false;
             }
             keepFailures = 0;
             return false;
         }
-        if (confirmAfter is not null) confirmAfter = now;
+        if (confirmAfter is not null)
+        { confirmAfter = now; confirmationFailed = true; passingConfirmations = 0; }
         if (now - lastFailure > FailureWindow) keepFailures = 0;
         lastFailure = now;
         return ++keepFailures >= 2 && Unknown(now, true, currentHeader);
+    }
+
+    private bool Confirm(DateTimeOffset completedAt, bool matching)
+    {
+        if (!matching) passingConfirmations = 0;
+        if (confirmAfter is not { } due || completedAt <= due || !matching) return false;
+        // A failed confirmation needs two subsequent independent passes, not one stale rebound.
+        return !confirmationFailed || ++passingConfirmations >= 2;
     }
 
     // Returns true only on the displayed -> unknown transition.
@@ -116,6 +135,7 @@ public sealed class StashWatchPolicy
         if (Identified && !changed && now - unknownSince < TimeSpan.FromSeconds(1)) return false;
         var hide = Identified;
         Identified = false; Pinned = false; confirmAfter = null;
+        confirmationFailed = false; passingConfirmations = 0;
         acknowledgedHeader = acknowledgedSub = null; acknowledgementChanged = false;
         if (PageSignature.Valid(currentHeader)) header = (double[])currentHeader!.Clone();
         subTab = null;

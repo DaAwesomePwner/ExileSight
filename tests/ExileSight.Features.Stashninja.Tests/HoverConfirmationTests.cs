@@ -35,7 +35,8 @@ public sealed class HoverConfirmationTests
         Assert.True(policy.Identified);
         Assert.Equal(WatchWork.Identify, policy.Tick(Now.AddMilliseconds(900), S(.2), S(.2)).Work);
         Assert.False(policy.Retain(Now.AddMilliseconds(1000), true, S(.2), S(.2), adoptBaseline: false));
-        Assert.Equal(WatchWork.None, policy.Tick(Now.AddMilliseconds(1350), S(.2), S(.2)).Work);
+        // Polish decision: after a failed confirmation, one passing capture is insufficient.
+        Assert.Equal(WatchWork.Identify, policy.Tick(Now.AddMilliseconds(1350), S(.2), S(.2)).Work);
         Assert.False(policy.Retain(Now.AddMilliseconds(1450), false, S(.2), S(.2)));
         Assert.True(policy.Retain(Now.AddMilliseconds(1900), false, S(.2), S(.2)));
         Assert.False(policy.Identified);

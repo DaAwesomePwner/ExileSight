@@ -10,6 +10,7 @@ public sealed partial class StashView
 {
     private Layout? automaticPage, loadingPage;
     private bool identifying;
+    private CompositionWait? compositionWait;
     private int automaticEpoch;
     private StashWatchPolicy watchPolicy = new();
     private readonly WideSearchBudget wideSearchBudget = new();
@@ -69,7 +70,7 @@ public sealed partial class StashView
             try
             {
                 await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.ContextIdle);
-                await Task.Run(sampler.WaitForComposition); // Once per hidden batch, before any pixels are sampled.
+                await (compositionWait ??= new(sampler)).WaitAsync(); // Once per hidden batch, before any pixels are sampled.
                 if (!Current()) return;
                 var baselineHeader = WatchHeader();
                 var baselineSub = model.Layouts.GroupBy(l => l.TabId).ToDictionary(g => g.Key, g => WatchSubTab(g.First()));
