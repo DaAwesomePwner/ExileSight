@@ -8,6 +8,14 @@ public sealed class LabStore(string directory)
         return Path.Combine(directory, difficulty + ".json");
     }
     public LabLayout? Load(string difficulty) => File.Exists(PathFor(difficulty)) ? LabImport.Parse(ReadFile(PathFor(difficulty))) : null;
+    public string LatestDifficulty()
+    {
+        var marker = Path.Combine(directory, "latest.txt");
+        if (!File.Exists(marker)) return "Normal";
+        var difficulty = System.Text.Encoding.UTF8.GetString(ReadFile(marker));
+        if (!LabImport.Difficulties.Contains(difficulty)) throw new ArgumentException("Invalid saved lab difficulty.");
+        return difficulty;
+    }
     public static byte[] ReadFile(string path)
     {
         using var file = File.OpenRead(path);
@@ -18,7 +26,12 @@ public sealed class LabStore(string directory)
     {
         var layout = LabImport.Parse(bytes);
         Directory.CreateDirectory(directory);
-        var target = PathFor(layout.Difficulty);
+        WriteAtomic(PathFor(layout.Difficulty), bytes);
+        WriteAtomic(Path.Combine(directory, "latest.txt"), System.Text.Encoding.UTF8.GetBytes(layout.Difficulty));
+        return layout;
+    }
+    private static void WriteAtomic(string target, byte[] bytes)
+    {
         var temporary = target + ".tmp";
         try
         {
@@ -27,6 +40,5 @@ public sealed class LabStore(string directory)
             File.Move(temporary, target, true);
         }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
-        return layout;
     }
 }

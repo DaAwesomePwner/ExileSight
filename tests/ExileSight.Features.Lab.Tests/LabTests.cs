@@ -21,6 +21,7 @@ public sealed class LabTests
     [Fact] public void InvalidImportPreservesMapAndTracking()
     {
         var model = new LabModel(); model.Import(Fixture("valid.json"));
+        model.Accept(new AreaEntered("", null, "Sanitorium"));
         model.Accept(new AreaEntered("", null, "Halls"));
         var before = model.Snapshot();
         Assert.Throws<ArgumentException>(() => model.Import(Fixture("missing.json")));
@@ -49,11 +50,11 @@ public sealed class LabTests
         var model = new LabModel(); model.Import(Fixture("valid.json"));
         var parser = new LogParser();
         var lines = Encoding.UTF8.GetString(Fixture("replay.txt")).Split('\n');
-        foreach (var (line, expected) in lines.Zip(new string?[] { "a", "b", "c", "c", null }))
+        foreach (var (line, expected) in lines.Zip(new string?[] { null, "a", "b", "c", "c", null, null }))
         { model.Accept(parser.Parse(line)); Assert.Equal(expected, model.Snapshot().RoomId); }
         Assert.Equal("Not tracking", model.Snapshot().Tracking);
     }
-    [Fact] public void AmbiguousAndUnmatchedNamesKeepPosition()
+    [Fact] public void AmbiguousAndNonAdjacentLabNamesKeepPosition()
     {
         var layout = LabImport.Parse(Fixture("valid.json"));
         var fork = layout.Rooms[1] with { Exits = new Dictionary<string, string> { ["N"] = "a", ["S"] = "c" } };
@@ -61,6 +62,6 @@ public sealed class LabTests
         tracker.Enter("Halls"); Assert.Null(tracker.Current);
         tracker.Enter("Sanitorium"); Assert.Equal("a", tracker.Current!.Id);
         tracker.Enter("Halls"); tracker.Enter("Sanitorium"); Assert.Equal("b", tracker.Current!.Id); Assert.True(tracker.Uncertain);
-        tracker.Enter("Unknown lab room"); Assert.Equal("b", tracker.Current!.Id); Assert.True(tracker.Uncertain);
+        tracker.Enter("Aspirant’s Trial"); Assert.Equal("b", tracker.Current!.Id); Assert.True(tracker.Uncertain);
     }
 }

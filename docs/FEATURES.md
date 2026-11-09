@@ -136,9 +136,9 @@ Port behaviour, not code. Where Exile-UI changes the game window, chains inputs,
 - **Reference:** `modules/qol tools.ahk` around lines 88–380.
 
 ### `lab` — imported daily Labyrinth
-- **Trigger:** Ctrl+Shift+L toggles the panel; import/open actions require a click or file drop.
+- **Trigger:** Ctrl+Shift+L toggles the panel; import/open actions require a click.
 - **Actions:** none; passive display and Client.txt room tracking only.
-- **Behaviour:** select difficulty, import a compass JSON, inspect the coordinate map and contents, Izaro weapon/phases/traps and tracking state. Adjacent rooms resolve repeated names. Unknown/ambiguous rooms retain the last position with an uncertainty warning. Town/hideout departure ends tracking. First room in file order is the entrance. Dates differing from the current UTC day are marked outdated (assumed reset 00:00 UTC).
-- **Data:** latest user import per difficulty in `poe1/lab/{difficulty}.json`; 1 MB cap; invalid imports preserve the previous map. Hand-authored trial locations/tips in `data/lab/info.txt`; update procedure in `data/lab/README.md`. No HTTP hosts.
+- **Behaviour:** select difficulty, import a compass JSON, inspect the coordinate map and contents, Izaro weapon/phases/traps and tracking state. Adjacent rooms resolve repeated names. Non-adjacent or ambiguous lab room names retain the last position with an uncertainty warning. An area absent from the layout ends tracking. First room in file order is the entrance. Dates differing from the current UTC day are marked outdated (assumed reset 00:00 UTC).
+- **Data:** latest user import per difficulty in `poe1/lab/{difficulty}.json`; most recently imported difficulty in `poe1/lab/latest.txt`; 1 MB cap; invalid imports preserve the previous map. Hand-authored trial locations/tips in `data/lab/info.txt`; update procedure in `data/lab/README.md`. No HTTP hosts.
 - **Reference:** [poelab](https://www.poelab.com/) opens in the user's browser only; [LabCompass format](https://github.com/yznpku/LabCompass/blob/master/common/resources/map.schema.json) consulted for field semantics only. No upstream code or data included.
-- **Done when:** file/paste/drop imports display the map; duplicate-name tracking, invalid imports, storage and UTC boundary tests pass; Windows import interaction is checked. Optional shortest-path hint is deferred.
+- **Done when:** file/paste imports display the map; duplicate-name tracking, invalid imports, storage and UTC boundary tests pass; Windows import interaction is checked. Optional shortest-path hint is deferred.

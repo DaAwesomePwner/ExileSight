@@ -24,10 +24,11 @@ public sealed class LabView
     private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromSeconds(1) };
     private readonly ComboBox difficulty = new() { ItemsSource = LabImport.Difficulties, SelectedIndex = 0, Width = 100 };
     private bool selecting;
+    private (LabLayout? Layout, string? RoomId, string Tracking)? drawnState;
     public LabView(LabModel model, OverlayHost host, IBrowser browser, IClipboard clipboard)
     {
         this.model = model; this.host = host;
-        var content = new StackPanel { Background = Brushes.Black, Margin = new Thickness(8), AllowDrop = true };
+        var content = new StackPanel { Background = Brushes.Black, Margin = new Thickness(8) };
         content.Children.Add(Text("Lab · Ctrl+Shift+L · Import the daily compass JSON"));
         var buttons = new WrapPanel(); content.Children.Add(buttons); buttons.Children.Add(difficulty);
         void Button(string title, Action action)
@@ -54,21 +55,15 @@ public sealed class LabView
         try { info.Text = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data", "lab", "info.txt")); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { info.Text = "Lab tips file unavailable."; }
         content.Children.Add(new ScrollViewer { Height = 110, Content = info, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
-        content.Drop += (_, e) => Run(() =>
-        {
-            if (e.Data.GetData(DataFormats.FileDrop) is string[] { Length: 1 } files) ImportFile(files[0]);
-            else throw new ArgumentException("Drop one JSON file.");
-            e.Handled = true;
-        });
         difficulty.SelectionChanged += (_, _) => { if (!selecting) Run(() => model.Select((string)difficulty.SelectedItem)); };
         panel = host.Register(new ScrollViewer { Content = content, VerticalScrollBarVisibility = ScrollBarVisibility.Auto },
-            DefaultOverlayLayout.Guide, clickThrough: false);
+            DefaultOverlayLayout.Lab, clickThrough: false);
         host.SetVisible(panel, false);
         model.Changed += Refresh;
         timer.Tick += (_, _) => Refresh();
         panel.IsVisibleChanged += (_, _) => timer.IsEnabled = panel.IsVisible;
         panel.Closed += (_, _) => { timer.Stop(); model.Changed -= Refresh; };
-        Run(() => model.Select("Normal"));
+        Run(model.RestoreLatest);
     }
     private static TextBlock Text(string text = "") => new() { Text = text, Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap };
     private void ImportFile(string path)
@@ -80,7 +75,8 @@ public sealed class LabView
     {
         try { action(); error.Text = ""; }
         catch (ArgumentException e) { error.Text = e.Message; }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or System.Runtime.InteropServices.COMException)
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or TimeoutException or
+            System.ComponentModel.Win32Exception or System.Runtime.InteropServices.COMException)
         { error.Text = "Lab operation failed: " + e.GetType().Name; }
         Refresh();
     }
@@ -88,7 +84,12 @@ public sealed class LabView
     {
         if (!panel.Dispatcher.CheckAccess()) { panel.Dispatcher.BeginInvoke(Refresh); return; }
         var state = model.Snapshot();
-        map.Children.Clear();
+        if (drawnState != state)
+        {
+            if (state.Layout is { } mapLayout) LabMap.Draw(map, mapLayout, state.RoomId);
+            else map.Children.Clear();
+            drawnState = state;
+        }
         details.Text = state.Tracking + "\nNo saved layout for this difficulty. Import a compass JSON.";
         if (state.Layout is { } layout)
         {
@@ -96,7 +97,6 @@ public sealed class LabView
             details.Text = $"{layout.Difficulty} · {layout.Date:yyyy-MM-dd}" +
                 (layout.IsOutdated(DateTimeOffset.UtcNow) ? " · OUTDATED (reset 00:00 UTC)" : "") +
                 $"\n{state.Tracking}\nWeapon: {layout.Weapon} · Phases: {layout.Phase1}, {layout.Phase2}\nTraps: {layout.Trap1}, {layout.Trap2}";
-            LabMap.Draw(map, layout, state.RoomId);
         }
         // OverlayHost owns foreground gating, preserving requested visibility during imports/browser visits.
         host.SetVisible(panel, model.Visible);
