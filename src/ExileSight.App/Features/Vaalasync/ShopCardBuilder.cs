@@ -17,7 +17,7 @@ public static class ShopCardBuilder
         var body = new StackPanel();
         var header = new DockPanel();
         var state = CardPrimitives.Text(model.Armed ? "armed" : "disarmed", theme,
-            model.Armed ? "OverlayAccent" : "TextMuted", 11);
+            model.Armed ? "OverlayAccent" : "TextMuted", theme.LabelSize);
         DockPanel.SetDock(state, Dock.Right);
         header.Children.Add(state);
         var title = CardPrimitives.Text(model.Pasted is { } pasted ? "Pasted " + pasted : model.Name, theme);
@@ -42,7 +42,7 @@ public static class ShopCardBuilder
     internal static FrameworkElement Amount(ShopAmount amount, bool noteMode, CardTheme theme)
     {
         var column = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-        var value = CardPrimitives.Text(amount.Text, theme, "OverlayForeground", noteMode ? 11 : 18, true);
+        var value = CardPrimitives.Text(amount.Text, theme, "OverlayForeground", noteMode ? theme.LabelSize : theme.AmountSize, true);
         value.FontWeight = FontWeights.SemiBold;
         value.TextWrapping = TextWrapping.Wrap;
         value.TextAlignment = TextAlignment.Center;
@@ -52,7 +52,7 @@ public static class ShopCardBuilder
             Child = value, MaxWidth = 60, Height = noteMode ? 32 : 26,
             StretchDirection = StretchDirection.DownOnly
         });
-        var adjustment = CardPrimitives.Text(amount.Adjustment, theme, "TextMuted", 11);
+        var adjustment = CardPrimitives.Text(amount.Adjustment, theme, "TextMuted", theme.LabelSize);
         adjustment.HorizontalAlignment = HorizontalAlignment.Center;
         column.Children.Add(adjustment);
         return column;

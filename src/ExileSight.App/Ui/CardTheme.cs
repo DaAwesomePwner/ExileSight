@@ -62,6 +62,7 @@ public sealed class CardTheme
     public double TitleSize => 12;
     // Larger emphasis sizes are separate from the compact overlay text ramp.
     public double GuideStepSize => 14;
+    public double AmountSize => 16;
     public double StatValueSize => 20;
     public double AppTitleSize => 24;
     public double AppSectionSize => 18;

@@ -43,9 +43,9 @@ public sealed class ShopCardSurface
         body.Children.Add(custom);
         body.Children.Add(hints);
         var footer = new UniformGrid { Columns = 2, Margin = new Thickness(0, 8, 0, 0) };
-        History = ShopCardBuilder.Button(CardPrimitives.Text("History", theme, "TextSecondary", 11), "history", theme);
+        History = ShopCardBuilder.Button(CardPrimitives.Text("History", theme, "TextSecondary", theme.LabelSize), "history", theme);
         History.Margin = new Thickness(0, 0, 6, 0);
-        Close = ShopCardBuilder.Button(CardPrimitives.Text("Close", theme, "TextSecondary", 11), "close", theme);
+        Close = ShopCardBuilder.Button(CardPrimitives.Text("Close", theme, "TextSecondary", theme.LabelSize), "close", theme);
         footer.Children.Add(History);
         footer.Children.Add(Close);
         body.Children.Add(footer);

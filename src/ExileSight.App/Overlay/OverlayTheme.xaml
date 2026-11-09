@@ -3,7 +3,7 @@
     <Style TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource OverlayForeground}" />
         <Setter Property="FontFamily" Value="{StaticResource OverlayFont}" />
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontSize" Value="12" />
         <Setter Property="Typography.NumeralAlignment" Value="Tabular" />
     </Style>
 </ResourceDictionary>
