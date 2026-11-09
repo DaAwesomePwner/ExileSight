@@ -45,32 +45,85 @@ public sealed class StashTagsSnapshotTests
     [WindowsOnlyFact] public void StalePrices() => Summary(3, "2 d ago · stale");
 
     [WindowsOnlyFact]
-    public void PositionedTagsAndSummaryMatchOcclusionBounds()
+    public void PositionedTagsAndSummaryMatchOcclusionBounds() => Positioned(1920, 1080);
+
+    [WindowsOnlyFact]
+    public void PositionedTagsAt720p() => Positioned(1280, 720);
+
+    private static void Positioned(int width, int height)
     {
 #if SNAPSHOT_WINDOWS
         Assert.True(File.Exists(SnapshotRenderer.Render(() =>
         {
             var theme = CardTheme.Default;
-            var tags = Fixture();
-            var layout = new Layout("currency", "general", new(900, 400), tags.Select(t => t.Cell).ToArray(),
-                [], new("synthetic", "synthetic", new(2026, 1, 1)));
-            var visuals = StashTagBuilder.Build(layout, tags, new(1.5, 20, 30), new(900, 400),
-                1.5, "14 min ago", theme);
+            // Read shipped measurements; prices and positions remain synthetic.
+            var directory = new DirectoryInfo(AppContext.BaseDirectory);
+            while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "data/stash-layouts/poe1")))
+                directory = directory.Parent;
+            Assert.NotNull(directory);
+            var smallest = Directory.GetFiles(Path.Combine(directory.FullName, "data/stash-layouts/poe1"), "*.layout.json")
+                .Select(path => Layouts.Parse(File.ReadAllText(path)))
+                .SelectMany(l => l.Cells.Select(c => (Layout: l, Cell: c,
+                    Area: c.W * c.H * Math.Pow(1080d / l.ReferenceResolution.Height, 2))))
+                .OrderBy(pair => pair.Area).First();
+            Assert.Equal(36, smallest.Cell.W);
+            Assert.Equal(35, smallest.Cell.H);
+            var tags = Fixture().Select((t, i) => t with
+            {
+                Cell = smallest.Cell with { Id = $"synthetic-{i}", X = 20 + i * 50, Y = 20, Folder = null },
+                Text = new[] { "3.1d", "999", "1234" }[i]
+            }).ToArray();
+            var layout = smallest.Layout with { Cells = tags.Select(t => t.Cell).ToArray() };
+            var resolution = new Resolution(width, height);
+            var transform = ExileSight.Features.Stashninja.Geometry.Fit(layout.ReferenceResolution, resolution);
+            var visuals = StashTagBuilder.Build(layout, tags, transform, resolution, 1, "14 min ago", theme);
             Assert.Equal(4, visuals.Count);
-            var canvas = new Canvas { Width = 600, Height = 267, Background = theme.OverlayBackground };
+            var canvas = new Canvas { Width = width, Height = height, Background = theme.OverlayBackground };
             foreach (var visual in visuals)
             {
                 var bounds = visual.Bounds;
                 visual.Element.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                Assert.Equal(bounds.Width / 1.5, visual.Element.DesiredSize.Width, 5);
-                Assert.Equal(bounds.Height / 1.5, visual.Element.DesiredSize.Height, 5);
-                Canvas.SetLeft(visual.Element, bounds.X / 1.5);
-                Canvas.SetTop(visual.Element, bounds.Y / 1.5);
+                Assert.Equal(bounds.Width, visual.Element.DesiredSize.Width, 5);
+                Assert.Equal(bounds.Height, visual.Element.DesiredSize.Height, 5);
+                Canvas.SetLeft(visual.Element, bounds.X); Canvas.SetTop(visual.Element, bounds.Y);
                 canvas.Children.Add(visual.Element);
+            }
+            canvas.Measure(new Size(width, height));
+            canvas.Arrange(new Rect(0, 0, width, height));
+            canvas.UpdateLayout();
+            for (var i = 0; i < tags.Length; i++)
+            {
+                var border = Assert.IsType<Border>(visuals[i].Element);
+                var text = Assert.IsType<TextBlock>(border.Child);
+                Assert.Equal(TextTrimming.None, text.TextTrimming);
+                Assert.Equal(tags[i].Text, text.Text); // Real smallest cells fit the full examples.
+                var probe = CardPrimitives.Text(text.Text, theme, size: 10, number: true);
+                probe.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                Assert.True(text.ActualWidth >= probe.DesiredSize.Width);
             }
             Assert.True(visuals[^1].Bounds.X > visuals.Take(3).Max(v => v.Bounds.X + v.Bounds.Width));
             return canvas;
-        }, "stash-positioned")));
+        }, $"stash-positioned-{height}")));
+#endif
+    }
+
+    [WindowsOnlyFact]
+    public void NarrowTagsCompactOrDisappearWithoutOcclusionBounds()
+    {
+#if SNAPSHOT_WINDOWS
+        SnapshotRenderer.Render(() =>
+        {
+            var tags = Fixture().Take(2).Select((t, i) => t with
+            { Text = "3.1d", Cell = t.Cell with { W = i == 0 ? 24 : 5 } }).ToArray();
+            var layout = new Layout("synthetic", "general", new(1920, 1080), tags.Select(t => t.Cell).ToArray(),
+                [], new("synthetic", "synthetic", new(2026, 1, 1)));
+            var visuals = StashTagBuilder.Build(layout, tags, new(1, 0, 0), new(1920, 1080), 1,
+                "14 min ago", CardTheme.Default);
+            Assert.Equal(2, visuals.Count); // One compact tag plus summary; omitted tag has no bounds.
+            var tag = Assert.IsType<Border>(visuals[0].Element);
+            Assert.Equal("3d", Assert.IsType<TextBlock>(tag.Child).Text);
+            return tag;
+        }, "stash-compact");
 #endif
     }
 

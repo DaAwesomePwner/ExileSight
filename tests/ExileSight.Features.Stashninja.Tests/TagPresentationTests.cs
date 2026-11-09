@@ -27,6 +27,29 @@ public sealed class TagPresentationTests
         Assert.Equal("0.25", TagPresentation.Price(.25m, null));
     }
 
+    [Theory]
+    [InlineData("3.1d", 4, "3.1d")]
+    [InlineData("3.1d", 3, "3d")]
+    [InlineData("3.19d", 4, "3.1d")]
+    [InlineData("1234", 4, "1234")]
+    [InlineData("12345", 5, "12345")]
+    [InlineData("12345", 4, "12k")]
+    [InlineData("1234", 3, "1k")]
+    [InlineData("1234", 2, "1k")]
+    [InlineData("999", 2, null)]
+    [InlineData("0.25", 3, "0.2")]
+    [InlineData("0.25", 1, null)]
+    [InlineData("3.1d", 1, null)]
+    public void ChoosesCompleteConservativePriceOrOmits(string price, int capacity, string? expected) =>
+        Assert.Equal(expected, TagPresentation.FitPrice(price, text => text.Length <= capacity));
+
+    [Fact] public void UsesMeasuredFitRatherThanCharacterCount()
+    {
+        Assert.Equal("1.2k", TagPresentation.FitPrice("1234", text => text == "1.2k"));
+        Assert.Null(TagPresentation.FitPrice("3.1d", _ => false));
+        Assert.Equal("1.2m", TagPresentation.FitPrice("1234567", text => text.Length <= 4));
+    }
+
     private static PriceTag Tag(string name, decimal chaos) => new(
         new(name, 10, 20, 40, 40, "Currency", ItemName: name), name, chaos, "1", "#FFFFFF", []);
 

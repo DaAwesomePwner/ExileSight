@@ -18,7 +18,7 @@ public static class StashTagBuilder
     {
         var text = CardPrimitives.Text(tag.Text, theme, size: 10, number: true);
         text.Foreground = Brush(TagPresentation.Foreground(tag.Color));
-        text.TextTrimming = TextTrimming.CharacterEllipsis;
+        text.TextTrimming = TextTrimming.None;
         return new Border { Height = 14, Padding = new Thickness(2, 0, 2, 0),
             Background = Brush(tag.Color), Child = text, ClipToBounds = true, IsHitTestVisible = false };
     }
@@ -75,9 +75,22 @@ public static class StashTagBuilder
         var visuals = new List<Visual>();
         foreach (var tag in tags)
         {
-            var element = Tag(tag, theme);
-            element.Measure(new Size(double.PositiveInfinity, 14));
-            var bounds = StashGeometry.CornerTagBounds(layout, tag.Cell, transform, element.DesiredSize.Width);
+            // Decide fit before applying bounds. Include padding and a rounding guard
+            // so the arranged text never needs trimming, even at fractional scales.
+            Border? element = null;
+            double tagWidth = 0;
+            var chosen = TagPresentation.FitPrice(tag.Text, candidate =>
+            {
+                var visual = Tag(tag with { Text = candidate }, theme);
+                visual.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                var guard = 2 * scale / transform.Scale;
+                var measured = Math.Ceiling(visual.DesiredSize.Width + guard);
+                if (measured > tag.Cell.W - 4 || tag.Cell.H - 4 < 14) return false;
+                element = visual; tagWidth = measured;
+                return true;
+            });
+            if (chosen is null || element is null) continue;
+            var bounds = StashGeometry.CornerTagBounds(layout, tag.Cell, transform, tagWidth);
             element.LayoutTransform = new ScaleTransform(transform.Scale / scale, transform.Scale / scale);
             element.Width = bounds.Width / transform.Scale;
             visuals.Add(new(element, bounds));

@@ -8,6 +8,32 @@ public static class TagPresentation
         ? divine.Value.ToString("0.##", CultureInfo.InvariantCulture) + "d"
         : chaos.ToString("0.##", CultureInfo.InvariantCulture);
 
+    // Prefer the full price; compact forms round DOWN to one decimal, then whole
+    // units. Chaos >= 1000 uses k/m/b. Never round a positive price down to zero.
+    public static string? FitPrice(string price, Func<string, bool> fits)
+    {
+        if (fits(price)) return price;
+        var divine = price.EndsWith('d');
+        if (!decimal.TryParse(divine ? price[..^1] : price, NumberStyles.AllowDecimalPoint,
+            CultureInfo.InvariantCulture, out var value) || value <= 0) return null;
+        var suffix = divine ? "d" : "";
+        if (!divine && value >= 1000)
+        {
+            var divisor = value >= 1_000_000_000 ? 1_000_000_000m : value >= 1_000_000 ? 1_000_000m : 1000m;
+            suffix = divisor == 1000 ? "k" : divisor == 1_000_000 ? "m" : "b";
+            value /= divisor;
+        }
+        foreach (var factor in new[] { 10m, 1m })
+        {
+            // Subtract the fractional remainder instead of multiplying large decimals.
+            var rounded = value - value % (1 / factor);
+            if (rounded <= 0) continue;
+            var candidate = rounded.ToString("0.#", CultureInfo.InvariantCulture) + suffix;
+            if (fits(candidate)) return candidate;
+        }
+        return null;
+    }
+
     public static string Foreground(string background)
     {
         static double Linear(byte channel)
