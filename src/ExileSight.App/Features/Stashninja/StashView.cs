@@ -43,6 +43,7 @@ public sealed partial class StashView : StackPanel
     private Layout? layout;
     private PriceOverview? overview;
     private bool pricesIncomplete;
+    private DateTimeOffset? pricesFetchedAt;
     private volatile int generation;
     private DateTimeOffset freshUntil;
     private string? loadedLeagueSetting;
@@ -155,6 +156,8 @@ public sealed partial class StashView : StackPanel
             if (request != generation) return;
             overview = new(results.Where(r => r.Overview is not null).SelectMany(r => r.Overview!.Items).ToArray(),
                 results.Select(r => r.Overview?.ChaosPerDivine).FirstOrDefault(r => r is > 0));
+            pricesFetchedAt = results.Where(r => r.Overview is not null).Any(r => r.UpdatedAt is null)
+                ? null : results.Where(r => r.Overview is not null).Select(r => r.UpdatedAt).Min();
             loadedLeagueSetting = configuredLeague;
             freshUntil = results.Any(r => r.IsStale || r.Overview is null || r.UpdatedAt is null)
                 ? default : results.Min(r => r.UpdatedAt!.Value).AddHours(1);
@@ -171,7 +174,7 @@ public sealed partial class StashView : StackPanel
         var selected = model.Profiles[profile.SelectedIndex];
         var tags = Tags.Build(layout, overview, selected);
         if (autoDetect.IsChecked == true ? automaticPage == layout && !recognitionHidden :
-            window?.RequestedVisible == true) surface.Show(layout, tags);
+            window?.RequestedVisible == true) surface.Show(layout, tags, pricesFetchedAt, services.GetRequiredService<IClock>().UtcNow);
         var search = Tags.Search(tags, selected.Minimum); model.SetSearch(search);
         highlight.Content = $"Highlight above {selected.Minimum}c"; highlight.IsEnabled = search.Text is not null;
         SetStatus(search.Status + $" — {tags.Length}/{layout.Cells.Length} cells priced" +

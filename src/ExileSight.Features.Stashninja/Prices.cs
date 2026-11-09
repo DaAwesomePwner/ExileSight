@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.RegularExpressions;
 using ExileSight.Core.Pricing;
 
@@ -25,8 +24,7 @@ public static class Tags
             {
                 var p = pair.price!;
                 var divine = overview.ToDivine(p.ChaosValue);
-                var text = p.ChaosValue.ToString("0.##", CultureInfo.InvariantCulture) + "c";
-                if (divine is not null) text += " / " + divine.Value.ToString("0.##", CultureInfo.InvariantCulture) + "d";
+                var text = TagPresentation.Price(p.ChaosValue, divine);
                 return new PriceTag(pair.cell, p.Name, p.ChaosValue, text,
                     p.ChaosValue >= profile.High ? profile.HighColor : profile.LowColor, Sparkline(p.History));
             }).ToArray();

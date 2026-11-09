@@ -20,7 +20,8 @@ public sealed class StashModel : IItemMenuProvider
     public string? ProfileNotice { get; private set; }
     public string? LayoutError { get; init; }
     public ThresholdProfile[] Profiles { get; set; } =
-        [new("All", 0, 10, "#CCCCCC", "#FFD700"), new("Valuable", 10, 100, "#99DDFF", "#FFD700")];
+        // TooltipHigh (low) and TooltipBest (high), from App/Ui/Tokens.xaml.
+        [new("All", 0, 10, "#6AA8FF", "#6FE3D5"), new("Valuable", 10, 100, "#6AA8FF", "#6FE3D5")];
     public SearchResult Search => Volatile.Read(ref search);
     public void SetSearch(SearchResult value) => Volatile.Write(ref search, value);
     private Layout? lastLoaded;

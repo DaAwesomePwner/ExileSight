@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Shapes;
+using ExileSight.App.Ui;
 using ExileSight.App.Overlay;
 using ExileSight.Core.Overlay;
 using ExileSight.Features.Stashninja;
@@ -21,6 +20,8 @@ public sealed class TagSurface
     private PriceTag[] tags = [];
     private (Layout Layout, ExileSight.Features.Stashninja.Transform Transform, Resolution Resolution, double Scale)? drawn;
     private PriceTag[] drawnTags = [];
+    private string age = "", drawnAge = "";
+    private ExileSight.Features.Stashninja.Geometry.Bounds[] drawnBounds = [];
     public TagSurface(OverlayHost host, IGameWindow game, CalibrationStore store)
     {
         this.host = host; this.game = game; this.store = store;
@@ -30,26 +31,22 @@ public sealed class TagSurface
         host.SetVisible(window, false);
         host.Changed += (_, _) => Draw();
     }
-    public void Show(Layout? value, PriceTag[] prices)
+    public void Show(Layout? value, PriceTag[] prices, DateTimeOffset? fetchedAt, DateTimeOffset now)
     {
-        layout = value; tags = prices; Draw();
+        layout = value; tags = prices; age = TagPresentation.Age(fetchedAt, now); Draw();
         requested = value is not null;
         UpdateVisibility();
     }
     public void Clear()
     {
-        requested = false; layout = null; tags = []; drawn = null; drawnTags = [];
+        requested = false; layout = null; tags = []; drawn = null; drawnTags = []; drawnBounds = [];
         canvas.Children.Clear();
     }
     public string? VisibleTabId => window.RequestedVisible ? layout?.TabId : null;
     public bool Overlaps(ExileSight.Features.Stashninja.Geometry.Bounds region)
     {
         if (!window.RequestedVisible || layout is null) return false;
-        var client = game.Current.ClientRect;
-        var resolution = new Resolution(client.Width, client.Height);
-        var transform = store.Get(layout, resolution) ?? ExileSight.Features.Stashninja.Geometry.Fit(layout.ReferenceResolution, resolution);
-        return tags.Any(t => RecognitionRegion.Intersects(region,
-            ExileSight.Features.Stashninja.Geometry.TagBounds(layout, t.Cell, transform)));
+        return drawnBounds.Any(bounds => RecognitionRegion.Intersects(region, bounds));
     }
     private void UpdateVisibility()
     {
@@ -62,7 +59,8 @@ public sealed class TagSurface
     { requested = false; if (window.RequestedVisible) host.SetVisible(window, false); }
     private static bool SameTags(PriceTag[] a, PriceTag[] b) => a.Length == b.Length &&
         a.Zip(b).All(p => p.First.Cell == p.Second.Cell && p.First.Text == p.Second.Text &&
-            p.First.Color == p.Second.Color && p.First.Sparkline.SequenceEqual(p.Second.Sparkline));
+            p.First.Color == p.Second.Color && p.First.Name == p.Second.Name && p.First.Chaos == p.Second.Chaos &&
+            p.First.Sparkline.SequenceEqual(p.Second.Sparkline));
     private void Draw()
     {
         if (layout is null) return;
@@ -72,36 +70,23 @@ public sealed class TagSurface
         var transform = store.Get(layout, resolution) ?? ExileSight.Features.Stashninja.Geometry.Fit(layout.ReferenceResolution, resolution);
         var scale = host.EffectiveScale;
         var key = (layout, transform, resolution, scale);
-        if (drawn == key && SameTags(tags, drawnTags)) return;
-        drawn = key; drawnTags = tags;
+        if (drawn == key && drawnAge == age && SameTags(tags, drawnTags)) return;
+        drawn = key; drawnTags = tags; drawnAge = age;
         canvas.Children.Clear();
         var size = ExileSight.Features.Stashninja.Geometry.Viewport(resolution, scale);
         var root = (FrameworkElement)window.Content;
         root.Width = canvas.Width = size.X; root.Height = canvas.Height = size.Y;
-        foreach (var tag in tags)
+        var visuals = StashTagBuilder.Build(layout, tags, transform, resolution, scale, age, CardTheme.Default);
+        drawnBounds = visuals.Select(v => v.Bounds).Select(b =>
+            new ExileSight.Features.Stashninja.Geometry.Bounds(Math.Max(0, b.X), Math.Max(0, b.Y),
+                Math.Max(0, Math.Min(r.Width, b.X + b.Width) - Math.Max(0, b.X)),
+                Math.Max(0, Math.Min(r.Height, b.Y + b.Height) - Math.Max(0, b.Y))))
+            .Where(b => b.Width > 0 && b.Height > 0).ToArray();
+        foreach (var visual in visuals)
         {
-            var bounds = ExileSight.Features.Stashninja.Geometry.TagBounds(layout, tag.Cell, transform);
-            var color = (Brush)new BrushConverter().ConvertFromString(tag.Color)!;
-            var panel = new StackPanel { Width = bounds.Width / scale, ClipToBounds = true,
-                VerticalAlignment = VerticalAlignment.Center,
-                IsHitTestVisible = false, Background = new SolidColorBrush(Color.FromArgb(170, 0, 0, 0)) };
-            panel.Children.Add(new TextBlock { Text = tag.Text, Foreground = color, FontSize = 11,
-                TextAlignment = TextAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis });
-            var chart = new Canvas { Height = 12, IsHitTestVisible = false };
-            var values = tag.Sparkline.Where(v => v.HasValue).Select(v => v!.Value).ToArray();
-            if (values.Length > 0)
-            {
-                var min = values.Min(); var span = Math.Max(1, values.Max() - min);
-                for (int i = 1; i < 7; i++)
-                    if (tag.Sparkline[i - 1] is { } a && tag.Sparkline[i] is { } b)
-                        chart.Children.Add(new Line { X1 = (i - 1) * panel.Width / 6, X2 = i * panel.Width / 6,
-                            Y1 = 12 - (a - min) / span * 12, Y2 = 12 - (b - min) / span * 12, Stroke = color });
-            }
-            panel.Children.Add(chart);
-            var frame = new Border { Width = bounds.Width / scale, Height = bounds.Height / scale,
-                ClipToBounds = true, Child = panel };
-            Canvas.SetLeft(frame, bounds.X / scale); Canvas.SetTop(frame, bounds.Y / scale);
-            canvas.Children.Add(frame);
+            Canvas.SetLeft(visual.Element, visual.Bounds.X / scale);
+            Canvas.SetTop(visual.Element, visual.Bounds.Y / scale);
+            canvas.Children.Add(visual.Element);
         }
     }
 }

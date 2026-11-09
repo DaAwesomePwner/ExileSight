@@ -50,6 +50,16 @@ public static class Geometry
         var height = Math.Max(cell.H * .5, cell.H - 4) * transform.Scale;
         return new(center.X - width / 2, center.Y - height / 2, width, height);
     }
+    // Width is measured by the view in reference pixels; leave the legacy inset
+    // bounds available to calibration diagnostic renderers.
+    public static Bounds CornerTagBounds(Layout layout, Cell cell, Transform transform, double width)
+    {
+        var origin = transform.Apply(Layouts.Origin(layout, cell));
+        width = Math.Min(width, Math.Max(0, cell.W - 4));
+        var height = Math.Min(14, Math.Max(0, cell.H - 4));
+        return new(origin.X + (cell.W - 2 - width) * transform.Scale,
+            origin.Y + (cell.H - 2 - height) * transform.Scale, width * transform.Scale, height * transform.Scale);
+    }
     public static Point Center(Layout l, Cell c)
     { var p = Layouts.Origin(l, c); return new(p.X + c.W / 2, p.Y + c.H / 2); }
 }
