@@ -28,9 +28,9 @@ public static class MapCardBuilder
         var title = new Grid();
         title.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
         title.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
-        var name = Text(model.Result.Name, theme); name.FontWeight = FontWeights.SemiBold;
+        var name = Text(model.Result.Name, theme, size: theme.TitleSize); name.FontWeight = FontWeights.SemiBold;
         title.Children.Add(name);
-        var metadata = Text(model.Metadata, theme, "TextMuted", 10);
+        var metadata = Text(model.Metadata, theme, "TextMuted", theme.LabelSize);
         metadata.Margin = new Thickness(8, 0, 0, 0); Grid.SetColumn(metadata, 1); title.Children.Add(metadata);
         panel.Children.Add(title);
         var tiles = new Grid { Margin = new Thickness(0, 8, 0, 10) };
@@ -43,15 +43,15 @@ public static class MapCardBuilder
             var hint = new Grid { Margin = new Thickness(0, 0, 0, 10) };
             hint.Children.Add(new Rectangle { Stroke = theme.TooltipUnknown, StrokeThickness = 1,
                 StrokeDashArray = Dashes, RadiusX = 3, RadiusY = 3 });
-            var text = Text("Rate each mod once by clicking it. Every later map sorts itself.", theme, "TextSecondary", 12);
+            var text = Text("Rate each mod once by clicking it. Every later map sorts itself.", theme, "TextSecondary", theme.BodySize);
             text.Margin = new Thickness(8); hint.Children.Add(text); panel.Children.Add(hint);
         }
         else
         {
             var band = new WrapPanel();
-            band.Children.Add(Text($"{model.Deadly} deadly  ", theme, "Danger3", 12));
-            band.Children.Add(Text($"{model.Risky} risky  ", theme, "Danger2", 12));
-            band.Children.Add(Text("for your ratings", theme, "TextMuted", 12));
+            band.Children.Add(Text($"{model.Deadly} deadly  ", theme, "Danger3", theme.BodySize));
+            band.Children.Add(Text($"{model.Risky} risky  ", theme, "Danger2", theme.BodySize));
+            band.Children.Add(Text("for your ratings", theme, "TextMuted", theme.BodySize));
             panel.Children.Add(new Border { Background = model.Deadly > 0 ? theme.DangerRowBackground : theme.OverlayRaised,
                 CornerRadius = new CornerRadius(4), Padding = new Thickness(8, 6, 8, 6),
                 Margin = new Thickness(0, 0, 0, 8), Child = band });
@@ -66,8 +66,8 @@ public static class MapCardBuilder
             reveal.Click += (_, _) => { reveal.Visibility = Visibility.Collapsed; hidden.Visibility = Visibility.Visible; };
             panel.Children.Add(reveal); panel.Children.Add(hidden);
         }
-        if (model.Notice is { } notice) panel.Children.Add(Text(notice, theme, "TooltipLow", 11));
-        var footer = Text("Click a mod to cycle 0–3 · rating saved for every map", theme, "TextFaint", 11);
+        if (model.Notice is { } notice) panel.Children.Add(Text(notice, theme, "TooltipLow", theme.LabelSize));
+        var footer = Text("Click a mod to cycle 0–3 · rating saved for every map", theme, "TextFaint", theme.LabelSize);
         footer.Margin = new Thickness(0, 10, 0, 0); panel.Children.Add(footer);
         return CardPrimitives.CardFrame(panel, theme);
     }
@@ -78,8 +78,8 @@ public static class MapCardBuilder
         var display = value is { } number ? number.ToString("0.##", CultureInfo.InvariantCulture) + "%" : null;
         var content = new StackPanel();
         content.Children.Add(CardPrimitives.Text(display ?? "?", theme,
-            good ? "OverlayAccent" : "OverlayForeground", 20, number: true));
-        content.Children.Add(CardPrimitives.Text(label, theme, "TextMuted", 11));
+            good ? "OverlayAccent" : "OverlayForeground", theme.StatValueSize, number: true));
+        content.Children.Add(CardPrimitives.Text(label, theme, "TextMuted", theme.LabelSize));
         var tile = new Border { Background = theme.StatTileBackground, CornerRadius = new CornerRadius(4),
             Padding = new Thickness(8), Child = content };
         tile.Margin = new Thickness(column == 0 ? 0 : 6, 0, 0, 0);
@@ -95,7 +95,7 @@ public static class MapCardBuilder
         if (!row.IsUnknown && row.Rank == 3) grid.Background = theme.DangerRowBackground;
         var pips = row.IsUnknown ? Text("?", theme, "TooltipLow") : Pips(row.Rank, theme);
         pips.Margin = new Thickness(4, 0, 0, 0); grid.Children.Add(pips);
-        var area = Text(MapCardModel.AreaLabel(row), theme, "TextSecondary", 11);
+        var area = Text(MapCardModel.AreaLabel(row), theme, "TextSecondary", theme.LabelSize);
         Grid.SetColumn(area, 1); grid.Children.Add(area);
         var label = Text(row.IsUnknown ? "Not in map data · check in game" : row.Text, theme);
         label.Margin = new Thickness(8, 2, 0, 2); Grid.SetColumn(label, 2); grid.Children.Add(label);
@@ -124,14 +124,14 @@ public static class MapCardBuilder
         grid.ColumnDefinitions.Add(new() { Width = new GridLength(78) });
         grid.ColumnDefinitions.Add(new());
         var pips = Pips(null, theme); pips.Margin = new Thickness(4, 0, 0, 0); grid.Children.Add(pips);
-        var countLabel = Text($"+{count} more", theme, "TextMuted", 11);
+        var countLabel = Text($"+{count} more", theme, "TextMuted", theme.LabelSize);
         Grid.SetColumn(countLabel, 1); grid.Children.Add(countLabel);
         var label = Text("rated 0 · click to show", theme, "TextMuted");
         label.Margin = new Thickness(8, 2, 0, 2); Grid.SetColumn(label, 2); grid.Children.Add(label);
         return Button(grid);
     }
 
-    private static TextBlock Text(string value, CardTheme theme, string key = "OverlayForeground", double size = 13)
+    private static TextBlock Text(string value, CardTheme theme, string key = "OverlayForeground", double? size = null)
     { var text = CardPrimitives.Text(value, theme, key, size); text.TextWrapping = TextWrapping.Wrap; return text; }
     private static Button Button(FrameworkElement content)
     {

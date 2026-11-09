@@ -37,7 +37,7 @@ public static class TimersCardBuilder
                 ? string.Create(CultureInfo.InvariantCulture, $"{(int)row.Value.TotalHours}:{row.Value.Minutes:00}:{row.Value.Seconds:00}")
                 : row.Value.ToString(@"mm\:ss", CultureInfo.InvariantCulture);
             var time = CardPrimitives.Text(value, theme, urgent ? "TooltipLow" :
-                row.Kind == TimerKind.Stopwatch ? "OverlayAccent" : "OverlayForeground", 12, true);
+                row.Kind == TimerKind.Stopwatch ? "OverlayAccent" : "OverlayForeground", theme.NumberSize, true);
             time.FontWeight = FontWeights.SemiBold;
             Grid.SetColumn(time, 1); grid.Children.Add(time); body.Children.Add(grid);
         }

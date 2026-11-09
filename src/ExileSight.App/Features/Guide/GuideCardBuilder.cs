@@ -18,10 +18,10 @@ public static class GuideCardBuilder
         if (model.Act is { } act)
         {
             var header = new DockPanel();
-            var time = CardPrimitives.Text($"{Time(model.ActTime)} · {Time(model.TotalTime)}", theme, "TextMuted", 11, true);
+            var time = CardPrimitives.Text($"{Time(model.ActTime)} · {Time(model.TotalTime)}", theme, "TextMuted", theme.NumberSize, true);
             time.HorizontalAlignment = HorizontalAlignment.Right;
             DockPanel.SetDock(time, Dock.Right); header.Children.Add(time);
-            var title = CardPrimitives.Text("", theme, "TextSecondary", 11);
+            var title = CardPrimitives.Text("", theme, "TextSecondary", theme.LabelSize);
             title.Inlines.Add(new Run($"Act {act}") { Foreground = theme.OverlayAccent, FontWeight = FontWeights.SemiBold });
             title.Inlines.Add(new Run($" · step {model.Step} of {model.StepCount}"));
             header.Children.Add(title); body.Children.Add(header);
@@ -34,7 +34,7 @@ public static class GuideCardBuilder
         }
         foreach (var line in model.Lines.Take(MaximumLines))
         {
-            var text = CardPrimitives.Text(SingleLine(line), theme, size: 15);
+            var text = CardPrimitives.Text(SingleLine(line), theme, size: theme.GuideStepSize);
             text.FontWeight = FontWeights.SemiBold; text.TextTrimming = TextTrimming.CharacterEllipsis;
             body.Children.Add(text);
         }

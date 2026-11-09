@@ -21,10 +21,10 @@ internal static class ItemCardRows
         { Grid.SetColumn(element, column * 2); grid.Children.Add(element); }
         Add(CardPrimitives.Text(row.Slot switch
         { CardSlotKind.Prefix => "P", CardSlotKind.Suffix => "S", CardSlotKind.Implicit => "I",
-            CardSlotKind.Unknown => "?", _ => "" }, theme, "TextFaint", 10), 0);
+            CardSlotKind.Unknown => "?", _ => "" }, theme, "TextFaint", theme.LabelSize), 0);
         Add(CardPrimitives.Text(row.Highlight switch
         { Highlight.Desired => "◆", Highlight.Undesired => "✕", _ => "" }, theme,
-            row.Highlight == Highlight.Undesired ? "TooltipLow" : "OverlayAccent", 10), 1);
+            row.Highlight == Highlight.Undesired ? "TooltipLow" : "OverlayAccent", theme.LabelSize), 1);
         var label = CardPrimitives.Text(row.Label, theme, row.Fixed ? "TextMuted" : row.Crafted ? "TooltipCrafted" :
             row.Highlight == Highlight.Undesired ? "TextSecondary" : "OverlayForeground");
         label.TextTrimming = TextTrimming.CharacterEllipsis;
@@ -32,12 +32,12 @@ internal static class ItemCardRows
         {
             var stack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             stack.Children.Add(label);
-            stack.Children.Add(CardPrimitives.Text($"{row.GameLineCount} game lines", theme, "TextMuted", 9));
+            stack.Children.Add(CardPrimitives.Text($"{row.GameLineCount} game lines", theme, "TextMuted", theme.LabelSize));
             Add(new Border { BorderBrush = theme.TextMuted, BorderThickness = new Thickness(1, 0, 0, 0),
                 Padding = new Thickness(4, 0, 0, 0), Child = stack }, 2);
         }
         else Add(label, 2);
-        if (row.Tier == "·") Add(CardPrimitives.Text("·", theme, "TextMuted", 11, true), 3);
+        if (row.Tier == "·") Add(CardPrimitives.Text("·", theme, "TextMuted", theme.NumberSize, true), 3);
         else
         {
             var kind = row.Tier switch { "imp" => PillKind.Implicit, "ench" => PillKind.Enchant,
@@ -45,7 +45,7 @@ internal static class ItemCardRows
             var tier = int.TryParse(row.Tier.AsSpan(1), out var n) ? n : (int?)null;
             Add(CardPrimitives.TierPill(new(kind, tier, row.TierTone.ToCardTone()), theme), 3);
         }
-        if (row.Fixed) Add(CardPrimitives.Text("fixed", theme, "TextMuted", 11), 4);
+        if (row.Fixed) Add(CardPrimitives.Text("fixed", theme, "TextMuted", theme.LabelSize), 4);
         else
         {
             var roll = new RollBarModel(row.RollPosition is { } p ? (double)p / 100 : null, row.RollTone.ToCardTone());
@@ -58,7 +58,7 @@ internal static class ItemCardRows
         {
             var level = CardPrimitives.Text(row.LevelKind switch
             { CardLevelKind.Known => row.RequiredLevel?.ToString() ?? "—", CardLevelKind.Unknown => "—", _ => "" },
-                theme, "TextMuted", 10, true);
+                theme, "TextMuted", theme.NumberSize, true);
             level.HorizontalAlignment = HorizontalAlignment.Right;
             Add(level, 6);
         }

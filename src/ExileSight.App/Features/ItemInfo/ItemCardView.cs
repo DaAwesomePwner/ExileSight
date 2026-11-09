@@ -37,7 +37,7 @@ public static class ItemCardView
         if (card.NeedsAdvancedCopy) AddFixed(AdvancedHint(theme));
         if (!string.IsNullOrEmpty(notice))
         {
-            var status = CardPrimitives.Text(notice, theme, "TextMuted", 11);
+            var status = CardPrimitives.Text(notice, theme, "TextMuted", theme.LabelSize);
             status.TextTrimming = TextTrimming.CharacterEllipsis;
             AddFixed(status);
         }
@@ -67,7 +67,7 @@ public static class ItemCardView
         { panel.Children.Remove(slots); totalHeight -= slotsHeight; }
         if (totalHeight > maxHeight && rowElements.Count > 0)
         {
-            var more = CardPrimitives.Text($"+{rowElements.Count} more mods", theme, "TextMuted", 11);
+            var more = CardPrimitives.Text($"+{rowElements.Count} more mods", theme, "TextMuted", theme.LabelSize);
             more.Height = theme.RowHeight;
             rows.Children.Add(more);
             var remaining = maxHeight - fixedHeight - Measure(more);
@@ -94,7 +94,7 @@ public static class ItemCardView
         grid.Children.Add(new Rectangle { Stroke = theme.TooltipUnknown, StrokeDashArray = dashes,
             StrokeThickness = 1, RadiusX = 3, RadiusY = 3 });
         var text = CardPrimitives.Text("Tiers and rolls need advanced copy. Turn it back on in Item rules › Omni key.",
-            theme, "TextSecondary", 12);
+            theme, "TextSecondary", theme.BodySize);
         text.TextWrapping = TextWrapping.Wrap; text.Margin = new Thickness(8);
         grid.Children.Add(text);
         return grid;

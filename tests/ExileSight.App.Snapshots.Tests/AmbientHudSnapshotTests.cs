@@ -107,7 +107,7 @@ public sealed class AmbientHudSnapshotTests
             var body = Assert.IsType<StackPanel>(Assert.IsType<Border>(card).Child);
             Assert.Contains(body.Children.OfType<TextBlock>(), text => text.Text == "+88 more lines");
             Assert.Equal(GuideCardBuilder.MaximumLines,
-                body.Children.OfType<TextBlock>().Count(text => text.FontSize == 15));
+                body.Children.OfType<TextBlock>().Count(text => text.FontSize == 14));
             return card;
         }, 340, 440);
 #endif

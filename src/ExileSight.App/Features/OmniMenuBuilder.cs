@@ -12,7 +12,7 @@ public static class OmniMenuBuilder
     public static FrameworkElement Build(OmniMenuPresentation model, CardTheme theme)
     {
         var panel = new StackPanel();
-        var title = CardPrimitives.Text(model.ItemName, theme, "TextSecondary", 11);
+        var title = CardPrimitives.Text(model.ItemName, theme, "TextSecondary", theme.LabelSize);
         title.TextWrapping = TextWrapping.Wrap;
         title.Margin = new Thickness(0, 0, 0, 8);
         panel.Children.Add(title);

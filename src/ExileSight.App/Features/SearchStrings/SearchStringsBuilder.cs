@@ -18,7 +18,7 @@ public static class SearchStringsBuilder
         foreach (var vendor in model.Vendors)
         {
             var selected = vendor == model.SelectedVendor;
-            var label = CardPrimitives.Text(vendor, theme, selected ? "Accent" : "OverlayForeground", 11);
+            var label = CardPrimitives.Text(vendor, theme, selected ? "Accent" : "OverlayForeground", theme.LabelSize);
             var button = OnDemandControls.Button(label, theme, pill: true, selected: selected);
             button.Tag = vendor; button.Margin = new Thickness(0, 0, 6, 6);
             chips.Children.Add(button);
@@ -27,7 +27,7 @@ public static class SearchStringsBuilder
         panel.Children.Add(CardPrimitives.Hairline(theme));
         if (model.Notice is { } notice)
         {
-            var label = CardPrimitives.Text(notice, theme, "TextMuted", 11);
+            var label = CardPrimitives.Text(notice, theme, "TextMuted", theme.LabelSize);
             label.TextWrapping = TextWrapping.Wrap;
             panel.Children.Add(label);
         }
@@ -40,10 +40,10 @@ public static class SearchStringsBuilder
         var footer = new StackPanel { Orientation = Orientation.Horizontal };
         if (model.SelectedVendor is not null)
         {
-            var back = OnDemandControls.Button(CardPrimitives.Text("Back to vendors", theme, "TextMuted", 11), theme);
+            var back = OnDemandControls.Button(CardPrimitives.Text("Back to vendors", theme, "TextMuted", theme.LabelSize), theme);
             back.Name = "Back"; footer.Children.Add(back);
         }
-        var close = OnDemandControls.Button(CardPrimitives.Text("Close", theme, "TextMuted", 11), theme);
+        var close = OnDemandControls.Button(CardPrimitives.Text("Close", theme, "TextMuted", theme.LabelSize), theme);
         close.Name = "Close"; footer.Children.Add(close);
         panel.Children.Add(footer);
         var frame = CardPrimitives.CardFrame(new ScrollViewer
@@ -59,7 +59,7 @@ public static class SearchStringsBuilder
         if (model.LineCount <= 1) return row;
         var panel = new StackPanel();
         panel.Children.Add(row);
-        var hint = CardPrimitives.Text($"wheel ↕ {model.Line}/{model.LineCount}", theme, "TextFaint", 11, true);
+        var hint = CardPrimitives.Text($"wheel ↕ {model.Line}/{model.LineCount}", theme, "TextFaint", theme.NumberSize, true);
         hint.HorizontalAlignment = HorizontalAlignment.Right;
         panel.Children.Add(hint);
         return panel;
