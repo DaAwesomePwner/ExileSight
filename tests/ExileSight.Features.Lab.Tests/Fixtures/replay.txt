@@ -1,0 +1,5 @@
+: You have entered Aspirants' Plaza.
+: You have entered Halls.
+: You have entered Sanitorium.
+: You have entered Unknown lab room.
+: You have entered Coastal Hideout.

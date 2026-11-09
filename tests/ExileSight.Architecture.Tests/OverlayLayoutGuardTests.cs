@@ -11,7 +11,7 @@ public sealed class OverlayLayoutGuardTests
     private static readonly string[] FactoryReceivers =
     [
         "Vaalasync.ShopRegistration", "Stashninja.StashRegistration", "Timers.TimersRegistration",
-        "Events.EventsRegistration", "Guide.GuideRegistration", "MapInfo.MapInfoRegistration",
+        "Events.EventsRegistration", "Guide.GuideRegistration", "Lab.LabRegistration", "MapInfo.MapInfoRegistration",
         "MapTracker.TrackerRegistration", "SearchStrings.SearchStringsRegistration", "Macros.MacrosRegistration"
     ];
 

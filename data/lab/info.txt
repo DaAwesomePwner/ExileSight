@@ -1,0 +1,6 @@
+Trials — Normal: Act 1 Lower Prison; Act 2 Crypt and Chamber of Sins; Act 3 Crematorium, Catacombs and Imperial Gardens.
+Cruel: Act 6 Prison; Act 7 Crypt and Chamber of Sins.
+Merciless: Act 8 Bath House; Act 9 Tunnel; Act 10 Ossuary.
+Uber: trials can appear in maps; an Offering to the Goddess grants entry. Map trials are not required to unlock entry.
+Izaro: mechanics left active in earlier encounters can strengthen later encounters. Watch his attacks and the arena traps.
+Lab: golden keys open golden doors. Darkshrines grant run-specific effects. Leaving the Labyrinth ends the run.

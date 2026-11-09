@@ -51,6 +51,7 @@ Generated from compiled feature manifests and registered default bindings; suppl
 | gearcmp | None | None | `poe1/stats` | None | `poe1/gearcmp/active.json`<br>`poe1/gearcmp/character-{hash}.json`<br>`poe1/gearcmp/default.json` | None |
 | guide | None | None | `poe1/guide` | None | `poe1/guide/progress.json`<br>`poe1/guide/{hash}.json`<br>`user-selected CSV export` | `Control+Shift+F10 → guide:toggle (blocked)`<br>`Control+Shift+F11 → guide:back (blocked)`<br>`Control+Shift+F12 → guide:next (blocked)` |
 | iteminfo | None | None | `poe1/bases`<br>`poe1/mods`<br>`poe1/stats` | None | `active profile JSON (highlight profiles)` | None |
+| lab | None | None | None | `Browser: poelab.com`<br>`Browser: www.poelab.com` | `poe1/lab/{difficulty}.json` | `Control+Shift+L → lab:toggle (blocked)` |
 | macros | `SendChatCommand` | None | None | None | `active profile JSON (commands)` | `F5 → macros:travel (blocked)`<br>`F6 → macros:macro (blocked)` |
 | mapinfo | None | None | `poe1/mapmods` | None | `poe1/mapinfo/ratings.json` | None |
 | maptracker | `SendChatCommand` | None | None | `HTTP: poe.ninja` | `active profile JSON (league)`<br>`poe1/maptracker/{league-hash}.jsonl`<br>`user-selected CSV export` | `Control+Shift+K → maptracker:kills (blocked)`<br>`Control+Shift+M → maptracker:viewer (blocked)` |
