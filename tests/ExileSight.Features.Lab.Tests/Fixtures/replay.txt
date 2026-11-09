@@ -1,0 +1,7 @@
+: You have entered Aspirants' Plaza.
+: You have entered Sanitorium.
+: You have entered Halls.
+: You have entered Sanitorium.
+: You have entered Halls.
+: You have entered Unlisted Town.
+: You have entered Coastal Hideout.

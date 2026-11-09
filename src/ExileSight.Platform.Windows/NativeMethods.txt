@@ -1,0 +1,5 @@
+LoadImage
+DestroyIcon
+GetSystemMetrics
+GetDpiForWindow
+GetSystemMetricsForDpi

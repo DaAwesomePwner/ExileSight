@@ -19,14 +19,15 @@ internal static class TransparencyTable
         {
             Start, "## Transparency", "",
             "Generated from compiled feature manifests and registered default bindings; supplemental file writes and App services are declared in `tests/ExileSight.Transparency.Tests/DeclaredResources.cs`.", "",
-            "| Feature | Game actions | Data packs | Hosts | Writes | Default keys |",
-            "|---|---|---|---|---|---|"
+            "| Feature | Game actions | Screen reads | Data packs | Hosts | Writes | Default keys |",
+            "|---|---|---|---|---|---|---|"
         };
         foreach (var manifest in host.Manifests.OrderBy(m => m.Id, StringComparer.Ordinal))
         {
             var hosts = manifest.NetworkHosts.Select(h => "HTTP: " + h)
                 .Concat(manifest.BrowserHosts.Select(h => "Browser: " + h));
-            lines.Add(Row(manifest.Id, Cell(manifest.GameActions.Select(a => a.ToString())), Cell(manifest.DataPacks),
+            lines.Add(Row(manifest.Id, Cell(manifest.GameActions.Select(a => a.ToString())),
+                Cell(manifest.ScreenReads), Cell(manifest.DataPacks),
                 Cell(hosts), Cell(DeclaredResources.FeatureWrites[manifest.Id]),
                 Cell(host.DefaultBindings.Where(b => b.Command.StartsWith(manifest.Id + ":", StringComparison.Ordinal)).Select(Key))));
         }

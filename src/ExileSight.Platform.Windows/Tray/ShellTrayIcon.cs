@@ -3,6 +3,7 @@ using ExileSight.Platform.Abstractions.Tray;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Shell;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace ExileSight.Platform.Windows.Tray;
 
@@ -11,7 +12,7 @@ public sealed class ShellTrayIconFactory : ITrayIconFactory
     public ITrayIcon Create(nint callbackWindow, nint broadcastWindow) => new ShellTrayIcon(callbackWindow, broadcastWindow);
 }
 
-/// <summary>Uses only owned HWNDs and shared system icons; never opens a game process.</summary>
+/// <summary>Uses only owned HWNDs and an owned application icon; never opens a game process.</summary>
 public sealed class ShellTrayIcon : ITrayIcon
 {
     private const uint CallbackMessage = 0x8001, IconId = 1;
@@ -20,6 +21,9 @@ public sealed class ShellTrayIcon : ITrayIcon
     private readonly uint taskbarCreated;
     private string tooltip = "ExileSight";
     private TrayIconImage icon;
+    private HICON applicationIcon;
+    private uint iconDpi;
+    private bool applicationIconLoadFailed;
     private bool disposed;
     private bool wanted;
     public bool IsVisible { get; private set; }
@@ -133,7 +137,26 @@ public sealed class ShellTrayIcon : ITrayIcon
             uCallbackMessage = CallbackMessage
         };
         var resource = icon switch { TrayIconImage.Information => 32516, TrayIconImage.Warning => 32515, _ => 32512 };
-        data.hIcon = PInvoke.LoadIcon(default, (char*)resource); // Shared system icon: do not destroy.
+        if (icon == TrayIconImage.Application && !applicationIconLoadFailed)
+        {
+            var dpi = PInvoke.GetDpiForWindow(new HWND(callbackWindow));
+            if (applicationIcon.IsNull || dpi != iconDpi)
+            {
+                // Apphost icon group 32512. No LR_SHARED: cache until DPI changes or disposal.
+                int Metric(SYSTEM_METRICS_INDEX index) => dpi == 0
+                    ? PInvoke.GetSystemMetrics(index) : PInvoke.GetSystemMetricsForDpi(index, dpi);
+                var handle = PInvoke.LoadImage(PInvoke.GetModuleHandle(null), (char*)32512,
+                    GDI_IMAGE_TYPE.IMAGE_ICON, Metric(SYSTEM_METRICS_INDEX.SM_CXSMICON),
+                    Metric(SYSTEM_METRICS_INDEX.SM_CYSMICON), 0);
+                if (!applicationIcon.IsNull) PInvoke.DestroyIcon(applicationIcon);
+                applicationIcon = new HICON(handle.Value);
+                iconDpi = dpi;
+                // A missing module resource will not appear later; keep the shared fallback.
+                applicationIconLoadFailed = applicationIcon.IsNull;
+            }
+        }
+        data.hIcon = icon == TrayIconImage.Application && !applicationIcon.IsNull
+            ? applicationIcon : PInvoke.LoadIcon(default, (char*)resource); // Shared fallback: never destroy.
         if (data.hIcon.IsNull) throw new Win32Exception();
         tooltip.AsSpan().CopyTo(data.szTip.AsSpan());
         data.Anonymous.uVersion = 4; // NOTIFYICON_VERSION_4
@@ -173,6 +196,11 @@ public sealed class ShellTrayIcon : ITrayIcon
         if (disposed) return;
         VerifyAccess();
         Hide();
+        if (!applicationIcon.IsNull)
+        {
+            PInvoke.DestroyIcon(applicationIcon);
+            applicationIcon = default;
+        }
         disposed = true;
     }
 }

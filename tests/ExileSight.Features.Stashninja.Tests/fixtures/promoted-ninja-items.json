@@ -1,0 +1,32 @@
+[
+  {
+    "category": "Currency",
+    "id": "hunters-exalted-orb",
+    "name": "Hunter's Exalted Orb",
+    "source": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Currency"
+  },
+  {
+    "category": "Essence",
+    "id": "essence-of-insanity",
+    "name": "Essence of Insanity",
+    "source": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Essence"
+  },
+  {
+    "category": "Essence",
+    "id": "essence-of-horror",
+    "name": "Essence of Horror",
+    "source": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Essence"
+  },
+  {
+    "category": "Essence",
+    "id": "essence-of-delirium",
+    "name": "Essence of Delirium",
+    "source": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Essence"
+  },
+  {
+    "category": "Essence",
+    "id": "essence-of-hysteria",
+    "name": "Essence of Hysteria",
+    "source": "https://poe.ninja/poe1/api/economy/exchange/current/overview?league=Allflame&type=Essence"
+  }
+]

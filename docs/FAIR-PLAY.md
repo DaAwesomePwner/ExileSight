@@ -23,10 +23,22 @@ GGG says new OAuth app registrations are currently closed, and that reverse-engi
 
 - Drawing ExileSight's own top-most, click-through, no-activate windows over the game.
 - Reading `Client.txt`. The first-run wizard tells the user what is read and why.
+- Reading game-client pixels for display-only Stashninja page recognition and grid calibration under the limits below (D-104, 1.1).
 - Reading the text that the game copies to the clipboard after a Ctrl+C sent by the Action Gate.
 - Writing to ExileSight's own settings and data folders under `%APPDATA%\ExileSight`.
 - HTTP GET to poe.ninja for prices and to GitHub for updates and data packs, with an identifiable User-Agent and at least one hour of caching.
 - Opening URLs (wikis, poedb, trade-site searches) in the user's default browser.
+
+## Screen reading limits (D-104)
+
+- Capture only the game client rectangle, only while the game is foreground. A light Stashninja watch is enabled by default and can be disabled with **Show stash prices automatically**, independently of the menu.
+- Check the header every 450 ms; identified Currency/Fragment pages also check the sub-tab strip against a fixed baseline without hiding tags. Stable identified pages have no periodic full capture. While unidentified, sparse fixed-transform grid pre-checks gate full reads at score ≥12.5; unidentified scenes are checked immediately and then no more often than every 1.8 s, regardless of header motion. Wider first-use calibration is limited to one fully admitted batch per header baseline, at most two qualifying uncalibrated candidates, and one attempt per layout per 30 seconds even across watcher resets. A fully admitted batch requires a real header change for another batch; a batch with a cooling top candidate leaves the baseline available, retaining every layout’s 30-second cooldown. The ±12 px pre-check band cannot reliably admit larger first-use offsets; use Ctrl+Shift+N → Auto-calibrate or manual calibration.
+- Recognize the open stash tab/page, locate its grid for calibration, and switch or position displayed price tags only. Screen results never send input or obtain an `IntentToken`.
+- Use GDI `BitBlt` only: no DXGI capture, DirectX/Vulkan hooks or Windows.Graphics.Capture. Exclusive fullscreen may not capture; recommend Windowed Fullscreen.
+- Supported grids are identified and calibrated locally without teaching. Optional user-taught references may still be captured after manual calibration or with **Remember this page**. Store them only on the user’s machine; ship and commit no game images.
+- Declare screen-read purposes in the feature manifest and generated README transparency table. Display-only grid auto-calibration is approved by the owner as an extension of D-104; manual two-click calibration remains the fallback.
+
+Windows drawn over the game (notifications or other overlays) can appear in the sampled region. Samples never leave the PC; only calibration transforms and optional reduced reference signatures are stored locally.
 
 ## Forbidden
 
@@ -62,7 +74,7 @@ GGG says new OAuth app registrations are currently closed, and that reverse-engi
    6. appends one line to the local audit log (`%APPDATA%\ExileSight\logs\actions.log`)
 5. The token is consumed even when the action fails. Retrying needs a new key press.
 
-Timers, the log watcher, poe.ninja responses and future screen checks have no way to obtain a token. They can only update view models.
+Timers, the log watcher, poe.ninja responses and screen checks have no way to obtain a token. They can only update view models.
 
 ### Example: repricing a shop item
 
@@ -80,3 +92,4 @@ In optional note mode, the user instead opens the game's note box, then clicks a
 - [ ] Every new `GameAction` use is reached only from a token created by a user key press or click.
 - [ ] No new network host apart from poe.ninja and GitHub.
 - [ ] The feature's manifest lists every `GameAction` it uses, and the README transparency table is updated.
+- [ ] Every screen-read purpose is declared in the feature manifest and generated README transparency table, and obeys the screen reading limits above.

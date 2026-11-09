@@ -1,0 +1,56 @@
+{
+  "difficulty": "Normal",
+  "date": "2026-11-09",
+  "weapon": "TwoSwords",
+  "phase1": "Fonts",
+  "phase2": "Conduits",
+  "trap1": "Saws",
+  "trap2": "Spikes",
+  "rooms": [
+    {
+      "id": "a",
+      "name": "Sanitorium",
+      "areacode": "synthetic_a",
+      "x": "0",
+      "y": "0",
+      "contents": [],
+      "exits": {
+        "N": "b"
+      }
+    },
+    {
+      "id": "b",
+      "name": "Halls",
+      "areacode": "synthetic_b",
+      "x": "0",
+      "y": "1",
+      "contents": [
+        "darkshrine"
+      ],
+      "exits": {
+        "N": "c"
+      }
+    },
+    {
+      "id": "c",
+      "name": "Sanitorium",
+      "areacode": "synthetic_c",
+      "x": "1",
+      "y": "2",
+      "contents": [],
+      "exits": {
+        "N": "d"
+      }
+    },
+    {
+      "id": "d",
+      "name": "Aspirant\u2019s Trial",
+      "areacode": "synthetic_d",
+      "x": "1",
+      "y": "3",
+      "contents": [],
+      "exits": {}
+    }
+  ],
+  "unknownFutureField": true
+}

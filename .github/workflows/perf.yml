@@ -148,7 +148,7 @@ jobs:
           Copy-Item artifacts/fallback/packs artifacts/velopack/packs -Recurse -Force
           dotnet tool install --global vpk --version 1.2.161
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          vpk pack --packId ExileSight --packVersion 0.1.0 --packDir artifacts/velopack --mainExe ExileSight.App.exe --packTitle ExileSight --outputDir Releases
+          vpk pack --icon src/ExileSight.App/Assets/ExileSight.ico --packId ExileSight --packVersion 0.1.0 --packDir artifacts/velopack --mainExe ExileSight.App.exe --packTitle ExileSight --outputDir Releases
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           New-Item artifacts/perf -ItemType Directory -Force | Out-Null
           Get-ChildItem Releases -File | Select-Object Name, Length | ConvertTo-Json | Set-Content artifacts/perf/distribution-sizes.json

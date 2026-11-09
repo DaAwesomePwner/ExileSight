@@ -5,7 +5,7 @@ It lives in the notification area beside the clock. Right-click its icon for
 **Debug panel**, **Run setup again**, **Open settings folder**, and **Exit**.
 Clicking the icon opens diagnostics; closing that window leaves the app running.
 
-The stash price panel is inactive until supported stash layouts ship.
+The stash price panel supports eight measured pages; see [stashninja](#price-check--stashninja--ctrlshiftn).
 
 This product isn't affiliated with or endorsed by Grinding Gear Games in any way.
 
@@ -53,8 +53,9 @@ remove `%APPDATA%\ExileSight` separately after backing up anything you want.
 ## Fair play: what is read and sent
 
 ExileSight reads the selected game log without changing it, and reads item text
-copied after your hotkey. It does not read game memory, inject code, inspect the
-screen, or change the game window or game files.
+copied after your hotkey. In 1.1, Stashninja may also read pixels of the foreground
+foreground game client to recognize stash pages automatically (D-104). It does not
+read game memory, inject code, or change the game window or game files.
 
 Every game action follows your own physical key press or overlay click, and each
 invocation can perform only one game action: copy an item, paste a search, set a
@@ -102,21 +103,94 @@ are suggestions until you explicitly choose one.
 
 ### Price check / stashninja — Ctrl+Shift+N
 
-Stashninja is the stash-layout price-tag panel, inactive until supported layouts ship.
+Open a supported stash page and poe.ninja prices appear automatically. ExileSight
+identifies the cell arrangement and saves calibration after two consecutive checks agree on the page and position at each resolution;
+no menu, page selection or teaching is required. Closing the stash or opening an
+unknown page hides its tags.
 
-Open **Ctrl+Shift+N**, or choose **Price stash tab…** in the omni menu. Select a
-fixed tab/page and load its poe.ninja prices. Tags describe item types, not your
-stash contents or quantities. The default price league is the current softcore
-challenge league excluding SSF/Ruthless, with Standard as fallback; you can set
-`prices.league` in your profile. Stale or incomplete prices are labelled.
+**Show stash prices automatically** defaults ON. Open Ctrl+Shift+N to turn it off;
+the choice is saved in your profile as `stashninja.automaticPrices`. The optional
+menu also provides price profiles, **Highlight**, **Auto-calibrate**, and manual
+calibration. Failed Auto-calibrate attempts retain the last good calibration and the loaded page’s tags; only the status changes. Foreground loss and page changes still hide tags normally. Its page list follows automatic recognition. For a manual override,
+select a page and click **Load selected tab**. This pins the page even with automatic
+prices enabled, until the header changes or the stash closes; automatic mode then
+resumes. Currency pages are distinguished by the highlighted sub-tab button, without teaching. An ambiguous highlight is not accepted as a currency page. The status shows the automatic page, score and margin for reporting issues. Closing
+the menu does not stop the automatic watch.
 
-**This version ships no supported stash layouts.** Without a measured layout,
-the panel reports that none is available. See the
-[layout instructions](../data/stash-layouts/poe1/README.md) for that requirement.
-With a layout available, calibrate using two distinct **empty** cells while holding
-no item: calibration clicks reach the game. Calibration is saved per layout and
-resolution. A physical **Highlight** click pastes one search; loading prices does
-not. Searches over the game's supported limit are disabled.
+Supported pages: Currency General, Atlas and League; Fragment General; Delve,
+Essence, Blight and Delirium. Unknown/unpriced cells have no tag. Tags describe item
+types, not quantities or ownership. See the [coverage guide](../data/stash-layouts/poe1/README.md).
+Prices default to the current softcore challenge league excluding SSF/Ruthless,
+with Standard as fallback; set `prices.league` to override. Stale or incomplete
+prices are labelled.
+
+If recognition cannot confidently identify the grid, tags stay hidden. Move
+covering windows away, or disable automatic prices and select the page manually.
+**Auto-calibrate** performs a wider grid search. Automatic first-use detection uses stricter score and scale checks; if it cannot confirm the page, try this menu action or manual calibration. As a fallback, select two distinct
+**empty** cells far apart diagonally, click **Calibrate**, then click their centers
+with no item held. These clicks reach the game; Esc cancels. Calibration is local
+and specific to the layout and resolution. A separate physical **Highlight** click
+pastes one search; loading prices never sends input.
+
+The watch checks a small header strip every 450 ms while the game is foreground,
+pausing during calibration. Currency and Fragment also check their sub-tab strip
+with tags visible. These checks compare against the baseline captured when the page
+was identified or last retained. A change waits for one stable tick; after two changing ticks, the watch checks
+anyway. Hovering over the grid alone does not trigger a check. A newly recognized header or sub-tab gets one extra confirmation on the next
+available tick. Once confirmed, a stable page causes no periodic capture or blink.
+
+When no page is identified, sparse border checks at the saved calibration or default
+fit compare dark inner-slot bands, normalized against their neighboring pixels, and gate larger reads; they must score at least 12.5 before a full search starts.
+After the first immediate check, unidentified scenes are checked no more often than
+every 1.8 seconds, even when the moving world changes the header every tick. The
+header itself stays on its 450 ms schedule. An already-calibrated page reopening
+from an unidentified scene normally waits up to one 1.8-second admission interval;
+a change from an identified page is checked after one stable 450 ms header/sub-tab tick.
+First use needs at least two identification ticks: allow roughly 3.6 seconds for
+two admission intervals, or 5.4 seconds if a third tick is needed. Capture, scoring
+and price loading add time. Immediate first checks can finish sooner; missing
+samples or search cooldowns can take longer. Previous-page tags and Highlight are
+unavailable while the new calibration is being confirmed.
+Qualifying uncalibrated candidates can receive one fully admitted wider-search batch per header
+baseline (at most two pages), with a separate 30-second cooldown for each page.
+A fully admitted batch requires a real header change to retry. If a top candidate
+is still cooling down, the baseline stays available for later attempts; each page
+can still be searched at most once per 30 seconds.
+The sparse pre-check only covers a ±12 px band around predicted borders. For larger
+first-use offsets, use Ctrl+Shift+N → **Auto-calibrate** or manual calibration.
+Tags briefly hide while Windows composes a frame without the overlay and the
+watch captures it. A 32 ms fallback applies if that wait fails or returns too
+quickly. Estimated hidden time is about 21–78 ms at 60 Hz, excluding render backlog;
+Windows/driver delays still need in-game measurement. Tags return before scoring. A stuck composition wait times out after 100 ms,
+then uses the 32 ms fallback: a 132 ms wait budget plus capture (roughly
+137–162 ms total), excluding dispatcher/scheduler delays.
+Every new automatic header/sub-tab baseline and hover acknowledgement gets one
+independent confirmation capture on the next available 450 ms tick. A resting
+hover on a correct page with no failed confirmation costs at most that one extra check (one short blink),
+then stays quiet until the mouse moves. With no earlier failed confirmation, a matching normal or hover result can
+confirm it; a failed confirmation counts as the first failure.
+After a stale keep, two fresh failed checks hide the wrong tags: at most 0.9 s
+of scheduling plus those two checks (1.0 s in the replay, roughly 0.9–1.35 s
+estimated in normal operation). Including initial change detection, allow 1.8 s
+plus three checks (~2.4 s estimated). OS/driver stalls can take longer, so these
+are not hard real-time guarantees. A moving-world closed stash without a stale
+pass is checked twice within about 1.8 seconds plus processing. Failure windows
+use completion times and reset after a pass or a gap over four seconds; an
+unconfirmed signature stays pending across that gap. Only confirmed hover
+acknowledgements suppress further captures. After a failed confirmation, two
+consecutive passing confirmations are needed; another failure resets that streak. Moving away resumes debounce.
+A tooltip hiding much of the grid, or hover making another button the clear leader,
+can still hide tags after two failed checks. The next passing identification
+restores them. Avoiding wrong prices takes precedence over retention. Focus loss
+and minimization hide tags immediately. Screen checks never send input.
+
+Only game-client pixels are captured, using GDI BitBlt, with no DXGI capture,
+DirectX/Vulkan hooks or Windows.Graphics.Capture. Use Windowed Fullscreen;
+exclusive fullscreen may not capture. Screen checks never send input or obtain
+an IntentToken. Samples never leave the PC and screenshots are never stored.
+Only calibration and optional reduced references are saved locally; no game images
+ship. **Remember this page** and **Forget this page** remain optional local-reference
+controls for compatibility; automatic identification does not use taught references.
 
 ### Shop repricing / vaalasync — omni
 
@@ -327,3 +401,10 @@ and unknown lines, and retains supported event details. Open and review the resu
 before sharing; automatic redaction cannot guarantee that arbitrary text is safe.
 Avoid `--keep NAME`, which deliberately retains that name. Share the redacted
 excerpt rather than your full `Client.txt` or settings folder.
+
+## Labyrinth — daily import
+Press **Ctrl+Shift+L**. Click **Open poelab**, select today's difficulty on poelab.com, and save the **lab compass file** JSON linked under the daily layout image. ExileSight opens your browser; it never fetches poelab itself.
+
+Click **Import file…**, or copy the JSON text and click **Paste JSON**. Clipboard reads happen only on that click. Invalid/oversized files show an error and preserve your previous map. Startup selects the most recently imported difficulty. Select a difficulty to view its saved import; switching back restores its tracking view, and an active run continues tracking while you browse another map. Import again each day: **OUTDATED** means the file date differs from today's UTC date, assuming a 00:00 UTC reset.
+
+The green room is your last known position. Hover rooms for their names and contents; the legend explains symbols. At Aspirants' Plaza, no room is highlighted. Enter the layout's first room to start room tracking. Adjacent rooms distinguish duplicate names. An uncertain state means the panel could not uniquely identify the transition; don't rely on its highlight until a later transition resolves it. Entering any area absent from the layout clears tracking. The panel lists Izaro information and bundled trial locations/tips; it never controls the game.

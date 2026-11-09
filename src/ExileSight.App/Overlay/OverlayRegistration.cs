@@ -10,6 +10,7 @@ public static class OverlayRegistration
     public static IServiceCollection AddOverlays(this IServiceCollection services)
     {
         services.AddSingleton<IGameWindow, GameWindowTracker>();
+        services.AddSingleton<IScreenSampler, ScreenSampler>();
         services.AddSingleton<IOverlayWindowStyler, OverlayWindowStyler>();
         services.AddSingleton<IProcessStats, OwnProcessStats>();
         services.AddSingleton<OverlayHost>();

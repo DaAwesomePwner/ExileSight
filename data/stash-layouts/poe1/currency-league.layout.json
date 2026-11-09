@@ -1,0 +1,52 @@
+{
+  "tabId": "currency",
+  "page": "league",
+  "referenceResolution": {
+    "width": 2000,
+    "height": 837
+  },
+  "cells": [
+    {
+      "id": "wild-crystallised-lifeforce",
+      "x": 88.0,
+      "y": 145.25,
+      "w": 39.0,
+      "h": 38.5,
+      "category": "Currency",
+      "itemName": "Wild Crystallised Lifeforce"
+    },
+    {
+      "id": "vivid-crystallised-lifeforce",
+      "x": 136.5,
+      "y": 145.25,
+      "w": 39.0,
+      "h": 38.5,
+      "category": "Currency",
+      "itemName": "Vivid Crystallised Lifeforce"
+    },
+    {
+      "id": "primal-crystallised-lifeforce",
+      "x": 88.0,
+      "y": 191.75,
+      "w": 39.0,
+      "h": 38.5,
+      "category": "Currency",
+      "itemName": "Primal Crystallised Lifeforce"
+    },
+    {
+      "id": "sacred-crystallised-lifeforce",
+      "x": 136.5,
+      "y": 191.75,
+      "w": 39.0,
+      "h": 38.5,
+      "category": "Currency",
+      "itemName": "Sacred Crystallised Lifeforce"
+    }
+  ],
+  "folderOffsets": {},
+  "provenance": {
+    "author": "ExileSight contributors; owner-provided screenshot",
+    "method": "measured from screenshot at 2000x837",
+    "date": "2026-11-08"
+  }
+}
