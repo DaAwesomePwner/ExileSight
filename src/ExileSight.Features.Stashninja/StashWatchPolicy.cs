@@ -10,6 +10,8 @@ public sealed class StashWatchPolicy
     private double[]? header, subTab;
     private DateTimeOffset nextCheck, unknownSince;
     private bool unknown;
+    private double[]? pendingHeader, pendingSub;
+    private int keepFailures;
     public bool Identified { get; private set; }
     public bool Pinned { get; private set; }
     public TimeSpan Interval => TimeSpan.FromMilliseconds(1800);
@@ -27,9 +29,13 @@ public sealed class StashWatchPolicy
         if (changed && Identified)
         {
             if (headerChanged) Pinned = false;
-            return new(WatchWork.Identify, true);
+            var stable = pendingHeader is not null && !Changed(pendingHeader, currentHeader!) &&
+                (currentSubTab is null || pendingSub is not null && !Changed(pendingSub, currentSubTab));
+            pendingHeader = (double[])currentHeader!.Clone();
+            pendingSub = currentSubTab is null ? null : (double[])currentSubTab.Clone();
+            return new(stable ? WatchWork.Identify : WatchWork.None, true);
         }
-        unknown = false;
+        unknown = false; pendingHeader = pendingSub = null;
         if (Identified) return new(WatchWork.None);
         return new(now >= nextCheck ? WatchWork.Precheck : WatchWork.None);
     }
@@ -39,6 +45,18 @@ public sealed class StashWatchPolicy
         header = (double[])headerSignature.Clone();
         subTab = subSignature is null ? null : (double[])subSignature.Clone();
         Identified = true; Pinned = pinned; unknown = false;
+        pendingHeader = pendingSub = null; keepFailures = 0;
+    }
+
+    public bool Retain(DateTimeOffset now, bool supported, double[]? currentHeader, double[]? currentSub)
+    {
+        if (supported)
+        {
+            if (PageSignature.Valid(currentHeader)) Accept(currentHeader!, currentSub, Pinned);
+            keepFailures = 0;
+            return false;
+        }
+        return ++keepFailures >= 2 && Unknown(now, true, currentHeader);
     }
 
     // Returns true only on the displayed -> unknown transition.

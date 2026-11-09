@@ -135,7 +135,9 @@ pastes one search; loading prices never sends input.
 The watch checks a small header strip every 450 ms while the game is foreground,
 pausing during calibration. Currency and Fragment also check their sub-tab strip
 with tags visible. These checks compare against the baseline captured when the page
-was identified. A stable page never causes a periodic full read or recurring blink.
+was identified or last retained. A change must settle for one tick before checking
+again. Hovering over the grid alone does not trigger a check. A stable page never
+causes a periodic full read or recurring blink.
 
 When no page is identified, sparse border checks at the saved calibration or default
 fit compare dark inner-slot bands, normalized against their neighboring pixels, and gate larger reads; they must score at least 12.5 before a full search starts.
@@ -143,7 +145,7 @@ After the first immediate check, unidentified scenes are checked no more often t
 every 1.8 seconds, even when the moving world changes the header every tick. The
 header itself stays on its 450 ms schedule. An already-calibrated page reopening
 from an unidentified scene normally waits up to one 1.8-second admission interval;
-a change from an identified page is noticed on the next 450 ms header/sub-tab check.
+a change from an identified page is checked after one stable 450 ms header/sub-tab tick.
 First use needs at least two identification ticks: allow roughly 3.6 seconds for
 two admission intervals, or 5.4 seconds if a third tick is needed. Capture, scoring
 and price loading add time. Immediate first checks can finish sooner; missing
@@ -156,9 +158,14 @@ is still cooling down, the baseline stays available for later attempts; each pag
 can still be searched at most once per 30 seconds.
 The sparse pre-check only covers a ±12 px band around predicted borders. For larger
 first-use offsets, use Ctrl+Shift+N → **Auto-calibrate** or manual calibration.
-Tags can hide during a genuine page-change capture/search. Unknown after a change
-hides tags immediately; otherwise missing or blocked baseline samples must remain
-Unknown for about one second. Screen checks never send input.
+Tags briefly hide once to capture a settled header change, then return before page
+identification scoring. A tooltip or hover that prevents identification keeps the
+current page when enough of its grid remains visible. Currency hover glow does
+not select the hovered page. Total grid occlusion or a closed/unsupported page
+hides tags after two failed checks; the second capture occurs within the same
+brief hidden interval. Focus loss and minimization still hide tags immediately.
+Windows timing remains to be measured; the expected capture interval is under
+about 100 ms. Screen checks never send input.
 
 Only game-client pixels are captured, using GDI BitBlt, with no DXGI capture,
 DirectX/Vulkan hooks or Windows.Graphics.Capture. Use Windowed Fullscreen;

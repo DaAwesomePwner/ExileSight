@@ -28,7 +28,8 @@ public sealed class WatchPolicyTests
         var policy = new StashWatchPolicy();
         policy.Accept(Signature(), Signature());
         Assert.Equal(WatchWork.None, policy.Tick(Start, Signature(.03), Signature(.03)).Work);
-        Assert.Equal(WatchWork.Identify, policy.Tick(Start.AddMilliseconds(450), Signature(header), Signature(sub)).Work);
+        Assert.Equal(WatchWork.None, policy.Tick(Start.AddMilliseconds(450), Signature(header), Signature(sub)).Work);
+        Assert.Equal(WatchWork.Identify, policy.Tick(Start.AddMilliseconds(900), Signature(header), Signature(sub)).Work);
     }
 
     [Fact]
@@ -109,7 +110,8 @@ public sealed class WatchPolicyTests
         policy.Accept(Signature(), Signature(), pinned: true);
         Assert.Equal(WatchWork.None, policy.Tick(Start, Signature(), Signature(.2)).Work);
         Assert.True(policy.Pinned);
-        Assert.Equal(WatchWork.Identify, policy.Tick(Start, Signature(.2), Signature()).Work);
+        Assert.Equal(WatchWork.None, policy.Tick(Start, Signature(.2), Signature()).Work);
+        Assert.Equal(WatchWork.Identify, policy.Tick(Start.AddMilliseconds(450), Signature(.2), Signature()).Work);
         Assert.False(policy.Pinned);
         policy.Accept(Signature(), null, pinned: true);
         Assert.True(policy.Unknown(Start, true, null));

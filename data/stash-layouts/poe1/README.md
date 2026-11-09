@@ -259,37 +259,47 @@ invalidating earlier taught references. Automatic recognition needs no teaching;
 users who use optional taught references can remember those pages again.
 
 
-### S1-R6 retention feasibility investigation
+### Retention evidence (S1-R6)
 
-The proposed tooltip regression needs an explicit exception for total occlusion.
-Currency/League has only four cells: reference x=88..175.5, y=145.25..230.25.
-A 300×220 reference-pixel tooltip at (80,70), covering the header/sub-tab area,
-also covers **all four cells**, including their border probes. This holds at
-both corpus widths (2000 and 3440). Requiring this case to pass a check based
-on P's own remaining grid evidence conflicts with hiding after two failed
-checks. No keep threshold can recover evidence entirely replaced by a tooltip.
-A partial-grid tooltip and a total-grid tooltip need distinct expected outcomes.
+`GridKeep` retains an existing identity at its saved transform, with threshold 15
+versus identification's 16. It samples four inner borders per cell, nine tangent
+points and ±1 reference-pixel normal offsets. At least seven of nine points must
+have valley >12 and absolute contrast ≥6; average the strongest 40% of cells
+(at least two). These scores use a different aggregation from identification.
+Header-only and partial-grid tooltip tests retain at least half the complete cells;
+a tooltip covering all cells fails. The two failure checks use independent captures
+within one hidden interval. Images remain local and uncommitted.
 
-Local, uncommitted experiments used fixed saved transforms from GridLocator,
-four inner borders per cell, nine tangent samples per border, ±1 reference-pixel
-normal offsets, normalized valley contrast, and the strongest 40% of cells.
-Continuous support required at least seven of nine samples to exceed valley 12
-and absolute luminance contrast 6. These are exploratory measurements, **not an
-accepted keep algorithm or production thresholds**:
+The exploratory notes in c91cb89 identified total occlusion of League's four cells
+by a 300×220 box at (80,70); that case now explicitly requires hiding. Current
+regressions cover both widths, every other labelled/unsupported scene, and world
+crops pasted over the stash. Atlas's overlapping grid alone can score as League;
+the button contradiction gate rejects it. The +25 League hover on Atlas actually
+leads by 6.89 at 2000 and 6.12 at calibrated 3440, but Atlas stays ≥6 above the
+third button. Retention therefore requires that the displayed button also lose
+its brightness before treating another leader as a contradiction.
 
-| Scene scored as Currency/League | 2000 px | 3440 px |
-| --- | ---: | ---: |
-| League unobscured | 32.10 | 27.37 |
-| League with the header tooltip above | 0.00 | 0.00 |
-| Atlas (best other labelled scene) | 30.64 | 21.90 |
+Excluding tag rectangles gives zero evidence on all eight pages at both widths
+for these probes. The implementation accepts a short capture hide instead.
+No Windows hidden-time measurement is claimed: one dispatcher render drain plus
+one or two GDI captures and keep scoring is estimated at 5–87 ms; identification
+scoring runs after restoring tags. Validate compositor behavior in game.
 
-Atlas overlap also prevents using a low scalar threshold alone. A sibling
-contradiction rule must accompany any eventual retention implementation.
-Excluding every drawn tag rectangle from these inner-border probes yielded
-0.00 on all eight labelled pages at both widths; this establishes that these
-probes cannot support visible-tag capture, not that every alternative probe
-scheme is impossible. No screenshots were added to the repository.
+Measured scores (raw other-scene scores precede the currency button veto):
 
-Production behavior is unchanged pending the total-occlusion decision. Hidden
-capture duration was not measured on Windows; it remains the existing 32 ms
-fixed wait plus capture/scoring. No new policy sequence outcomes are claimed.
+| Page | 2000 clean / partial / best other | 3440 clean / partial / best other |
+| --- | --- | --- |
+| fragment/general | 26.56 / 23.64 / 8.51 | 24.52 / 21.68 / 7.51 |
+| currency/general | 31.43 / 25.66 / 8.84 | 32.87 / 26.82 / 8.23 |
+| delve/general | 28.29 / 25.45 / 14.80 | 25.94 / 22.30 / 14.34 |
+| blight/general | 23.68 / 18.22 / 9.62 | 22.28 / 18.97 / 7.93 |
+| currency/atlas | 29.20 / 25.35 / 11.90 | 27.24 / 25.25 / 8.95 |
+| delirium/general | 30.27 / 23.13 / 9.44 | 27.09 / 21.83 / 9.17 |
+| essence/general | 23.59 / 21.51 / 9.19 | 23.42 / 19.51 / 7.72 |
+| currency/league | 32.10 / 28.40 / 30.64 | 27.37 / 24.56 / 21.90 |
+
+Header-only scores equal clean scores; total occlusion scores are zero. All other
+labelled scenes (including unsupported src3/8/11) and all tested world crops fail
+retention. League-on-Atlas is the sole above-threshold sibling exception and is
+rejected by its button contradiction. The narrowest raw negative margin is
+Delve-on-League: 14.80 against threshold 15, so in-game validation matters.
