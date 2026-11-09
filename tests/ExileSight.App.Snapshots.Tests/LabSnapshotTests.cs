@@ -31,6 +31,14 @@ public sealed class LabSnapshotTests
     }
 
     [WindowsOnlyFact]
+    public void TwoDigitCurrentRoomFits()
+    {
+#if SNAPSHOT_WINDOWS
+        Render("lab-current-room-two-digits", Layout(new(2026, 11, 9), "12"), "12", "", "Tracking: Trial chamber");
+#endif
+    }
+
+    [WindowsOnlyFact]
     public void OutdatedLayoutWarning()
     {
 #if SNAPSHOT_WINDOWS
@@ -48,10 +56,10 @@ public sealed class LabSnapshotTests
 
 #if SNAPSHOT_WINDOWS
     // Synthetic rooms only: deliberately includes every map symbol, no upstream JSON.
-    private static LabLayout Layout(DateOnly date) => new("Normal", date, "Sword", "Charges", "Idols",
+    private static LabLayout Layout(DateOnly date, string currentId = "2") => new("Normal", date, "Sword", "Charges", "Idols",
         "Spikes", "Blades", [],
-        [new("1", "Entrance", "a", 0, 0, ["darkshrine", "golden-key"], new Dictionary<string, string> { ["E"] = "2" }, null),
-         new("2", "Trial chamber", "b", 1, 1, ["golden-door", "argus", "trap"], new Dictionary<string, string>(), null)]);
+        [new("1", "Entrance", "a", 0, 0, ["darkshrine", "golden-key"], new Dictionary<string, string> { ["E"] = currentId }, null),
+         new(currentId, "Trial chamber", "b", 1, 1, ["golden-door", "argus", "trap"], new Dictionary<string, string>(), null)]);
 
     private static void Render(string name, LabLayout? layout, string? room, string error, string expected)
     {
@@ -66,8 +74,23 @@ public sealed class LabSnapshotTests
             Assert.Equal(new[] { "Open poelab", "Import file…", "Paste JSON", "Close" },
                 OnDemandControls.Buttons(card).Select(b => (string)b.Tag));
             Assert.Contains(Descendants(card).OfType<TextBlock>(), t => t.Text.Contains(expected, StringComparison.Ordinal));
+            Assert.Equal("Normal", Assert.IsType<ComboBox>(card.FindName("Difficulty")).SelectedItem);
             if (room is not null)
-                Assert.Contains(Descendants(card).OfType<TextBlock>(), t => t.Text == "◎" + room);
+            {
+                var map = Assert.Single(Descendants(card).OfType<Canvas>());
+                foreach (var marker in map.Children.OfType<Border>())
+                {
+                    var label = Assert.IsType<TextBlock>(marker.Child);
+                    Assert.Equal(HorizontalAlignment.Center, label.HorizontalAlignment);
+                    label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                    Assert.True(label.DesiredSize.Width <= marker.Width - marker.BorderThickness.Left - marker.BorderThickness.Right);
+                }
+                var current = Assert.Single(map.Children.OfType<Border>(), b => ((TextBlock)b.Child).Text == room);
+                Assert.Same(theme.OverlayAccent, current.Background);
+                Assert.Equal(new Thickness(3), current.BorderThickness);
+                Assert.Contains(Descendants(card).OfType<TextBlock>(), t =>
+                    t.Text.StartsWith("◎ Tracking:", StringComparison.Ordinal) && t.Foreground == theme.OverlayAccent);
+            }
             return card;
         }, name);
         Assert.True(File.Exists(path));

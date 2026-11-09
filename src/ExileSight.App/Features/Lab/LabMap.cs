@@ -26,12 +26,14 @@ internal static class LabMap
         foreach (var room in layout.Rooms)
         {
             var point = Position(room);
+            var roomLabel = CardPrimitives.Text(room.Id, theme,
+                room.Id == current ? "AppNav" : "OverlayForeground", theme.NumberSize, true);
+            roomLabel.HorizontalAlignment = HorizontalAlignment.Center;
             var marker = new Border { Width = 24, Height = 24, CornerRadius = new CornerRadius(12),
                 Background = room.Id == current ? theme.OverlayAccent : theme.OverlayRaised,
                 BorderBrush = theme.TextSecondary, BorderThickness = new Thickness(room.Id == current ? 3 : 1),
                 ToolTip = room.Name + " (" + room.Id + ")\n" + string.Join(", ", room.Contents),
-                Child = CardPrimitives.Text(room.Id == current ? "◎" + room.Id : room.Id, theme,
-                    room.Id == current ? "AppNav" : "OverlayForeground", theme.NumberSize, true) };
+                Child = roomLabel };
             Canvas.SetLeft(marker, point.X - 12); Canvas.SetTop(marker, point.Y - 12); canvas.Children.Add(marker);
             var label = CardPrimitives.Text("", theme, "TextSecondary", theme.LabelSize);
             label.ToolTip = string.Join(", ", room.Contents);

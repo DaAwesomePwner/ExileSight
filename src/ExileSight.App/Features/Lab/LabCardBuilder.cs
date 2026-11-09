@@ -46,7 +46,8 @@ public static class LabCardBuilder
                 warning.FontWeight = FontWeights.SemiBold;
                 content.Children.Add(warning);
             }
-            content.Children.Add(Text(state.Tracking, theme));
+            content.Children.Add(Text((state.RoomId is null ? "" : "◎ ") + state.Tracking, theme,
+                state.RoomId is null ? "OverlayForeground" : "OverlayAccent"));
             content.Children.Add(Text($"Weapon: {layout.Weapon} · Phases: {layout.Phase1}, {layout.Phase2}", theme, "TextSecondary"));
             content.Children.Add(Text($"Traps: {layout.Trap1}, {layout.Trap2}", theme, "TextSecondary"));
             var map = new Canvas { Width = 418, Height = 265, HorizontalAlignment = HorizontalAlignment.Left };
@@ -67,6 +68,8 @@ public static class LabCardBuilder
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled });
         var frame = CardPrimitives.CardFrame(content, theme);
         frame.Width = 444;
+        NameScope.SetNameScope(frame, new NameScope());
+        frame.RegisterName(difficulty.Name, difficulty);
         frame.Resources.MergedDictionaries.Add(new ResourceDictionary
             { Source = new Uri("/ExileSight.App;component/Ui/Tokens.xaml", UriKind.Relative) });
         frame.Resources.MergedDictionaries.Add(new ResourceDictionary

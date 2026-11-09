@@ -81,8 +81,7 @@ public sealed class LabView
             content.Child = card;
             foreach (var button in OnDemandControls.Buttons(card))
                 button.Click += (_, _) => Run(actions[(string)button.Tag]);
-            var controls = (WrapPanel)((StackPanel)card.Child).Children[2];
-            var difficulty = (ComboBox)controls.Children[0];
+            var difficulty = (ComboBox)card.FindName("Difficulty");
             difficulty.SelectionChanged += (_, _) =>
             {
                 if (difficulty.SelectedItem is string selected) Run(() => model.Select(selected));
