@@ -13,7 +13,7 @@ public static class LabCardBuilder
         string error, string tips, DateTimeOffset now, CardTheme theme)
     {
         var content = new StackPanel();
-        var title = Text("Labyrinth", theme);
+        var title = Text("Labyrinth", theme, size: theme.TitleSize);
         title.FontWeight = FontWeights.SemiBold;
         content.Children.Add(title);
         content.Children.Add(Text("Import the daily compass JSON", theme, "TextMuted"));
@@ -79,7 +79,7 @@ public static class LabCardBuilder
         return frame;
     }
 
-    private static TextBlock Text(string value, CardTheme theme, string key = "OverlayForeground", double size = 13)
+    private static TextBlock Text(string value, CardTheme theme, string key = "OverlayForeground", double? size = null)
     {
         var text = CardPrimitives.Text(value, theme, key, size);
         text.TextWrapping = TextWrapping.Wrap;

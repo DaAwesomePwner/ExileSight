@@ -17,7 +17,7 @@ public static class MacroWheelBuilder
         var centre = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         foreach (var text in new[] { "choose", "click" })
         {
-            var label = CardPrimitives.Text(text, theme, "TextMuted", 11);
+            var label = CardPrimitives.Text(text, theme, "TextMuted", theme.LabelSize);
             label.HorizontalAlignment = HorizontalAlignment.Center;
             centre.Children.Add(label);
         }
@@ -29,7 +29,7 @@ public static class MacroWheelBuilder
         {
             var command = model.Commands[i];
             var label = CardPrimitives.Text(string.IsNullOrWhiteSpace(command) ? "Empty" : command,
-                theme, "OverlayForeground", 11, true);
+                theme, "OverlayForeground", theme.NumberSize, true);
             label.TextTrimming = TextTrimming.CharacterEllipsis;
             label.HorizontalAlignment = HorizontalAlignment.Center;
             var button = OnDemandControls.Button(label, theme, pill: true);
@@ -42,7 +42,7 @@ public static class MacroWheelBuilder
             Highlight(button, i == model.HighlightedSlot, theme);
             canvas.Children.Add(button);
         }
-        var edit = OnDemandControls.Button(CardPrimitives.Text("Edit commands", theme, "TextMuted", 11), theme);
+        var edit = OnDemandControls.Button(CardPrimitives.Text("Edit commands", theme, "TextMuted", theme.LabelSize), theme);
         edit.Tag = "edit"; edit.Width = 112;
         Canvas.SetLeft(edit, 144); Canvas.SetTop(edit, 270); canvas.Children.Add(edit);
         return canvas;

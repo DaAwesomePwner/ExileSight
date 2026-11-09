@@ -19,12 +19,12 @@ public static partial class CardPrimitives
     }
 
     public static TextBlock Text(string value, CardTheme theme, string key = "OverlayForeground",
-        double size = 13, bool number = false)
+        double? size = null, bool number = false)
     {
         var text = new TextBlock
         {
             Text = value, Foreground = theme[key], FontFamily = number ? theme.NumberFont : theme.TextFont,
-            FontSize = size, VerticalAlignment = VerticalAlignment.Center
+            FontSize = size ?? (number ? theme.NumberSize : theme.BodySize), VerticalAlignment = VerticalAlignment.Center
         };
         Typography.SetNumeralAlignment(text, FontNumeralAlignment.Tabular);
         return text;
@@ -58,7 +58,7 @@ public static partial class CardPrimitives
         });
         // §8 has no inverse-text token; reuse its darkest solid colour, AppNav,
         // for contrast on filled pills rather than introducing an unspecified token.
-        var text = Text(label, theme, outlined ? "TextMuted" : "AppNav", 11, true);
+        var text = Text(label, theme, outlined ? "TextMuted" : "AppNav", theme.LabelSize, true);
         text.Margin = new Thickness(4, 0, 4, 0);
         text.FontWeight = FontWeights.SemiBold;
         text.HorizontalAlignment = HorizontalAlignment.Center;
@@ -98,7 +98,7 @@ public static partial class CardPrimitives
 
     public static TextBlock RollLabel(RollBarModel model, CardTheme theme) =>
         Text(RollPosition(model)?.ToString("0%", CultureInfo.InvariantCulture) ?? "—",
-            theme, "TextSecondary", 11, true);
+            theme, "TextSecondary", theme.NumberSize, true);
 
     private static double? RollPosition(RollBarModel model) =>
         model.Position is { } value && !double.IsNaN(value) && model.Tone != CardTone.Unknown
@@ -124,7 +124,7 @@ public static partial class CardPrimitives
         if (!double.IsFinite(value)) throw new ArgumentOutOfRangeException(nameof(value));
         return Text((value > 0 ? "▲ " : value < 0 ? "▼ " : "") +
             Math.Abs(value).ToString("0.##", CultureInfo.InvariantCulture), theme,
-            value > 0 ? "TooltipHigh" : value < 0 ? "TooltipLow" : "TextSecondary", 12, true);
+            value > 0 ? "TooltipHigh" : value < 0 ? "TooltipLow" : "TextSecondary", theme.NumberSize, true);
     }
 }
 

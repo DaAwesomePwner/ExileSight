@@ -243,8 +243,8 @@ theme dictionary (desktop window). The six existing tone keys (`TooltipUnknown`,
 Contrast ratios are against the card colour #0F1217. `TextFaint` drops to 4.4:1 on `OverlayRaised`, so use
 Faint only on the card surface; text on raised bands is Muted or brighter. Some mockup labels use #6B7480
 (4.0:1); ship them as `TextFaint`. Type: Segoe UI Variable (fallback Segoe UI) for text, Cascadia Mono
-(fallback Consolas) for numbers, with `Typography.NumeralAlignment="Tabular"`. Overlay: title 13/600, body
-13, labels 11/600 caps +12% tracking, numbers 11–12. App: title 24/700, section 18/700, body 14. Spacing on
+(fallback Consolas) for numbers, with `Typography.NumeralAlignment="Tabular"`. Overlay: title 12/600, body
+12, labels 10/600 caps +12% tracking, numbers 10 (D-119). App: title 24/700, section 18/700, body 14. Spacing on
 a 4 px grid; card padding 10 top, 12 sides; radius 6 (cards), 3 (pills), 4 (bands).
 
 ## 9. New data and settings

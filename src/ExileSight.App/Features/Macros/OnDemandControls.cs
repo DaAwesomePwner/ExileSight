@@ -50,7 +50,7 @@ public static class OnDemandControls
         {
             Content = content, Style = style, Focusable = false,
             BorderThickness = new Thickness(1), Padding = new Thickness(8, 6, 8, 6),
-            FontFamily = theme.TextFont, FontSize = 13
+            FontFamily = theme.TextFont, FontSize = theme.BodySize
         };
     }
 
@@ -70,7 +70,7 @@ public static class OnDemandControls
         name.TextWrapping = TextWrapping.Wrap;
         name.Margin = new Thickness(0, 0, 8, 0);
         row.Children.Add(name);
-        var value = CardPrimitives.Text(detail, theme, "TextFaint", 11, mono);
+        var value = CardPrimitives.Text(detail, theme, "TextFaint", mono ? theme.NumberSize : theme.LabelSize, mono);
         value.MaxWidth = 130;
         value.TextTrimming = TextTrimming.CharacterEllipsis;
         value.ToolTip = detail;
