@@ -1,3 +1,5 @@
+using ExileSight.Core.Settings;
+using ExileSight.Platform.Abstractions.Storage;
 using System.Windows;
 using System.Windows.Controls;
 using ExileSight.App.Ui;
@@ -11,20 +13,23 @@ namespace ExileSight.App.Features.Guide;
 
 public sealed class GuideView
 {
+    private readonly OverlayTheme overlayTheme;
     private readonly GuideModel model;
     private readonly OverlayHost host;
     private readonly IGameWindow game;
     private readonly HostedOverlayWindow panel;
     private readonly Border content = new() { HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
-    private readonly CardTheme theme = CardTheme.Default;
+    private CardTheme theme => overlayTheme.Current;
     private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromSeconds(1) };
     private readonly DispatcherTimer checkpoint = new() { Interval = TimeSpan.FromSeconds(60) };
     private bool saving;
-    public GuideView(GuideModel model, OverlayHost host, IGameWindow game)
+    public GuideView(GuideModel model, OverlayHost host, IGameWindow game, ISettingsStore<SettingsDocument> overlaySettings)
     {
+        overlayTheme = new(overlaySettings);
         this.model = model; this.host = host; this.game = game;
         panel = host.Register(content, DefaultOverlayLayout.Guide, clickThrough: true);
         host.SetVisible(panel, false);
+        overlayTheme.Watch(panel, Refresh);
         host.Changed += FocusChanged;
         panel.IsVisibleChanged += (_, _) => timer.IsEnabled = panel.IsVisible;
         timer.Tick += (_, _) => Refresh();

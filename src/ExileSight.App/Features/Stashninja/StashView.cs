@@ -57,7 +57,7 @@ public sealed partial class StashView : StackPanel
         host = services.GetRequiredService<OverlayHost>();
         var store = new CalibrationStore(Path.Combine(services.GetRequiredService<IAppPaths>().GetGameDirectory("poe1"), "stashninja"));
         calibrationStore = store;
-        surface = new(host, services.GetRequiredService<IGameWindow>(), store);
+        surface = new(host, services.GetRequiredService<IGameWindow>(), store, services.GetRequiredService<ISettingsStore<SettingsDocument>>());
         calibration = new(services.GetRequiredService<PassiveOverlayInput>(), services.GetRequiredService<IGameWindow>(), store);
         InitializeRecognition();
         surface.SetRecognitionRegion(region);

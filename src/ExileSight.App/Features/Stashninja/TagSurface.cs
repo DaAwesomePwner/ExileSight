@@ -1,3 +1,5 @@
+using ExileSight.Core.Settings;
+using ExileSight.Platform.Abstractions.Storage;
 using System.Windows;
 using System.Windows.Controls;
 using ExileSight.App.Ui;
@@ -10,6 +12,7 @@ namespace ExileSight.App.Features.Stashninja;
 
 public sealed class TagSurface
 {
+    private readonly OverlayTheme overlayTheme;
     private readonly Canvas canvas = new() { IsHitTestVisible = false, ClipToBounds = true };
     private readonly OverlayHost host;
     private readonly IGameWindow game;
@@ -25,14 +28,16 @@ public sealed class TagSurface
     private PriceTag[] drawnTags = [];
     private string age = "", drawnAge = "";
     private ExileSight.Features.Stashninja.Geometry.Bounds[] drawnBounds = [];
-    public TagSurface(OverlayHost host, IGameWindow game, CalibrationStore store)
+    public TagSurface(OverlayHost host, IGameWindow game, CalibrationStore store, ISettingsStore<SettingsDocument> overlaySettings)
     {
+        overlayTheme = new(overlaySettings);
         this.host = host; this.game = game; this.store = store;
         // The host owns native placement; never resize again from Changed.
         window = host.Register(canvas, DefaultOverlayLayout.StashRegistration, clickThrough: true);
         window.PhysicalPlacement = (client, _) => client;
         host.SetVisible(window, false);
         host.Changed += (_, _) => Draw();
+        overlayTheme.Watch(window, () => { drawn = null; Draw(); });
     }
     public void Show(Layout? value, PriceTag[] prices, DateTimeOffset? fetchedAt, DateTimeOffset now)
     {
@@ -79,7 +84,7 @@ public sealed class TagSurface
         var size = ExileSight.Features.Stashninja.Geometry.Viewport(resolution, scale);
         var root = (FrameworkElement)window.Content;
         root.Width = canvas.Width = size.X; root.Height = canvas.Height = size.Y;
-        var visuals = StashTagBuilder.Build(layout, tags, transform, resolution, scale, age, CardTheme.Default, recognition);
+        var visuals = StashTagBuilder.Build(layout, tags, transform, resolution, scale, age, overlayTheme.Current, recognition);
         drawnBounds = visuals.Select(v => v.Bounds).Select(b =>
             new ExileSight.Features.Stashninja.Geometry.Bounds(Math.Max(0, b.X), Math.Max(0, b.Y),
                 Math.Max(0, Math.Min(r.Width, b.X + b.Width) - Math.Max(0, b.X)),

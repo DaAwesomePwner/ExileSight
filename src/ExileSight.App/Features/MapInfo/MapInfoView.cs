@@ -25,6 +25,7 @@ public sealed class MapInfoView(PassiveOverlayInput passive, IGameWindow game,
     };
     private readonly ScrollViewer scroll = new() { VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
         HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
+    private CardTheme theme = OverlayTheme.From(settings.Snapshot.Overlay);
     private MapInfoModel? model;
     private nint handle;
     private int originX, originY;
@@ -64,7 +65,8 @@ public sealed class MapInfoView(PassiveOverlayInput passive, IGameWindow game,
         var sections = settings.Snapshot.Features.Sections;
         var thresholds = sections.TryGetValue("mapinfo", out var section) && section.TryGetValue("settings", out var value)
             ? MapInfoSettings.Read(value) : new MapInfoSettings();
-        var card = MapCardBuilder.Build(new(result, thresholds, model!.Notice), CardTheme.Default);
+        theme = OverlayTheme.From(settings.Snapshot.Overlay);
+        var card = MapCardBuilder.Build(new(result, thresholds, model!.Notice), theme);
         card.Width = double.NaN; // Let a visible scrollbar reserve space without clipping the text.
         scroll.HorizontalContentAlignment = HorizontalAlignment.Stretch;
         scroll.Content = card;
@@ -81,9 +83,9 @@ public sealed class MapInfoView(PassiveOverlayInput passive, IGameWindow game,
         if (client.Width <= 0 || client.Height <= 0) throw new InvalidOperationException("Game client has no drawable area");
         scale = OverlayRules.Scale(client.Height, settings.Snapshot.Overlay.ScaleOverride);
         var card = (FrameworkElement)scroll.Content;
-        card.Measure(new Size(CardTheme.Default.CardWidth, double.PositiveInfinity));
+        card.Measure(new Size(theme.CardWidth, double.PositiveInfinity));
         var bounds = PopupPlacement.PlaceCard(client, styler.GetWorkArea(new(originX, originY, 1, 1)), originX, originY,
-            CardTheme.Default.CardWidth, Math.Min(card.DesiredSize.Height, client.Height * .8 / scale), scale,
+            theme.CardWidth, Math.Min(card.DesiredSize.Height, client.Height * .8 / scale), scale,
             settings.Snapshot.Overlay.ToCardPlacementOptions());
         styler.Position(handle, bounds);
         var dpi = VisualTreeHelper.GetDpi(window);
