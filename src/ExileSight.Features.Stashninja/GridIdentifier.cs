@@ -2,13 +2,16 @@ namespace ExileSight.Features.Stashninja;
 
 public sealed record GridIdentification(Layout? Layout, Transform? Transform, double Score, double Margin, string Reason, int Evaluations = 0, int BroadSearches = 0, int ScorePasses = 0, int ScoreSampleReads = 0);
 
+public sealed record GridCandidateEvidence(Layout Layout, GridLocation Location, bool Wide);
+
 /// <summary>Compare all shipped geometries; ambiguity never grants a display identity.</summary>
 public static class GridIdentifier
 {
     public const double MinimumScore = 16, MinimumMargin = 3;
     public static GridIdentification Identify(IReadOnlyList<Layout> layouts, Resolution size, GridSample sample,
         Func<Layout, Transform?> calibration, IReadOnlyDictionary<Layout, double>? precheck = null,
-        Func<IReadOnlyList<Layout>, IReadOnlySet<Layout>>? reserveWideSearch = null, CurrencyButtons? buttons = null)
+        Func<IReadOnlyList<Layout>, IReadOnlySet<Layout>>? reserveWideSearch = null, CurrencyButtons? buttons = null,
+        Action<GridCandidateEvidence>? observe = null)
     {
         if (layouts.Any(a => layouts.Any(b => !ReferenceEquals(a, b) && a.ReferenceResolution == b.ReferenceResolution && a.Cells.SequenceEqual(b.Cells))))
             return new(null, null, 0, 0, "Ambiguous geometry");
@@ -16,9 +19,11 @@ public static class GridIdentifier
         {
             var saved = calibration(layout);
             var start = saved ?? Geometry.Fit(layout.ReferenceResolution, size);
-            return (Layout: layout, Saved: saved, Start: start,
-                Result: GridLocator.Locate(layout, size, start, sample, local: true));
+            var result = GridLocator.Locate(layout, size, start, sample, local: true);
+            return (Layout: layout, Saved: saved, Start: start, LocalScore: result.Score, Result: result, Wide: false);
         }).ToArray();
+        if (observe is not null)
+            foreach (var c in candidates) observe(new(c.Layout, c.Result, false));
         var evaluations = candidates.Sum(c => c.Result.Evaluations);
         var broad = 0;
         var passes = candidates.Sum(c => c.Result.ScorePasses);
@@ -29,9 +34,11 @@ public static class GridIdentifier
             if (ranked.Length == 0) return new(null, null, 0, 0, "No stash", evaluations, broad, passes, reads);
             var best = ranked[0];
             var margin = best.Result.Score - (ranked.Length > 1 ? ranked[1].Result.Score : 0);
+            var strongestOtherLocal = candidates.Where(c => c.Layout != best.Layout).Select(c => c.LocalScore).DefaultIfEmpty(0).Max();
+            var accepted = best.Result.Transform is not null && best.Result.Score >= MinimumScore && margin >= MinimumMargin &&
+                (!best.Wide || GridWideAcceptance.Accepts(best.Result, Geometry.Fit(best.Layout.ReferenceResolution, size), strongestOtherLocal));
             // Buttons may confirm the grid's winner, never select a different sibling.
-            if (best.Layout.TabId == "currency" && best.Result.Transform is not null &&
-                best.Result.Score >= MinimumScore && margin >= MinimumMargin)
+            if (best.Layout.TabId == "currency" && accepted)
             {
                 var sibling = ranked.Where(c => c.Layout.TabId == "currency").Skip(1).FirstOrDefault();
                 var siblingMargin = best.Result.Score - (sibling.Layout is null ? 0 : sibling.Result.Score);
@@ -40,7 +47,6 @@ public static class GridIdentifier
                     return new(null, null, best.Result.Score, Math.Min(margin, siblingMargin), "Currency highlight disagrees", evaluations, broad, passes, reads);
                 margin = Math.Min(margin, button.Margin);
             }
-            var accepted = best.Result.Transform is not null && best.Result.Score >= MinimumScore && margin >= MinimumMargin;
             return new(accepted ? best.Layout : null, accepted ? best.Result.Transform : null,
                 best.Result.Score, margin, accepted ? "Identified" : "Unknown", evaluations, broad, passes, reads);
         }
@@ -60,8 +66,9 @@ public static class GridIdentifier
             var c = candidates[candidate.Index];
             if (allowed is not null && !allowed.Contains(c.Layout)) continue;
             var result = GridLocator.Locate(c.Layout, size, c.Start, sample);
+            observe?.Invoke(new(c.Layout, result, true));
             evaluations += result.Evaluations; passes += result.ScorePasses; reads += result.ScoreSampleReads; broad++;
-            candidates[candidate.Index] = (c.Layout, c.Saved, c.Start, result);
+            candidates[candidate.Index] = (c.Layout, c.Saved, c.Start, c.LocalScore, result, true);
         }
         return Select();
     }

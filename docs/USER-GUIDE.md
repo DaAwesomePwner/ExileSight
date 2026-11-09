@@ -126,7 +126,7 @@ prices are labelled.
 
 If recognition cannot confidently identify the grid, tags stay hidden. Move
 covering windows away, or disable automatic prices and select the page manually.
-**Auto-calibrate** performs a wider grid search. As a fallback, select two distinct
+**Auto-calibrate** performs a wider grid search. Automatic first-use detection uses stricter score and scale checks; if it cannot confirm the page, try this menu action or manual calibration. As a fallback, select two distinct
 **empty** cells far apart diagonally, click **Calibrate**, then click their centers
 with no item held. These clicks reach the game; Esc cancels. Calibration is local
 and specific to the layout and resolution. A separate physical **Highlight** click

@@ -195,7 +195,13 @@ Currency button thirds in `subTabs.currency/general`, `/atlas`, `/league` are
 measured rectangles with provenance. Compare mean luminance after mapping through
 the recovered transform in the grid capture; require a ≥6 lead and agreement with the best currency grid, which must lead its siblings by ≥3. Evaluate buttons only when currency wins the grid comparison. No teaching or stored image is needed.
 Rank qualifying candidates by full grid score plus one tenth of their sparse score. If needed, at most two qualifying uncalibrated candidates get the broad
-±3% height / ±5% scale search (≤40,000 evaluations each).
+±3% height / ±5% scale search (≤40,000 evaluations each). Automatic identification
+accepts a wide-found candidate only at score ≥18, within 1% of Fit scale, and ≥3
+above every other layout's original local score (even if that layout subsequently
+received a wide search). The score floor preserves the weakest real score, 18.40,
+while rejecting the admitted scarab false candidates, 16.45/16.41. The locator's
+all-cell coverage rule for layouts smaller than eight still applies. Manual
+Auto-calibrate retains the wider locator bounds.
 Only one fully admitted wider-search batch is allowed per header baseline, and each layout has a
 separate 30-second cooldown. Reservations are consumed before work, even on failure
 or cancellation; watcher resets do not clear them. A fully admitted batch consumes
@@ -219,8 +225,13 @@ that transition's 32ms compositor delay, capture and off-thread scoring.
 No screenshots or signatures may be committed; samples stay on the PC.
 
 Set `EXILESIGHT_REAL_STASH_DIR` to the local corpus to run `RealImageTests`: all
-150 cases cover identity, admission, unsupported pages and calibration within 2 px
-at 2000 width / 3 px at 3440 width, including ±5 px shifts on both axes. With the
+198 first-use cases retain the original 150 checks and add all ±5 px shifts of
+unsupported pages. Each runs the real sparse crops with no calibration, then the
+production identifier with every admitted wide candidate explicitly permitted and
+the normal currency button rule. The test records the exact number of executed
+wide searches per image/shift, checks that every reservation ran, and reports the
+minimum accepted score against the highest admitted wrong/null candidate. The
+original calibration checks remain within 2 px at 2000 width / 3 px at 3440 width. With the
 variable unset the test skips cleanly. No screenshots belong in this repository.
 `GridTimingTests` logs Release timings (targets: 150 ms local all-eight, 600 ms wide,
 excluding capture and JIT warm-up); shared CI runners do not fail on wall time.
