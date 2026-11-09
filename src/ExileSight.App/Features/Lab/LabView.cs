@@ -84,16 +84,17 @@ public sealed class LabView
     {
         if (!panel.Dispatcher.CheckAccess()) { panel.Dispatcher.BeginInvoke(Refresh); return; }
         var state = model.Snapshot();
-        if (drawnState != state)
+        selecting = true; difficulty.SelectedItem = state.Difficulty; selecting = false;
+        var mapState = (state.Layout, state.RoomId, state.Tracking);
+        if (drawnState != mapState)
         {
             if (state.Layout is { } mapLayout) LabMap.Draw(map, mapLayout, state.RoomId);
             else map.Children.Clear();
-            drawnState = state;
+            drawnState = mapState;
         }
         details.Text = state.Tracking + "\nNo saved layout for this difficulty. Import a compass JSON.";
         if (state.Layout is { } layout)
         {
-            selecting = true; difficulty.SelectedItem = layout.Difficulty; selecting = false;
             details.Text = $"{layout.Difficulty} · {layout.Date:yyyy-MM-dd}" +
                 (layout.IsOutdated(DateTimeOffset.UtcNow) ? " · OUTDATED (reset 00:00 UTC)" : "") +
                 $"\n{state.Tracking}\nWeapon: {layout.Weapon} · Phases: {layout.Phase1}, {layout.Phase2}\nTraps: {layout.Trap1}, {layout.Trap2}";

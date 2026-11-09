@@ -8,7 +8,7 @@ public sealed class LabTracker(LabLayout layout)
     public bool Active => AtPlaza || Current is not null;
     public void Enter(string name)
     {
-        if (name == "Aspirants' Plaza")
+        if (LabAreaName.Matches(name, "Aspirants' Plaza"))
         { Current = null; AtPlaza = true; Uncertain = false; return; }
         if (!layout.Rooms.Any(r => Matches(r, name)))
         { Current = null; AtPlaza = false; Uncertain = false; return; }
@@ -20,5 +20,5 @@ public sealed class LabTracker(LabLayout layout)
         if (matches.Length == 1) { Current = matches[0]; Uncertain = false; return; }
         Uncertain = true;
     }
-    private static bool Matches(LabRoom room, string name) => string.Equals(room.Name, name, StringComparison.OrdinalIgnoreCase);
+    private static bool Matches(LabRoom room, string name) => LabAreaName.Matches(room.Name, name);
 }

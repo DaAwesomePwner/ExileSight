@@ -34,12 +34,17 @@ public static class LabImport
         catch (Exception e) when (e is JsonException or KeyNotFoundException or InvalidOperationException or FormatException)
         { throw new ArgumentException("Invalid lab JSON: missing field or incorrect field type.", e); }
     }
-    private static LabRoom ReadRoom(JsonElement room) => new(Text(room, "id"), Text(room, "name"), Text(room, "areacode"),
+    private static LabRoom ReadRoom(JsonElement room) => new(Text(room, "id"), RoomName(room), Text(room, "areacode"),
         Coordinate(room, "x"), Coordinate(room, "y"), room.GetProperty("contents").EnumerateArray()
             .Select(c => c.GetString() ?? throw new ArgumentException("Contents must be strings.")).ToArray(),
         room.GetProperty("exits").EnumerateObject().ToDictionary(p => p.Name,
             p => p.Value.GetString() ?? throw new ArgumentException("Exit IDs must be strings.")),
         Optional(room, "secretPassage") ?? Optional(room, "secret_passage"));
+    private static string RoomName(JsonElement room)
+    {
+        var name = LabAreaName.Normalize(Text(room, "name"));
+        return name.Length > 0 ? name : throw new ArgumentException("Room name is required.");
+    }
     private static string Text(JsonElement element, string key) =>
         element.GetProperty(key).GetString() is { Length: > 0 } value ? value : throw new ArgumentException($"{key} is required.");
     private static string? Optional(JsonElement element, string key) => element.TryGetProperty(key, out var value) ? value.GetString() : null;

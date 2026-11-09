@@ -49,14 +49,14 @@ public sealed class LabModel(LabStore? store = null)
         }
         Changed?.Invoke();
     }
-    public (LabLayout? Layout, string? RoomId, string Tracking) Snapshot()
+    public (LabLayout? Layout, string? RoomId, string Tracking, string Difficulty) Snapshot()
     {
         lock (sync)
         {
-            if (!layouts.TryGetValue(selected, out var state)) return (null, null, "Not tracking");
+            if (!layouts.TryGetValue(selected, out var state)) return (null, null, "Not tracking", selected);
             var tracker = state.Tracker;
             return (state.Layout, tracker.Current?.Id, tracker.Uncertain ? "Uncertain — last known room" :
-                tracker.AtPlaza ? "At Plaza — not yet in a room" : tracker.Current is null ? "Not tracking" : "Tracking: " + tracker.Current.Name);
+                tracker.AtPlaza ? "At Plaza — not yet in a room" : tracker.Current is null ? "Not tracking" : "Tracking: " + tracker.Current.Name, selected);
         }
     }
 }

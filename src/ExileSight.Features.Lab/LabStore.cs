@@ -10,12 +10,17 @@ public sealed class LabStore(string directory)
     public LabLayout? Load(string difficulty) => File.Exists(PathFor(difficulty)) ? LabImport.Parse(ReadFile(PathFor(difficulty))) : null;
     public string LatestDifficulty()
     {
-        var marker = Path.Combine(directory, "latest.txt");
-        if (!File.Exists(marker)) return "Normal";
-        var difficulty = System.Text.Encoding.UTF8.GetString(ReadFile(marker));
-        if (!LabImport.Difficulties.Contains(difficulty)) throw new ArgumentException("Invalid saved lab difficulty.");
-        return difficulty;
+        try
+        {
+            var marker = Path.Combine(directory, "latest.txt");
+            if (!File.Exists(marker)) return "Normal";
+            var difficulty = System.Text.Encoding.UTF8.GetString(ReadFile(marker)).Trim().Trim('\uFEFF').Trim();
+            return LabImport.Difficulties.FirstOrDefault(d => string.Equals(d, difficulty, StringComparison.OrdinalIgnoreCase)) ?? "Normal";
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
+        { return "Normal"; } // The optional marker must never prevent loading the default layout.
     }
+
     public static byte[] ReadFile(string path)
     {
         using var file = File.OpenRead(path);
