@@ -9,6 +9,20 @@ namespace ExileSight.Platform.Windows.Window;
 /// <summary>Passive desktop capture; each call owns and releases all of its GDI resources.</summary>
 public sealed class ScreenSampler(IGameWindow gameWindow) : IScreenSampler
 {
+    public void WaitForComposition()
+    {
+        var elapsed = System.Diagnostics.Stopwatch.StartNew();
+        var flushed = false;
+        try
+        {
+            if (OperatingSystem.IsWindows()) flushed = PInvoke.DwmFlush().Succeeded;
+        }
+        catch (Exception e) when (e is DllNotFoundException or EntryPointNotFoundException or COMException) { }
+        // A failure or very early return is not evidence of an intervening frame.
+        // Called on the capture worker, never per tile or on the UI dispatcher.
+        if (!flushed || elapsed.Elapsed < TimeSpan.FromMilliseconds(16)) Thread.Sleep(32);
+    }
+
     public ScreenSample? TrySample(PixelRect region)
     {
         var state = gameWindow.Current;

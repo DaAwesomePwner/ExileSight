@@ -1,6 +1,6 @@
 namespace ExileSight.Features.Stashninja;
 
-public sealed record GridIdentification(Layout? Layout, Transform? Transform, double Score, double Margin, string Reason, int Evaluations = 0, int BroadSearches = 0, int ScorePasses = 0, int ScoreSampleReads = 0);
+public sealed record GridIdentification(Layout? Layout, Transform? Transform, double Score, double Margin, string Reason, int Evaluations = 0, int BroadSearches = 0, int ScorePasses = 0, int ScoreSampleReads = 0, Layout? HoverPage = null);
 
 public sealed record GridCandidateEvidence(Layout Layout, GridLocation Location, bool Wide);
 
@@ -44,7 +44,8 @@ public static class GridIdentifier
                 var siblingMargin = best.Result.Score - (sibling.Layout is null ? 0 : sibling.Result.Score);
                 var button = buttons?.Identify(size, sample, best.Result.Transform) ?? (Page: (string?)null, Margin: 0d);
                 if (siblingMargin < MinimumMargin || button.Page != best.Layout.Page)
-                    return new(null, null, best.Result.Score, Math.Min(margin, siblingMargin), "Currency highlight disagrees", evaluations, broad, passes, reads);
+                    return new(null, null, best.Result.Score, Math.Min(margin, siblingMargin), "Currency highlight disagrees", evaluations, broad, passes, reads,
+                        siblingMargin >= MinimumMargin && button.Page is null && buttons is not null ? best.Layout : null);
                 margin = Math.Min(margin, button.Margin);
             }
             return new(accepted ? best.Layout : null, accepted ? best.Result.Transform : null,

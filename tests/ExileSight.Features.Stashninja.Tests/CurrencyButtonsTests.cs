@@ -36,6 +36,38 @@ public sealed class CurrencyButtonsTests
         Assert.True(result.Layout is null || result.Layout.Page == "atlas");
     }
 
+    [Fact]
+    public void AtlasWithNoButtonLeaderRetainsWithoutAdoptingBaseline()
+    {
+        var layouts = Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts"));
+        var atlas = layouts.Single(l => l.TabId == "currency" && l.Page == "atlas");
+        var size = new Resolution(2000, 837);
+        var pixels = GridFixture.Render(atlas, size, new(1, 0, 0), 1, 1);
+        GridFixture.BrightenButton(pixels, size, "league", 45);
+        var sample = new GridSample(0, 0, size.Width, size.Height, pixels);
+        Assert.Null(GridFixture.Buttons.Identify(size, sample).Page);
+        var result = GridIdentifier.Identify(layouts, size, sample,
+            l => Geometry.Fit(l.ReferenceResolution, size), buttons: GridFixture.Buttons);
+        Assert.Null(result.Layout);
+        Assert.Equal(atlas, result.HoverPage);
+        var policy = new StashWatchPolicy();
+        var baseline = new double[PageSignature.Length];
+        var hover = Enumerable.Repeat(.2, PageSignature.Length).ToArray();
+        var now = DateTimeOffset.UnixEpoch;
+        policy.Accept(baseline, baseline);
+        Assert.False(policy.Retain(now, result.HoverPage == atlas, hover, hover, adoptBaseline: false));
+        Assert.True(policy.Identified);
+        Assert.Equal(WatchWork.None, policy.Tick(now, hover, hover).Work);
+        // Round 2 continued: confirm a new hover once, then stay quiet until it moves.
+        Assert.Equal(WatchWork.Identify, policy.Tick(now.AddMilliseconds(450), hover, hover).Work);
+        Assert.False(policy.Retain(now.AddMilliseconds(550), result.HoverPage == atlas, hover, hover, adoptBaseline: false));
+        for (var i = 2; i <= 100; i++)
+            Assert.Equal(WatchWork.None, policy.Tick(now.AddMilliseconds(i * 450), hover, hover).Work);
+        var moved = Enumerable.Repeat(.4, PageSignature.Length).ToArray();
+        Assert.Equal(WatchWork.None, policy.Tick(now.AddSeconds(46), moved, moved).Work);
+        Assert.Equal(WatchWork.Identify, policy.Tick(now.AddSeconds(46.45), moved, moved).Work);
+    }
+
     [Theory]
     [InlineData("general")]
     [InlineData("atlas")]

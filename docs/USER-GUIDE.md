@@ -135,7 +135,9 @@ pastes one search; loading prices never sends input.
 The watch checks a small header strip every 450 ms while the game is foreground,
 pausing during calibration. Currency and Fragment also check their sub-tab strip
 with tags visible. These checks compare against the baseline captured when the page
-was identified. A stable page never causes a periodic full read or recurring blink.
+was identified or last retained. A change waits for one stable tick; after two changing ticks, the watch checks
+anyway. Hovering over the grid alone does not trigger a check. A newly recognized header or sub-tab gets one extra confirmation on the next
+available tick. Once confirmed, a stable page causes no periodic capture or blink.
 
 When no page is identified, sparse border checks at the saved calibration or default
 fit compare dark inner-slot bands, normalized against their neighboring pixels, and gate larger reads; they must score at least 12.5 before a full search starts.
@@ -143,7 +145,7 @@ After the first immediate check, unidentified scenes are checked no more often t
 every 1.8 seconds, even when the moving world changes the header every tick. The
 header itself stays on its 450 ms schedule. An already-calibrated page reopening
 from an unidentified scene normally waits up to one 1.8-second admission interval;
-a change from an identified page is noticed on the next 450 ms header/sub-tab check.
+a change from an identified page is checked after one stable 450 ms header/sub-tab tick.
 First use needs at least two identification ticks: allow roughly 3.6 seconds for
 two admission intervals, or 5.4 seconds if a third tick is needed. Capture, scoring
 and price loading add time. Immediate first checks can finish sooner; missing
@@ -156,9 +158,31 @@ is still cooling down, the baseline stays available for later attempts; each pag
 can still be searched at most once per 30 seconds.
 The sparse pre-check only covers a ±12 px band around predicted borders. For larger
 first-use offsets, use Ctrl+Shift+N → **Auto-calibrate** or manual calibration.
-Tags can hide during a genuine page-change capture/search. Unknown after a change
-hides tags immediately; otherwise missing or blocked baseline samples must remain
-Unknown for about one second. Screen checks never send input.
+Tags briefly hide while Windows composes a frame without the overlay and the
+watch captures it. A 32 ms fallback applies if that wait fails or returns too
+quickly. Estimated hidden time is about 21–78 ms at 60 Hz, excluding render backlog;
+Windows/driver delays still need in-game measurement. Tags return before scoring. A stuck composition wait times out after 100 ms,
+then uses the 32 ms fallback: a 132 ms wait budget plus capture (roughly
+137–162 ms total), excluding dispatcher/scheduler delays.
+Every new automatic header/sub-tab baseline and hover acknowledgement gets one
+independent confirmation capture on the next available 450 ms tick. A resting
+hover on a correct page with no failed confirmation costs at most that one extra check (one short blink),
+then stays quiet until the mouse moves. With no earlier failed confirmation, a matching normal or hover result can
+confirm it; a failed confirmation counts as the first failure.
+After a stale keep, two fresh failed checks hide the wrong tags: at most 0.9 s
+of scheduling plus those two checks (1.0 s in the replay, roughly 0.9–1.35 s
+estimated in normal operation). Including initial change detection, allow 1.8 s
+plus three checks (~2.4 s estimated). OS/driver stalls can take longer, so these
+are not hard real-time guarantees. A moving-world closed stash without a stale
+pass is checked twice within about 1.8 seconds plus processing. Failure windows
+use completion times and reset after a pass or a gap over four seconds; an
+unconfirmed signature stays pending across that gap. Only confirmed hover
+acknowledgements suppress further captures. After a failed confirmation, two
+consecutive passing confirmations are needed; another failure resets that streak. Moving away resumes debounce.
+A tooltip hiding much of the grid, or hover making another button the clear leader,
+can still hide tags after two failed checks. The next passing identification
+restores them. Avoiding wrong prices takes precedence over retention. Focus loss
+and minimization hide tags immediately. Screen checks never send input.
 
 Only game-client pixels are captured, using GDI BitBlt, with no DXGI capture,
 DirectX/Vulkan hooks or Windows.Graphics.Capture. Use Windowed Fullscreen;
