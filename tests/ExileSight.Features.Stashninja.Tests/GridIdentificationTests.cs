@@ -51,6 +51,11 @@ public sealed class GridIdentificationTests(ITestOutputHelper output)
             output.WriteLine($"{layout.TabId}/{layout.Page} {size}: {watch.ElapsedMilliseconds}ms, {result.Score:F2}, margin {result.Margin:F2}");
             Assert.Equal(layout, result.Layout);
             Assert.NotNull(result.Transform);
+            if (result.BroadSearches != 0)
+            {
+                var local = GridLocator.Locate(layout, size, fit, new(0, 0, size.Width, size.Height, pixels), local: true);
+                output.WriteLine($"Local {layout.TabId}/{layout.Page}, offset {offset}, fit {fit}: {local}");
+            }
             Assert.Equal(0, result.BroadSearches);
             Assert.InRange(result.Evaluations, 1, layouts.Length * 559);
             if (layout.TabId == "currency") Assert.True(result.Margin >= 10);

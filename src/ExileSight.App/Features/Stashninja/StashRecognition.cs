@@ -80,7 +80,7 @@ public sealed partial class StashView
             recognitionTimer.Start();
         else
         {
-            recognitionTimer.Stop(); automaticEpoch++; automaticPage = null; watchPolicy = new();
+            recognitionTimer.Stop(); calibrationConfirmation.Reset(); automaticEpoch++; automaticPage = null; watchPolicy = new();
             if (autoDetect.IsChecked == true) surface.Hide();
             ResetRecognition();
         }

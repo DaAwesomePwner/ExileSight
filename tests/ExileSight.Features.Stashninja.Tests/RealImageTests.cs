@@ -22,12 +22,13 @@ public sealed class RealImageTests(ITestOutputHelper output)
         var folder = Environment.GetEnvironmentVariable("EXILESIGHT_REAL_STASH_DIR")!;
         var labels = JsonSerializer.Deserialize<Dictionary<string, string?>>(File.ReadAllText(Path.Combine(folder, "labels.json")))!;
         var layouts = Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts"));
-        var failures = new List<string>();
+        var failures = new List<string>(); var cases = 0;
         foreach (var (name, expected) in labels.Where(p => p.Key.StartsWith("src", StringComparison.Ordinal)))
         foreach (var width in new[] { 2000, 3440 })
         foreach (var shiftX in expected is null ? new[] { 0 } : new[] { 0, -5, 5 })
         foreach (var shiftY in expected is null ? new[] { 0 } : new[] { 0, -5, 5 })
         {
+            cases++;
             var bytes = File.ReadAllBytes(Path.Combine(folder, "bmp", $"{name}-{width}.bmp"));
             var offset = BitConverter.ToInt32(bytes, 10);
             var size = new Resolution(BitConverter.ToInt32(bytes, 18), -BitConverter.ToInt32(bytes, 22));
@@ -66,6 +67,18 @@ public sealed class RealImageTests(ITestOutputHelper output)
             if (!StashWatchPolicy.ShouldIdentify(pre[layout])) failures.Add($"{tag}: precheck {pre[layout]:F2}");
             if (wide!.Transform is null || error > (width == 2000 ? 2 : 3)) failures.Add($"{tag}: wide error {error:F2}");
         }
+        foreach (var width in new[] { 2000, 3440 })
+        {
+            var bytes = File.ReadAllBytes(Path.Combine(folder, "bmp", $"src6-{width}.bmp"));
+            var size = new Resolution(BitConverter.ToInt32(bytes, 18), -BitConverter.ToInt32(bytes, 22));
+            var pixels = bytes.AsSpan(BitConverter.ToInt32(bytes, 10), size.Width * size.Height * 4).ToArray();
+            GridFixture.BrightenButton(pixels, size, "league", 25);
+            var pre = GridPrecheck.Score(layouts, size, _ => null, a => GridFixture.Crop(pixels, size, a));
+            var result = GridIdentifier.Identify(layouts, size, new(0, 0, size.Width, size.Height, pixels), _ => null, pre, buttons: GridFixture.Buttons);
+            output.WriteLine($"Atlas +25 League hover {width}: {result.Layout?.Page ?? "Unknown"}, score={result.Score:F2}, margin={result.Margin:F2}");
+            if (result.Layout is not null && result.Layout.Page != "atlas") failures.Add($"Atlas hover/{width}: {result.Layout.Page}");
+        }
+        output.WriteLine($"Checked {cases} image/shift cases and two Atlas hover-glow cases; {failures.Count} failures.");
         Assert.True(failures.Count == 0, string.Join(Environment.NewLine, failures));
     }
 }

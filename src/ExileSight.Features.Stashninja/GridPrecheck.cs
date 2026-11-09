@@ -46,9 +46,14 @@ public static class GridPrecheck
                             var a = Read(n - flank, t); var b = Read(n, t); var c = Read(n + flank, t);
                             var contrast = GridEvidence.Valley(a, b, c);
                             left += a; center += b; right += c;
-                            if (contrast > 8) supported++;
+                            if (contrast > 12 && (a + c) / 2 - b >= 6) supported++;
                         }
-                        if (supported >= 17) best = Math.Max(best, GridEvidence.Valley(left / 19, center / 19, right / 19));
+                        if (supported >= 18)
+                        {
+                            var flankLevel = (left + right) / 38;
+                            var darkSupport = Math.Clamp((flankLevel - 8) / 20, 0, 1);
+                            best = Math.Max(best, darkSupport * GridEvidence.Valley(left / 19, center / 19, right / 19));
+                        }
                     }
                     total += best;
                 }

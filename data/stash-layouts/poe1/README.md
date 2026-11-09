@@ -174,34 +174,34 @@ Unidentified scenes use sparse fixed-transform border pre-checks, no scale or
 translation search: eight 33×33 patches per layout, at most 69,696 pixels for all
 eight pages. The profile scans up to a ±12px normal band (scaled flanks reduce the range at
 larger client scales) for coherent borders, requiring
-17/19 normalized valley samples above 8. Score ≥12.5 gates full capture/identification.
+≥18/19 samples to have normalized valley evidence >12 and absolute contrast ≥6 luminance. Weight line evidence by clamp((mean flank luminance − 8)/20, 0, 1) to suppress dark speckle. Score ≥12.5 gates full capture/identification.
 After the initial immediate check, unidentified scenes have a minimum 1800 ms
 interval even if the header changes every tick. Header checks remain 450 ms. A
 supported stash waits at most 1.8 s for the gate, plus capture/scoring/price loading.
 
 Local identification compares every layout within ±3 px / ±0.3% scale, with
-refinement (≤559 evaluations per layout). Require normalized inner-band score ≥24,
-≥65% supported cells (evidence >6) and runner-up margin ≥3. The locator requires
-joint score ≥20, final aligned score ≥18 and wide confidence ≥2.5.
+refinement (≤559 evaluations per layout). Require normalized inner-band score ≥16,
+≥65% supported cells (evidence >6; all cells for layouts smaller than eight) and runner-up margin ≥3. The locator requires
+joint score ≥14, final aligned score ≥12 and wide confidence ≥2.5.
 Near bands are 3 reference pixels inset (Blight 1.5; Delve X 2.5/Y 3.5);
 far bands are 8 pixels inset (Blight/Essence 8.5; Delve X 8.5/Y 7).
 These offsets come from local median strip profiles; tag geometry is unchanged.
-Normalize each valley against the mean of its two flanks. Near/far pairs share
+Normalize each valley by 16 plus the mean of its two flanks, setting depths below 4 luminance to zero. Discount layouts with fewer than eight sampled cells by .6 + count/20 (four cells: .8), and subtract 1.5 points per 1% scale drift beyond 0.5% from the start on these small layouts. This limits broad-search overfitting of a few slots. Recheck continuous-band evidence at the recovered transform using the sparse profile; insufficient continuity returns zero evidence. Near/far pairs share
 one ±2-reference-pixel offset during search. Trim the strongest quarter of cells;
 the final sub-pixel joint fit has no per-cell offset freedom. Track the strongest
 aligned candidate throughout search so refinement does not inherit a displaced
-maximum from the tolerant score. Local boundary hits require wider calibration.
+maximum from the tolerant score. Local boundary hits at the cell centroid require wider calibration; scale/translation compensation alone is not a boundary hit.
 Currency button thirds in `subTabs.currency/general`, `/atlas`, `/league` are
 measured rectangles with provenance. Compare mean luminance after mapping through
-the recovered transform; require a ≥6 lead. No teaching or stored image is needed.
-If needed, at most two qualifying uncalibrated candidates get the broad
+the recovered transform in the grid capture; require a ≥6 lead and agreement with the best currency grid, which must lead its siblings by ≥3. Evaluate buttons only when currency wins the grid comparison. No teaching or stored image is needed.
+Rank qualifying candidates by full grid score plus one tenth of their sparse score. If needed, at most two qualifying uncalibrated candidates get the broad
 ±3% height / ±5% scale search (≤40,000 evaluations each).
 Only one fully admitted wider-search batch is allowed per header baseline, and each layout has a
 separate 30-second cooldown. Reservations are consumed before work, even on failure
 or cancellation; watcher resets do not clear them. A fully admitted batch consumes
 the baseline and requires a real header change to retry. If any top candidate is
 cooling down, keep the baseline available for later attempts while retaining each
-layout’s 30-second cooldown. Save a successful calibration per geometry/resolution. Offsets
+layout’s 30-second cooldown. Save a first-use calibration per geometry/resolution only after two consecutive identifications agree on the page and every cell position within 1 px. Keep the first result only as a transient start for confirmation. Offsets
 outside the ±12 px sparse band need Ctrl+Shift+N → Auto-calibrate or manual calibration.
 
 Menu Load pins a manual selection until the header changes or the stash closes.
@@ -222,6 +222,20 @@ Set `EXILESIGHT_REAL_STASH_DIR` to the local corpus to run `RealImageTests`: all
 150 cases cover identity, admission, unsupported pages and calibration within 2 px
 at 2000 width / 3 px at 3440 width, including ±5 px shifts on both axes. With the
 variable unset the test skips cleanly. No screenshots belong in this repository.
-`GridTimingTests` enforces Release budgets of 150 ms for a local all-eight tick and
-600 ms for a wide search, excluding capture and JIT warm-up. Evaluation/pixel caps
-and watch cadence are unchanged.
+`GridTimingTests` logs Release timings (targets: 150 ms local all-eight, 600 ms wide,
+excluding capture and JIT warm-up); shared CI runners do not fail on wall time.
+It asserts candidate, scoring-pass and map-read counts deterministically. Candidate
+caps count transforms, not scoring passes: at most two passes per candidate plus
+16 final passes, each reading at most 24 cells × 12 probes × 5 offsets × 4 map values.
+Two evidence maps additionally read at most nine luminances per captured pixel each,
+after one luminance conversion pass. Final continuity verification rereads at most
+8,712 pixels from the existing capture, with the same bounded sparse-patch loops.
+Capture pixel caps and watch cadence are unchanged. Tests include 128 deterministic
+dark correlated-noise scenes (clipping both before and after blur), black/mid-grey
+frames at both widths, synthetic and real Atlas hover-glow rejection, and the
+first-use confirmation guard. Fixtures use independent measured band offsets and
+at least ±7 levels of luminance noise.
+
+The new `currency/*` recognition rectangle keys change `RecognitionRegion.Fingerprint`,
+invalidating earlier taught references. Automatic recognition needs no teaching;
+users who use optional taught references can remember those pages again.

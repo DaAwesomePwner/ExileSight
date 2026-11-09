@@ -11,7 +11,9 @@ public static class GridEvidence
     public static double Valley(double left, double center, double right)
     {
         var flank = (left + right) / 2;
-        return Math.Clamp(100 * (flank - center) / (8 + flank), -100, 100);
+        var depth = flank - center;
+        var supportedDepth = Math.Abs(depth) >= 4 ? depth : 0;
+        return Math.Clamp(100 * supportedDepth / (16 + flank), -100, 100);
     }
 
     internal static float[] Map(float[] luminance, int width, int height, double scale, bool vertical, GridArea area)

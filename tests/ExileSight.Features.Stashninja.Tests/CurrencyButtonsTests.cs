@@ -21,6 +21,21 @@ public sealed class CurrencyButtonsTests
             _ => null, buttons: GridFixture.Buttons).Layout);
     }
 
+    [Fact]
+    public void HoverCannotChooseBetweenCompetingCurrencyGrids()
+    {
+        var layouts = Layouts.LoadDirectory(Path.Combine(AppContext.BaseDirectory, "layouts"));
+        var atlas = layouts.Single(l => l.TabId == "currency" && l.Page == "atlas");
+        var league = layouts.Single(l => l.TabId == "currency" && l.Page == "league");
+        var size = new Resolution(2000, 837);
+        var pixels = GridFixture.Render(atlas with { Cells = [.. atlas.Cells, .. league.Cells] }, size, new(1, 0, 0), 1, 1);
+        GridFixture.BrightenButton(pixels, size, "atlas", -30);
+        GridFixture.BrightenButton(pixels, size, "league", 25);
+        Assert.Equal("league", GridFixture.Buttons.Identify(size, new(0, 0, size.Width, size.Height, pixels)).Page);
+        var result = GridIdentifier.Identify(layouts, size, new(0, 0, size.Width, size.Height, pixels), _ => null, buttons: GridFixture.Buttons);
+        Assert.True(result.Layout is null || result.Layout.Page == "atlas");
+    }
+
     [Theory]
     [InlineData("general")]
     [InlineData("atlas")]

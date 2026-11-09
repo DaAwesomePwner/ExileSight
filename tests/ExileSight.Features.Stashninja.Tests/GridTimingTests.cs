@@ -28,15 +28,15 @@ public sealed class GridTimingTests(ITestOutputHelper output)
         Assert.Equal(page, result.Layout);
         Assert.Equal(0, result.BroadSearches);
         Assert.InRange(result.Evaluations, 1, layouts.Length * 559);
+        Assert.InRange(result.ScorePasses, result.Evaluations, 2 * result.Evaluations + layouts.Length * 16);
+        Assert.InRange(result.ScoreSampleReads, 1, result.ScorePasses * 24 * 12 * 5 * 4);
         watch.Restart();
         var wide = GridLocator.Locate(page, size, fit, sample);
         var wideMs = watch.Elapsed.TotalMilliseconds;
         Assert.NotNull(wide.Transform);
         Assert.InRange(wide.Evaluations, 1, GridLocator.MaxEvaluations);
+        Assert.InRange(wide.ScorePasses, wide.Evaluations, 2 * wide.Evaluations + 16);
+        Assert.InRange(wide.ScoreSampleReads, 1, wide.ScorePasses * 24 * 12 * 5 * 4);
         output.WriteLine($"Local all-eight: {localMs:F1} ms; wide: {wideMs:F1} ms; capture excluded");
-#if !DEBUG
-        Assert.InRange(localMs, 0, 150);
-        Assert.InRange(wideMs, 0, 600);
-#endif
     }
 }

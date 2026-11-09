@@ -54,6 +54,19 @@ public sealed class GridLocatorTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void BoundaryCaptureWithNoAlignedFitReturnsNotLocated()
+    {
+        var layout = GridFixture.Layout with { ReferenceResolution = new(100, 100), Cells =
+        [new("a", 0, 10, 30, 30, "Currency"), new("b", 33, 10, 30, 30, "Currency"),
+         new("c", 0, 43, 30, 30, "Currency"), new("d", 33, 43, 30, 30, "Currency")] };
+        var pixels = new byte[58 * 80 * 4];
+        var result = GridLocator.Locate(layout, new(100, 100), new(1, 2, 0), new(0, 0, 58, 80, pixels), local: true);
+        Assert.Null(result.Transform);
+        Assert.Contains("captured area", result.Reason);
+        Assert.InRange(result.Evaluations, 1, 559);
+    }
+
+    [Fact]
     public void RefusesNoiseFlatAndUnrelatedImages()
     {
         var layout = GridFixture.Layout; var size = new Resolution(1000, 600);

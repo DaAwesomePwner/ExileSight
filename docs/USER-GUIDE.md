@@ -104,7 +104,7 @@ are suggestions until you explicitly choose one.
 ### Price check / stashninja — Ctrl+Shift+N
 
 Open a supported stash page and poe.ninja prices appear automatically. ExileSight
-identifies the cell arrangement and saves calibration the first time at each resolution;
+identifies the cell arrangement and saves calibration after two consecutive checks agree on the page and position at each resolution;
 no menu, page selection or teaching is required. Closing the stash or opening an
 unknown page hides its tags.
 
