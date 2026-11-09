@@ -31,6 +31,7 @@ public sealed class ScreenSamplerIntegrationTests
             Assert.True(state.IsForeground);
             PaintPattern(hwnd);
             var sampler = new ScreenSampler(window);
+            sampler.WaitForComposition(); // Like production: let DWM present the painted pattern before reading the screen.
             var sample = sampler.TrySample(new(2, 3, 8, 6));
             Assert.NotNull(sample);
             Assert.Equal(8, sample.Width);
