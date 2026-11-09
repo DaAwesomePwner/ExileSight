@@ -42,7 +42,7 @@ public sealed partial class StashView
         var initial = Game.Current; var resolution = ClientResolution;
         var epoch = automaticEpoch; var request = generation;
         bool Current() => epoch == automaticEpoch && request == generation && !calibration.IsActive &&
-            autoDetect.IsChecked == true && GridCapture.Current(Game.Current, initial);
+            WatchEnabled && GridCapture.Current(Game.Current, initial);
         try
         {
             var saved = model.Layouts.ToDictionary(l => l, l => calibrationStore.Get(l, resolution) ?? calibrationConfirmation.Pending(l, resolution));
@@ -141,9 +141,16 @@ public sealed partial class StashView
     {
         var now = services.GetRequiredService<IClock>().UtcNow;
         calibrationConfirmation.Reset();
-        if (!(automaticPage is not null
+        var wasIdentified = automaticPage is not null;
+        var hidden = wasIdentified
             ? watchPolicy.Retain(now, false, header, null)
-            : watchPolicy.Unknown(now, changed, header))) return;
+            : watchPolicy.Unknown(now, changed, header);
+        if (!model.AutomaticPrices && (!wasIdentified || hidden))
+        {
+            EndPriceVisit();
+            return;
+        }
+        if (!hidden) return;
         generation++; Invalidate();
         automaticPage = null; recognitionHidden = true;
         automaticStatus = "auto: unknown";
@@ -154,7 +161,7 @@ public sealed partial class StashView
     private async Task LoadManual()
     {
         var selected = model.Layouts.FirstOrDefault(l => tab.SelectedItem as string == l.TabId + "/" + l.Page);
-        if (autoDetect.IsChecked == true && selected is not null && WatchHeader() is { } header)
+        if (WatchEnabled && selected is not null && WatchHeader() is { } header)
         {
             automaticEpoch++;
             watchPolicy.Accept(header, WatchSubTab(selected), pinned: true);

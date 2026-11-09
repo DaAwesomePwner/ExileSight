@@ -7,7 +7,7 @@ namespace ExileSight.Features.Stashninja.Tests;
 public sealed class AutomaticSettingTests
 {
     [Fact]
-    public void DefaultsOnAndPersistsOffAcrossRegistration()
+    public void DefaultsOffAndPersistsExplicitChoiceAcrossRegistration()
     {
         var values = new Dictionary<string, JsonElement>();
         StashModel Register()
@@ -19,7 +19,7 @@ public sealed class AutomaticSettingTests
             return model;
         }
         var first = Register();
-        Assert.True(first.AutomaticPrices);
+        Assert.False(first.AutomaticPrices);
         first.SetAutomaticPrices(false);
         Assert.False(Register().AutomaticPrices);
         first.SetAutomaticPrices(true);
