@@ -401,3 +401,10 @@ and unknown lines, and retains supported event details. Open and review the resu
 before sharing; automatic redaction cannot guarantee that arbitrary text is safe.
 Avoid `--keep NAME`, which deliberately retains that name. Share the redacted
 excerpt rather than your full `Client.txt` or settings folder.
+
+## Labyrinth — daily import
+Press **Ctrl+Shift+L**. Click **Open poelab**, select today's difficulty on poelab.com, and save the **lab compass file** JSON linked under the daily layout image. ExileSight opens your browser; it never fetches poelab itself.
+
+Click **Import file…**, or copy the JSON text and click **Paste JSON**. Clipboard reads happen only on that click. Invalid/oversized files show an error and preserve your previous map. Startup selects the most recently imported difficulty. Select a difficulty to view its saved import; switching back restores its tracking view, and an active run continues tracking while you browse another map. Import again each day: **OUTDATED** means the file date differs from today's UTC date, assuming a 00:00 UTC reset.
+
+The green room is your last known position. Hover rooms for their names and contents; the legend explains symbols. At Aspirants' Plaza, no room is highlighted. Enter the layout's first room to start room tracking. Adjacent rooms distinguish duplicate names. An uncertain state means the panel could not uniquely identify the transition; don't rely on its highlight until a later transition resolves it. Entering any area absent from the layout clears tracking. The panel lists Izaro information and bundled trial locations/tips; it never controls the game.

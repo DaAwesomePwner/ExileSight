@@ -35,7 +35,7 @@ public static class FeatureRegistration
         MapTracker.TrackerRegistration.Create(services),
         Timers.TimersRegistration.Create(services),
         new ExileSight.Features.Events.EventsFeature(),
-        Guide.GuideRegistration.Create(services)];
+        Guide.GuideRegistration.Create(services), Lab.LabRegistration.Create(services)];
     public static IServiceCollection AddFeatureModules(this IServiceCollection services)
     {
         services.AddSingleton<IBrowser, WindowsBrowser>();
@@ -71,6 +71,7 @@ public static class FeatureRegistration
         Timers.TimersRegistration.Register(services, views);
         Events.EventsRegistration.Register(services, views);
         Guide.GuideRegistration.Register(services, views);
+        Lab.LabRegistration.Register(services, views);
         MapInfo.MapInfoRegistration.Register(services, views);
         MapTracker.TrackerRegistration.Register(services, views);
         views.RegisterManaged<ExileSight.Features.ItemInfo.ItemInfoViewModel>(services.GetRequiredService<ItemInfo.ItemInfoTooltip>().Start);
